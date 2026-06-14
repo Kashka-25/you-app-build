@@ -1,0 +1,10 @@
+{
+  "name": "YOU - Your Own Universe",
+  "short_name": "YOU",
+  "description": "Your personal universe of habits, goals and dreams",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1410",
+  "theme_color": "#1a1410",
+  "orientation": "portrait"
+}

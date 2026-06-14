@@ -1,0 +1,47 @@
+/* layout.css - app shell, avatar panel, header, xp bar, stats, tabs */
+
+/* Layout */
+.app-layout { display:flex; min-height:100vh; }
+.main-content { flex:1; min-width:0; max-width:800px; }
+
+/* Avatar */
+.avatar-panel { width:220px; flex-shrink:0; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:hidden; border-right:1px solid var(--border); }
+.avatar-env { position:absolute; inset:0; transition:background 3s ease; z-index:0; }
+.avatar-being { position:relative; z-index:1; width:140px; height:180px; transition:all 1s ease; }
+.avatar-being svg { width:100%; height:100%; }
+.avatar-name { position:relative; z-index:1; font-family:"Cormorant Garamond",serif; font-size:.85rem; font-weight:300; letter-spacing:.15em; color:var(--gold); margin-top:.75rem; text-transform:uppercase; }
+.avatar-level { position:relative; z-index:1; font-size:10px; letter-spacing:.1em; color:var(--mist); margin-top:4px; }
+
+/* Header */
+.header { padding:1.25rem 1.5rem 1rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem; }
+.header-left { display:flex; align-items:baseline; gap:1rem; }
+.header h1 { font-family:"Cormorant Garamond",serif; font-size:1.75rem; font-weight:300; letter-spacing:.15em; color:var(--gold); }
+.subtitle { font-size:11px; letter-spacing:.2em; color:var(--mist); text-transform:uppercase; }
+.header-right { display:flex; align-items:center; gap:1rem; }
+.user-greeting { font-family:"Cormorant Garamond",serif; font-style:italic; font-size:13px; color:var(--mist); }
+.sync-status { font-size:10px; letter-spacing:.1em; color:var(--sage); text-transform:uppercase; }
+.signout-btn { background:none; border:none; color:rgba(154,136,112,.4); cursor:pointer; font-size:16px; transition:color .2s; }
+.signout-btn:hover { color:var(--ember); }
+
+/* XP */
+.xp-bar-wrap { padding:.6rem 1.5rem; background:var(--earth); display:flex; align-items:center; gap:1rem; border-bottom:1px solid var(--border); }
+.xp-label { font-size:11px; letter-spacing:.15em; color:var(--mist); text-transform:uppercase; min-width:60px; }
+.xp-track { flex:1; height:4px; background:rgba(255,255,255,.07); border-radius:2px; overflow:hidden; }
+.xp-fill { height:100%; background:linear-gradient(90deg,var(--ember-dim),var(--ember)); border-radius:2px; transition:width .8s cubic-bezier(.4,0,.2,1); }
+.xp-level { font-family:"Cormorant Garamond",serif; font-size:12px; color:var(--ember); min-width:110px; text-align:right; }
+
+/* Stats */
+.stats-row { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:rgba(255,255,255,.04); border-bottom:1px solid var(--border); }
+.stat-cell { background:var(--bark); padding:.65rem .25rem; text-align:center; }
+.stat-num { font-family:"Cormorant Garamond",serif; font-size:1.5rem; font-weight:300; color:var(--ember); display:block; line-height:1; }
+.stat-name { font-size:8px; letter-spacing:.15em; color:var(--mist); text-transform:uppercase; margin-top:3px; display:block; }
+
+/* Tabs */
+.tabs { display:flex; padding:0 1.5rem; border-bottom:1px solid var(--border); overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.tab { font-family:"DM Sans",sans-serif; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--mist); background:none; border:none; border-bottom:2px solid transparent; padding:.6rem .8rem; cursor:pointer; transition:all .2s; margin-bottom:-1px; white-space:nowrap; flex-shrink:0; }
+.tab.active { color:var(--gold); border-bottom-color:var(--ember); }
+.tab:hover:not(.active) { color:var(--cream); }
+
+/* Panels */
+.panel { padding:1.25rem 1.5rem; display:none; }
+.panel.active { display:block; }

@@ -1,0 +1,64 @@
+/* calendar.css - memory bank, astrology, calendar, mood */
+
+/* Memory */
+.memory-bank { display:flex; flex-direction:column; gap:6px; }
+.memory-item { background:var(--earth2); border:1px solid rgba(122,140,94,.18); border-radius:6px; padding:.8rem 1rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.memory-star { color:var(--sage); font-size:13px; flex-shrink:0; }
+.memory-name { font-size:13px; color:var(--cream); flex:1; min-width:100px; }
+.memory-date { font-size:11px; color:var(--mist); opacity:.7; }
+.memory-xp { font-size:11px; color:var(--ember); }
+
+/* Astro */
+.astro-banner { background:linear-gradient(135deg,var(--earth2),rgba(212,168,90,0.04)); border:1px solid rgba(212,168,90,.2); border-radius:10px; padding:1.25rem; margin-bottom:1rem; }
+.astro-loading { font-family:"Cormorant Garamond",serif; font-style:italic; font-size:13px; color:var(--mist); text-align:center; padding:1rem; animation:pulse 2s ease-in-out infinite alternate; }
+@keyframes pulse { to { opacity:0.4; } }
+.astro-top { display:flex; align-items:center; gap:1rem; margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid rgba(212,168,90,.1); flex-wrap:wrap; }
+.astro-moon { font-size:2.5rem; line-height:1; flex-shrink:0; }
+.astro-info { flex:1; }
+.astro-phase { font-family:"Cormorant Garamond",serif; font-size:1.1rem; color:var(--gold); }
+.astro-sign { font-size:11px; color:var(--mist); margin-top:2px; }
+.astro-personal { font-size:10px; letter-spacing:.1em; text-transform:uppercase; padding:4px 10px; border-radius:20px; border:1px solid rgba(212,168,90,.25); color:var(--gold); background:rgba(212,168,90,.06); white-space:nowrap; }
+.astro-body { display:flex; flex-direction:column; gap:8px; }
+.astro-row { display:flex; gap:10px; align-items:flex-start; }
+.astro-label { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--mist); min-width:65px; padding-top:2px; flex-shrink:0; }
+.astro-text { font-size:13px; color:var(--cream); line-height:1.5; flex:1; }
+.seasonal-banner { background:linear-gradient(135deg,var(--earth2),rgba(122,140,94,0.06)); border:1px solid rgba(122,140,94,.25); border-radius:8px; padding:1rem 1.25rem; margin-bottom:1rem; display:none; }
+.seasonal-banner.show { display:block; }
+.seasonal-title { font-family:"Cormorant Garamond",serif; font-size:1rem; font-weight:300; color:var(--sage); margin-bottom:4px; }
+.seasonal-desc { font-size:12px; color:var(--mist); line-height:1.5; }
+
+/* Calendar */
+.cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+.cal-title { font-family:"Cormorant Garamond",serif; font-size:1.3rem; font-weight:300; color:var(--gold); letter-spacing:.1em; }
+.cal-nav { background:none; border:1px solid rgba(196,120,58,.2); color:var(--mist); width:28px; height:28px; border-radius:4px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.cal-nav:hover { border-color:var(--ember); color:var(--cream); }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; }
+.cal-day-label { font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--mist); text-align:center; padding-bottom:4px; opacity:.6; }
+.cal-cell { aspect-ratio:1; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--mist); background:rgba(255,255,255,.03); border:1px solid transparent; flex-direction:column; gap:2px; position:relative; }
+.cal-cell.today { border-color:rgba(196,120,58,.4); color:var(--cream); }
+.cal-cell.has-activity { background:rgba(196,120,58,.12); color:var(--cream); }
+.cal-cell.has-achievement { background:rgba(122,140,94,.2); border-color:rgba(122,140,94,.3); }
+.cal-cell.has-completion { background:rgba(212,168,90,.2); border-color:rgba(212,168,90,.4); }
+.cal-cell.is-solstice { border-color:rgba(212,168,90,.6); }
+.cal-cell.is-equinox { border-color:rgba(122,140,94,.6); }
+.cal-cell .dot { width:4px; height:4px; border-radius:50%; background:var(--ember); }
+.cal-cell.has-achievement .dot { background:var(--sage); }
+.cal-cell.has-completion .dot { background:var(--gold); }
+.cal-cell.empty-cell { opacity:0; pointer-events:none; }
+.cal-season-label { font-size:7px; color:var(--gold); letter-spacing:.05em; position:absolute; bottom:1px; }
+
+/* Mood */
+.mood-section { margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border); }
+.mood-title { font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--mist); margin-bottom:1rem; }
+.mood-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.mood-btn { width:38px; height:38px; border-radius:50%; border:1.5px solid rgba(196,120,58,.2); background:none; font-size:17px; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; }
+.mood-btn:hover,.mood-btn.selected { border-color:var(--ember); background:var(--glow); }
+.mood-label { font-size:11px; color:var(--mist); margin-left:4px; }
+.energy-wrap { display:flex; align-items:center; gap:10px; margin-top:.75rem; }
+.energy-label { font-size:11px; color:var(--mist); min-width:55px; }
+input[type=range] { -webkit-appearance:none; flex:1; height:4px; background:rgba(255,255,255,.08); border-radius:2px; outline:none; cursor:pointer; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--ember); cursor:pointer; }
+.energy-val { font-size:12px; color:var(--ember); min-width:20px; }
+.mood-log { margin-top:1rem; display:flex; flex-direction:column; gap:4px; max-height:120px; overflow-y:auto; }
+.mood-entry { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--mist); padding:4px 0; border-bottom:1px solid rgba(196,120,58,.06); }
+.mood-entry:last-child { border-bottom:none; }

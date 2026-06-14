@@ -1,0 +1,55 @@
+/* auth.css - auth screen, onboarding, level-up overlay */
+
+/* Auth */
+#authScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem; }
+.auth-wrap { max-width:380px; width:100%; text-align:center; }
+.auth-star { font-size:2.5rem; color:var(--gold); margin-bottom:1rem; animation:obPulse 3s ease-in-out infinite alternate; }
+.auth-title { font-family:"Cormorant Garamond",serif; font-size:3rem; font-weight:300; letter-spacing:.3em; color:var(--gold); }
+.auth-sub { font-size:11px; letter-spacing:.25em; text-transform:uppercase; color:var(--mist); margin-bottom:2rem; }
+.auth-desc { font-family:"Cormorant Garamond",serif; font-style:italic; font-size:1rem; color:var(--mist); line-height:1.7; margin-bottom:1.5rem; }
+.auth-input { background:rgba(0,0,0,.25); border:1px solid rgba(196,120,58,.25); color:var(--cream); font-family:"DM Sans",sans-serif; font-size:15px; padding:12px 16px; border-radius:6px; outline:none; transition:border-color .2s; text-align:center; width:100%; margin-bottom:12px; }
+.auth-input:focus { border-color:var(--ember); }
+.auth-input::placeholder { color:var(--mist); opacity:.5; }
+.auth-btn { width:100%; background:var(--ember-dim); border:1px solid var(--ember); color:var(--cream); font-family:"DM Sans",sans-serif; font-size:12px; letter-spacing:.15em; padding:13px; border-radius:4px; cursor:pointer; transition:all .2s; text-transform:uppercase; }
+.auth-btn:hover { background:var(--ember); }
+.auth-btn:disabled { opacity:.5; cursor:default; }
+.auth-error { color:#c46060; font-size:12px; margin-top:10px; min-height:16px; }
+.auth-sent-icon { font-size:2.5rem; color:var(--gold); margin-bottom:1rem; }
+.auth-email { color:var(--ember); font-style:normal; font-family:"DM Sans",sans-serif; font-size:14px; }
+.auth-hint { font-size:11px; color:var(--mist); opacity:.6; margin-top:1rem; }
+
+/* Onboarding */
+#onboarding { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:2rem; }
+.ob-wrap { max-width:480px; width:100%; text-align:center; }
+.ob-star { font-size:2.5rem; color:var(--gold); display:block; margin-bottom:1.5rem; animation:obPulse 3s ease-in-out infinite alternate; }
+@keyframes obPulse { to { opacity:0.5; text-shadow:0 0 20px var(--gold); } }
+.ob-title { font-family:"Cormorant Garamond",serif; font-size:2.5rem; font-weight:300; letter-spacing:.2em; color:var(--gold); margin-bottom:.25rem; }
+.ob-sub { font-size:11px; letter-spacing:.25em; text-transform:uppercase; color:var(--mist); margin-bottom:1.5rem; }
+.ob-desc { font-family:"Cormorant Garamond",serif; font-style:italic; font-size:1rem; color:var(--mist); line-height:1.7; margin-bottom:2rem; }
+.ob-step { display:none; flex-direction:column; gap:12px; }
+.ob-step.active { display:flex; }
+.ob-label { font-family:"Cormorant Garamond",serif; font-size:1.25rem; font-weight:300; color:var(--cream); }
+.ob-input { background:rgba(0,0,0,.25); border:1px solid rgba(196,120,58,.25); color:var(--cream); font-family:"DM Sans",sans-serif; font-size:15px; padding:12px 16px; border-radius:6px; outline:none; transition:border-color .2s; text-align:center; width:100%; }
+.ob-input:focus { border-color:var(--ember); }
+.ob-input::placeholder { color:var(--mist); opacity:.5; }
+.ob-hint { font-size:11px; color:var(--mist); opacity:.6; font-style:italic; }
+.ob-btn { background:var(--ember-dim); border:1px solid var(--ember); color:var(--cream); font-family:"DM Sans",sans-serif; font-size:12px; letter-spacing:.15em; padding:12px; border-radius:4px; cursor:pointer; transition:all .2s; text-transform:uppercase; margin-top:4px; }
+.ob-btn:hover { background:var(--ember); }
+.ob-btn-ghost { background:none; border:1px solid rgba(196,120,58,.3); color:var(--mist); font-family:"DM Sans",sans-serif; font-size:11px; letter-spacing:.1em; padding:10px; border-radius:4px; cursor:pointer; transition:all .2s; text-transform:uppercase; }
+.ob-btn-ghost:hover { border-color:var(--ember); color:var(--cream); }
+.ob-values-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:1.25rem; max-height:300px; overflow-y:auto; }
+.ob-value-btn { background:var(--earth); border:1px solid rgba(196,120,58,.15); border-radius:6px; padding:10px 6px; text-align:center; cursor:pointer; transition:all .2s; font-size:11px; color:var(--mist); }
+.ob-value-btn .ob-v-icon { font-size:1.4rem; display:block; margin-bottom:4px; }
+.ob-value-btn:hover { border-color:rgba(196,120,58,.4); color:var(--cream); }
+.ob-value-btn.selected { border-color:var(--ember); background:rgba(196,120,58,.1); color:var(--cream); }
+
+/* Level up */
+.levelup-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.92); align-items:center; justify-content:center; }
+.levelup-overlay.show { display:flex; animation:fadeIn .5s ease-out; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.levelup-content { text-align:center; }
+.levelup-avatar { width:160px; height:200px; margin:0 auto 1.5rem; animation:lvlBounce 1s ease-out; }
+@keyframes lvlBounce { 0%{transform:scale(.3);opacity:0} 60%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }
+.levelup-title { font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--mist); margin-bottom:.5rem; }
+.levelup-name { font-family:"Cormorant Garamond",serif; font-size:3rem; font-weight:300; color:var(--gold); letter-spacing:.15em; margin-bottom:.5rem; }
+.levelup-desc { font-family:"Cormorant Garamond",serif; font-style:italic; font-size:1.1rem; color:var(--mist); max-width:340px; line-height:1.6; margin:0 auto; }
