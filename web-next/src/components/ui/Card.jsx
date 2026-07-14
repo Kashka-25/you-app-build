@@ -145,9 +145,10 @@ export function TherapistCard({ name, specialty, tags = [], rating, avatarInitia
   );
 }
 
-export function MediaCard({ label, title, image, imageLight, imageDark }) {
+export function MediaCard({ label, title, image, imageLight, imageDark, size = "carousel" }) {
+  const sizeClass = size === "wide" ? "w-full h-32" : "w-40 h-28 flex-none";
   return (
-    <motion.div {...riseIn} className="rounded-card overflow-hidden shadow-card relative w-40 h-28 flex-none">
+    <motion.div {...riseIn} className={`rounded-card overflow-hidden shadow-card relative ${sizeClass}`}>
       <CardArt image={image} imageLight={imageLight} imageDark={imageDark} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       <div className="relative h-full flex flex-col justify-end p-2.5">

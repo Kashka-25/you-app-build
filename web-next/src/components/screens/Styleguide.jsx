@@ -140,8 +140,8 @@ export default function Styleguide() {
             eyebrow="Good Morning"
             title="Your Daily YOU"
             subtitle="Small steps. Big shifts."
-            imageLight="/images/home-light.png"
-            imageDark="/images/home-dark.png"
+            imageLight="/images/home-light.jpg"
+            imageDark="/images/home-dark.jpg"
           />
         </Row>
         <Row label="Journey">
@@ -182,7 +182,7 @@ export default function Styleguide() {
         </Row>
         <Row label="Media">
           <div className="flex gap-3 overflow-x-auto pb-1">
-            <MediaCard label="Healing Journey" title="Forest Path" image="/images/healing-forest.png" />
+            <MediaCard label="Healing Journey" title="Forest Path" image="/images/healing-forest.jpg" />
             <MediaCard label="Constellation" title="Turning Points" />
             <MediaCard label="Atlas" title="Inner Coastline" />
           </div>
