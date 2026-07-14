@@ -29,6 +29,13 @@ async function checkAuth() {
     document.getElementById("onboarding").style.display = "none";
     document.getElementById("app").style.display = "block";
     setGreeting();
+    if (S.values.length === 0) {
+  S.values = [
+    {name:"Courage", rating:20, completed:[]},
+    {name:"Discipline", rating:35, completed:[]},
+    {name:"Presence", rating:10, completed:[]}
+  ];
+}
     loadFromDB();
     return;
   }
