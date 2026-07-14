@@ -7,6 +7,7 @@ var pendingItem=null, pendingMilestones=[], pendingTags=[], pendingCompleteId=nu
 var activeFilter="all", selectedMood="", msToggleOpen=false;
 var calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
 var activeValueIdx=0, valueDiffFilter="all";
+var tagFilter="all", tagStatusFilter="all";
 var editingId=null, editTags=[], editMilestones=[];
 
 var userProfile=null;
