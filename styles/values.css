@@ -1,0 +1,78 @@
+/* values.css - tags, pillars, values tab */
+
+/* Tags */
+.tags-section { margin-bottom:2rem; }
+.tags-section-header { display:flex; align-items:center; gap:10px; margin-bottom:.75rem; padding-bottom:.5rem; border-bottom:1px solid rgba(196,120,58,.1); }
+.tags-section-name { font-family:"Cormorant Garamond",serif; font-size:1.1rem; font-weight:300; color:var(--gold); }
+.tags-section-count { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--mist); padding:2px 8px; border-radius:20px; border:1px solid rgba(196,120,58,.2); }
+.tags-section-divider { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--mist); opacity:.5; margin:.75rem 0 .5rem; }
+.tags-empty { text-align:center; padding:3rem 1rem; color:var(--mist); font-family:"Cormorant Garamond",serif; font-style:italic; font-size:1rem; opacity:.6; }
+
+/* Pillars */
+.pillar-card { background:var(--earth2); border:1px solid rgba(196,120,58,.1); border-radius:8px; padding:1rem 1.25rem; margin-bottom:10px; }
+.pillar-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.pillar-name { font-family:"Cormorant Garamond",serif; font-size:1rem; font-weight:300; color:var(--cream); }
+.pillar-xp { font-size:11px; color:var(--ember); }
+.pillar-bar-bg { height:4px; background:rgba(255,255,255,.06); border-radius:2px; overflow:hidden; margin-bottom:6px; }
+.pillar-bar-fill { height:100%; border-radius:2px; transition:width .8s cubic-bezier(.4,0,.2,1); }
+.pillar-stats { display:flex; gap:12px; }
+.pillar-stat { font-size:10px; color:var(--mist); }
+.pillar-stat span { color:var(--cream); }
+
+/* Values */
+.values-layout { display:grid; grid-template-columns:200px 1fr; gap:1.5rem; min-height:400px; }
+.values-sidebar { display:flex; flex-direction:column; gap:4px; }
+.value-list-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:6px; cursor:pointer; transition:all .2s; border:1px solid transparent; }
+.value-list-item:hover { background:var(--earth2); }
+.value-list-item.active { background:var(--earth2); border-color:var(--border); }
+.vli-icon { font-size:16px; min-width:20px; text-align:center; }
+.vli-info { flex:1; min-width:0; }
+.vli-name { font-size:12px; color:var(--cream); }
+.vli-tier { font-size:10px; color:var(--mist); }
+.vli-bar-wrap { width:36px; height:3px; background:rgba(255,255,255,.06); border-radius:2px; overflow:hidden; }
+.vli-bar { height:100%; border-radius:2px; }
+.add-value-btn { background:none; border:1px dashed rgba(196,120,58,.25); color:var(--mist); font-family:"DM Sans",sans-serif; font-size:11px; letter-spacing:.08em; padding:8px; border-radius:6px; cursor:pointer; transition:all .2s; text-transform:uppercase; margin-top:6px; text-align:center; }
+.add-value-btn:hover { border-color:var(--ember); color:var(--cream); }
+.values-main { min-width:0; }
+.value-detail-header { display:flex; align-items:flex-start; gap:1rem; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--border); }
+.value-icon-large { font-size:2.5rem; width:56px; height:56px; display:flex; align-items:center; justify-content:center; background:var(--earth2); border:1px solid var(--border); border-radius:10px; flex-shrink:0; }
+.value-title-block { flex:1; }
+.value-title { font-family:"Cormorant Garamond",serif; font-size:1.75rem; font-weight:300; color:var(--gold); letter-spacing:.08em; line-height:1; }
+.value-tagline { font-family:"Cormorant Garamond",serif; font-style:italic; font-size:13px; color:var(--mist); margin-top:5px; }
+.value-rating-block { text-align:right; }
+.value-rating-num { font-family:"Cormorant Garamond",serif; font-size:2.5rem; font-weight:300; line-height:1; display:block; }
+.value-rating-tier { font-size:10px; letter-spacing:.12em; text-transform:uppercase; margin-top:3px; display:block; }
+.value-slider-wrap { margin-bottom:1rem; }
+.value-slider-track { height:6px; background:rgba(255,255,255,.05); border-radius:3px; position:relative; margin-bottom:6px; }
+.value-slider-fill { height:100%; border-radius:3px; transition:width .8s cubic-bezier(.4,0,.2,1); position:relative; }
+.value-slider-fill::after { content:""; position:absolute; right:-1px; top:50%; transform:translateY(-50%); width:14px; height:14px; border-radius:50%; background:var(--fill-color,var(--gold)); box-shadow:0 0 8px var(--fill-color,var(--gold)); border:2px solid var(--bark); }
+.tier-markers { display:flex; justify-content:space-between; }
+.tier-marker { font-size:9px; text-transform:uppercase; color:var(--mist); opacity:.5; }
+.tier-marker.current { color:var(--gold); opacity:1; }
+.tier-progress-wrap { background:var(--earth2); border:1px solid var(--border); border-radius:6px; padding:.75rem 1rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:1rem; }
+.tier-progress-info { flex:1; }
+.tier-progress-label { font-size:9px; letter-spacing:.15em; text-transform:uppercase; color:var(--mist); }
+.tier-progress-text { font-size:13px; color:var(--cream); margin-top:2px; }
+.tier-mini-bar { width:80px; }
+.tier-mini-track { height:3px; background:rgba(255,255,255,.06); border-radius:2px; overflow:hidden; margin-bottom:3px; }
+.tier-mini-fill { height:100%; background:var(--gold); border-radius:2px; transition:width .5s; }
+.tier-mini-pct { font-size:10px; color:var(--gold); text-align:right; }
+.value-challenges-title { font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--mist); margin-bottom:.75rem; padding-bottom:.4rem; border-bottom:1px solid rgba(196,120,58,.07); }
+.diff-filters { display:flex; gap:6px; margin-bottom:.75rem; }
+.diff-chip { font-size:9px; letter-spacing:.1em; text-transform:uppercase; padding:3px 10px; border-radius:20px; border:1px solid rgba(196,120,58,.2); color:var(--mist); background:none; cursor:pointer; transition:all .2s; font-family:"DM Sans",sans-serif; }
+.diff-chip.active { background:rgba(196,120,58,.15); border-color:var(--ember); color:var(--ember); }
+.challenges-list { display:flex; flex-direction:column; gap:7px; }
+.challenge-card { background:var(--earth2); border:1px solid rgba(196,120,58,.08); border-radius:7px; padding:.9rem 1rem; display:flex; align-items:center; gap:10px; transition:all .2s; position:relative; overflow:hidden; }
+.challenge-card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--diff-color,var(--ember)); opacity:.3; transition:opacity .2s; }
+.challenge-card:hover::before { opacity:1; }
+.challenge-card.completed { opacity:.5; }
+.challenge-card.completed::before { background:var(--sage); opacity:1; }
+.ch-check { width:26px; height:26px; min-width:26px; border-radius:50%; border:1.5px solid rgba(196,120,58,.3); background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent; transition:all .2s; flex-shrink:0; }
+.ch-check:hover { border-color:var(--ember); background:var(--glow); }
+.challenge-card.completed .ch-check { background:var(--sage); border-color:var(--sage); color:var(--cream); }
+.ch-body { flex:1; }
+.ch-text { font-size:13px; color:var(--cream); line-height:1.4; }
+.challenge-card.completed .ch-text { text-decoration:line-through; color:var(--mist); }
+.ch-meta { font-size:10px; color:var(--mist); margin-top:3px; }
+.ch-pts { font-family:"Cormorant Garamond",serif; font-size:1rem; white-space:nowrap; }
+.values-empty { text-align:center; padding:3rem 1rem; color:var(--mist); font-family:"Cormorant Garamond",serif; font-style:italic; font-size:1rem; opacity:.6; }

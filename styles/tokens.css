@@ -1,0 +1,10 @@
+/* tokens.css - design system: colours, fonts, reset, body */
+
+:root {
+  --bark:#1a1410; --earth:#221810; --earth2:#2a1f14;
+  --ember:#c4783a; --ember-dim:#7a4520; --gold:#d4a85a;
+  --sage:#7a8c5e; --cream:#e8d8b8; --mist:#9a8870;
+  --glow:rgba(196,120,58,0.12); --border:rgba(196,120,58,0.15);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bark); color:var(--cream); font-family:"DM Sans",sans-serif; min-height:100vh; }

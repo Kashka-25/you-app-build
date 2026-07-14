@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>YOU</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="stylesheet" href="styles/tokens.css"/>
+<link rel="stylesheet" href="styles/auth.css"/>
+<link rel="stylesheet" href="styles/layout.css"/>
+<link rel="stylesheet" href="styles/cards.css"/>
+<link rel="stylesheet" href="styles/calendar.css"/>
+<link rel="stylesheet" href="styles/values.css"/>
+<link rel="stylesheet" href="styles/modals.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <meta name="theme-color" content="#1a1410"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="YOU"/>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" style="display:none">
+  <canvas id="galaxyCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
+  <div class="auth-wrap" style="position:relative;z-index:1">
+    <svg viewBox="0 0 680 680" xmlns="http://www.w3.org/2000/svg" style="width:320px;height:320px;margin:0 auto 1.5rem;display:block;">
+      <rect width="680" height="680" rx="340" fill="#1a1410"/>
+      <circle cx="340" cy="340" r="300" fill="none" stroke="#c4783a" stroke-width="1" opacity="0.2"/>
+      <circle cx="340" cy="340" r="230" fill="none" stroke="#c4783a" stroke-width="1" opacity="0.2"/>
+      <circle cx="340" cy="340" r="160" fill="none" stroke="#d4a85a" stroke-width="0.8" opacity="0.15"/>
+      <circle cx="340" cy="340" r="90"  fill="none" stroke="#d4a85a" stroke-width="0.8" opacity="0.15"/>
+      <line x1="340" y1="100" x2="340" y2="580" stroke="#c4783a" stroke-width="1.5" opacity="0.5"/>
+      <line x1="580" y1="340" x2="100" y2="340" stroke="#c4783a" stroke-width="1.5" opacity="0.5"/>
+      <line x1="503" y1="177" x2="177" y2="503" stroke="#c4783a" stroke-width="1.5" opacity="0.5"/>
+      <line x1="503" y1="503" x2="177" y2="177" stroke="#c4783a" stroke-width="1.5" opacity="0.5"/>
+      <polygon points="340,100 503,177 580,340 503,503 340,580 177,503 100,340 177,177" fill="none" stroke="#d4a85a" stroke-width="1.2" opacity="0.3"/>
+      <polygon points="340,100 580,340 340,580 100,340" fill="none" stroke="#7a8c5e" stroke-width="0.8" opacity="0.2"/>
+      <polygon points="503,177 503,503 177,503 177,177" fill="none" stroke="#7a8c5e" stroke-width="0.8" opacity="0.2"/>
+      <circle cx="340" cy="100" r="26" fill="#221810" stroke="#d4a85a" stroke-width="1.5"/><circle cx="340" cy="100" r="18" fill="#c4783a" opacity="0.5"/><circle cx="340" cy="100" r="10" fill="#d4a85a" opacity="0.85"/><circle cx="340" cy="100" r="5" fill="#e8d8b8"/>
+      <circle cx="503" cy="177" r="26" fill="#221810" stroke="#d4a85a" stroke-width="1.5"/><circle cx="503" cy="177" r="18" fill="#c4783a" opacity="0.5"/><circle cx="503" cy="177" r="10" fill="#d4a85a" opacity="0.85"/><circle cx="503" cy="177" r="5" fill="#e8d8b8"/>
+      <circle cx="580" cy="340" r="26" fill="#221810" stroke="#d4a85a" stroke-width="1.5"/><circle cx="580" cy="340" r="18" fill="#c4783a" opacity="0.5"/><circle cx="580" cy="340" r="10" fill="#d4a85a" opacity="0.85"/><circle cx="580" cy="340" r="5" fill="#e8d8b8"/>
+      <circle cx="503" cy="503" r="26" fill="#221810" stroke="#d4a85a" stroke-width="1.5"/><circle cx="503" cy="503" r="18" fill="#c4783a" opacity="0.5"/><circle cx="503" cy="503" r="10" fill="#d4a85a" opacity="0.85"/><circle cx="503" cy="503" r="5" fill="#e8d8b8"/>
+      <circle cx="340" cy="580" r="26" fill="#221810" stroke="#d4a85a" stroke-width="1.5"/><circle cx="340" cy="580" r="18" fill="#c4783a" opacity="0.5"/><circle cx="340" cy="580" r="10" fill="#d4a85a" opacity="0.85"/><circle cx="340" cy="580" r="5" fill="#e8d8b8"/>
+      <circle cx="177" cy="503" r="26" fill="#221810" stroke="#d4a85a" stroke-width="1.5"/><circle cx="177" cy="503" r="18" fill="#c4783a" opacity="0.5"/><circle cx="177" cy="503" r="10" fill="#d4a85a" opacity="0.85"/><circle cx="177" cy="503" r="5" fill="#e8d8b8"/>
+      <circle cx="100" cy="340" r="26" fill="#221810" stroke="#d4a85a" stroke-width="1.5"/><circle cx="100" cy="340" r="18" fill="#c4783a" opacity="0.5"/><circle cx="100" cy="340" r="10" fill="#d4a85a" opacity="0.85"/><circle cx="100" cy="340" r="5" fill="#e8d8b8"/>
+      <circle cx="177" cy="177" r="26" fill="#221810" stroke="#d4a85a" stroke-width="1.5"/><circle cx="177" cy="177" r="18" fill="#c4783a" opacity="0.5"/><circle cx="177" cy="177" r="10" fill="#d4a85a" opacity="0.85"/><circle cx="177" cy="177" r="5" fill="#e8d8b8"/>
+      <circle cx="340" cy="340" r="82" fill="#1a1410"/>
+      <circle cx="340" cy="340" r="82" fill="none" stroke="#c4783a" stroke-width="1" opacity="0.4"/>
+      <text x="282" y="360" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="52" fill="#e8d8b8">Y</text>
+      <circle cx="340" cy="344" r="30" fill="#221810" stroke="#c4783a" stroke-width="2"/>
+      <path d="M312,344 A28,10 0 0 1 368,344" stroke="#7a8c5e" stroke-width="1.2" fill="none" opacity="0.7"/>
+      <path d="M368,344 A28,10 0 0 1 312,344" stroke="#7a8c5e" stroke-width="0.8" fill="none" stroke-dasharray="2,3" opacity="0.4"/>
+      <circle cx="365" cy="344" r="5" fill="#d4a85a"/>
+      <circle cx="328" cy="334" r="1.5" fill="#e8d8b8" opacity="0.9"/>
+      <circle cx="348" cy="352" r="1" fill="#e8d8b8" opacity="0.7"/>
+      <text x="398" y="360" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="52" fill="#e8d8b8">U</text>
+    </svg>
+    <p class="auth-sub">Your Own Universe</p>
+    <div id="authForm">
+      <p class="auth-desc">Enter your email to begin. We will send you a sacred link to enter your universe.</p>
+      <input type="email" id="authEmail" class="auth-input" placeholder="your@email.com" autocomplete="email"/>
+      <button class="auth-btn" id="authBtn" onclick="sendMagicLink()">Send magic link</button>
+      <div class="auth-error" id="authError"></div>
+    </div>
+    <div id="authSent" style="display:none">
+      <div class="auth-sent-icon">&#10022;</div>
+      <p class="auth-desc">A magic link is on its way to<br><span id="authSentEmail" class="auth-email"></span></p>
+      <p class="auth-hint">Click the link in your email to enter. You can close this tab.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding" style="display:none">
+  <div class="ob-wrap">
+    <div class="ob-star">+</div>
+    <h1 class="ob-title">Welcome to YOU</h1>
+    <p class="ob-sub">Your Own Universe</p>
+    <p class="ob-desc">Before we begin, tell us about yourself so your universe can speak to you personally.</p>
+    <div id="ob-step1" class="ob-step active">
+      <label class="ob-label" for="obName">What do you go by?</label>
+      <input type="text" id="obName" placeholder="Your name..." class="ob-input"/>
+      <button class="ob-btn" onclick="obNext(1)">Continue</button>
+    </div>
+    <div id="ob-step2" class="ob-step">
+      <label class="ob-label" for="obBirthday">When were you born?</label>
+      <input type="date" id="obBirthday" class="ob-input"/>
+      <button class="ob-btn" onclick="obNext(2)">Continue</button>
+    </div>
+    <div id="ob-step3" class="ob-step">
+      <label class="ob-label" for="obBirthTime">What time were you born?</label>
+      <input type="time" id="obBirthTime" class="ob-input"/>
+      <p class="ob-hint">Used to calculate your rising sign</p>
+      <button class="ob-btn-ghost" onclick="skipTime()">I do not know</button>
+      <button class="ob-btn" onclick="obNext(3)">Continue</button>
+    </div>
+    <div id="ob-step4" class="ob-step">
+      <label class="ob-label" for="obBirthplace">Where were you born?</label>
+      <input type="text" id="obBirthplace" placeholder="City, Country..." class="ob-input"/>
+      <p class="ob-hint">This helps us understand your personal astrology</p>
+      <button class="ob-btn" onclick="obNext(4)">Continue</button>
+    </div>
+    <div id="ob-step5" class="ob-step">
+      <div class="ob-label" style="margin-bottom:1rem">Choose your values</div>
+      <p class="ob-hint" style="margin-bottom:1.25rem">Pick the qualities you most wish to cultivate. You can change these anytime.</p>
+      <div class="ob-values-grid" id="obValuesGrid"></div>
+      <button class="ob-btn" onclick="obNext(5)">Enter your YOUniverse</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEVEL UP OVERLAY -->
+<div id="levelUpOverlay" class="levelup-overlay">
+  <div class="levelup-content">
+    <div class="levelup-avatar" id="levelUpAvatar"></div>
+    <div class="levelup-title" id="levelUpTitle">You have evolved</div>
+    <div class="levelup-name" id="levelUpName"></div>
+    <div class="levelup-desc" id="levelUpDesc"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <div class="app-layout">
+    <div class="avatar-panel" id="avatarPanel">
+      <div class="avatar-env" id="avatarEnv"></div>
+      <div class="avatar-being" id="avatarBeing"></div>
+      <div class="avatar-name" id="avatarStageName"></div>
+      <div class="avatar-level" id="avatarLevel"></div>
+    </div>
+    <div class="main-content">
+      <div class="header">
+        <div class="header-left">
+          <h1>Y O U</h1>
+          <span class="subtitle">Your Own Universe</span>
+        </div>
+        <div class="header-right">
+          <span id="userGreeting" class="user-greeting"></span>
+          <span id="syncStatus" class="sync-status"></span>
+          <button class="signout-btn" onclick="signOut()" title="Sign out">&#9211;</button>
+        </div>
+      </div>
+      <div class="xp-bar-wrap">
+        <span class="xp-label">Soul XP</span>
+        <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+        <span class="xp-level" id="xpLevel">Seedling - Lv 1</span>
+      </div>
+      <div class="stats-row">
+        <div class="stat-cell"><span class="stat-num" id="sActive">0</span><span class="stat-name">Active</span></div>
+        <div class="stat-cell"><span class="stat-num" id="sDone">0</span><span class="stat-name">Achieved</span></div>
+        <div class="stat-cell"><span class="stat-num" id="sStreak">0</span><span class="stat-name">Best Streak</span></div>
+        <div class="stat-cell"><span class="stat-num" id="sMilestones">0</span><span class="stat-name">Milestones</span></div>
+        <div class="stat-cell"><span class="stat-num" id="sXP">0</span><span class="stat-name">Total XP</span></div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('pursue')">Pursue</button>
+        <button class="tab" onclick="switchTab('memory')">Memory Bank</button>
+        <button class="tab" onclick="switchTab('calendar')">Calendar</button>
+        <button class="tab" onclick="switchTab('tags')">Tags</button>
+        <button class="tab" onclick="switchTab('pillars')">Pillars</button>
+        <button class="tab" onclick="switchTab('values')">Values</button>
+      </div>
+
+      <div id="panel-pursue" class="panel active">
+        <div class="add-form">
+          <div class="form-row">
+            <input type="text" class="main-input" id="newName" placeholder="Name a habit, goal, or dream..."/>
+            <select id="newType" onchange="onTypeChange()">
+              <option value="habit">Habit</option>
+              <option value="goal">Goal</option>
+              <option value="dream">Dream</option>
+            </select>
+            <select id="newCat">
+              <option value="Body">Body</option>
+              <option value="Mind">Mind</option>
+              <option value="Spirit">Spirit</option>
+              <option value="Relationships">Relationships</option>
+              <option value="Work">Work</option>
+              <option value="Adventure">Adventure</option>
+              <option value="Creative">Creative</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="tag-input-wrap">
+              <span class="tag-hash">#</span>
+              <input type="text" id="tagInput" placeholder="add tag, press enter" onkeydown="addTag(event)"/>
+              <div class="tag-chips" id="tagChips"></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <textarea id="newNote" placeholder="Notes (optional)..."></textarea>
+          </div>
+          <div class="milestones-input" id="msInput">
+            <div class="section-divider">Milestones</div>
+            <div class="milestone-add">
+              <input type="text" id="msText" placeholder="Add a milestone step..." style="flex:1" onkeydown="addMilestone(event)"/>
+              <button class="btn-ghost" onclick="addMilestone()">Add</button>
+            </div>
+            <div class="milestone-list-edit" id="msListEdit"></div>
+          </div>
+          <div class="form-row" style="justify-content:space-between;align-items:center">
+            <button class="btn-ghost" id="msToggle" onclick="toggleMilestones()">+ Milestones</button>
+            <button class="btn" onclick="openIntentionModal()">Add to YOUniverse</button>
+          </div>
+        </div>
+        <div class="filters">
+          <button class="filter-chip active" onclick="setFilter('all',this)">All</button>
+          <button class="filter-chip" onclick="setFilter('habit',this)">Habits</button>
+          <button class="filter-chip" onclick="setFilter('goal',this)">Goals</button>
+          <button class="filter-chip" onclick="setFilter('dream',this)">Dreams</button>
+          <button class="filter-chip" onclick="setFilter('done',this)">Achieved</button>
+          <div class="search-wrap">
+            <span class="search-icon">o</span>
+            <input type="text" id="searchInput" placeholder="Search..." oninput="renderItems()"/>
+          </div>
+        </div>
+        <div id="itemsList"></div>
+      </div>
+
+      <div id="panel-memory" class="panel">
+        <p class="section-divider">+ All that you have become</p>
+        <div id="memoryList"></div>
+      </div>
+
+      <div id="panel-calendar" class="panel">
+        <div class="astro-banner" id="astroBanner">
+          <div class="astro-loading" id="astroLoading">Reading the cosmos...</div>
+          <div class="astro-content" id="astroContent" style="display:none">
+            <div class="astro-top">
+              <div class="astro-moon" id="astroMoon"></div>
+              <div class="astro-info">
+                <div class="astro-phase" id="astroPhase"></div>
+                <div class="astro-sign" id="astroSign"></div>
+              </div>
+              <div class="astro-personal" id="astroPersonal"></div>
+            </div>
+            <div class="astro-body">
+              <div class="astro-row"><span class="astro-label">Today</span><span class="astro-text" id="astroEnergy"></span></div>
+              <div class="astro-row"><span class="astro-label">Intention</span><span class="astro-text" id="astroIntention"></span></div>
+              <div class="astro-row"><span class="astro-label">Watch for</span><span class="astro-text" id="astroWatch"></span></div>
+              <div class="astro-row" id="astroWeekRow"><span class="astro-label">This Week</span><span class="astro-text" id="astroWeek"></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="seasonal-banner" id="seasonalBanner">
+          <div class="seasonal-title" id="seasonalTitle"></div>
+          <div class="seasonal-desc" id="seasonalDesc"></div>
+        </div>
+        <div class="cal-header">
+          <button class="cal-nav" onclick="calNav(-1)">&#8249;</button>
+          <span class="cal-title" id="calTitle"></span>
+          <button class="cal-nav" onclick="calNav(1)">&#8250;</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="mood-section">
+          <div class="mood-title">Log your energy</div>
+          <div class="mood-row">
+            <button class="mood-btn" onclick="setMood('NM',this)">&#127761;</button>
+            <button class="mood-btn" onclick="setMood('WC',this)">&#127762;</button>
+            <button class="mood-btn" onclick="setMood('FQ',this)">&#127763;</button>
+            <button class="mood-btn" onclick="setMood('WG',this)">&#127764;</button>
+            <button class="mood-btn" onclick="setMood('FM',this)">&#127765;</button>
+            <span class="mood-label" id="moodLabel"></span>
+          </div>
+          <div class="energy-wrap">
+            <span class="energy-label">Vitality</span>
+            <input type="range" min="1" max="10" value="5" id="energySlider" step="1" oninput="document.getElementById('energyVal').textContent=this.value"/>
+            <span class="energy-val" id="energyVal">5</span>
+          </div>
+          <button class="btn" style="margin-top:10px" onclick="logMood()">Log</button>
+          <div class="mood-log" id="moodLog"></div>
+        </div>
+      </div>
+
+      <div id="panel-tags" class="panel"><div id="tagsList"></div></div>
+      <div id="panel-pillars" class="panel">
+        <div class="section-divider">Your life pillars</div>
+        <div id="pillarsList"></div>
+      </div>
+      <div id="panel-values" class="panel">
+        <div class="values-layout">
+          <div class="values-sidebar" id="valuesSidebar"></div>
+          <div class="values-main" id="valuesMain"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INTENTION MODAL -->
+<div class="intention-modal" id="intentionModal">
+  <div class="intention-box">
+    <div class="intention-q" id="intentionQ"></div>
+    <div class="intention-sub" id="intentionSub"></div>
+    <textarea id="intentionText" placeholder="Write freely..."></textarea>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn" onclick="confirmAdd()">Plant this seed</button>
+      <button class="intention-skip" onclick="confirmAdd(true)">skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETE MODAL -->
+<div class="complete-modal" id="completeModal">
+  <div class="intention-box">
+    <div class="intention-q" id="completeQ">Before you mark this complete...</div>
+    <div class="intention-sub" id="completeSub"></div>
+    <textarea id="completeText" placeholder="Reflect freely... or skip"></textarea>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn" onclick="confirmComplete()">Mark complete</button>
+      <button class="intention-skip" onclick="confirmComplete(true)">skip reflection</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="edit-modal" id="editModal">
+  <div class="intention-box">
+    <div class="intention-q">Edit</div>
+    <input type="text" id="editName" class="edit-field" placeholder="Name"/>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <select id="editType" style="flex:1">
+        <option value="habit">Habit</option>
+        <option value="goal">Goal</option>
+        <option value="dream">Dream</option>
+      </select>
+      <select id="editCat" style="flex:1">
+        <option value="Body">Body</option>
+        <option value="Mind">Mind</option>
+        <option value="Spirit">Spirit</option>
+        <option value="Relationships">Relationships</option>
+        <option value="Work">Work</option>
+        <option value="Adventure">Adventure</option>
+        <option value="Creative">Creative</option>
+      </select>
+    </div>
+    <div class="tag-input-wrap" style="margin-bottom:10px">
+      <span class="tag-hash">#</span>
+      <input type="text" id="editTagInput" placeholder="add tag, press enter" onkeydown="addEditTag(event)"/>
+      <div class="tag-chips" id="editTagChips"></div>
+    </div>
+    <textarea id="editNote" class="edit-field" placeholder="Notes..."></textarea>
+    <div class="edit-ms-section">
+      <div class="section-divider">Milestones</div>
+      <div class="milestone-add">
+        <input type="text" id="editMsText" placeholder="Add a milestone..." style="flex:1" onkeydown="addEditMilestone(event)"/>
+        <button class="btn-ghost" onclick="addEditMilestone()">Add</button>
+      </div>
+      <div id="editMsList"></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:1rem">
+      <button class="btn" onclick="saveEdit()">Save changes</button>
+      <button class="intention-skip" onclick="closeEdit()">cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD VALUE MODAL -->
+<div class="add-value-modal" id="addValueModal">
+  <div class="add-value-box">
+    <h3>Add a Value</h3>
+    <div class="add-value-grid" id="addValueGrid"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeAddValueModal()">Cancel</button>
+      <button class="btn" onclick="confirmAddValue()">Add to my Values</button>
+    </div>
+  </div>
+</div>
+
+<!-- BREAKTHROUGH MODAL -->
+<div class="breakthrough-modal" id="breakthroughModal">
+  <div class="breakthrough-box">
+    <div class="bt-icon" id="btIcon"></div>
+    <div class="bt-title" id="btTitle"></div>
+    <div class="bt-tier" id="btTier"></div>
+    <div class="bt-prompt" id="btPrompt"></div>
+    <div class="bt-xp" id="btXp"></div>
+    <button class="btn" onclick="closeBreakthrough()">Carry this forward</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- config + constants -->
+<script defer src="js/config.js"></script>
+<script defer src="js/constants/values.const.js"></script>
+<script defer src="js/constants/levels.const.js"></script>
+<!-- services -->
+<script defer src="js/services/auth.service.js"></script>
+<script defer src="js/services/db.service.js"></script>
+<!-- utils -->
+<script defer src="js/utils/astrology.util.js"></script>
+<script defer src="js/utils/streak.util.js"></script>
+<!-- features -->
+<script defer src="js/features/state.js"></script>
+<script defer src="js/features/onboarding.js"></script>
+<script defer src="js/features/avatar.js"></script>
+<script defer src="js/features/pursue.js"></script>
+<script defer src="js/features/memory.js"></script>
+<script defer src="js/features/tags.js"></script>
+<script defer src="js/features/pillars.js"></script>
+<script defer src="js/features/values.js"></script>
+<script defer src="js/features/calendar.js"></script>
+<!-- app init (must load last) -->
+<script defer src="js/app.js"></script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js");}</script>
+<script>
+  (function(){
+    var canvas = document.getElementById('galaxyCanvas');
+    if(!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var stars = [];
+    function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    for(var i=0; i<220; i++){
+      stars.push({
+        x: Math.random(),
+        y: Math.random(),
+        r: Math.random()*1.5+0.3,
+        speed: Math.random()*0.00015+0.00005,
+        opacity: Math.random()*0.7+0.3,
+        twinkle: Math.random()*Math.PI*2
+      });
+    }
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      var t = Date.now()*0.001;
+      stars.forEach(function(s){
+        s.twinkle += 0.02;
+        var op = s.opacity*(0.6+0.4*Math.sin(s.twinkle));
+        ctx.beginPath();
+        ctx.arc(s.x*canvas.width, s.y*canvas.height, s.r, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(232,216,184,'+op+')';
+        ctx.fill();
+        s.y += s.speed;
+        if(s.y > 1){ s.y = 0; s.x = Math.random(); }
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+</script>
+</body>
+</html>
