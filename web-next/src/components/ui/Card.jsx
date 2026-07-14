@@ -2,16 +2,42 @@ import { motion } from "framer-motion";
 import { Clock, MapPin, Star } from "lucide-react";
 import { riseIn } from "./motion";
 
-// Imagery is still an open Phase 0 decision (real photography vs AI-generated).
-// These gradients are stand-ins for wherever a hero/media image will land —
-// richer/multi-stop to read closer to the dusk/botanical reference mood.
+// Imagery decision: AI-generated botanical/landscape art, until swapped for
+// real photography later. Hero/Media accept an `image` (or `imageLight`/
+// `imageDark` pair, swapped via the existing dark: variant) URL; the radial
+// gradient below is only the fallback for screens that don't have art yet.
 const IMAGE_PLACEHOLDER =
   "bg-[radial-gradient(120%_120%_at_20%_0%,var(--forest-accent)_0%,var(--forest)_45%,var(--bg)_100%)]";
 
-export function HeroCard({ eyebrow, title, subtitle, children }) {
+function CardArt({ image, imageLight, imageDark }) {
+  if (!image && !imageLight && !imageDark) {
+    return <div className={`absolute inset-0 ${IMAGE_PLACEHOLDER}`} />;
+  }
+  return (
+    <>
+      {image && (
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${image})` }} />
+      )}
+      {imageLight && (
+        <div
+          className="absolute inset-0 bg-cover bg-center block dark:hidden"
+          style={{ backgroundImage: `url(${imageLight})` }}
+        />
+      )}
+      {imageDark && (
+        <div
+          className="absolute inset-0 bg-cover bg-center hidden dark:block"
+          style={{ backgroundImage: `url(${imageDark})` }}
+        />
+      )}
+    </>
+  );
+}
+
+export function HeroCard({ eyebrow, title, subtitle, image, imageLight, imageDark, children }) {
   return (
     <motion.div {...riseIn} className="relative rounded-card overflow-hidden shadow-card h-56">
-      <div className={`absolute inset-0 ${IMAGE_PLACEHOLDER}`} />
+      <CardArt image={image} imageLight={imageLight} imageDark={imageDark} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
       <div className="relative h-full flex flex-col justify-end p-5">
         {eyebrow && <div className="text-label uppercase text-[color-mix(in_srgb,var(--cream)_80%,transparent)] mb-1">{eyebrow}</div>}
@@ -119,10 +145,10 @@ export function TherapistCard({ name, specialty, tags = [], rating, avatarInitia
   );
 }
 
-export function MediaCard({ label, title }) {
+export function MediaCard({ label, title, image, imageLight, imageDark }) {
   return (
     <motion.div {...riseIn} className="rounded-card overflow-hidden shadow-card relative w-40 h-28 flex-none">
-      <div className={`absolute inset-0 ${IMAGE_PLACEHOLDER}`} />
+      <CardArt image={image} imageLight={imageLight} imageDark={imageDark} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       <div className="relative h-full flex flex-col justify-end p-2.5">
         {label && <span className="text-label uppercase text-[color-mix(in_srgb,var(--cream)_80%,transparent)]">{label}</span>}

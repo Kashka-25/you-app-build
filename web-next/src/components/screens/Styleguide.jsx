@@ -85,6 +85,19 @@ export default function Styleguide() {
         </div>
       </Section>
 
+      <Section title="Brand mark">
+        <Row label="Wordmark — transparent PNG, tested against both surfaces below">
+          <div className="flex gap-3">
+            <div className="bg-surface1 rounded-card p-4 shadow-card">
+              <img src="/images/logo-you.png" alt="YOU wordmark" className="h-24 w-auto" />
+            </div>
+            <div className="bg-forest rounded-card p-4 shadow-card">
+              <img src="/images/logo-you.png" alt="YOU wordmark" className="h-24 w-auto" />
+            </div>
+          </div>
+        </Row>
+      </Section>
+
       <Section title="Typography">
         <div className="space-y-2.5">
           <div className="font-serif text-hero">Hero — the living biography</div>
@@ -119,8 +132,17 @@ export default function Styleguide() {
       </Section>
 
       <Section title="Cards">
-        <Row label="Hero">
+        <Row label="Hero — placeholder gradient (no art yet)">
           <HeroCard eyebrow="Chapter Three" title="The Season of Rebuilding" subtitle="March 2025 — present" />
+        </Row>
+        <Row label="Hero — AI-generated art (light/dark pair, swaps with mode)">
+          <HeroCard
+            eyebrow="Good Morning"
+            title="Your Daily YOU"
+            subtitle="Small steps. Big shifts."
+            imageLight="/images/home-light.png"
+            imageDark="/images/home-dark.png"
+          />
         </Row>
         <Row label="Journey">
           <JourneyCard
@@ -160,9 +182,9 @@ export default function Styleguide() {
         </Row>
         <Row label="Media">
           <div className="flex gap-3 overflow-x-auto pb-1">
+            <MediaCard label="Healing Journey" title="Forest Path" image="/images/healing-forest.png" />
             <MediaCard label="Constellation" title="Turning Points" />
             <MediaCard label="Atlas" title="Inner Coastline" />
-            <MediaCard label="Tree" title="Roots, 2024" />
           </div>
         </Row>
         <Row label="Timeline">
