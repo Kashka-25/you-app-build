@@ -310,7 +310,19 @@
         </div>
       </div>
 
-      <div id="panel-tags" class="panel"><div id="tagsList"></div></div>
+      <div id="panel-tags" class="panel">
+        <div class="tags-filter-bar">
+          <select id="tagFilterSelect" onchange="setTagFilter(this.value)">
+            <option value="all">All tags</option>
+          </select>
+          <div class="tag-status-filters">
+            <button class="tag-status-chip active" data-status="all" onclick="setTagStatusFilter('all')">All</button>
+            <button class="tag-status-chip" data-status="active" onclick="setTagStatusFilter('active')">In Progress</button>
+            <button class="tag-status-chip" data-status="achieved" onclick="setTagStatusFilter('achieved')">Achieved</button>
+          </div>
+        </div>
+        <div id="tagsList"></div>
+      </div>
       <div id="panel-pillars" class="panel">
         <div class="section-divider">Your life pillars</div>
         <div id="pillarsList"></div>
@@ -508,6 +520,7 @@
       });
       requestAnimationFrame(draw);
     }
+    draw();
   // Mobile: bottom nav tab switching
   function mobileTab(tab) {
     switchTab(tab);
@@ -560,6 +573,7 @@
     }
   }
   setInterval(syncMobileXp, 500);
-
+  })();
+</script>
 </body>
 </html>
