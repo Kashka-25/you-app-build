@@ -14,10 +14,12 @@ import Events from "./components/screens/Events";
 import AICompanion from "./components/screens/AICompanion";
 import Reflections from "./components/screens/Reflections";
 import Legacy from "./components/screens/Legacy";
+import Styleguide from "./components/screens/Styleguide";
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/styleguide" element={<Styleguide />} />
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
         <Route path="/community" element={<Community />} />
