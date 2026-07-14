@@ -18,6 +18,7 @@
   --border: rgba(0, 0, 0, 0.08);
   --error: #C75B5B;
   --accent-blue: #8FB8D8;
+  --ember: #c4783a;
 }
 
 [data-mode="dark"] {
@@ -34,6 +35,13 @@
   --text-secondary: #B8B3A9;
   --text-muted: #8B8E87;
   --border: rgba(255, 255, 255, 0.08);
+  /* Reconciliation note: dark mode is the "Apple Life OS" palette as the
+     base (forest/sage/gold/cream), with --ember kept alive as a secondary
+     warm accent from the original bark/earth palette — used sparingly for
+     streak flames, breakthrough moments, and warmth accents, never as a
+     primary surface or button color. This is the one deliberate carry-over
+     from Chapter 1; everything else in dark mode is the new system. */
+  --ember: #C4783A;
 }
 
 body {
