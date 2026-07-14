@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 const SIZES = {
   md: "text-body px-5 py-3 rounded-sm",
   sm: "text-bodySm px-4 py-2 rounded-sm"
@@ -23,11 +25,14 @@ export function Button({ variant = "primary", size = "md", icon: Icon, children,
 
 export function FloatingButton({ icon: Icon, className = "", ...props }) {
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.92 }}
+      transition={{ duration: 0.15 }}
       className={`w-14 h-14 rounded-full bg-forestAccent text-surface2 shadow-card flex items-center justify-center hover:bg-forest transition-colors duration-150 ${className}`}
       {...props}
     >
       <Icon size={22} strokeWidth={2} />
-    </button>
+    </motion.button>
   );
 }

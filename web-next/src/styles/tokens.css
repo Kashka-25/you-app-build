@@ -22,25 +22,28 @@
 }
 
 [data-mode="dark"] {
-  --bg: #0B0F0D;
+  /* Revised in Phase 1 against the "botanical garden at dusk" reference set
+     (dark-mode swatch: Deep Forest/Charcoal/Sage/Soft Gold/Warm Cream/Stone
+     Gray/Deep Slate) — deliberately moves the base background off near-black
+     toward a forest-tinted dark, per "no pure black" direction. Supersedes
+     the original Chapter-1-derived dark hex table. */
+  --bg: #0F1A14;
   --surface-1: #141816;
-  --surface-2: #1D2420;
-  --surface-3: #202A25;
-  --forest: #22392C;
+  --surface-2: #1A1F1D;
+  --surface-3: #2A2F2C;
+  --forest: #1E2D22;
   --forest-accent: #365C47;
-  --sage: #6F8F69;
-  --gold: #D4AE55;
-  --cream: #E9E2D2;
+  --sage: #5F7F5B;
+  --gold: #C9A24D;
+  --cream: #EDE6D6;
   --text-primary: #F7F5EF;
   --text-secondary: #B8B3A9;
   --text-muted: #8B8E87;
-  --border: rgba(255, 255, 255, 0.08);
-  /* Reconciliation note: dark mode is the "Apple Life OS" palette as the
-     base (forest/sage/gold/cream), with --ember kept alive as a secondary
-     warm accent from the original bark/earth palette — used sparingly for
-     streak flames, breakthrough moments, and warmth accents, never as a
-     primary surface or button color. This is the one deliberate carry-over
-     from Chapter 1; everything else in dark mode is the new system. */
+  --border: rgba(255, 255, 255, 0.05);
+  /* --ember kept alive as a secondary warm accent from the original
+     bark/earth palette — used sparingly for streak flames, breakthrough
+     moments, and warmth accents, never as a primary surface or button
+     color. This is the one deliberate carry-over from Chapter 1. */
   --ember: #C4783A;
 }
 

@@ -10,6 +10,12 @@ missing, don't invent one-off values.
   (`#c4783a` light / `#C4783A` dark) survives as a secondary warm accent —
   use it only for streak flames, breakthrough/celebration moments, warmth
   accents. Never as a primary surface, button, or nav color in either mode.
+- **Revised in Phase 1** — dark-mode hex values updated against a supplied
+  "botanical garden at dusk" reference set. Base background moved off
+  near-black (`#0B0F0D` → `#0F1A14`, forest-tinted) per an explicit "no pure
+  black" direction; gold unified with the light-mode value (`#C9A24D`) rather
+  than a separate lighter dark-mode gold. Light mode, typography, spacing,
+  and icon rules below are unchanged — only the dark palette moved.
 
 ## Typography
 Use these Tailwind classes, not arbitrary `text-[Npx]`:

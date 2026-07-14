@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, ArrowRight } from "lucide-react";
+import { Plus, ArrowRight, BookOpen } from "lucide-react";
 import { Button, FloatingButton } from "../ui/Button";
-import { HeroCard, JourneyCard, ReflectionCard, EventCard, CommunityCard, MediaCard, TimelineCard } from "../ui/Card";
+import {
+  HeroCard,
+  JourneyCard,
+  ReflectionCard,
+  EventCard,
+  CommunityCard,
+  TherapistCard,
+  MediaCard,
+  TimelineCard
+} from "../ui/Card";
 import { SearchInput, FloatingLabelField, MoodSelector } from "../ui/Input";
+import { Modal } from "../ui/Modal";
+import { ProgressRing } from "../ui/ProgressRing";
+import { EmptyState } from "../ui/EmptyState";
+import { Skeleton, LoadingScreen } from "../ui/LoadingScreen";
 
 const SWATCHES = [
   ["bg-bg", "Background"],
@@ -37,6 +50,7 @@ function Row({ label, children }) {
 export default function Styleguide() {
   const [mode, setMode] = useState("light");
   const [mood, setMood] = useState("okay");
+  const [modalOpen, setModalOpen] = useState(false);
 
   function toggleMode() {
     const next = mode === "light" ? "dark" : "light";
@@ -135,6 +149,15 @@ export default function Styleguide() {
             avatarInitial="M"
           />
         </Row>
+        <Row label="Therapist">
+          <TherapistCard
+            name="Leah M."
+            specialty="Somatic Therapy & Trauma Informed"
+            tags={["Somatic", "Trauma"]}
+            rating="5.0"
+            avatarInitial="L"
+          />
+        </Row>
         <Row label="Media">
           <div className="flex gap-3 overflow-x-auto pb-1">
             <MediaCard label="Constellation" title="Turning Points" />
@@ -160,6 +183,47 @@ export default function Styleguide() {
         </Row>
         <Row label="Mood selector">
           <MoodSelector value={mood} onChange={setMood} />
+        </Row>
+      </Section>
+
+      <Section title="Feedback & State">
+        <Row label="Progress ring">
+          <div className="flex gap-6">
+            <ProgressRing value={75} label="Keep flowing" />
+            <ProgressRing value={32} label="Just beginning" />
+          </div>
+        </Row>
+        <Row label="Modal / dialog">
+          <Button variant="secondary" onClick={() => setModalOpen(true)}>Open modal</Button>
+          <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Today's Reflection">
+            <div className="text-bodySm text-textSecondary mb-4">
+              What made you feel most alive today? This is a shared sheet/dialog primitive — same
+              floating-card treatment as everything else, just elevated above a backdrop.
+            </div>
+            <Button variant="primary" className="w-full" onClick={() => setModalOpen(false)}>Done</Button>
+          </Modal>
+        </Row>
+        <Row label="Empty state">
+          <div className="rounded-card bg-surface1 shadow-card">
+            <EmptyState
+              icon={BookOpen}
+              title="No reflections yet"
+              description="Your first entry starts the story. Nothing to catch up on — just begin."
+              actionLabel="Write one now"
+            />
+          </div>
+        </Row>
+        <Row label="Loading — skeleton">
+          <div className="rounded-card bg-surface1 p-4 shadow-card space-y-2.5">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-5/6" />
+          </div>
+        </Row>
+        <Row label="Loading — full state">
+          <div className="rounded-card bg-surface1 shadow-card">
+            <LoadingScreen />
+          </div>
         </Row>
       </Section>
     </div>
