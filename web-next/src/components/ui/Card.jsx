@@ -36,7 +36,7 @@ function CardArt({ image, imageLight, imageDark }) {
 
 export function HeroCard({ eyebrow, title, subtitle, image, imageLight, imageDark, children }) {
   return (
-    <motion.div {...riseIn} className="relative rounded-card overflow-hidden shadow-card h-56">
+    <motion.div {...riseIn} className="relative rounded-card overflow-hidden shadow-card min-h-[224px]">
       <CardArt image={image} imageLight={imageLight} imageDark={imageDark} />
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
       <div className="relative h-full flex flex-col justify-end p-5">

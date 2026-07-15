@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { DAY_LABELS } from "../../constants/app.const";
 
@@ -28,13 +30,23 @@ export default function ItemCard({ item }) {
         <button
           onClick={handleComplete}
           disabled={item.done}
-          className={`w-7 h-7 flex-none rounded-full border text-[13px] ${item.done ? "bg-sage border-sage text-surface2" : "border-borderC text-textMuted"}`}
+          className={`w-7 h-7 flex-none rounded-full border flex items-center justify-center transition-colors duration-300 ${item.done ? "bg-sage border-sage text-surface2" : "border-borderC text-textMuted"}`}
         >
-          {item.done ? "✓" : ""}
+          <AnimatePresence>
+            {item.done && (
+              <motion.span
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              >
+                <Check size={14} strokeWidth={2.5} />
+              </motion.span>
+            )}
+          </AnimatePresence>
         </button>
         <div className="flex-1 min-w-0">
           <div className="text-[14px] font-medium">{item.name}</div>
-          <div className="flex flex-wrap gap-1.5 mt-1 text-[11px] text-textMuted">
+          <div className="flex flex-wrap gap-1.5 mt-1 text-[11px] text-textSecondary">
             <span className="px-2 py-0.5 rounded-full bg-surface3">{item.type}</span>
             <span className="px-2 py-0.5 rounded-full bg-surface3">{item.cat}</span>
             {(item.tags || []).map(t => <span key={t}>#{t}</span>)}
