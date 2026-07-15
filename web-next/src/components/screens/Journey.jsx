@@ -1,26 +1,29 @@
-import { Placeholder, SectionTitle, Pill, ExploreLink } from "../Primitives";
+import { useState } from "react";
+import { SectionTitle } from "../Primitives";
+import { SegmentedControl } from "../ui/SegmentedControl";
+import ChaptersView from "../journey/ChaptersView";
+import TreeAndStarsView from "../journey/TreeAndStarsView";
+import YOUnderstandingView from "../journey/YOUnderstandingView";
+
+const TABS = [
+  { value: "chapters", label: "Chapters" },
+  { value: "tree-stars", label: "Tree & Stars" },
+  { value: "youn", label: "YOUnderstanding" }
+];
 
 export default function Journey() {
+  const [tab, setTab] = useState("chapters");
+
   return (
     <div className="pt-1 pb-24 px-5">
       <SectionTitle>Journey</SectionTitle>
-      <Placeholder label="season">
-        <Pill>season of letting go</Pill>
-        <div>AI-inferred season indicator, replaces % progress.</div>
-      </Placeholder>
-
-      <SectionTitle>Life chapters</SectionTitle>
-      <Placeholder label="chapter card" tall>Title, dates, key moments — AI-detected, not manually created.</Placeholder>
-      <Placeholder label="chapter card" tall>repeat, scroll vertically</Placeholder>
-
-      <SectionTitle>Deeper views</SectionTitle>
-      <div className="grid grid-cols-2 gap-3">
-        <ExploreLink to="/tree" label="tree of YOU" sub="growth metaphor" />
-        <ExploreLink to="/constellations" label="constellations" sub="memory star map" />
+      <div className="mb-4">
+        <SegmentedControl options={TABS} value={tab} onChange={setTab} />
       </div>
 
-      <SectionTitle>Your pursuits</SectionTitle>
-      <ExploreLink to="/pursue" label="habits, goals & dreams" sub="full functional list — add, tag, complete" />
+      {tab === "chapters" && <ChaptersView />}
+      {tab === "tree-stars" && <TreeAndStarsView />}
+      {tab === "youn" && <YOUnderstandingView />}
     </div>
   );
 }

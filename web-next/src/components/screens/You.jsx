@@ -3,7 +3,7 @@ import { SectionTitle, Pill, ExploreLink, Placeholder } from "../Primitives";
 import ValuesPanel from "../values/ValuesPanel";
 import PillarsPanel from "../pillars/PillarsPanel";
 
-export default function Profile() {
+export default function You() {
   const { level } = useAppData();
 
   return (
