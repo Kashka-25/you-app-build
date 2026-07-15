@@ -63,7 +63,7 @@ export default function Home() {
       >
         <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-black/25 border border-white/10">
           <span className="text-label uppercase text-[color-mix(in_srgb,var(--cream)_70%,transparent)]">
-            Current Chapter
+            Level
           </span>
           <span className="text-bodySm font-medium text-cream">{level.name}</span>
         </div>

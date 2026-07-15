@@ -1,35 +1,81 @@
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, Dumbbell, Brain, Sparkles, HeartHandshake, Briefcase, Compass, Palette } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
+import { easeOut } from "../ui/motion";
 
-// Attribute-bar style, inspired by NBA 2K / Fallout stat screens —
-// segmented blocks rather than a smooth gradient slider.
 const SEGMENTS = 10;
+
+const PILLAR_ICONS = {
+  Body: Dumbbell,
+  Mind: Brain,
+  Spirit: Sparkles,
+  Relationships: HeartHandshake,
+  Work: Briefcase,
+  Adventure: Compass,
+  Creative: Palette
+};
 
 export default function PillarsPanel() {
   const { pillars } = useAppData();
+  const [openPillar, setOpenPillar] = useState(null);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {pillars.map(p => {
         const filled = Math.round((p.pct / 100) * SEGMENTS);
+        const Icon = PILLAR_ICONS[p.name];
+        const open = openPillar === p.name;
         return (
-          <div key={p.name}>
-            <div className="flex justify-between text-[13px] mb-1">
-              <span className="font-medium">{p.name}</span>
-              <span className="text-textMuted">{p.xp} XP</span>
-            </div>
-            <div className="flex gap-1">
-              {Array.from({ length: SEGMENTS }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex-1 h-2.5 rounded-sm"
-                  style={{ background: i < filled ? p.color : "var(--surface-3)" }}
-                />
-              ))}
-            </div>
-            <div className="flex gap-3 text-[10px] text-textMuted mt-1">
-              <span>Active: {p.active}</span>
-              <span>Best streak: {p.bestStreak}d</span>
-            </div>
+          <div key={p.name} className="rounded-card bg-surface1 shadow-card p-3.5">
+            <button
+              onClick={() => setOpenPillar(open ? null : p.name)}
+              className="w-full flex items-center gap-3"
+            >
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center flex-none"
+                style={{ background: `${p.color}26`, color: p.color }}
+              >
+                {Icon && <Icon size={17} strokeWidth={1.75} />}
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="flex justify-between text-body mb-1">
+                  <span className="font-medium text-textPrimary">{p.name}</span>
+                  <span className="text-textMuted text-bodySm">{p.xp} XP</span>
+                </div>
+                <div className="flex gap-1">
+                  {Array.from({ length: SEGMENTS }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex-1 h-2 rounded-sm"
+                      style={{ background: i < filled ? p.color : "var(--surface-3)" }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <ChevronDown
+                size={16}
+                strokeWidth={1.75}
+                className={`text-textMuted flex-none transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            <AnimatePresence initial={false}>
+              {open && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: easeOut }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex gap-4 text-caption text-textMuted pt-2.5 pl-12">
+                    <span>Active: {p.active}</span>
+                    <span>Best streak: {p.bestStreak}d</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}

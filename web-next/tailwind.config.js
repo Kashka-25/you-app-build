@@ -15,6 +15,8 @@ export default {
         gold: "var(--gold)",
         cream: "var(--cream)",
         ember: "var(--ember)",
+        accentBlue: "var(--accent-blue)",
+        error: "var(--error)",
         textPrimary: "var(--text-primary)",
         textSecondary: "var(--text-secondary)",
         textMuted: "var(--text-muted)",

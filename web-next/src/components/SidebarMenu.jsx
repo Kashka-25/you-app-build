@@ -20,7 +20,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
   return (
     <AnimatePresence>
       {open && (
-        <motion.div {...fadeIn} className="fixed inset-0 bg-black/40 z-40" onClick={onClose}>
+        <motion.div {...fadeIn} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onClick={onClose}>
           <motion.div
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}

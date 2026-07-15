@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Home as HomeIcon, Users, Compass, User, Plus } from "lucide-react";
 import AddItemModal from "./pursue/AddItemModal";
+import AddActionSheet from "./AddActionSheet";
 import TopBar from "./TopBar";
 import SidebarMenu from "./SidebarMenu";
 
@@ -17,6 +18,7 @@ const TABS = [
 export default function AppShell() {
   const [mode, setMode] = useState("light");
   const [addOpen, setAddOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const isPrimary = TABS.some(t => (t.end ? location.pathname === t.to : location.pathname.startsWith(t.to)));
@@ -46,7 +48,7 @@ export default function AppShell() {
               <Compass size={20} strokeWidth={1.75} className="mx-auto mb-1" />
               Journey
             </NavLink>
-            <button onClick={() => setAddOpen(true)} className="flex-1 text-center text-label text-textMuted pt-1.5">
+            <button onClick={() => setSheetOpen(true)} className="flex-1 text-center text-label text-textMuted pt-1.5">
               <div className="w-9 h-9 rounded-full bg-forestAccent mx-auto -mt-4 mb-1.5 flex items-center justify-center">
                 <Plus size={18} strokeWidth={2} className="text-surface2" />
               </div>
@@ -70,6 +72,11 @@ export default function AppShell() {
       </div>
 
       {addOpen && <AddItemModal onClose={() => setAddOpen(false)} />}
+      <AddActionSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onSelectPursue={() => setAddOpen(true)}
+      />
     </div>
   );
 }

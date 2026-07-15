@@ -1,35 +1,14 @@
 import { useState } from "react";
-import { SectionTitle, Placeholder } from "../Primitives";
-import { SegmentedControl } from "../ui/SegmentedControl";
+import AmbientScene from "./tree-stars/AmbientScene";
+import TreeDetail from "./tree-stars/TreeDetail";
+import ConstellationsDetail from "./tree-stars/ConstellationsDetail";
 
-const VIEWS = [
-  { value: "tree", label: "Tree of YOU" },
-  { value: "stars", label: "Constellations" }
-];
-
+// Ambient scene is home base for this segment — back from either detail
+// screen returns here, not to Journey itself.
 export default function TreeAndStarsView() {
-  const [view, setView] = useState("tree");
+  const [view, setView] = useState("ambient");
 
-  return (
-    <>
-      <SegmentedControl options={VIEWS} value={view} onChange={setView} />
-
-      {view === "tree" ? (
-        <>
-          <SectionTitle>Tree of YOU</SectionTitle>
-          <Placeholder label="tree visualization" className="min-h-[240px]">
-            Unique per user. Trunk = courage, branches = relationships, leaves = learning,
-            flowers = gratitude, fruit = purpose.
-          </Placeholder>
-        </>
-      ) : (
-        <>
-          <SectionTitle>Life constellations</SectionTitle>
-          <Placeholder label="star map" className="min-h-[240px]">
-            Meaningful memories as stars. Connecting stars reveals patterns. Pulled from Memory Bank.
-          </Placeholder>
-        </>
-      )}
-    </>
-  );
+  if (view === "tree") return <TreeDetail onBack={() => setView("ambient")} />;
+  if (view === "stars") return <ConstellationsDetail onBack={() => setView("ambient")} />;
+  return <AmbientScene onTapTree={() => setView("tree")} onTapSky={() => setView("stars")} />;
 }
