@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock, MapPin, Star } from "lucide-react";
+import { Clock, MapPin, Star, ExternalLink } from "lucide-react";
 import { riseIn } from "./motion";
 
 // Imagery decision: AI-generated botanical/landscape art, until swapped for
@@ -77,7 +77,7 @@ export function ReflectionCard({ date, prompt, text }) {
   );
 }
 
-export function EventCard({ month, day, title, time, location }) {
+export function EventCard({ month, day, title, time, location, source, organizer, link }) {
   return (
     <motion.div {...riseIn} className="rounded-card bg-surface1 p-4 shadow-card flex gap-3.5">
       <div className="flex-none w-12 text-center rounded-sm bg-surface3 py-1.5 h-fit">
@@ -85,15 +85,38 @@ export function EventCard({ month, day, title, time, location }) {
         <div className="font-serif text-h2 text-textPrimary leading-none mt-0.5">{day}</div>
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-h3 font-medium text-textPrimary mb-1.5">{title}</div>
-        <div className="text-caption text-textSecondary flex items-center gap-1.5">
-          <Clock size={12} strokeWidth={1.75} />
-          {time}
+        <div className="flex items-center gap-2 mb-1.5">
+          <div className="text-h3 font-medium text-textPrimary">{title}</div>
+          {source && (
+            <span className="text-caption uppercase tracking-wide text-gold bg-surface3 px-2 py-0.5 rounded-full flex-none">
+              via {source}
+            </span>
+          )}
         </div>
-        <div className="text-caption text-textSecondary flex items-center gap-1.5 mt-1">
-          <MapPin size={12} strokeWidth={1.75} />
-          {location}
-        </div>
+        {time && (
+          <div className="text-caption text-textSecondary flex items-center gap-1.5">
+            <Clock size={12} strokeWidth={1.75} />
+            {time}
+          </div>
+        )}
+        {location && (
+          <div className="text-caption text-textSecondary flex items-center gap-1.5 mt-1">
+            <MapPin size={12} strokeWidth={1.75} />
+            {location}
+          </div>
+        )}
+        {organizer && <div className="text-caption text-textMuted mt-1">Hosted by {organizer}</div>}
+        {link && (
+          <a
+            href={link}
+            target="_blank"
+            rel="noreferrer"
+            className="text-caption text-textSecondary flex items-center gap-1 mt-1.5 underline"
+          >
+            View on {source || "source"}
+            <ExternalLink size={11} strokeWidth={1.75} />
+          </a>
+        )}
       </div>
     </motion.div>
   );

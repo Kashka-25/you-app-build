@@ -115,6 +115,52 @@ everyone, regardless of how any individual mind works.
 
 ---
 
+## Kronk Integration Cross-Reference Notes (added Jul 16)
+
+Prep for whoever runs the Kronk auth/API setup session — open questions
+and dependencies gathered in one place so they don't get rediscovered
+mid-build, and so the session can cover both CommYOUnity and the
+Calendar-Kronk skeleton (see Calendar below) in one pass rather than two.
+
+- **Auth/account linking — unresolved.** Does a YOUser need a separate
+  Mastodon account, or does YOU auto-provision one on Kronk? Where would a
+  Kronk identity/token live (`profiles` table? its own table?) and under
+  what RLS rule? **Flag explicitly:** `DEV_MODE` is still `"bypass"` in
+  `AuthContext.jsx` — real auth isn't wired yet, so don't build the Kronk
+  auth flow against mock auth by mistake. Real login needs to land first,
+  or at least be accounted for in how tokens get associated with a user.
+- **Data/security boundary.** No Kronk API keys or tokens should ever live
+  in the vanilla app's client-side JS at the repo root — it has no build
+  step, so anything in `js/` is fully visible to anyone who views source.
+  This constraint holds until/unless the React + Vite migration fully
+  replaces the vanilla app; until then, any Kronk credentials belong
+  server-side or in `web-next` env vars, never in `js/`.
+- **Notification bell.** The bell already needs to surface CommYOUnity
+  notifications (per the nav decisions). If Kronk adds its own
+  notification types (mentions, boosts, replies), document that event
+  schema here when it's known, so the bell's notification model isn't
+  designed twice — once for the mock, once for real Kronk events.
+- **Branding.** Confirm the "Proudly powered and supported by Kronk"
+  credit line and the feed's reskin-to-YOU-palette approach before build
+  starts, not as an afterthought once the feed is already pulling in.
+- **Shop.** YOU's marketplace and Kronk's marketplace are separate
+  systems with some crossover items only, not a merged store/inventory
+  (see the Shop brain-dump note below). Don't let the Kronk integration
+  session accidentally wire shared inventory between the two.
+- **Therapists.** Open idea, not decided: a filter/toggle between
+  therapist-authored posts and their linked Kronk feed, and whether
+  that's built inside Empatherapy or natively in YOU. Leave open — don't
+  build this as a side effect of the CommYOUnity integration work.
+- **Share.** Referral system + shareable YOU profile link that
+  auto-connects a recipient to CommYOUnity — depends on Kronk accounts
+  existing. Noting the dependency only; not scoped for this pass.
+- **Build order.** This integration is intentionally ahead of the
+  ecosystem doc's originally stated order (Kronk was planned after
+  Empatherapy) — confirmed decision (Jul 16), not scope creep. See the
+  CommYOUnity brain-dump note below for the full context.
+
+---
+
 ## Brain dump (Jul 15) — future ideas, not yet scoped for build
 
 Captured as-is. Nothing here is approved for building yet — these need a
@@ -224,6 +270,13 @@ ecosystem docs (flagged below).
   personal calendar; pull in Kronk events posted by friends; pull in
   Empatherapy session bookings. Depends on both Kronk and Empatherapy
   existing. Not scoped, just noted.
+- **Kronk event pull-in skeleton built Jul 16** — `Events.jsx` ("Events /
+  Calendar" in the nav) now renders a "From Kronk" section alongside
+  personal events, using `EventCard`'s new optional `source`/`organizer`/
+  `link` props for the "via Kronk" tag, host name, and link back to the
+  Kronk post. Real API wiring is pending the Kronk integration session —
+  single seam at `fetchKronkEvents()` in `src/lib/kronkClient.js`. Mock
+  data only, nothing here makes a real network call yet.
 
 ### YOU tab
 - Direction: Pillars/Values XP should lead to something *usable and

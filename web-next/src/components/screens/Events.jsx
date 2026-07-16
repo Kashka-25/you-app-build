@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BackRow, SectionTitle } from "../Primitives";
 import { EventCard } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/EmptyState";
+import { fetchKronkEvents } from "../../lib/kronkClient";
 
 // Mock data — no events/booking backend exists yet. Join state is local
 // only (not persisted); structure is real, the data source isn't.
@@ -12,8 +13,30 @@ const MOCK_EVENTS = [
   { id: 3, month: "Aug", day: "02", title: "Nature walk", time: "8:00 AM", location: "Gold Coast" }
 ];
 
+function formatKronkEvent(e) {
+  const d = new Date(e.date);
+  return {
+    id: e.id,
+    month: d.toLocaleDateString("en-AU", { month: "short" }),
+    day: d.toLocaleDateString("en-AU", { day: "2-digit" }),
+    time: d.toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit" }),
+    title: e.title,
+    organizer: e.organizer,
+    link: e.kronkUrl,
+    source: "Kronk"
+  };
+}
+
 export default function Events() {
   const [joined, setJoined] = useState([]);
+  const [kronkEvents, setKronkEvents] = useState([]);
+
+  // fetchKronkEvents() is the one integration seam here -- see
+  // lib/kronkClient.js. Everything else in this screen just renders
+  // whatever it resolves to.
+  useEffect(() => {
+    fetchKronkEvents().then(events => setKronkEvents(events.map(formatKronkEvent)));
+  }, []);
 
   function toggleJoin(id) {
     setJoined(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
@@ -39,6 +62,24 @@ export default function Events() {
           </Button>
         </div>
       ))}
+
+      {kronkEvents.length > 0 && (
+        <>
+          <SectionTitle>From Kronk</SectionTitle>
+          {kronkEvents.map(e => (
+            <EventCard
+              key={e.id}
+              month={e.month}
+              day={e.day}
+              title={e.title}
+              time={e.time}
+              organizer={e.organizer}
+              link={e.link}
+              source={e.source}
+            />
+          ))}
+        </>
+      )}
 
       <SectionTitle>Your events</SectionTitle>
       {yourEvents.length === 0 ? (
