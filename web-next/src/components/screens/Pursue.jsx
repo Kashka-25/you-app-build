@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle } from "../Primitives";
+import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
 
 const FILTERS = ["all", "habit", "goal", "dream", "done"];
@@ -25,14 +26,19 @@ export default function Pursue() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`text-[12px] px-3 py-1.5 rounded-full flex-none ${filter === f ? "bg-forestAccent text-surface2" : "bg-surface3 text-textMuted"}`}
+            className={`text-bodySm px-3.5 py-1.5 rounded-full flex-none capitalize transition-colors duration-150 ${
+              filter === f ? "bg-forestAccent text-surface2 font-medium" : "bg-surface3 text-textMuted"
+            }`}
           >
             {f}
           </button>
         ))}
       </div>
       {sorted.length === 0 ? (
-        <div className="text-[13px] text-textMuted text-center py-10">Your YOUniverse awaits your intentions. Tap Add to plant something.</div>
+        <EmptyState
+          title="Nothing here yet"
+          description="Your YOUniverse awaits your intentions. Tap Add to plant something."
+        />
       ) : (
         sorted.map(item => <ItemCard key={item.id} item={item} />)
       )}

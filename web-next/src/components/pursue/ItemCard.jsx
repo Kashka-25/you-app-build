@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { DAY_LABELS } from "../../constants/app.const";
+import { riseIn } from "../ui/motion";
+import { Button } from "../ui/Button";
 
 export default function ItemCard({ item }) {
   const { completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, editItem } = useAppData();
@@ -25,12 +27,14 @@ export default function ItemCard({ item }) {
   }
 
   return (
-    <div className={`border border-borderC rounded-card bg-surface1 p-3.5 mb-3 ${item.done ? "opacity-60" : ""}`}>
+    <motion.div {...riseIn} className={`rounded-card bg-surface1 shadow-card p-3.5 mb-3 ${item.done ? "opacity-60" : ""}`}>
       <div className="flex gap-3">
         <button
           onClick={handleComplete}
           disabled={item.done}
-          className={`w-7 h-7 flex-none rounded-full border flex items-center justify-center transition-colors duration-300 ${item.done ? "bg-sage border-sage text-surface2" : "border-borderC text-textMuted"}`}
+          className={`w-7 h-7 flex-none rounded-full border flex items-center justify-center transition-colors duration-300 ${
+            item.done ? "bg-sage border-sage text-surface2" : "border-borderC text-textMuted"
+          }`}
         >
           <AnimatePresence>
             {item.done && (
@@ -45,21 +49,27 @@ export default function ItemCard({ item }) {
           </AnimatePresence>
         </button>
         <div className="flex-1 min-w-0">
-          <div className="text-[14px] font-medium">{item.name}</div>
-          <div className="flex flex-wrap gap-1.5 mt-1 text-[11px] text-textSecondary">
-            <span className="px-2 py-0.5 rounded-full bg-surface3">{item.type}</span>
+          <div className="text-body font-medium text-textPrimary">{item.name}</div>
+          <div className="flex flex-wrap items-center gap-1.5 mt-1 text-caption text-textSecondary">
+            <span className="px-2 py-0.5 rounded-full bg-surface3 capitalize">{item.type}</span>
             <span className="px-2 py-0.5 rounded-full bg-surface3">{item.cat}</span>
             {(item.tags || []).map(t => <span key={t}>#{t}</span>)}
-            {item.type === "habit" && item.streak > 0 && <span>🔥 {item.streak}d</span>}
+            {item.type === "habit" && item.streak > 0 && (
+              <span className="flex items-center gap-0.5 text-ember">
+                <Flame size={12} strokeWidth={1.75} />
+                {item.streak}d
+              </span>
+            )}
           </div>
 
           {item.type === "habit" && !item.done && (
             <div className="flex gap-1.5 mt-2.5">
               {DAY_LABELS.map((d, i) => (
                 <div key={i} className="text-center">
-                  <div
+                  <button
                     onClick={() => toggleDay(item.id, i)}
-                    className={`w-5 h-5 rounded-full cursor-pointer border ${item.days[i] ? "bg-gold border-gold" : "border-borderC"}`}
+                    className={`w-5 h-5 rounded-full border ${item.days[i] ? "bg-gold border-gold" : "border-borderC"}`}
+                    aria-label={`Toggle ${d} check-in`}
                   />
                   <div className="text-[9px] text-textMuted mt-0.5">{d}</div>
                 </div>
@@ -72,24 +82,28 @@ export default function ItemCard({ item }) {
               <div className="h-1.5 rounded-full bg-surface3 overflow-hidden">
                 <div className="h-full bg-forestAccent" style={{ width: `${msPct}%` }} />
               </div>
-              <div className="text-[10px] text-textMuted mt-1">{msDone}/{msTotal} milestones</div>
+              <div className="text-caption text-textMuted mt-1">{msDone}/{msTotal} milestones</div>
             </div>
           )}
 
           {(item.intention || item.note || msTotal > 0) && (
-            <button onClick={() => setExpanded(!expanded)} className="text-[11px] text-textSecondary mt-2 underline">
-              {expanded ? "collapse" : "expand"}
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center gap-1 text-caption text-textSecondary mt-2"
+            >
+              {expanded ? "Collapse" : "Expand"}
+              {expanded ? <ChevronUp size={13} strokeWidth={1.75} /> : <ChevronDown size={13} strokeWidth={1.75} />}
             </button>
           )}
           {expanded && (
-            <div className="mt-2 text-[12px] text-textSecondary space-y-1.5">
+            <div className="mt-2 text-bodySm text-textSecondary space-y-1.5">
               {item.intention && <div className="italic">{item.intention}</div>}
               {item.note && <div>{item.note}</div>}
               {(item.milestones || []).map((m, mi) => (
                 <div key={mi} className="flex items-center gap-2">
                   <button
                     onClick={() => toggleMilestone(item.id, mi)}
-                    className={`w-4 h-4 rounded-full border text-[9px] ${m.done ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
+                    className={`w-4 h-4 flex-none rounded-full border text-[9px] ${m.done ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
                   >
                     {m.done ? "✓" : ""}
                   </button>
@@ -100,27 +114,33 @@ export default function ItemCard({ item }) {
           )}
         </div>
 
-        <div className="flex flex-col gap-1.5 text-[13px] text-textMuted flex-none">
-          {item.done && <button onClick={() => unachieveItem(item.id)} title="Move back to active">↺</button>}
-          <button onClick={() => deleteItem(item.id)} title="Delete">×</button>
+        <div className="flex flex-col gap-2 text-textMuted flex-none">
+          {item.done && (
+            <button onClick={() => unachieveItem(item.id)} aria-label="Move back to active">
+              <RotateCcw size={15} strokeWidth={1.75} />
+            </button>
+          )}
+          <button onClick={() => deleteItem(item.id)} aria-label="Delete">
+            <X size={15} strokeWidth={1.75} />
+          </button>
         </div>
       </div>
 
       {reflecting && (
         <div className="mt-3 pt-3 border-t border-borderC">
           <textarea
-            className="w-full bg-surface2 border border-borderC rounded-lg px-3 py-2 text-[13px] mb-2"
+            className="w-full bg-surface2 border border-borderC rounded-sm px-3 py-2 text-bodySm mb-2 outline-none focus:border-forestAccent"
             rows={2}
             placeholder="What has this given you? (optional)"
             value={reflection}
             onChange={e => setReflection(e.target.value)}
           />
           <div className="flex gap-2">
-            <button onClick={() => confirmComplete(true)} className="flex-1 border border-borderC rounded-lg py-2 text-[13px]">Skip</button>
-            <button onClick={() => confirmComplete(false)} className="flex-1 bg-forestAccent text-surface2 rounded-lg py-2 text-[13px]">Complete</button>
+            <Button variant="secondary" size="sm" className="flex-1" onClick={() => confirmComplete(true)}>Skip</Button>
+            <Button variant="primary" size="sm" className="flex-1" onClick={() => confirmComplete(false)}>Complete</Button>
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

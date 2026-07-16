@@ -71,7 +71,7 @@ export default function AppShell() {
         </div>
       </div>
 
-      {addOpen && <AddItemModal onClose={() => setAddOpen(false)} />}
+      <AddItemModal open={addOpen} onClose={() => setAddOpen(false)} />
       <AddActionSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
