@@ -30,59 +30,73 @@ everyone, regardless of how any individual mind works.
 
 ---
 
-## Fix first (small, high-value)
+## Fix first (small, high-value) — done Jul 16
 
-- [ ] Hamburger menu overlay — hero text bleeds through behind the scrim
-      when the menu is open (see screenshots, Jul 15). Scrim needs full
-      opacity or the hero needs to properly recede/blur behind it.
-- [ ] Hero pill currently reads "Current Chapter — Seedling" — this is
-      actually the **Seed Being level**, not a Life Chapter. These are two
-      separate systems (see `03-YOU-LIVING-BIOGRAPHY-pivot-brief.md`).
-      Relabel to "Level — Seedling" now. Reserve "Current Chapter" for when
-      real Chapters data exists, so the two concepts don't blur together
-      from day one.
+- [x] Hamburger menu overlay scrim — now `bg-black/60` + `backdrop-blur-sm`,
+      hero properly recedes instead of bleeding through.
+- [x] Hero pill relabeled "Current Chapter" → "Level — Seedling". "Current
+      Chapter" is reserved for when real Chapters data exists.
 
-## Build: the Add action-sheet gap
+## Build: the Add action-sheet gap — done Jul 16
 
-Claude Code flagged (Jul 15) that `nav-bars-mockup.html` specifies a 3-choice
-sheet on tapping **+**, but the app currently jumps straight to the full
-`AddItemModal`. This needs actually building, not just a rename:
+`AddActionSheet.jsx` now shows the 3-choice sheet on tapping **+**:
 
-- [ ] **Today's list** — quick one-off task, today only. **Open decision:**
-      does this reuse the `items` table with a new `type: "todo"`, or does
-      it need its own shape? Confirm with the data-layer side before
-      building — this is a real schema decision, not just UI.
-- [ ] **Habit, goal, or dream** — routes to the existing `AddItemModal`,
+- [ ] **Today's list** — still an open data-shape decision (reuse `items`
+      with `type: "todo"`, or its own shape?). The sheet stops at surfacing
+      this question rather than guessing — nothing is built here yet.
+- [x] **Habit, goal, or dream** — routes to the existing `AddItemModal`,
       unchanged.
-- [ ] **Journal entry** — quick reflection entry, feeds the Reflections
-      screen (currently placeholder — check whether Reflections needs real
-      wiring now or can stay a placeholder that this feeds later).
+- [x] **Journal entry** — working quick-capture UI; honest in the confirmation
+      copy that Reflections is still a placeholder so nothing persists yet.
 
-## Other loose ends to confirm, not just build
+## Other loose ends — confirmed Jul 16
 
-- [ ] Has the Phase 1 `/styleguide` component library actually been built
-      yet? If Phase 2 screens are being styled before it exists, components
-      (cards, buttons, inputs) are being designed twice. Check before
-      continuing Phase 2.
-- [ ] Home's "Living Atlas" explore card — confirm whether the "one
-      contextual card" logic is actually dynamic (e.g. picks Healing Journey
-      vs Atlas based on recent activity) or currently hardcoded. Hardcoded
-      is fine for now — just don't want it mistaken for finished logic.
+- [x] `/styleguide` exists and loads clean (`src/components/screens/Styleguide.jsx`).
+- [x] Home's "Living Atlas" explore card is confirmed **hardcoded**, not
+      dynamic — noting so it isn't mistaken for finished logic later.
+- [x] Values challenges do **not** auto-regenerate once a value's full
+      challenge list is completed — confirmed no such logic exists in
+      `completeChallenge` or `values.const.js`. Needs a scoping decision
+      (where does "new" challenge content come from?) before building.
 
 ---
 
 ## Phase 2 — screen-by-screen order
 
-- [x] **Home** — built, minor fixes above aside
-- [ ] **YOU tab** (formerly Profile) — Pillars + Values attribute bars, Seed
-      Being, level/stats, Legacy card
-- [ ] **Journey** — segmented control (Chapters / Tree & Stars /
-      YOUnderstanding), Life Chapters cards, Season indicator
-- [ ] **Pursue** (full list — reached from Journey → Chapters or Home
-      "View all") — most function-heavy screen, go carefully
-- [ ] **Everything else** (lower priority, still placeholder): CommYOUnity,
-      Atlas, Tree & Stars detail, Healing Journey, Therapists, Empatherapy,
-      Events/Calendar, Shop, Challenges, Saved, Review, Legacy Mode
+- [x] **Home** — built
+- [x] **YOU tab** — Pillars/Values rebuilt as icon-led accordions (lucide
+      icons, expand/collapse), Seed Being avatar, Legacy card. Pillars now
+      level up every 100 XP with a fill-and-reset bar + badge, same pattern
+      as Values' tiers. Avatar-upgrade-station is a placeholder card only
+      (same treatment as Legacy) — the mechanic itself isn't designed yet.
+- [x] **Journey** — segmented control (Chapters / Tree & Stars /
+      YOUnderstanding) built. Chapters has mock era cards (name + date
+      range + blurb) plus a Season card, Your Pursuits ordered right after
+      Season. Tree & Stars is a single fused ambient scene (tree rooted
+      below, sky/starfield above, real time-of-day, independent of the
+      dark/light toggle) — tapping the tree opens the interactive Tree of
+      YOU (roots = 12 Values by tier, canopy = 7 Pillars by XP, tap either
+      to trace the Value→Pillar connection); tapping the sky opens
+      Constellations. Back from either returns to the ambient scene.
+- [x] **Pursue** — migrated to the design system (floating cards, icons,
+      type scale). All data calls (items, completeItem, toggleDay,
+      toggleMilestone, deleteItem, unachieveItem, addItem) unchanged.
+      **Habit XP exploit fixed**: check-in XP is now idempotent per
+      day-slot per prestige cycle (undo zeroes the XP but keeps a
+      permanent lock, so toggling on/off/on can't re-farm it). Streak is
+      now derived from the days array instead of tracked incrementally, so
+      it can't drift. New: 7-day streaks offer a prestige reset (fresh
+      cycle + permanent tier badge).
+- [x] **Everything else** — given basic interactive (local-state, not
+      backend-wired) shells instead of static placeholders: Events
+      (join/leave), CommYOUnity (likeable mock feed — **see decision
+      below, this is about to be replaced with real Kronk data**), Healing
+      (session timeline), Therapists (booking flow), Challenges (full
+      Active/Suggested/Overcome flow per the spec below), Saved (tabbed
+      shell, category still unscoped), Review (real feedback form), Shop
+      (mock cart, no real commerce). Empatherapy and a new Settings screen
+      (Settings/Account consolidated here from the YOU tab) stay minimal
+      parked stubs — both genuinely deferred, not under-built.
 
 ---
 
@@ -106,12 +120,21 @@ existing, and a few overlap with things already defined elsewhere in the
 ecosystem docs (flagged below).
 
 ### CommYOUnity
-- Real integration with Kronk (friend's Mastodon server) — pull the feed in,
-  reskin to YOU branding, credit line: "Proudly powered and supported by
-  Kronk." **This is further than the "rename only, no Kronk wiring yet"
-  decision on record** — worth explicitly re-confirming timing before
-  Claude Code builds toward it, since build order currently has Kronk as a
-  later mission.
+- **Decision confirmed (Jul 16): real Kronk integration, now.** This
+  supersedes the earlier "rename only, no Kronk wiring yet" decision and
+  moves Kronk earlier than the ecosystem build order originally had it
+  (YOU Core → Empatherapy → Kronk → Elemental Game) — worth a corresponding
+  note in `03-YOU-LIVING-BIOGRAPHY-pivot-brief.md` if that order is
+  genuinely changing, not just this one feature jumping the queue.
+- Pull the feed in from Kronk (friend's Mastodon server), reskin to YOU
+  branding, credit line: "Proudly powered and supported by Kronk."
+- `Community.jsx` currently has a **mock local-state feed** (post cards
+  with like-toggling, no persistence) — built as a structural placeholder,
+  not real data. Whoever wires up Kronk will likely replace this outright
+  rather than adapt it, since a Mastodon-shaped feed (boosts, replies,
+  media attachments, remote authors) doesn't map cleanly onto the
+  simple post shape mocked here. Treat the current UI as a rough visual
+  reference, not a data contract to preserve.
 
 ### Therapists
 - Once Empatherapy exists as its own site, Therapists page links out to it

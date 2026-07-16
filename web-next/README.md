@@ -21,16 +21,32 @@ Opens at `http://localhost:5173`.
 `memory`, `user_values`, `profiles`):**
 - Pursue — add/edit/complete/un-achieve/delete habits, goals, dreams
 - Tags, milestones, intention reflection
-- Habit day-tracker + streaks + streak bonus XP
-- Values — tier progress, challenges, breakthroughs, add a value
-- Pillars — computed from XP same as the vanilla app
-- Both rendered in the new **attribute-bar stat-screen style** (segmented
-  blocks, not sliders) — this closes the open "Pillars/Values UI" item.
+- Habit day-tracker + streaks (derived from checked days, not tracked
+  incrementally) + idempotent check-in XP (a day-slot can be undone but
+  never re-farmed) + streak bonus XP + a 7-day prestige reset (fresh cycle,
+  permanent tier badge)
+- Values — tier progress, challenges, breakthroughs, add a value. Challenge
+  lists are fixed per value and do **not** auto-regenerate once fully
+  completed — confirmed gap, not yet scoped.
+- Pillars — computed from XP same as the vanilla app, now with a levels
+  system (100 XP/level, fill-and-reset bar + badge, same pattern as Values)
+- Both rendered as icon-led accordions (lucide icons, expand/collapse) in
+  the YOU tab, not flat always-on bars.
+- Home, Journey (Chapters/Tree & Stars/YOUnderstanding), nav shell
+  (top bar, hamburger sitemap, bottom tabs, Add action-sheet) are built out
+  screen UI, all still reading through the same `AppDataContext` hooks.
 
-**Placeholder only (matches the reference mockup, not wired to data):**
-Community, Journey's Life Chapters/Season, Living Atlas, Tree of YOU, Life
-Constellations, Healing Journey (parked — Empatherapy not yet live),
-Empatherapy bridge (parked), Events, YOU Companion, Reflections, Legacy Mode.
+**Interactive but not data-wired (local component state only, no
+persistence — structural shells, not finished features):** Events
+(join/leave), CommYOUnity (mock feed — **about to be replaced by real Kronk
+integration, see BUILD-BACKLOG.md**), Healing Journey (session timeline),
+Therapists (booking flow), Challenges (full active/suggested/overcome
+flow), Saved (tabbed shell, category not yet chosen), Review (feedback
+form), Shop (mock cart, no commerce), Living Atlas, Tree of YOU detail,
+Life Constellations.
+
+**Minimal parked stubs (genuinely deferred, not under-built):**
+Empatherapy bridge, Settings/Account, Legacy Mode.
 
 ## Dev mode
 
@@ -50,16 +66,26 @@ vanilla app's `DEV_MODE` bypass:
 ```
 src/
   lib/            AuthContext, AppDataContext (all Supabase read/write logic)
-  constants/      ported 1:1 from js/config.js and js/constants/values.const.js
+  constants/      ported 1:1 from js/config.js and js/constants/values.const.js,
+                  plus getPillarLevel (pillar leveling, mirrors getTier for Values)
   components/
-    AppShell.jsx  phone frame, tab bar, mode toggle, quick-add
-    Primitives.jsx  shared placeholder/pill/section components
-    pursue/       AddItemModal, ItemCard
-    values/       ValuesPanel
-    pillars/      PillarsPanel
-    screens/      one file per screen (Home, Community, Journey, Profile,
-                  Pursue, Atlas, Tree, Constellations, Healing, Empatherapy,
-                  Events, AICompanion, Reflections, Legacy)
+    AppShell.jsx    phone frame, top bar, bottom tabs, sidebar menu, Add sheet
+    TopBar.jsx      hamburger + wordmark + avatar/badge + bell
+    SidebarMenu.jsx hamburger slide-in sitemap + Settings/Account + dark mode toggle
+    AddActionSheet.jsx  3-choice sheet on tapping + (today's list / habit-goal-
+                        dream / journal entry)
+    Primitives.jsx  shared Placeholder/Pill/SectionTitle/ExploreLink/ParkedScreen
+    ui/             design-system library (Button, Card variants, Input variants,
+                    Modal, ProgressRing, SegmentedControl, EmptyState, LoadingScreen,
+                    shared motion presets) — see /styleguide
+    pursue/         AddItemModal, ItemCard
+    values/         ValuesPanel
+    pillars/        PillarsPanel
+    journey/        ChaptersView, TreeAndStarsView, YOUnderstandingView, plus a
+                    tree-stars/ subfolder (AmbientScene, TreeDetail, ConstellationsDetail)
+    screens/        one file per route — Home, Community, Journey, You, Pursue,
+                    Atlas, Healing, Empatherapy, Events, Reflections, Legacy,
+                    Therapists, Shop, Challenges, Saved, Review, Settings, Styleguide
 ```
 
 ## Known gaps / next session
@@ -71,4 +97,14 @@ src/
   vanilla app today — moving to `.env` is still on the backlog, not a
   blocker.
 - Mood/energy logging, Calendar/astrology screens not touched yet.
-- All placeholder screens are structural only — no imagery, no copy pass.
+- CommYOUnity's mock feed is about to be replaced by real Kronk
+  integration — see BUILD-BACKLOG.md.
+- The interactive placeholder screens (Events, Healing, Therapists,
+  Challenges, Saved, Review, Shop, Atlas, Tree of YOU detail,
+  Constellations) all use local component state only — nothing persists,
+  no backend wiring exists for any of them yet.
+- Today's list (in the Add action-sheet) has no data shape decided —
+  needs a call on whether it reuses `items` with a new type or gets its
+  own shape before it can be built.
+- Values challenges don't auto-regenerate once a value's list is fully
+  completed — no content-generation logic exists for this.
