@@ -13,6 +13,10 @@ export default function TopBar({ onMenuClick }) {
       </div>
 
       <div className="flex items-center gap-3">
+        <button className="relative text-textSecondary" aria-label="Notifications">
+          <Bell size={18} strokeWidth={1.75} />
+          <span className="absolute -top-0.5 -right-0.5 w-[7px] h-[7px] rounded-full bg-ember border border-surface2" />
+        </button>
         <div className="relative w-8 h-8 flex-none">
           <div
             className="w-8 h-8 rounded-full"
@@ -20,10 +24,6 @@ export default function TopBar({ onMenuClick }) {
           />
           <div className="absolute -bottom-0.5 -right-0.5 w-[15px] h-[15px] rounded-full bg-gold border-2 border-surface2" />
         </div>
-        <button className="relative text-textSecondary" aria-label="Notifications">
-          <Bell size={18} strokeWidth={1.75} />
-          <span className="absolute -top-0.5 -right-0.5 w-[7px] h-[7px] rounded-full bg-ember border border-surface2" />
-        </button>
       </div>
     </div>
   );

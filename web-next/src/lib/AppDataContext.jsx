@@ -3,7 +3,7 @@ import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import {
   XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2,
-  STREAK_BONUS_INTERVAL, getLevel
+  STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel
 } from "../constants/app.const";
 import { ALL_VALUES_LIB } from "../constants/values.const";
 
@@ -159,30 +159,85 @@ export function AppDataProvider({ children }) {
     await saveItemRow(updated);
   }
 
+  // Prestige tier is derived from the memory log (how many times this item's
+  // 7-day cycle has been completed and reset) rather than a new items-table
+  // column, so it can't drift out of sync and needs no schema change.
+  function getPrestigeTier(item) {
+    const marker = `${item.name} (prestige)`;
+    return memory.filter(m => m.name === marker).length;
+  }
+
+  // Check-in XP must be idempotent per day-slot within the current prestige
+  // cycle: once awarded, a day can be undone (toggled off) to correct a
+  // mistake, but never re-awarded by toggling back on. Streak itself is
+  // derived from the days array (count of checked slots), not tracked
+  // incrementally, so it can never drift from actual completions -- and
+  // since there are exactly 7 slots, streak can only reach 7 when every day
+  // is checked, which is exactly the prestige trigger.
   async function toggleDay(id, dayIndex) {
     const item = items.find(i => i.id === id);
     if (!item) return;
     const today = todayKey();
+    const cycle = getPrestigeTier(item);
+    const checkinName = `${item.name} (check-in #${dayIndex} cycle ${cycle})`;
+
     if (item.days[dayIndex]) {
+      // Undo: reverse the checkmark and its XP contribution, but the
+      // marker entry itself must survive (zeroed, not deleted) -- it's the
+      // permanent "this slot was already used" lock. Deleting it here would
+      // let a following re-check slip past the guard below and re-award,
+      // which is the exact exploit this is meant to close.
       const days = [...item.days]; days[dayIndex] = false;
-      const updated = { ...item, days, streak: Math.max(0, item.streak - 1) };
+      const updated = { ...item, days, streak: days.filter(Boolean).length };
       setItems(prev => prev.map(i => (i.id === id ? updated : i)));
+      const memIdx = memory.findIndex(m => m.name === checkinName);
+      if (memIdx >= 0) {
+        const memEntry = memory[memIdx];
+        setMemory(prev => prev.map((m, i) => (i === memIdx ? { ...m, xp: 0 } : m)));
+        if (memEntry.id) await supabase.from("memory").update({ xp: 0 }).eq("id", memEntry.id).eq("user_id", userId);
+      }
       await saveItemRow(updated);
       return;
     }
+
+    // Already awarded once this cycle (regardless of whether it was since
+    // undone/zeroed) -- locked, no re-award.
+    if (memory.some(m => m.name === checkinName)) return;
+
     const days = [...item.days]; days[dayIndex] = true;
-    let streak = item.lastCheckin !== today ? (item.streak || 0) + 1 : item.streak;
-    const bonus = streak > 0 && streak % STREAK_BONUS_INTERVAL === 0 ? 15 : 0;
+    const streak = days.filter(Boolean).length;
+    const bonus = streak > 0 && streak % STREAK_BONUS_INTERVAL === 0 ? STREAK_BONUS_XP : 0;
     const totalXp = 3 + bonus;
     const updated = { ...item, days, streak, lastCheckin: today };
-    const entry = { name: item.name + " (check-in)", type: "habit", xp: totalXp, date: niceDate(), date_key: today, cat: item.cat, tags: item.tags || [] };
+    const entry = { name: checkinName, type: "habit", xp: totalXp, date: niceDate(), date_key: today, cat: item.cat, tags: item.tags || [] };
     setItems(prev => prev.map(i => (i.id === id ? updated : i)));
     setMemory(prev => [entry, ...prev]);
     await saveItemRow(updated);
-    await supabase.from("memory").insert({
+    const res = await supabase.from("memory").insert({
       user_id: userId, name: entry.name, type: entry.type, xp: entry.xp,
       date: entry.date, date_key: entry.date_key, cat: entry.cat, tags: entry.tags
-    });
+    }).select().single();
+    if (res.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: res.data.id } : m)));
+  }
+
+  // Offered once a habit's streak hits 7 (all days checked): resets the
+  // days/streak to start a new cycle and permanently records the completed
+  // cycle (drives the prestige badge via getPrestigeTier). Doesn't touch
+  // XP already earned -- it's a fresh-start ritual, not a penalty.
+  async function prestigeItem(id) {
+    const item = items.find(i => i.id === id);
+    if (!item || item.streak < 7) return;
+    const days = [false, false, false, false, false, false, false];
+    const updated = { ...item, days, streak: 0, lastCheckin: null };
+    setItems(prev => prev.map(i => (i.id === id ? updated : i)));
+    await saveItemRow(updated);
+    const entry = { name: `${item.name} (prestige)`, type: "prestige", xp: 0, date: niceDate(), date_key: todayKey(), cat: item.cat, tags: [] };
+    setMemory(prev => [entry, ...prev]);
+    const res = await supabase.from("memory").insert({
+      user_id: userId, name: entry.name, type: entry.type, xp: entry.xp,
+      date: entry.date, date_key: entry.date_key, cat: entry.cat, tags: entry.tags
+    }).select().single();
+    if (res.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: res.data.id } : m)));
   }
 
   async function toggleMilestone(itemId, mi) {
@@ -236,6 +291,7 @@ export function AppDataProvider({ children }) {
     userId, loaded, sync, items, memory, moodLog, values, profile,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
+    getPrestigeTier, prestigeItem,
     addValue, completeChallenge, reload: load
   };
 

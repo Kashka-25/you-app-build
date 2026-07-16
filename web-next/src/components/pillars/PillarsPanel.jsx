@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Dumbbell, Brain, Sparkles, HeartHandshake, Briefcase, Compass, Palette } from "lucide-react";
+import { ChevronDown, Dumbbell, Brain, Sparkles, HeartHandshake, Briefcase, Compass, Palette, Award } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
+import { getPillarLevel, TIERS } from "../../constants/app.const";
 import { easeOut } from "../ui/motion";
 
 const SEGMENTS = 10;
@@ -23,9 +24,11 @@ export default function PillarsPanel() {
   return (
     <div className="space-y-2.5">
       {pillars.map(p => {
-        const filled = Math.round((p.pct / 100) * SEGMENTS);
+        const { level, pct } = getPillarLevel(p.xp);
+        const filled = Math.round((pct / 100) * SEGMENTS);
         const Icon = PILLAR_ICONS[p.name];
         const open = openPillar === p.name;
+        const badgeColor = level > 0 ? TIERS[(level - 1) % TIERS.length].color : null;
         return (
           <div key={p.name} className="rounded-card bg-surface1 shadow-card p-3.5">
             <button
@@ -39,8 +42,16 @@ export default function PillarsPanel() {
                 {Icon && <Icon size={17} strokeWidth={1.75} />}
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <div className="flex justify-between text-body mb-1">
-                  <span className="font-medium text-textPrimary">{p.name}</span>
+                <div className="flex justify-between items-center text-body mb-1">
+                  <span className="flex items-center gap-1.5 font-medium text-textPrimary">
+                    {p.name}
+                    {level > 0 && (
+                      <span className="flex items-center gap-0.5 text-caption font-normal" style={{ color: badgeColor }}>
+                        <Award size={11} strokeWidth={1.75} />
+                        Lv {level}
+                      </span>
+                    )}
+                  </span>
                   <span className="text-textMuted text-bodySm">{p.xp} XP</span>
                 </div>
                 <div className="flex gap-1">

@@ -47,3 +47,16 @@ export function getLevel(xp){
   for (const l of LEVELS) { if (xp >= l.xp) current = l; }
   return current;
 }
+
+// Pillars level up every PILLAR_LEVEL_XP, same "fill gradually, reset on
+// level-up" pattern as Values' tiers -- xp % PILLAR_LEVEL_XP is the bar's
+// current fill, which naturally lands back at 0 the instant a level is
+// crossed, no separate reset step needed.
+export const PILLAR_LEVEL_XP = 100;
+
+export function getPillarLevel(xp){
+  const level = Math.floor(xp / PILLAR_LEVEL_XP);
+  const progress = xp % PILLAR_LEVEL_XP;
+  const pct = Math.round((progress / PILLAR_LEVEL_XP) * 100);
+  return { level, progress, pct };
+}

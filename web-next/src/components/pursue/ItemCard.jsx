@@ -1,16 +1,23 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { DAY_LABELS } from "../../constants/app.const";
+import { DAY_LABELS, TIERS } from "../../constants/app.const";
 import { riseIn } from "../ui/motion";
 import { Button } from "../ui/Button";
 
 export default function ItemCard({ item }) {
-  const { completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, editItem } = useAppData();
+  const {
+    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, editItem,
+    getPrestigeTier, prestigeItem
+  } = useAppData();
   const [expanded, setExpanded] = useState(false);
   const [reflecting, setReflecting] = useState(false);
   const [reflection, setReflection] = useState("");
+
+  const prestigeTier = item.type === "habit" ? getPrestigeTier(item) : 0;
+  const tierColor = prestigeTier > 0 ? TIERS[(prestigeTier - 1) % TIERS.length].color : null;
+  const cycleComplete = item.type === "habit" && item.streak === 7;
 
   const msTotal = (item.milestones || []).length;
   const msDone = (item.milestones || []).filter(m => m.done).length;
@@ -60,6 +67,12 @@ export default function ItemCard({ item }) {
                 {item.streak}d
               </span>
             )}
+            {prestigeTier > 0 && (
+              <span className="flex items-center gap-0.5" style={{ color: tierColor }}>
+                <Award size={12} strokeWidth={1.75} />
+                Prestige {prestigeTier}
+              </span>
+            )}
           </div>
 
           {item.type === "habit" && !item.done && (
@@ -75,6 +88,18 @@ export default function ItemCard({ item }) {
                 </div>
               ))}
             </div>
+          )}
+
+          {cycleComplete && !item.done && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="mt-2.5 w-full"
+              icon={Award}
+              onClick={() => prestigeItem(item.id)}
+            >
+              Complete cycle — start fresh
+            </Button>
           )}
 
           {msTotal > 0 && (

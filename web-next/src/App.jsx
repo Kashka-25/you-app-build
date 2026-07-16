@@ -16,6 +16,7 @@ import Shop from "./components/screens/Shop";
 import Challenges from "./components/screens/Challenges";
 import Saved from "./components/screens/Saved";
 import Review from "./components/screens/Review";
+import Settings from "./components/screens/Settings";
 import Styleguide from "./components/screens/Styleguide";
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/challenges" element={<Challenges />} />
         <Route path="/saved" element={<Saved />} />
         <Route path="/review" element={<Review />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
   );

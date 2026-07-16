@@ -31,13 +31,13 @@ export default function ChaptersView() {
         <div className="text-bodySm text-textSecondary mt-1">AI-inferred from recent mood and activity — replaces a plain % progress bar.</div>
       </div>
 
+      <SectionTitle>Your pursuits</SectionTitle>
+      <ExploreLink to="/pursue" label="habits, goals & dreams" sub="full functional list — add, tag, complete" />
+
       <SectionTitle>Life chapters</SectionTitle>
       {MOCK_CHAPTERS.map(c => (
         <ChapterCard key={c.name} {...c} />
       ))}
-
-      <SectionTitle>Your pursuits</SectionTitle>
-      <ExploreLink to="/pursue" label="habits, goals & dreams" sub="full functional list — add, tag, complete" />
     </>
   );
 }

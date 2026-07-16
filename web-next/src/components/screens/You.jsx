@@ -34,7 +34,6 @@ export default function You() {
       <div className="mt-2">
         <ExploreLink to="/legacy" label="legacy mode" sub={'"My Story" export — future, design only'} />
       </div>
-      <Placeholder label="settings, account, sign out" />
     </div>
   );
 }

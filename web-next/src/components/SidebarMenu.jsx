@@ -49,13 +49,28 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
               ))}
             </div>
 
-            <div className="border-t border-borderC pt-3 px-5">
-              <button
-                onClick={onToggleMode}
-                className="text-caption text-textSecondary border border-borderC rounded-full px-3 py-1.5"
+            <div className="border-t border-borderC pt-3">
+              <NavLink
+                to="/settings"
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `block px-5 py-2.5 text-body border-l-[3px] mb-2 ${
+                    isActive
+                      ? "border-gold text-forest font-medium bg-surface1"
+                      : "border-transparent text-textPrimary"
+                  }`
+                }
               >
-                {mode === "light" ? "Switch to dark mode" : "Switch to light mode"}
-              </button>
+                Settings & Account
+              </NavLink>
+              <div className="px-5">
+                <button
+                  onClick={onToggleMode}
+                  className="text-caption text-textSecondary border border-borderC rounded-full px-3 py-1.5"
+                >
+                  {mode === "light" ? "Switch to dark mode" : "Switch to light mode"}
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>
