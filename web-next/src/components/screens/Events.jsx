@@ -77,22 +77,31 @@ export default function Events() {
     setAddingActivity(false);
   }
 
+  // Joining is what adds a community event to *your* calendar -- the
+  // "Upcoming" list below is everyone's options, not your schedule, so an
+  // event only marks a date/shows in the day agenda once you've actually
+  // joined it. Kronk events and personal activities always show, since
+  // those are inherently yours already (discovered or self-logged).
   const markedDates = useMemo(() => {
     const set = new Set();
-    MOCK_EVENTS.forEach(e => set.add(e.date));
+    MOCK_EVENTS.filter(e => joined.includes(e.id)).forEach(e => set.add(e.date));
     kronkEvents.forEach(e => set.add(e.date));
     personalActivities.forEach(a => set.add(a.date));
     return set;
-  }, [kronkEvents, personalActivities]);
+  }, [joined, kronkEvents, personalActivities]);
 
   const dayAgenda = useMemo(() => {
-    const events = MOCK_EVENTS.filter(e => e.date === selectedDate).map(e => ({ kind: "Event", title: e.title, meta: e.time }));
+    const events = MOCK_EVENTS.filter(e => joined.includes(e.id) && e.date === selectedDate).map(e => ({
+      kind: "Event",
+      title: e.title,
+      meta: e.time
+    }));
     const kronk = kronkEvents.filter(e => e.date === selectedDate).map(e => ({ kind: "Kronk", title: e.title, meta: e.time }));
     const personal = personalActivities
       .filter(a => a.date === selectedDate)
       .map(a => ({ kind: "Personal", title: a.title, meta: a.time }));
     return [...events, ...kronk, ...personal];
-  }, [selectedDate, kronkEvents, personalActivities]);
+  }, [selectedDate, joined, kronkEvents, personalActivities]);
 
   function shiftMonth(delta) {
     setViewMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
