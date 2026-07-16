@@ -106,6 +106,9 @@ everyone, regardless of how any individual mind works.
   wiring real login yet.
 - Don't touch `AppDataContext.jsx` / `AuthContext.jsx` without asking —
   that's the data-layer friend's territory.
+- Kronk integration stays contained in its own file(s), not folded into
+  `AppDataContext.jsx`/`AuthContext.jsx` or scattered into `Community.jsx`
+  as inline fetches — see the CommYOUnity section below for why.
 - Stay on `feature/living-biography-ui`. No new branches.
 - Seed Being keeps its existing name/branding — not renamed. Only the
   Journey insight feature was renamed, to **YOUnderstanding**.
@@ -126,6 +129,17 @@ ecosystem docs (flagged below).
   (YOU Core → Empatherapy → Kronk → Elemental Game) — worth a corresponding
   note in `03-YOU-LIVING-BIOGRAPHY-pivot-brief.md` if that order is
   genuinely changing, not just this one feature jumping the queue.
+- **Containment rule, not a suggestion: keep all Kronk integration code in
+  its own file(s)** — e.g. a `KronkContext.jsx` / `lib/kronkClient.js`,
+  parallel to how `AppDataContext.jsx` and `AuthContext.jsx` are already
+  split out, not folded into either of them. `Community.jsx` should read
+  from that new context/hook the same way every other screen reads from
+  `useAppData()` — it shouldn't grow inline `fetch` calls to Kronk's API,
+  and Kronk's data/auth shape shouldn't leak into `AppDataContext.jsx`.
+  This is what keeps the two data sources (Supabase for the core app,
+  Kronk for the social feed) from cross-contaminating each other as the
+  codebase grows — every other screen should be able to keep ignoring
+  Kronk entirely, the same way they currently ignore Supabase auth details.
 - Pull the feed in from Kronk (friend's Mastodon server), reskin to YOU
   branding, credit line: "Proudly powered and supported by Kronk."
 - `Community.jsx` currently has a **mock local-state feed** (post cards
