@@ -30,16 +30,24 @@ export default function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex justify-center py-8 px-3 font-sans">
+    // On a real phone (narrower than sm) this fills the whole screen edge to
+    // edge, like an installed app. The rounded 390x820 "phone frame" only
+    // shows up on wider desktop browsers, purely as a preview device.
+    <div className="min-h-dvh bg-black flex justify-center sm:py-8 sm:px-3 font-sans">
       <div>
-        <div className="w-[390px] h-[820px] bg-bg border border-borderC rounded-[40px] overflow-hidden relative flex flex-col">
-          <TopBar onMenuClick={() => setMenuOpen(true)} />
+        <div className="w-full h-dvh sm:w-[390px] sm:h-[820px] bg-bg sm:border sm:border-borderC sm:rounded-[40px] overflow-hidden relative flex flex-col">
+          <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="flex-none bg-surface2">
+            <TopBar onMenuClick={() => setMenuOpen(true)} />
+          </div>
 
           <div className="flex-1 overflow-y-auto">
             <Outlet />
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 h-[76px] bg-surface2 border-t border-borderC flex items-center">
+          <div
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            className="absolute bottom-0 left-0 right-0 min-h-[76px] bg-surface2 border-t border-borderC flex items-center"
+          >
             <NavLink to="/" end className={({ isActive }) => tabClass(isActive)}>
               <HomeIcon size={20} strokeWidth={1.75} className="mx-auto mb-1" />
               Home
@@ -66,7 +74,7 @@ export default function AppShell() {
 
           <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} mode={mode} onToggleMode={toggleMode} />
         </div>
-        <div className="text-center text-textMuted text-caption mt-3.5 max-w-[390px]">
+        <div className="hidden sm:block text-center text-textMuted text-caption mt-3.5 max-w-[390px]">
           {isPrimary ? "Primary tab" : "Secondary screen — back arrow returns to where you came from"}
         </div>
       </div>

@@ -17,3 +17,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     </AuthProvider>
   </React.StrictMode>
 );
+
+// Registered only in production builds — in dev it would fight with Vite's
+// own module reloading, caching stale modules across hot-reloads.
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(err => console.error("SW registration failed:", err));
+  });
+}
