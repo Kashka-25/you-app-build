@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import { useAuth } from "./lib/AuthContext";
+import SignIn from "./components/SignIn";
 import AppShell from "./components/AppShell";
 import Home from "./components/screens/Home";
 import Journey from "./components/screens/Journey";
@@ -12,6 +14,17 @@ import Styleguide from "./components/screens/Styleguide";
 import { ParkedScreen } from "./components/Primitives";
 
 export default function App() {
+  const { userId, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-dvh bg-black flex justify-center items-center py-8 px-3 font-sans">
+        <div className="text-textSecondary text-bodySm">Loading…</div>
+      </div>
+    );
+  }
+  if (!userId) return <SignIn />;
+
   return (
     <Routes>
       <Route path="/styleguide" element={<Styleguide />} />

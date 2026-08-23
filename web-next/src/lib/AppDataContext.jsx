@@ -3,11 +3,16 @@ import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import {
   XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2,
-  STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel
+  STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier
 } from "../constants/app.const";
 import { ALL_VALUES_LIB } from "../constants/values.const";
 
 const AppDataContext = createContext(null);
+
+// How long we'll wait on Supabase before giving up and rendering with
+// whatever's in local state. Keeps the app usable even if the backend is
+// unreachable (e.g. a paused free-tier Supabase project).
+const LOAD_TIMEOUT_MS = 8000;
 
 function todayKey() {
   return new Date().toISOString().split("T")[0];
@@ -43,28 +48,68 @@ export function AppDataProvider({ children }) {
   const [moodLog, setMoodLog] = useState([]);
   const [values, setValues] = useState([]);
   const [profile, setProfile] = useState(null);
+  const [moments, setMoments] = useState([]);
+  const [chapters, setChapters] = useState([]);
+  const [valueChallenges, setValueChallenges] = useState([]);
   const [sync, setSync] = useState("idle");
   const [loaded, setLoaded] = useState(false);
+
+  // life_moments photos live in a private storage bucket, so a usable
+  // <img> URL has to be signed per file rather than read straight off the
+  // row. Signed URLs expire, so this always regenerates rather than
+  // trusting anything persisted.
+  const attachSignedPhotoUrls = useCallback(async (rows) => {
+    const withPhotos = rows.filter(r => r.photo_path);
+    if (withPhotos.length === 0) return rows;
+    const signed = await Promise.all(
+      withPhotos.map(r => supabase.storage.from("life-moments").createSignedUrl(r.photo_path, 3600))
+    );
+    const urlByPath = {};
+    withPhotos.forEach((r, i) => { urlByPath[r.photo_path] = signed[i]?.data?.signedUrl || null; });
+    return rows.map(r => ({ ...r, photo_url: r.photo_path ? urlByPath[r.photo_path] : null }));
+  }, []);
 
   const load = useCallback(async () => {
     if (!userId) return;
     setSync("loading");
     try {
-      const [itemsRes, memoryRes, moodRes, valuesRes, profileRes] = await Promise.all([
-        supabase.from("items").select("*").eq("user_id", userId).order("inserted_at"),
-        supabase.from("memory").select("*").eq("user_id", userId).order("inserted_at", { ascending: false }),
-        supabase.from("mood_log").select("*").eq("user_id", userId).order("inserted_at", { ascending: false }).limit(90),
-        supabase.from("user_values").select("*").eq("user_id", userId),
-        supabase.from("profiles").select("*").eq("user_id", userId).single()
-      ]);
+      // Guard against Supabase being unreachable (paused project, network/
+      // firewall issue, etc). Without this, a request that never settles
+      // leaves `loaded` false forever and the whole app is stuck on a
+      // loading screen. If the queries don't come back within LOAD_TIMEOUT_MS,
+      // fall through to the catch below and let the app render with
+      // whatever's already in local state (empty on first run) instead of
+      // hanging indefinitely.
+      const withTimeout = (promise, ms) =>
+        Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error(`Supabase request timed out after ${ms}ms`)), ms))
+        ]);
+
+      const [itemsRes, memoryRes, moodRes, valuesRes, profileRes, momentsRes, chaptersRes, valueChallengesRes] = await withTimeout(
+        Promise.all([
+          supabase.from("items").select("*").eq("user_id", userId).order("inserted_at"),
+          supabase.from("memory").select("*").eq("user_id", userId).order("inserted_at", { ascending: false }),
+          supabase.from("mood_log").select("*").eq("user_id", userId).order("inserted_at", { ascending: false }).limit(90),
+          supabase.from("user_values").select("*").eq("user_id", userId),
+          supabase.from("profiles").select("*").eq("user_id", userId).single(),
+          supabase.from("life_moments").select("*").eq("user_id", userId).order("moment_date", { ascending: false }),
+          supabase.from("life_chapters").select("*").eq("user_id", userId).order("range_start", { ascending: false }),
+          supabase.from("value_challenges").select("*").eq("user_id", userId).order("inserted_at", { ascending: false })
+        ]),
+        LOAD_TIMEOUT_MS
+      );
       setItems((itemsRes.data || []).map(dbToItem));
       setMemory(memoryRes.data || []);
       setMoodLog(moodRes.data || []);
       setValues((valuesRes.data || []).map(r => ({ name: r.name, rating: r.rating || 0, completed: r.completed || [] })));
       setProfile(profileRes.data || null);
+      setMoments(await attachSignedPhotoUrls(momentsRes.data || []));
+      setChapters(chaptersRes.data || []);
+      setValueChallenges(valueChallengesRes.data || []);
       setSync("synced");
     } catch (e) {
-      console.error(e);
+      console.error("[AppDataContext] load failed — continuing with local/empty state:", e);
       setSync("offline");
     }
     setLoaded(true);
@@ -261,6 +306,125 @@ export function AppDataProvider({ children }) {
     await persistValues([...values, { name, rating: 0, completed: [] }]);
   }
 
+  // Journey timeline: user-added life moments, distinct from the
+  // auto-generated `memory` XP log. photoFile is optional; when present it
+  // uploads to a private bucket under this user's own folder (matches the
+  // storage RLS policy: auth.uid() must equal the first path segment) and
+  // only the storage path is persisted — see attachSignedPhotoUrls for why.
+  async function addMoment({ title, momentDate, description, photoFile }) {
+    let photoPath = null;
+    if (photoFile) {
+      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+      photoPath = `${userId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("life-moments").upload(photoPath, photoFile);
+      if (upErr) throw upErr;
+    }
+    const row = { user_id: userId, title, description: description || "", moment_date: momentDate, photo_path: photoPath };
+    const res = await supabase.from("life_moments").insert(row).select().single();
+    if (res.error) throw res.error;
+
+    let photo_url = null;
+    if (photoPath) {
+      const signed = await supabase.storage.from("life-moments").createSignedUrl(photoPath, 3600);
+      photo_url = signed.data?.signedUrl || null;
+    }
+    const newMoment = { ...res.data, photo_url };
+    setMoments(prev => [newMoment, ...prev].sort((a, b) => new Date(b.moment_date) - new Date(a.moment_date)));
+    return newMoment;
+  }
+
+  async function deleteMoment(id) {
+    const moment = moments.find(m => m.id === id);
+    setMoments(prev => prev.filter(m => m.id !== id));
+    await supabase.from("life_moments").delete().eq("id", id).eq("user_id", userId);
+    if (moment?.photo_path) await supabase.storage.from("life-moments").remove([moment.photo_path]);
+  }
+
+  // Edits an existing moment in place — the point of this (vs. delete +
+  // re-add) is exactly the workflow that prompted it: type up a moment now
+  // from a laptop with no photo, come back later (from a phone, once
+  // deployed) and attach one without losing the original entry, its date,
+  // or its place in the timeline. photoFile replaces any existing photo
+  // (old file is removed from storage); removePhoto clears it with no
+  // replacement; passing neither leaves the existing photo untouched.
+  async function editMoment(id, { title, momentDate, description, photoFile, removePhoto }) {
+    const moment = moments.find(m => m.id === id);
+    if (!moment) return;
+
+    let photoPath = moment.photo_path;
+    if (photoFile) {
+      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+      const newPath = `${userId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("life-moments").upload(newPath, photoFile);
+      if (upErr) throw upErr;
+      if (moment.photo_path) await supabase.storage.from("life-moments").remove([moment.photo_path]);
+      photoPath = newPath;
+    } else if (removePhoto && moment.photo_path) {
+      await supabase.storage.from("life-moments").remove([moment.photo_path]);
+      photoPath = null;
+    }
+
+    const updates = { title, description: description || "", moment_date: momentDate, photo_path: photoPath };
+    const res = await supabase.from("life_moments").update(updates).eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+
+    let photo_url = null;
+    if (photoPath) {
+      const signed = await supabase.storage.from("life-moments").createSignedUrl(photoPath, 3600);
+      photo_url = signed.data?.signedUrl || null;
+    }
+    const updatedMoment = { ...res.data, photo_url };
+    setMoments(prev =>
+      prev.map(m => (m.id === id ? updatedMoment : m)).sort((a, b) => new Date(b.moment_date) - new Date(a.moment_date))
+    );
+    return updatedMoment;
+  }
+
+  // Asks the suggest-chapters Edge Function (Claude, server-side — the
+  // Anthropic key never reaches the browser) to propose named eras from
+  // the current moments. Returns suggestions only; nothing is saved until
+  // saveChapters is called with what the user accepts.
+  async function suggestChapters() {
+    const payload = moments.map(m => ({ title: m.title, moment_date: m.moment_date, description: m.description }));
+    const { data, error } = await supabase.functions.invoke("suggest-chapters", { body: { moments: payload } });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    return data.chapters || [];
+  }
+
+  // Replaces the user's saved chapters wholesale with the accepted list —
+  // same delete-then-insert pattern as persistValues, since chapters are
+  // regenerated as a set rather than edited field-by-field.
+  async function saveChapters(newChapters) {
+    await supabase.from("life_chapters").delete().eq("user_id", userId);
+    if (newChapters.length === 0) {
+      setChapters([]);
+      return;
+    }
+    const rows = newChapters.map(c => ({
+      user_id: userId, title: c.title, range_start: c.range_start, range_end: c.range_end, blurb: c.blurb || ""
+    }));
+    const res = await supabase.from("life_chapters").insert(rows).select();
+    if (res.error) throw res.error;
+    setChapters(res.data || []);
+  }
+
+  // Shared by both the fixed challenge library (completeChallenge) and
+  // AI-generated challenges (completeValueChallenge) — a value can feed a
+  // second pillar at half credit (VALUE_PILLAR2), same rule either way.
+  async function awardValuePillarXP(valueName, pts, label) {
+    const pillar = VALUE_PILLAR[valueName] || "Spirit";
+    const entry = { name: label, type: "habit", xp: pts, date: niceDate(), date_key: todayKey(), cat: pillar, tags: [] };
+    setMemory(prev => [entry, ...prev]);
+    await supabase.from("memory").insert({ user_id: userId, name: entry.name, type: entry.type, xp: entry.xp, date: entry.date, date_key: entry.date_key, cat: entry.cat, tags: entry.tags });
+
+    if (VALUE_PILLAR2[valueName]) {
+      const entry2 = { name: label + " (pillar 2)", type: "habit", xp: Math.floor(pts / 2), date: niceDate(), date_key: todayKey(), cat: VALUE_PILLAR2[valueName], tags: [] };
+      setMemory(prev => [entry2, ...prev]);
+      await supabase.from("memory").insert({ user_id: userId, name: entry2.name, type: entry2.type, xp: entry2.xp, date: entry2.date, date_key: entry2.date_key, cat: entry2.cat, tags: entry2.tags });
+    }
+  }
+
   async function completeChallenge(valueName, challengeIdx) {
     const lib = ALL_VALUES_LIB.find(v => v.name === valueName);
     if (!lib) return;
@@ -273,26 +437,70 @@ export function AppDataProvider({ children }) {
       ? { ...x, rating: newRating, completed: [...(x.completed || []), challengeIdx] }
       : x));
     await persistValues(newValues);
-
-    const pillar = VALUE_PILLAR[valueName] || "Spirit";
-    const entry = { name: valueName + " challenge: " + challenge.text.slice(0, 30), type: "habit", xp: challenge.pts, date: niceDate(), date_key: todayKey(), cat: pillar, tags: [] };
-    setMemory(prev => [entry, ...prev]);
-    await supabase.from("memory").insert({ user_id: userId, name: entry.name, type: entry.type, xp: entry.xp, date: entry.date, date_key: entry.date_key, cat: entry.cat, tags: entry.tags });
-
-    if (VALUE_PILLAR2[valueName]) {
-      const entry2 = { name: valueName + " challenge (pillar 2)", type: "habit", xp: Math.floor(challenge.pts / 2), date: niceDate(), date_key: todayKey(), cat: VALUE_PILLAR2[valueName], tags: [] };
-      setMemory(prev => [entry2, ...prev]);
-      await supabase.from("memory").insert({ user_id: userId, name: entry2.name, type: entry2.type, xp: entry2.xp, date: entry2.date, date_key: entry2.date_key, cat: entry2.cat, tags: entry2.tags });
-    }
+    await awardValuePillarXP(valueName, challenge.pts, valueName + " challenge: " + challenge.text.slice(0, 30));
     return { prevRating: v.rating, newRating };
   }
 
+  // AI-generated challenges live in their own table (value_challenges) with
+  // real ids, rather than the fixed library's array-index scheme — see
+  // generateValueChallenges below for why that split was necessary.
+  async function completeValueChallenge(id) {
+    const challenge = valueChallenges.find(c => c.id === id);
+    if (!challenge || challenge.completed) return;
+    const v = values.find(x => x.name === challenge.value_name);
+    if (!v) return;
+    const newRating = Math.min(99, v.rating + challenge.pts);
+    const newValues = values.map(x => (x.name === challenge.value_name ? { ...x, rating: newRating } : x));
+    await persistValues(newValues);
+    setValueChallenges(prev => prev.map(c => (c.id === id ? { ...c, completed: true } : c)));
+    await supabase.from("value_challenges").update({ completed: true }).eq("id", id).eq("user_id", userId);
+    await awardValuePillarXP(challenge.value_name, challenge.pts, challenge.value_name + " challenge: " + challenge.text.slice(0, 30));
+    return { prevRating: v.rating, newRating };
+  }
+
+  // Calls the suggest-value-challenges Edge Function (Claude, server-side)
+  // to write 5 new challenges for one value, scaled to its current tier and
+  // avoiding repeats of both the fixed library and anything already
+  // generated. Inserts them straight away (unlike Chapters, there's no
+  // "review before saving" step needed — a challenge is low-stakes and
+  // easy to just... not do, so extra friction here isn't worth it).
+  async function generateValueChallenges(valueName) {
+    const lib = ALL_VALUES_LIB.find(v => v.name === valueName);
+    const v = values.find(x => x.name === valueName);
+    const tier = getTier(v?.rating || 0);
+    const existingTexts = [
+      ...(lib?.challenges || []).map(c => c.text),
+      ...valueChallenges.filter(c => c.value_name === valueName).map(c => c.text)
+    ];
+    const { data, error } = await supabase.functions.invoke("suggest-value-challenges", {
+      body: {
+        valueName,
+        tagline: lib?.tagline || "",
+        tierName: tier.name,
+        existingTexts,
+        sampleChallenges: (lib?.challenges || []).slice(0, 3)
+      }
+    });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+
+    const rows = (data.challenges || []).map(c => ({
+      user_id: userId, value_name: valueName, text: c.text, pts: c.pts, diff: c.diff || "bold"
+    }));
+    if (rows.length === 0) return [];
+    const res = await supabase.from("value_challenges").insert(rows).select();
+    if (res.error) throw res.error;
+    setValueChallenges(prev => [...prev, ...(res.data || [])]);
+    return res.data || [];
+  }
+
   const value = {
-    userId, loaded, sync, items, memory, moodLog, values, profile,
+    userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem,
-    addValue, completeChallenge, reload: load
+    addValue, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
+    completeValueChallenge, generateValueChallenges, reload: load
   };
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

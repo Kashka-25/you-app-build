@@ -2,9 +2,10 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 
 // Same DEV_MODE pattern as the vanilla app: "bypass" for local dev,
-// "live" for real Supabase auth. Switch to "live" before this branch
-// goes anywhere near production.
-const DEV_MODE = "bypass";
+// "live" for real Supabase auth. Switched to "live" so real per-user data
+// (Journey timeline moments, etc.) actually persists under RLS instead of
+// writing as a fake user id that owns no real rows.
+const DEV_MODE = "live";
 const DEV_USER_ID = "dev-local-user";
 
 const AuthContext = createContext(null);

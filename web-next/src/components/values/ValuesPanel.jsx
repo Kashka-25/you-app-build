@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown, MessageCircle, Flame, Eye, Shield, Target, Heart,
-  Telescope, Moon, ShieldCheck, Paintbrush, Feather, Gem
+  Telescope, Moon, ShieldCheck, Paintbrush, Feather, Gem, Sparkles
 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { getTier } from "../../constants/app.const";
@@ -27,10 +27,12 @@ const VALUE_ICONS = {
 };
 
 export default function ValuesPanel() {
-  const { values, addValue, completeChallenge } = useAppData();
+  const { values, addValue, completeChallenge, valueChallenges, completeValueChallenge, generateValueChallenges } = useAppData();
   const [openName, setOpenName] = useState(null);
   const [adding, setAdding] = useState(false);
   const [diff, setDiff] = useState("all");
+  const [generating, setGenerating] = useState(null); // value name currently generating, or null
+  const [genError, setGenError] = useState("");
 
   const available = ALL_VALUES_LIB.filter(v => !values.some(x => x.name === v.name));
 
@@ -38,6 +40,18 @@ export default function ValuesPanel() {
     await addValue(name);
     setOpenName(name);
     setAdding(false);
+  }
+
+  async function handleGenerate(name) {
+    setGenerating(name);
+    setGenError("");
+    try {
+      await generateValueChallenges(name);
+    } catch (e) {
+      console.error("[ValuesPanel] generate failed:", e);
+      setGenError("Couldn't generate new challenges — check the Edge Function is deployed and try again.");
+    }
+    setGenerating(null);
   }
 
   if (values.length === 0) {
@@ -110,25 +124,54 @@ export default function ValuesPanel() {
                       </div>
                       <div className="space-y-2">
                         {lib.challenges
-                          .map((c, idx) => ({ ...c, idx }))
+                          .map((c, idx) => ({ ...c, idx, done: (v.completed || []).includes(idx) }))
                           .filter(c => diff === "all" || c.diff === diff)
-                          .map(c => {
-                            const done = (v.completed || []).includes(c.idx);
-                            return (
-                              <div key={c.idx} className={`flex items-center gap-2.5 p-2.5 rounded-sm bg-surface2 ${done ? "opacity-50" : ""}`}>
-                                <button
-                                  onClick={() => !done && completeChallenge(v.name, c.idx)}
-                                  disabled={done}
-                                  className={`w-6 h-6 flex-none rounded-full border text-caption ${done ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
-                                >
-                                  {done ? "✓" : ""}
-                                </button>
-                                <div className="flex-1 text-bodySm">{c.text}</div>
-                                <div className="text-caption text-gold flex-none">+{c.pts}</div>
+                          .map(c => (
+                            <div key={`lib-${c.idx}`} className={`flex items-center gap-2.5 p-2.5 rounded-sm bg-surface2 ${c.done ? "opacity-50" : ""}`}>
+                              <button
+                                onClick={() => !c.done && completeChallenge(v.name, c.idx)}
+                                disabled={c.done}
+                                className={`w-6 h-6 flex-none rounded-full border text-caption ${c.done ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
+                              >
+                                {c.done ? "✓" : ""}
+                              </button>
+                              <div className="flex-1 text-bodySm">{c.text}</div>
+                              <div className="text-caption text-gold flex-none">+{c.pts}</div>
+                            </div>
+                          ))}
+
+                        {valueChallenges
+                          .filter(c => c.value_name === v.name)
+                          .filter(c => diff === "all" || c.diff === diff)
+                          .map(c => (
+                            <div key={c.id} className={`flex items-center gap-2.5 p-2.5 rounded-sm bg-surface2 border border-dashed border-gold/40 ${c.completed ? "opacity-50" : ""}`}>
+                              <button
+                                onClick={() => !c.completed && completeValueChallenge(c.id)}
+                                disabled={c.completed}
+                                className={`w-6 h-6 flex-none rounded-full border text-caption ${c.completed ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
+                              >
+                                {c.completed ? "✓" : ""}
+                              </button>
+                              <div className="flex-1 text-bodySm">
+                                {c.text}
+                                <span className="text-caption text-gold ml-1.5 align-middle">✨ AI</span>
                               </div>
-                            );
-                          })}
+                              <div className="text-caption text-gold flex-none">+{c.pts}</div>
+                            </div>
+                          ))}
                       </div>
+
+                      <button
+                        onClick={() => handleGenerate(v.name)}
+                        disabled={generating === v.name}
+                        className="w-full flex items-center justify-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-2 mt-3"
+                      >
+                        <Sparkles size={14} strokeWidth={1.75} />
+                        {generating === v.name ? "Writing new challenges…" : "Generate more challenges"}
+                      </button>
+                      {genError && generating === null && (
+                        <div className="text-caption text-red-500 mt-1.5">{genError}</div>
+                      )}
                     </div>
                   </motion.div>
                 )}
