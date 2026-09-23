@@ -7,6 +7,7 @@ import { fadeIn, easeOut } from "./ui/motion";
 const SITEMAP = [
   { to: "/", label: "Home", end: true },
   { to: "/journey", label: "Journey" },
+  { to: "/reflections", label: "Reflections" },
   { to: "/community", label: "CommYOUnity" },
   { to: "/therapists", label: "Therapists" },
   { to: "/events", label: "Events / Calendar" },

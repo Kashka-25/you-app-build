@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, BookOpen } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { SectionTitle } from "../Primitives";
 import { HeroCard } from "../ui/Card";
@@ -86,6 +86,19 @@ export default function Home() {
       ) : (
         visibleItems.map(item => <ItemCard key={item.id} item={item} />)
       )}
+
+      <Link to="/reflections" className="block mt-6">
+        <div className="rounded-card bg-surface1 shadow-card p-3.5 flex items-center gap-3.5">
+          <div className="w-14 h-14 rounded-sm bg-forestAccent/10 flex items-center justify-center flex-none">
+            <BookOpen size={22} strokeWidth={1.75} className="text-forestAccent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-h3 font-medium text-textPrimary">Reflections</div>
+            <div className="text-bodySm text-textSecondary">Write down what's on your mind</div>
+          </div>
+          <ChevronRight size={18} strokeWidth={1.75} className="text-textSecondary flex-none" />
+        </div>
+      </Link>
 
       <Link to="/atlas" className="block mt-6">
         <div className="rounded-card bg-surface1 shadow-card p-3.5 flex items-center gap-3.5">
