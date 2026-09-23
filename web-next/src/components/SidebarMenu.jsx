@@ -61,7 +61,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                   }`
                 }
               >
-                Settings & Account
+                My YOU
               </NavLink>
               <div className="px-5">
                 <button

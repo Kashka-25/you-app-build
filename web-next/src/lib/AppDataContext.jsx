@@ -306,6 +306,17 @@ export function AppDataProvider({ children }) {
     await persistValues([...values, { name, rating: 0, completed: [] }]);
   }
 
+  // Partial update only — this only ever sets the columns "My YOU" actually
+  // edits (name/bio/location), never the astrology fields the vanilla app's
+  // onboarding wrote (birthday, birth_time, birthplace, sun/moon/rising
+  // sign), so a save here can't accidentally wipe those out.
+  async function saveProfile(updates) {
+    const res = await supabase.from("profiles").update(updates).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setProfile(res.data);
+    return res.data;
+  }
+
   // Journey timeline: user-added life moments, distinct from the
   // auto-generated `memory` XP log. photoFile is optional; when present it
   // uploads to a private bucket under this user's own folder (matches the
@@ -499,7 +510,7 @@ export function AppDataProvider({ children }) {
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem,
-    addValue, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
+    addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
     completeValueChallenge, generateValueChallenges, reload: load
   };
 

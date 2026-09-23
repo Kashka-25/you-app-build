@@ -1,0 +1,14 @@
+[build]
+  base = "web-next"
+  command = "npm run build"
+  publish = "web-next/dist"
+
+# Client-side routing (react-router-dom) means every real route is served
+# by index.html and resolved in the browser — without this, a fresh visit
+# or refresh on e.g. /you or /journey 404s at Netlify's edge before React
+# ever loads. This is what caused https://you-app-build.netlify.app/you
+# to 404 while in-app navigation to the same screen worked fine.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
