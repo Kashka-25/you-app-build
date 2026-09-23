@@ -51,6 +51,7 @@ export function AppDataProvider({ children }) {
   const [moments, setMoments] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [valueChallenges, setValueChallenges] = useState([]);
+  const [journalEntries, setJournalEntries] = useState([]);
   const [sync, setSync] = useState("idle");
   const [loaded, setLoaded] = useState(false);
 
@@ -86,7 +87,7 @@ export function AppDataProvider({ children }) {
           new Promise((_, reject) => setTimeout(() => reject(new Error(`Supabase request timed out after ${ms}ms`)), ms))
         ]);
 
-      const [itemsRes, memoryRes, moodRes, valuesRes, profileRes, momentsRes, chaptersRes, valueChallengesRes] = await withTimeout(
+      const [itemsRes, memoryRes, moodRes, valuesRes, profileRes, momentsRes, chaptersRes, valueChallengesRes, journalRes] = await withTimeout(
         Promise.all([
           supabase.from("items").select("*").eq("user_id", userId).order("inserted_at"),
           supabase.from("memory").select("*").eq("user_id", userId).order("inserted_at", { ascending: false }),
@@ -95,7 +96,8 @@ export function AppDataProvider({ children }) {
           supabase.from("profiles").select("*").eq("user_id", userId).single(),
           supabase.from("life_moments").select("*").eq("user_id", userId).order("moment_date", { ascending: false }),
           supabase.from("life_chapters").select("*").eq("user_id", userId).order("range_start", { ascending: false }),
-          supabase.from("value_challenges").select("*").eq("user_id", userId).order("inserted_at", { ascending: false })
+          supabase.from("value_challenges").select("*").eq("user_id", userId).order("inserted_at", { ascending: false }),
+          supabase.from("journal_entries").select("*").eq("user_id", userId).order("entry_date", { ascending: false })
         ]),
         LOAD_TIMEOUT_MS
       );
@@ -107,6 +109,7 @@ export function AppDataProvider({ children }) {
       setMoments(await attachSignedPhotoUrls(momentsRes.data || []));
       setChapters(chaptersRes.data || []);
       setValueChallenges(valueChallengesRes.data || []);
+      setJournalEntries(journalRes.data || []);
       setSync("synced");
     } catch (e) {
       console.error("[AppDataContext] load failed — continuing with local/empty state:", e);
@@ -391,6 +394,34 @@ export function AppDataProvider({ children }) {
     return updatedMoment;
   }
 
+  // Journal entries. Kept distinct from `memory` (the auto-generated XP
+  // log) and `moments` (user-curated timeline highlights) — this is
+  // free-form reflection, not tied to completing anything.
+  async function addJournalEntry({ content, mood, entryDate }) {
+    const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey() };
+    const res = await supabase.from("journal_entries").insert(row).select().single();
+    if (res.error) throw res.error;
+    setJournalEntries(prev =>
+      [res.data, ...prev].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
+    );
+    return res.data;
+  }
+
+  async function editJournalEntry(id, { content, mood, entryDate }) {
+    const updates = { content, mood: mood || null, entry_date: entryDate, updated_at: new Date().toISOString() };
+    const res = await supabase.from("journal_entries").update(updates).eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setJournalEntries(prev =>
+      prev.map(e => (e.id === id ? res.data : e)).sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
+    );
+    return res.data;
+  }
+
+  async function deleteJournalEntry(id) {
+    setJournalEntries(prev => prev.filter(e => e.id !== id));
+    await supabase.from("journal_entries").delete().eq("id", id).eq("user_id", userId);
+  }
+
   // Asks the suggest-chapters Edge Function (Claude, server-side — the
   // Anthropic key never reaches the browser) to propose named eras from
   // the current moments. Returns suggestions only; nothing is saved until
@@ -506,12 +537,12 @@ export function AppDataProvider({ children }) {
   }
 
   const value = {
-    userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges,
+    userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
-    completeValueChallenge, generateValueChallenges, reload: load
+    completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry, reload: load
   };
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

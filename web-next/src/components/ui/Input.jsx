@@ -37,7 +37,7 @@ export function FloatingLabelField({ label, id, type = "text", className = "", .
   );
 }
 
-const MOODS = [
+export const MOODS = [
   { key: "rough", Icon: Angry, label: "Rough" },
   { key: "low", Icon: Frown, label: "Low" },
   { key: "okay", Icon: Meh, label: "Okay" },

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckSquare, Sparkles, BookOpen, ArrowLeft } from "lucide-react";
 import { fadeIn, sheetIn } from "./ui/motion";
 import { Button } from "./ui/Button";
+import { useAppData } from "../lib/AppDataContext";
 
 const OPTIONS = [
   { key: "todo", icon: CheckSquare, title: "Today's list", desc: "A quick one-off task for today only" },
@@ -11,9 +12,12 @@ const OPTIONS = [
 ];
 
 export default function AddActionSheet({ open, onClose, onSelectPursue }) {
+  const { addJournalEntry } = useAppData();
   const [screen, setScreen] = useState("choices");
   const [journalText, setJournalText] = useState("");
   const [journalSaved, setJournalSaved] = useState(false);
+  const [journalSaving, setJournalSaving] = useState(false);
+  const [journalError, setJournalError] = useState("");
 
   function handleClose() {
     onClose();
@@ -21,7 +25,21 @@ export default function AddActionSheet({ open, onClose, onSelectPursue }) {
       setScreen("choices");
       setJournalText("");
       setJournalSaved(false);
+      setJournalError("");
     }, 250);
+  }
+
+  async function saveJournalEntry() {
+    setJournalSaving(true);
+    setJournalError("");
+    try {
+      await addJournalEntry({ content: journalText.trim() });
+      setJournalSaved(true);
+    } catch (e) {
+      console.error("[AddActionSheet] journal save failed:", e);
+      setJournalError("Couldn't save that — check your connection and try again.");
+    }
+    setJournalSaving(false);
   }
 
   function handleSelect(key) {
@@ -85,8 +103,7 @@ export default function AddActionSheet({ open, onClose, onSelectPursue }) {
                 <div className="font-serif text-h2 mb-3">Journal entry</div>
                 {journalSaved ? (
                   <div className="text-bodySm text-textSecondary mb-4">
-                    Noted — the Reflections screen is still a placeholder, so this isn't saved
-                    anywhere real yet. It'll land here once Reflections is wired up.
+                    Saved to your Reflections journal.
                   </div>
                 ) : (
                   <>
@@ -98,13 +115,14 @@ export default function AddActionSheet({ open, onClose, onSelectPursue }) {
                       placeholder="What's on your mind today?"
                       className="w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent mb-3"
                     />
+                    {journalError && <div className="text-bodySm text-red-500 mb-3">{journalError}</div>}
                     <Button
                       variant="primary"
                       className="w-full"
-                      disabled={!journalText.trim()}
-                      onClick={() => setJournalSaved(true)}
+                      disabled={!journalText.trim() || journalSaving}
+                      onClick={saveJournalEntry}
                     >
-                      Save
+                      {journalSaving ? "Saving…" : "Save"}
                     </Button>
                   </>
                 )}
