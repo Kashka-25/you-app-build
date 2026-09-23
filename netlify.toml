@@ -1,7 +1,7 @@
 [build]
   base = "web-next"
   command = "npm run build"
-  publish = "web-next/dist"
+  publish = "dist"
 
 # Client-side routing (react-router-dom) means every real route is served
 # by index.html and resolved in the browser — without this, a fresh visit
