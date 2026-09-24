@@ -2,6 +2,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { SectionTitle, Pill, ExploreLink, Placeholder } from "../Primitives";
 import ValuesPanel from "../values/ValuesPanel";
 import PillarsPanel from "../pillars/PillarsPanel";
+import { GlowBubble } from "../ui/GlowBubble";
 
 export default function You() {
   const { level } = useAppData();
@@ -9,10 +10,7 @@ export default function You() {
   return (
     <div className="pt-1 pb-24 px-5">
       <SectionTitle>You</SectionTitle>
-      <div
-        className="w-[88px] h-[88px] rounded-full mx-auto mb-3"
-        style={{ background: "radial-gradient(circle at 35% 30%, var(--sage), var(--forest) 70%)" }}
-      />
+      <GlowBubble size={88} className="mx-auto mb-3" />
       <div className="text-center mb-5">
         <Pill>{level.name} — companion presence</Pill>
       </div>

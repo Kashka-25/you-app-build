@@ -70,7 +70,7 @@ export default function Settings() {
           <label className="block text-label uppercase text-textMuted mb-1.5">About you</label>
           <textarea
             rows={4}
-            className="w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 mb-3 text-body text-textPrimary outline-none focus:border-forestAccent"
+            className="w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 mb-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field"
             placeholder="Whatever feels true right now — values, context, what matters to you."
             value={bio}
             onChange={e => setBio(e.target.value)}

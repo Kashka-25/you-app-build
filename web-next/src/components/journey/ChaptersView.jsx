@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Map, Sparkles } from "lucide-react";
 import { SectionTitle, ExploreLink } from "../Primitives";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
+import { GlowBubble } from "../ui/GlowBubble";
 import AddMomentModal from "./AddMomentModal";
 import SuggestChaptersPanel from "./SuggestChaptersPanel";
 
@@ -35,15 +36,18 @@ function ChapterGroup({ chapter, moments, onEditMoment }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
-      <button className="w-full text-left" onClick={() => setOpen(o => !o)}>
-        <div className="flex items-center justify-between mb-1.5 gap-3">
-          <div className="font-serif text-h3 text-textPrimary">{chapter.title}</div>
-          <span className="text-caption text-textMuted flex-none">
-            {niceMomentDate(chapter.range_start)} – {niceMomentDate(chapter.range_end)}
-          </span>
+      <button className="w-full text-left flex items-start gap-3" onClick={() => setOpen(o => !o)}>
+        <GlowBubble icon={Map} size={40} className="mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1.5 gap-3">
+            <div className="font-serif text-h3 text-textPrimary">{chapter.title}</div>
+            <span className="text-caption text-textMuted flex-none">
+              {niceMomentDate(chapter.range_start)} – {niceMomentDate(chapter.range_end)}
+            </span>
+          </div>
+          <div className="text-bodySm text-textSecondary">{chapter.blurb}</div>
+          <div className="text-caption text-gold mt-1.5">{moments.length} {moments.length === 1 ? "moment" : "moments"} — {open ? "hide" : "show"}</div>
         </div>
-        <div className="text-bodySm text-textSecondary">{chapter.blurb}</div>
-        <div className="text-caption text-gold mt-1.5">{moments.length} {moments.length === 1 ? "moment" : "moments"} — {open ? "hide" : "show"}</div>
       </button>
       {open && (
         <div className="mt-3 pt-3 border-t border-borderC">
@@ -71,10 +75,13 @@ export default function ChaptersView() {
 
   return (
     <>
-      <div className="rounded-card bg-surface1 shadow-card p-4 mb-5">
-        <div className="text-label uppercase text-textMuted mb-1">Current Season</div>
-        <div className="font-serif text-h3 text-gold">Season of Letting Go</div>
-        <div className="text-bodySm text-textSecondary mt-1">Preview only — AI-inferred seasons aren't built yet.</div>
+      <div className="rounded-card bg-surface1 shadow-card p-4 mb-5 flex items-start gap-3">
+        <GlowBubble icon={Sparkles} size={40} />
+        <div>
+          <div className="text-label uppercase text-textMuted mb-1">Current Season</div>
+          <div className="font-serif text-h3 text-gold">Season of Letting Go</div>
+          <div className="text-bodySm text-textSecondary mt-1">Preview only — AI-inferred seasons aren't built yet.</div>
+        </div>
       </div>
 
       <SectionTitle>Your pursuits</SectionTitle>

@@ -30,6 +30,27 @@ export const VALUE_PILLAR = {
 };
 export const VALUE_PILLAR2 = { Discipline:"Work", Empathy:"Spirit", Curiosity:"Adventure" };
 
+// One distinct color per value, purely for the icon bubble — VALUE_PILLAR
+// maps several values onto the same pillar (e.g. Courage/Vulnerability/
+// Gratitude all land on Spirit), so it can't double as a "make every value
+// visually distinct" palette. Hues are spaced 30° apart around the wheel at
+// the same muted saturation/lightness as the rest of the palette, so all 12
+// are guaranteed distinct while still reading as one family of colors.
+export const VALUE_COLORS = {
+  Vulnerability: "hsl(0, 38%, 55%)",
+  Courage: "hsl(30, 45%, 55%)",
+  Gratitude: "hsl(60, 40%, 50%)",
+  Discipline: "hsl(90, 30%, 45%)",
+  Presence: "hsl(120, 25%, 42%)",
+  Curiosity: "hsl(150, 32%, 42%)",
+  Rest: "hsl(180, 30%, 42%)",
+  Boundaries: "hsl(210, 35%, 52%)",
+  Integrity: "hsl(240, 30%, 55%)",
+  Empathy: "hsl(270, 28%, 55%)",
+  Creativity: "hsl(300, 30%, 50%)",
+  Communication: "hsl(330, 35%, 55%)"
+};
+
 export const TIERS = [
   {min:0,max:25,name:"Awakening",color:"#9a8870"},
   {min:26,max:50,name:"Practising",color:"#c4783a"},

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS } from "../../constants/app.const";
@@ -11,13 +11,13 @@ const INTENTION_PROMPTS = {
   dream: "What does this dream mean to your soul?"
 };
 
-const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent";
+const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
 
-export default function AddItemModal({ open, onClose }) {
+export default function AddItemModal({ open, onClose, defaultType = "habit" }) {
   const { addItem } = useAppData();
   const [name, setName] = useState("");
-  const [type, setType] = useState("habit");
+  const [type, setType] = useState(defaultType);
   const [cat, setCat] = useState(PILLARS[0]);
   const [note, setNote] = useState("");
   const [tagInput, setTagInput] = useState("");
@@ -26,6 +26,10 @@ export default function AddItemModal({ open, onClose }) {
   const [milestones, setMilestones] = useState([]);
   const [intention, setIntention] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) setType(defaultType);
+  }, [open, defaultType]);
 
   function addTag(e) {
     if (e.key && e.key !== "Enter") return;

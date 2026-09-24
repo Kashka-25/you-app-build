@@ -42,11 +42,16 @@ export default {
         card: "20px",
         sm: "12px"
       },
-      // Locked shadow for elevated/glass surfaces.
+      // Locked shadow for elevated/glass surfaces. `card` carries a soft
+      // drop shadow plus a thin inset highlight along the top edge (via
+      // --card-highlight, tuned per light/dark mode in tokens.css) so
+      // every card reads as gently raised/3D rather than flat — this is
+      // the one definition every `shadow-card` card in the app shares.
       boxShadow: {
-        card: "0 8px 24px rgba(0,0,0,0.10)",
+        card: "0 4px 14px rgba(0,0,0,0.06), inset 0 1px 0 var(--card-highlight)",
         cardDark: "0 8px 24px rgba(0,0,0,0.45)",
-        glass: "0 1px 0 rgba(255,255,255,0.06) inset"
+        glass: "0 1px 0 rgba(255,255,255,0.06) inset",
+        field: "inset 0 1px 3px var(--field-shadow)"
       }
     }
   },

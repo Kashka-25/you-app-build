@@ -1,22 +1,25 @@
 import { useState } from "react";
 import { Heart, MessageCircle } from "lucide-react";
 import { SectionTitle } from "../Primitives";
+import { GlowBubble } from "../ui/GlowBubble";
+import { PILLAR_COLORS } from "../../constants/app.const";
 
 // Mock feed — no Kronk/CommYOUnity backend exists yet (rename-only per
-// BUILD-BACKLOG.md). Likes are local state, not persisted.
+// BUILD-BACKLOG.md). Likes are local state, not persisted. Each mock
+// poster gets a fixed pillar color so avatars read as distinct people
+// rather than one uniform color repeated — same "break up the uniform
+// look" treatment as Values.
 const MOCK_POSTS = [
-  { id: 1, name: "Maya", initial: "M", tag: "Seeker", text: "Sunsets + good company + open hearts = magic.", likes: 12 },
-  { id: 2, name: "Kai", initial: "K", tag: "Seeker", text: "What's one thing you're grateful for today?", likes: 8 },
-  { id: 3, name: "Raptor", initial: "R", tag: "Seeker", text: "Grateful for this community & the little moments that change everything.", likes: 21 }
+  { id: 1, name: "Maya", initial: "M", tag: "Seeker", text: "Sunsets + good company + open hearts = magic.", likes: 12, color: PILLAR_COLORS.Spirit },
+  { id: 2, name: "Kai", initial: "K", tag: "Seeker", text: "What's one thing you're grateful for today?", likes: 8, color: PILLAR_COLORS.Adventure },
+  { id: 3, name: "Raptor", initial: "R", tag: "Seeker", text: "Grateful for this community & the little moments that change everything.", likes: 21, color: PILLAR_COLORS.Relationships }
 ];
 
 function PostCard({ post, liked, onLike }) {
   return (
     <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
       <div className="flex items-center gap-3 mb-2.5">
-        <div className="w-10 h-10 rounded-full bg-forestAccent text-surface2 flex items-center justify-center font-serif text-h3 flex-none">
-          {post.initial}
-        </div>
+        <GlowBubble size={40} color={post.color}>{post.initial}</GlowBubble>
         <div>
           <div className="text-h3 font-medium text-textPrimary">{post.name}</div>
           <div className="text-label uppercase text-gold">{post.tag}</div>

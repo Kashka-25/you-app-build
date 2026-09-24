@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Clock, MapPin, Star, ExternalLink } from "lucide-react";
 import { riseIn } from "./motion";
+import { GlowBubble } from "./GlowBubble";
 
 // Imagery decision: AI-generated botanical/landscape art, until swapped for
 // real photography later. Hero/Media accept an `image` (or `imageLight`/
@@ -67,12 +68,17 @@ export function JourneyCard({ chapter, season, title, description, segments = 5,
   );
 }
 
-export function ReflectionCard({ date, prompt, text }) {
+export function ReflectionCard({ date, prompt, text, icon }) {
   return (
     <motion.div {...riseIn} className="rounded-card bg-surface1 border-l-2 border-gold p-4 shadow-card">
-      <div className="text-caption text-textMuted mb-1.5">{date}</div>
-      {prompt && <div className="text-label uppercase text-textSecondary mb-1.5">{prompt}</div>}
-      <div className="font-serif text-body italic text-textPrimary leading-relaxed">&ldquo;{text}&rdquo;</div>
+      <div className="flex items-start gap-3">
+        {icon && <GlowBubble icon={icon} size={36} className="mt-0.5" />}
+        <div className="flex-1 min-w-0">
+          <div className="text-caption text-textMuted mb-1.5">{date}</div>
+          {prompt && <div className="text-label uppercase text-textSecondary mb-1.5">{prompt}</div>}
+          <div className="font-serif text-body italic text-textPrimary leading-relaxed">&ldquo;{text}&rdquo;</div>
+        </div>
+      </div>
     </motion.div>
   );
 }

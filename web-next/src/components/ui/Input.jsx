@@ -2,7 +2,7 @@ import { Search, Angry, Frown, Meh, Smile, Laugh } from "lucide-react";
 
 export function SearchInput({ placeholder = "Search", className = "", ...props }) {
   return (
-    <div className={`flex items-center gap-2 bg-surface1 border border-borderC rounded-full px-4 py-2.5 ${className}`}>
+    <div className={`flex items-center gap-2 bg-surface1 border border-borderC rounded-full px-4 py-2.5 shadow-field ${className}`}>
       <Search size={16} strokeWidth={1.75} className="text-textMuted flex-none" />
       <input
         type="text"
@@ -22,7 +22,7 @@ export function FloatingLabelField({ label, id, type = "text", className = "", .
         type={type}
         placeholder=" "
         id={fieldId}
-        className="peer w-full bg-surface1 border border-borderC rounded-sm px-3.5 pt-5 pb-2 text-body text-textPrimary outline-none focus:border-forestAccent"
+        className="peer w-full bg-surface1 border border-borderC rounded-sm px-3.5 pt-5 pb-2 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field"
         {...props}
       />
       <label

@@ -52,6 +52,15 @@ export function AppDataProvider({ children }) {
   const [chapters, setChapters] = useState([]);
   const [valueChallenges, setValueChallenges] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
+  // Journal AI state is intentionally NOT part of the initial `load()`
+  // batch — insights/photos/weekly reflections are fetched lazily, on
+  // demand, so opening the app doesn't pull in every entry's AI output and
+  // every photo signed-URL up front. Keyed by entry_id (journalInsights,
+  // journalPhotos) or week_start date string (weeklyReflections).
+  const [journalInsights, setJournalInsights] = useState({});
+  const [journalPhotos, setJournalPhotos] = useState({});
+  const [weeklyReflections, setWeeklyReflections] = useState({});
+  const [recentInsights, setRecentInsights] = useState([]);
   const [sync, setSync] = useState("idle");
   const [loaded, setLoaded] = useState(false);
 
@@ -397,8 +406,8 @@ export function AppDataProvider({ children }) {
   // Journal entries. Kept distinct from `memory` (the auto-generated XP
   // log) and `moments` (user-curated timeline highlights) — this is
   // free-form reflection, not tied to completing anything.
-  async function addJournalEntry({ content, mood, entryDate }) {
-    const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey() };
+  async function addJournalEntry({ content, mood, entryDate, tags }) {
+    const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey(), tags: tags || [] };
     const res = await supabase.from("journal_entries").insert(row).select().single();
     if (res.error) throw res.error;
     setJournalEntries(prev =>
@@ -407,8 +416,8 @@ export function AppDataProvider({ children }) {
     return res.data;
   }
 
-  async function editJournalEntry(id, { content, mood, entryDate }) {
-    const updates = { content, mood: mood || null, entry_date: entryDate, updated_at: new Date().toISOString() };
+  async function editJournalEntry(id, { content, mood, entryDate, tags }) {
+    const updates = { content, mood: mood || null, entry_date: entryDate, tags: tags || [], updated_at: new Date().toISOString() };
     const res = await supabase.from("journal_entries").update(updates).eq("id", id).eq("user_id", userId).select().single();
     if (res.error) throw res.error;
     setJournalEntries(prev =>
@@ -419,7 +428,157 @@ export function AppDataProvider({ children }) {
 
   async function deleteJournalEntry(id) {
     setJournalEntries(prev => prev.filter(e => e.id !== id));
+    setJournalInsights(prev => { const next = { ...prev }; delete next[id]; return next; });
+    setJournalPhotos(prev => { const next = { ...prev }; delete next[id]; return next; });
     await supabase.from("journal_entries").delete().eq("id", id).eq("user_id", userId);
+  }
+
+  // Journal photos (handwritten pages). Storage path is
+  // "{user_id}/{entry_id}/{timestamp}.{ext}" in the private journal-photos
+  // bucket — same signed-URL-on-read pattern as life-moments, since a
+  // usable <img src> can't point straight at a private bucket.
+  async function loadJournalPhotos(entryId) {
+    const res = await supabase.from("journal_photos").select("*").eq("entry_id", entryId).eq("user_id", userId).order("created_at");
+    if (res.error) throw res.error;
+    const rows = res.data || [];
+    const signed = await Promise.all(rows.map(r => supabase.storage.from("journal-photos").createSignedUrl(r.storage_path, 3600)));
+    const withUrls = rows.map((r, i) => ({ ...r, photo_url: signed[i]?.data?.signedUrl || null }));
+    setJournalPhotos(prev => ({ ...prev, [entryId]: withUrls }));
+    return withUrls;
+  }
+
+  async function addJournalPhoto(entryId, photoFile) {
+    const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+    const storagePath = `${userId}/${entryId}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage.from("journal-photos").upload(storagePath, photoFile);
+    if (upErr) throw upErr;
+    const res = await supabase
+      .from("journal_photos")
+      .insert({ entry_id: entryId, user_id: userId, storage_path: storagePath })
+      .select()
+      .single();
+    if (res.error) throw res.error;
+    const signed = await supabase.storage.from("journal-photos").createSignedUrl(storagePath, 3600);
+    const withUrl = { ...res.data, photo_url: signed.data?.signedUrl || null };
+    setJournalPhotos(prev => ({ ...prev, [entryId]: [...(prev[entryId] || []), withUrl] }));
+    return withUrl;
+  }
+
+  async function deleteJournalPhoto(entryId, photoId) {
+    const photo = (journalPhotos[entryId] || []).find(p => p.id === photoId);
+    setJournalPhotos(prev => ({ ...prev, [entryId]: (prev[entryId] || []).filter(p => p.id !== photoId) }));
+    await supabase.from("journal_photos").delete().eq("id", photoId).eq("user_id", userId);
+    if (photo?.storage_path) await supabase.storage.from("journal-photos").remove([photo.storage_path]);
+  }
+
+  // Sends a photo to the transcribe-journal-photo Edge Function (Claude
+  // vision, server-side). Saves a first-draft transcription the user can
+  // then edit in place via editJournalPhotoTranscription.
+  async function transcribeJournalPhoto(entryId, photoId) {
+    const { data, error } = await supabase.functions.invoke("transcribe-journal-photo", { body: { photoId } });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    setJournalPhotos(prev => ({
+      ...prev,
+      [entryId]: (prev[entryId] || []).map(p => (p.id === photoId ? { ...p, ...data.photo } : p))
+    }));
+    return data.photo;
+  }
+
+  async function editJournalPhotoTranscription(entryId, photoId, transcription) {
+    const res = await supabase
+      .from("journal_photos")
+      .update({ transcription, transcription_status: "done" })
+      .eq("id", photoId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+    if (res.error) throw res.error;
+    setJournalPhotos(prev => ({
+      ...prev,
+      [entryId]: (prev[entryId] || []).map(p => (p.id === photoId ? res.data : p))
+    }));
+    return res.data;
+  }
+
+  // AI reflection on a single entry. loadJournalInsight reads whatever's
+  // already saved (a past visit's reflection); generateJournalReflection
+  // calls the Edge Function and overwrites it — regenerating is a deliberate
+  // user action, not automatic, so a saved reflection never silently
+  // changes underneath them.
+  async function loadJournalInsight(entryId) {
+    const res = await supabase.from("journal_ai_insights").select("*").eq("entry_id", entryId).eq("user_id", userId).maybeSingle();
+    if (res.error) throw res.error;
+    setJournalInsights(prev => ({ ...prev, [entryId]: res.data || null }));
+    return res.data || null;
+  }
+
+  async function generateJournalReflection(entryId) {
+    const { data, error } = await supabase.functions.invoke("reflect-on-journal-entry", { body: { entryId } });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    setJournalInsights(prev => ({ ...prev, [entryId]: data.insight }));
+    return data.insight;
+  }
+
+  // Lets the user edit or reject one AI-suggested insight item in place —
+  // the item is never deleted outright (status becomes 'rejected' instead
+  // of vanishing) so what the AI proposed and what the user did with it
+  // stays visible, not silently erased.
+  async function updateInsightItem(entryId, itemId, updates) {
+    const current = journalInsights[entryId];
+    if (!current) return;
+    const nextInsights = (current.insights || []).map(item =>
+      item.id === itemId ? { ...item, ...updates } : item
+    );
+    const res = await supabase
+      .from("journal_ai_insights")
+      .update({ insights: nextInsights, updated_at: new Date().toISOString() })
+      .eq("id", current.id)
+      .eq("user_id", userId)
+      .select()
+      .single();
+    if (res.error) throw res.error;
+    setJournalInsights(prev => ({ ...prev, [entryId]: res.data }));
+    return res.data;
+  }
+
+  // Recent AI insights across ALL entries (not one) — powers "Bring Me Back
+  // To Myself" and the new Home, which both need a cross-entry view: recent
+  // patterns, which values keep coming up, a snippet of what's been on your
+  // mind lately. Lazy-loaded (not part of the initial load() batch) since
+  // it's only needed on those two screens.
+  async function loadRecentInsights(limit = 10) {
+    const res = await supabase
+      .from("journal_ai_insights")
+      .select("*, journal_entries!inner(entry_date, content)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (res.error) throw res.error;
+    setRecentInsights(res.data || []);
+    return res.data || [];
+  }
+
+  // Weekly reflection. weekStart must be an ISO date string (Monday) — see
+  // WeeklyReflectionView for how it's computed from "today".
+  async function loadWeeklyReflection(weekStart) {
+    const res = await supabase.from("weekly_reflections").select("*").eq("user_id", userId).eq("week_start", weekStart).maybeSingle();
+    if (res.error) throw res.error;
+    setWeeklyReflections(prev => ({ ...prev, [weekStart]: res.data || null }));
+    return res.data || null;
+  }
+
+  async function generateWeeklyReflection(weekStart) {
+    const { data, error } = await supabase.functions.invoke("weekly-reflection", { body: { weekStart } });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    if (data.empty) {
+      setWeeklyReflections(prev => ({ ...prev, [weekStart]: null }));
+      return { empty: true, message: data.message };
+    }
+    setWeeklyReflections(prev => ({ ...prev, [weekStart]: data.reflection }));
+    return { empty: false, reflection: data.reflection };
   }
 
   // Asks the suggest-chapters Edge Function (Claude, server-side — the
@@ -538,11 +697,16 @@ export function AppDataProvider({ children }) {
 
   const value = {
     userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
+    journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
-    completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry, reload: load
+    completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
+    loadJournalPhotos, addJournalPhoto, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
+    loadJournalInsight, generateJournalReflection, updateInsightItem,
+    loadWeeklyReflection, generateWeeklyReflection, loadRecentInsights,
+    reload: load
   };
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>;

@@ -19,6 +19,13 @@
   --error: #C75B5B;
   --accent-blue: #8FB8D8;
   --ember: #c4783a;
+  /* Card highlight — a thin inset line along a card's top edge that reads
+     as light catching a slightly domed surface. Paired with the existing
+     drop shadow in tailwind.config.js's `card` shadow, and with
+     --field-shadow below (a recessed inset for inputs), the two give the
+     UI a raised/sunken rhythm instead of everything sitting flush. */
+  --card-highlight: rgba(255, 255, 255, 0.4);
+  --field-shadow: rgba(0, 0, 0, 0.05);
 }
 
 [data-mode="dark"] {
@@ -45,6 +52,8 @@
      moments, and warmth accents, never as a primary surface or button
      color. This is the one deliberate carry-over from Chapter 1. */
   --ember: #C4783A;
+  --card-highlight: rgba(255, 255, 255, 0.06);
+  --field-shadow: rgba(0, 0, 0, 0.25);
 }
 
 body {

@@ -5,11 +5,10 @@ import {
   Telescope, Moon, ShieldCheck, Paintbrush, Feather, Gem, Sparkles
 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { getTier } from "../../constants/app.const";
+import { getTier, VALUE_COLORS } from "../../constants/app.const";
 import { ALL_VALUES_LIB } from "../../constants/values.const";
 import { easeOut } from "../ui/motion";
-
-const SEGMENTS = 10;
+import { GlowBubble } from "../ui/GlowBubble";
 
 const VALUE_ICONS = {
   Communication: MessageCircle,
@@ -68,29 +67,30 @@ export default function ValuesPanel() {
       <div className="space-y-2.5 mb-4">
         {values.map(v => {
           const tier = getTier(v.rating);
-          const filled = Math.round((v.rating / 99) * SEGMENTS);
+          const color = VALUE_COLORS[v.name];
           const Icon = VALUE_ICONS[v.name];
           const open = openName === v.name;
           const lib = ALL_VALUES_LIB.find(l => l.name === v.name);
 
           return (
-            <div key={v.name} className="rounded-card bg-surface1 shadow-card p-3.5">
+            <div key={v.name} className="rounded-card bg-surface1 shadow-card p-3.5 border-l-2" style={{ borderLeftColor: color }}>
               <button onClick={() => setOpenName(open ? null : v.name)} className="w-full flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center flex-none"
-                  style={{ background: `${tier.color}26`, color: tier.color }}
-                >
-                  {Icon && <Icon size={17} strokeWidth={1.75} />}
-                </div>
+                {Icon && <GlowBubble icon={Icon} size={40} color={color} />}
                 <div className="flex-1 min-w-0 text-left">
                   <div className="flex justify-between text-body mb-1">
-                    <span className="font-medium text-textPrimary">{v.name}</span>
+                    <span className="font-serif text-h3 text-textPrimary">{v.name}</span>
                     <span className="text-bodySm" style={{ color: tier.color }}>{tier.name} · {v.rating}</span>
                   </div>
-                  <div className="flex gap-1">
-                    {Array.from({ length: SEGMENTS }).map((_, si) => (
-                      <div key={si} className="flex-1 h-2 rounded-sm" style={{ background: si < filled ? tier.color : "var(--surface-3)" }} />
-                    ))}
+                  {/* A smooth gradient fill (vs. Pillars' segmented bar) — values are
+                      personal and continuous, pillars are a game-like stat track. */}
+                  <div className="h-2 rounded-full bg-surface3 overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${Math.min(100, Math.round((v.rating / 99) * 100))}%`,
+                        background: `linear-gradient(90deg, color-mix(in srgb, ${color} 55%, white), ${color})`
+                      }}
+                    />
                   </div>
                 </div>
                 <ChevronDown

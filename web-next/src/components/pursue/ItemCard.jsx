@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award } from "lucide-react";
+import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award, Star, Target } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { DAY_LABELS, TIERS } from "../../constants/app.const";
+import { DAY_LABELS, TIERS, PILLAR_COLORS } from "../../constants/app.const";
 import { riseIn } from "../ui/motion";
 import { Button } from "../ui/Button";
+import { GlowBubble } from "../ui/GlowBubble";
+
+const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
 
 export default function ItemCard({ item }) {
   const {
@@ -55,6 +58,13 @@ export default function ItemCard({ item }) {
             )}
           </AnimatePresence>
         </button>
+        <GlowBubble
+          icon={TYPE_ICON[item.type] || Flame}
+          size={32}
+          animate={!item.done}
+          color={PILLAR_COLORS[item.cat]}
+          className="mt-0.5"
+        />
         <div className="flex-1 min-w-0">
           <div className="text-body font-medium text-textPrimary">{item.name}</div>
           <div className="flex flex-wrap items-center gap-1.5 mt-1 text-caption text-textSecondary">

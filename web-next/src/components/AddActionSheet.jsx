@@ -1,17 +1,29 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckSquare, Sparkles, BookOpen, ArrowLeft } from "lucide-react";
+import { Star, Target, Image, BookOpen, Lightbulb, Sparkles, ArrowLeft } from "lucide-react";
 import { fadeIn, sheetIn } from "./ui/motion";
 import { Button } from "./ui/Button";
 import { useAppData } from "../lib/AppDataContext";
 
+// Journal/Idea/Experience all save straight to the journal — they're the
+// same underlying action (a free-form entry), just auto-tagged so an idea
+// or an experience is easy to find again later without a heavier flow.
+const QUICK_JOURNAL = {
+  journal: { title: "Journal", placeholder: "What's on your mind today?", tag: null },
+  idea: { title: "Idea", placeholder: "What's the idea?", tag: "idea" },
+  experience: { title: "Experience", placeholder: "What happened?", tag: "experience" }
+};
+
 const OPTIONS = [
-  { key: "todo", icon: CheckSquare, title: "Today's list", desc: "A quick one-off task for today only" },
-  { key: "pursue", icon: Sparkles, title: "Habit, goal, or dream", desc: "The full Pursue flow — tags, milestones, intention" },
-  { key: "journal", icon: BookOpen, title: "Journal entry", desc: "A reflection, straight to today's log" }
+  { key: "dream", icon: Star, title: "Dream", desc: "What kind of life do you want?" },
+  { key: "memory", icon: Image, title: "Memory", desc: "An experience worth remembering" },
+  { key: "journal", icon: BookOpen, title: "Journal", desc: "Whatever's on your mind" },
+  { key: "goal", icon: Target, title: "Goal", desc: "Something you're actively working toward" },
+  { key: "idea", icon: Lightbulb, title: "Idea", desc: "A spark worth capturing" },
+  { key: "experience", icon: Sparkles, title: "Experience", desc: "Something that happened" }
 ];
 
-export default function AddActionSheet({ open, onClose, onSelectPursue }) {
+export default function AddActionSheet({ open, onClose, onSelectPursue, onSelectMoment }) {
   const { addJournalEntry } = useAppData();
   const [screen, setScreen] = useState("choices");
   const [journalText, setJournalText] = useState("");
@@ -33,7 +45,8 @@ export default function AddActionSheet({ open, onClose, onSelectPursue }) {
     setJournalSaving(true);
     setJournalError("");
     try {
-      await addJournalEntry({ content: journalText.trim() });
+      const tag = QUICK_JOURNAL[screen]?.tag;
+      await addJournalEntry({ content: journalText.trim(), tags: tag ? [tag] : [] });
       setJournalSaved(true);
     } catch (e) {
       console.error("[AddActionSheet] journal save failed:", e);
@@ -43,13 +56,20 @@ export default function AddActionSheet({ open, onClose, onSelectPursue }) {
   }
 
   function handleSelect(key) {
-    if (key === "pursue") {
+    if (key === "dream" || key === "goal") {
       onClose();
-      onSelectPursue();
+      onSelectPursue(key);
+      return;
+    }
+    if (key === "memory") {
+      onClose();
+      onSelectMoment();
       return;
     }
     setScreen(key);
   }
+
+  const quickConfig = QUICK_JOURNAL[screen];
 
   return (
     <AnimatePresence>
@@ -83,24 +103,10 @@ export default function AddActionSheet({ open, onClose, onSelectPursue }) {
               </>
             )}
 
-            {screen === "todo" && (
+            {quickConfig && (
               <>
                 <BackButton onClick={() => setScreen("choices")} />
-                <div className="font-serif text-h2 mb-2">Today's list</div>
-                <div className="text-bodySm text-textSecondary mb-4">
-                  This needs a quick data-shape decision before it can actually save anywhere:
-                  does a one-off task reuse the <code className="text-caption bg-surface1 px-1 py-0.5 rounded">items</code> table
-                  with a new <code className="text-caption bg-surface1 px-1 py-0.5 rounded">type: "todo"</code>, or does it need
-                  its own shape? That's a data-layer call, not a UI one — flagged, not built yet.
-                </div>
-                <Button variant="secondary" className="w-full" onClick={handleClose}>Got it</Button>
-              </>
-            )}
-
-            {screen === "journal" && (
-              <>
-                <BackButton onClick={() => setScreen("choices")} />
-                <div className="font-serif text-h2 mb-3">Journal entry</div>
+                <div className="font-serif text-h2 mb-3">{quickConfig.title}</div>
                 {journalSaved ? (
                   <div className="text-bodySm text-textSecondary mb-4">
                     Saved to your Reflections journal.
@@ -112,8 +118,8 @@ export default function AddActionSheet({ open, onClose, onSelectPursue }) {
                       rows={4}
                       value={journalText}
                       onChange={e => setJournalText(e.target.value)}
-                      placeholder="What's on your mind today?"
-                      className="w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent mb-3"
+                      placeholder={quickConfig.placeholder}
+                      className="w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field mb-3"
                     />
                     {journalError && <div className="text-bodySm text-red-500 mb-3">{journalError}</div>}
                     <Button

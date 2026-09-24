@@ -3,6 +3,7 @@ import { useAuth } from "./lib/AuthContext";
 import SignIn from "./components/SignIn";
 import AppShell from "./components/AppShell";
 import Home from "./components/screens/Home";
+import BringMeBackToMyself from "./components/screens/BringMeBackToMyself";
 import Journey from "./components/screens/Journey";
 import You from "./components/screens/You";
 import Pursue from "./components/screens/Pursue";
@@ -30,6 +31,7 @@ export default function App() {
       <Route path="/styleguide" element={<Styleguide />} />
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
+        <Route path="/bring-me-back" element={<BringMeBackToMyself />} />
         <Route path="/journey" element={<Journey />} />
         <Route path="/you" element={<You />} />
         <Route path="/pursue" element={<Pursue />} />
