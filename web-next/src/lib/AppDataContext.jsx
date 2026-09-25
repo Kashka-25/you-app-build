@@ -630,6 +630,37 @@ export function AppDataProvider({ children }) {
     return { empty: false, reflection: data.reflection };
   }
 
+  // Everything YOUnderstanding has noticed whose journal entry falls inside
+  // one era (a life_chapter's date range) — for the Story of You cosmos
+  // door, which shows an era's insights rather than just "recent" ones.
+  // Fetched on demand per door-open, not part of any bulk load.
+  async function loadEraInsights(start, end) {
+    const res = await supabase
+      .from("journal_ai_insights")
+      .select("*, journal_entries!inner(entry_date, content)")
+      .eq("user_id", userId)
+      .gte("journal_entries.entry_date", start)
+      .lte("journal_entries.entry_date", end || todayKey())
+      .order("created_at", { ascending: false })
+      .limit(5);
+    if (res.error) throw res.error;
+    return res.data || [];
+  }
+
+  // Same idea for weekly reflections whose week_start falls inside an era.
+  async function loadEraWeeklyReflections(start, end) {
+    const res = await supabase
+      .from("weekly_reflections")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("week_start", start)
+      .lte("week_start", end || todayKey())
+      .order("week_start", { ascending: false })
+      .limit(3);
+    if (res.error) throw res.error;
+    return res.data || [];
+  }
+
   // Asks the suggest-chapters Edge Function (Claude, server-side — the
   // Anthropic key never reaches the browser) to propose named eras from
   // the current moments. Returns suggestions only; nothing is saved until
@@ -757,6 +788,7 @@ export function AppDataProvider({ children }) {
     loadJournalPhotos, addJournalPhoto, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,
     loadWeeklyReflection, generateWeeklyReflection, loadRecentInsights,
+    loadEraInsights, loadEraWeeklyReflections,
     reload: load
   };
 
