@@ -9,14 +9,9 @@ export default function TopBar({ onMenuClick }) {
       </button>
 
       <div className="text-center">
-        {/* The wordmark render has an opaque cream background baked in, so it
-            only reads correctly in light mode — dark mode keeps the original
-            text lockup rather than showing a pale box floating on a dark bar. */}
-        <img src="/logo-wordmark.png" alt="YOU — Your Own Universe" className="h-9 w-auto mx-auto dark:hidden" />
-        <div className="hidden dark:block">
-          <div className="font-serif text-h3 text-gold leading-none">YOU</div>
-          <div className="text-[8.5px] tracking-wide uppercase text-textMuted mt-0.5">Your Own Universe</div>
-        </div>
+        {/* Keyed out to real transparency (not just a light-mode render), so
+            the same gold mark works on both the light and dark TopBar. */}
+        <img src="/logo-wordmark.png" alt="YOU — Your Own Universe" className="h-9 w-auto mx-auto" />
       </div>
 
       <div className="flex items-center gap-3">

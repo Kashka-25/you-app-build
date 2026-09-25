@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { useAuth } from "./lib/AuthContext";
 import SignIn from "./components/SignIn";
 import AppShell from "./components/AppShell";
+import { LoadingScreen } from "./components/ui/LoadingScreen";
 import Home from "./components/screens/Home";
 import BringMeBackToMyself from "./components/screens/BringMeBackToMyself";
 import Journey from "./components/screens/Journey";
@@ -19,8 +20,8 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-black flex justify-center items-center py-8 px-3 font-sans">
-        <div className="text-textSecondary text-bodySm">Loading…</div>
+      <div className="min-h-dvh bg-bg flex justify-center items-center font-sans">
+        <LoadingScreen label="Signing you in" />
       </div>
     );
   }
