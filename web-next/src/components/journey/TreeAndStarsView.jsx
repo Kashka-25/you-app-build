@@ -1,14 +1,8 @@
-import { useState } from "react";
-import AmbientScene from "./tree-stars/AmbientScene";
-import TreeDetail from "./tree-stars/TreeDetail";
-import ConstellationsDetail from "./tree-stars/ConstellationsDetail";
+import TreeOfStars from "./tree-stars/TreeOfStars";
 
-// Ambient scene is home base for this segment — back from either detail
-// screen returns here, not to Journey itself.
+// Replaces the old ambient-tap-in -> separate Tree/Constellations screens:
+// the real visual is engaging enough on its own now that hiding it behind
+// another placeholder tap-through just added friction.
 export default function TreeAndStarsView() {
-  const [view, setView] = useState("ambient");
-
-  if (view === "tree") return <TreeDetail onBack={() => setView("ambient")} />;
-  if (view === "stars") return <ConstellationsDetail onBack={() => setView("ambient")} />;
-  return <AmbientScene onTapTree={() => setView("tree")} onTapSky={() => setView("stars")} />;
+  return <TreeOfStars />;
 }

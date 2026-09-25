@@ -16,11 +16,11 @@ function todayKey() {
 // `vision` is passed in. Category is one of the same Pillars every other
 // part of the app groups by, rather than free text — one taxonomy across
 // Pursue, Values and Identity instead of three.
-export default function IdentityVisionModal({ open, onClose, vision }) {
+export default function IdentityVisionModal({ open, onClose, vision, initialCategory }) {
   const { addIdentityVision, editIdentityVision, deleteIdentityVision } = useAppData();
   const isEdit = Boolean(vision);
 
-  const [category, setCategory] = useState(PILLARS[0]);
+  const [category, setCategory] = useState(initialCategory || PILLARS[0]);
   const [title, setTitle] = useState("");
   const [statement, setStatement] = useState("");
   const [reflecting, setReflecting] = useState(false);
@@ -40,7 +40,7 @@ export default function IdentityVisionModal({ open, onClose, vision }) {
       setReflecting(Boolean(vision.reflection));
       setVisionDate(vision.vision_date || todayKey());
     } else {
-      setCategory(PILLARS[0]);
+      setCategory(initialCategory || PILLARS[0]);
       setTitle("");
       setStatement("");
       setReflection("");
@@ -48,7 +48,7 @@ export default function IdentityVisionModal({ open, onClose, vision }) {
       setVisionDate(todayKey());
     }
     setError("");
-  }, [open, vision]);
+  }, [open, vision, initialCategory]);
 
   async function submit() {
     if (!title.trim()) {
