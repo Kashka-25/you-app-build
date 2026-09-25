@@ -1,22 +1,52 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award, Star, Target } from "lucide-react";
+import { motion } from "framer-motion";
+import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award, Star, Target, Sparkles, Pencil } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { DAY_LABELS, TIERS, PILLAR_COLORS } from "../../constants/app.const";
 import { riseIn } from "../ui/motion";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
+import AddItemModal from "./AddItemModal";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
 
+function todayKey() {
+  return new Date().toISOString().split("T")[0];
+}
+
+// 8 small sparks radiating outward from the checkbox and fading — the one
+// moment (right when an item is confirmed complete) that gets an animated
+// celebration rather than just a static "done" look, since that's the
+// instant it's actually satisfying to see.
+const BURST_ANGLES = Array.from({ length: 8 }, (_, i) => (i / 8) * Math.PI * 2);
+
+function CompletionBurst() {
+  return (
+    <motion.div className="absolute left-3.5 top-3.5 w-7 h-7 pointer-events-none" style={{ zIndex: 1 }}>
+      {BURST_ANGLES.map((angle, i) => (
+        <motion.span
+          key={i}
+          className="absolute left-1/2 top-1/2 w-1.5 h-1.5 rounded-full bg-gold"
+          initial={{ x: 0, y: 0, scale: 0.6, opacity: 1 }}
+          animate={{ x: Math.cos(angle) * 26, y: Math.sin(angle) * 26, scale: 0, opacity: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut", delay: i * 0.02 }}
+        />
+      ))}
+    </motion.div>
+  );
+}
+
 export default function ItemCard({ item }) {
   const {
-    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, editItem,
+    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem
   } = useAppData();
   const [expanded, setExpanded] = useState(false);
   const [reflecting, setReflecting] = useState(false);
   const [reflection, setReflection] = useState("");
+  const [completedDate, setCompletedDate] = useState(todayKey());
+  const [celebrating, setCelebrating] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const prestigeTier = item.type === "habit" ? getPrestigeTier(item) : 0;
   const tierColor = prestigeTier > 0 ? TIERS[(prestigeTier - 1) % TIERS.length].color : null;
@@ -28,36 +58,38 @@ export default function ItemCard({ item }) {
 
   async function handleComplete() {
     if (item.done) return;
+    setCompletedDate(todayKey());
     setReflecting(true);
   }
   async function confirmComplete(skip) {
-    await completeItem(item.id, skip ? "" : reflection);
+    await completeItem(item.id, skip ? "" : reflection, completedDate);
     setReflecting(false);
     setReflection("");
+    setCelebrating(true);
+    setTimeout(() => setCelebrating(false), 750);
   }
 
   return (
-    <motion.div {...riseIn} className={`rounded-card bg-surface1 shadow-card p-3.5 mb-3 ${item.done ? "opacity-60" : ""}`}>
+    <motion.div
+      {...riseIn}
+      className={`rounded-card shadow-card p-3.5 mb-3 relative transition-colors duration-500 ${
+        item.done
+          ? "bg-gradient-to-br from-surface1 to-[color-mix(in_srgb,var(--gold)_16%,var(--surface-1))] border border-gold/40"
+          : "bg-surface1"
+      }`}
+    >
       <div className="flex gap-3">
-        <button
-          onClick={handleComplete}
-          disabled={item.done}
-          className={`w-7 h-7 flex-none rounded-full border flex items-center justify-center transition-colors duration-300 ${
-            item.done ? "bg-sage border-sage text-surface2" : "border-borderC text-textMuted"
-          }`}
-        >
-          <AnimatePresence>
-            {item.done && (
-              <motion.span
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              >
-                <Check size={14} strokeWidth={2.5} />
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
+        <div className="relative flex-none">
+          {celebrating && <CompletionBurst />}
+          {item.done ? (
+            <GlowBubble icon={Check} size={28} color="var(--gold)" animate={false} />
+          ) : (
+            <button
+              onClick={handleComplete}
+              className="w-7 h-7 rounded-full border border-borderC text-textMuted flex items-center justify-center transition-colors duration-300"
+            />
+          )}
+        </div>
         <GlowBubble
           icon={TYPE_ICON[item.type] || Flame}
           size={32}
@@ -66,10 +98,14 @@ export default function ItemCard({ item }) {
           className="mt-0.5"
         />
         <div className="flex-1 min-w-0">
-          <div className="text-body font-medium text-textPrimary">{item.name}</div>
+          <div className="text-body font-medium text-textPrimary flex items-center gap-1.5">
+            <span className={item.done ? "line-through decoration-wavy decoration-1 decoration-gold" : ""}>{item.name}</span>
+            {item.done && <Sparkles size={13} strokeWidth={1.75} className="text-gold flex-none" />}
+          </div>
           <div className="flex flex-wrap items-center gap-1.5 mt-1 text-caption text-textSecondary">
             <span className="px-2 py-0.5 rounded-full bg-surface3 capitalize">{item.type}</span>
             <span className="px-2 py-0.5 rounded-full bg-surface3">{item.cat}</span>
+            {item.subcat && <span className="px-2 py-0.5 rounded-full bg-surface3">{item.subcat.split("/").join(" › ")}</span>}
             {(item.tags || []).map(t => <span key={t}>#{t}</span>)}
             {item.type === "habit" && item.streak > 0 && (
               <span className="flex items-center gap-0.5 text-ember">
@@ -142,7 +178,7 @@ export default function ItemCard({ item }) {
                   >
                     {m.done ? "✓" : ""}
                   </button>
-                  <span className={m.done ? "line-through text-textMuted" : ""}>{m.text}</span>
+                  <span className={m.done ? "line-through decoration-wavy decoration-gold text-textMuted" : ""}>{m.text}</span>
                 </div>
               ))}
             </div>
@@ -155,14 +191,27 @@ export default function ItemCard({ item }) {
               <RotateCcw size={15} strokeWidth={1.75} />
             </button>
           )}
+          <button onClick={() => setEditing(true)} aria-label="Edit">
+            <Pencil size={15} strokeWidth={1.75} />
+          </button>
           <button onClick={() => deleteItem(item.id)} aria-label="Delete">
             <X size={15} strokeWidth={1.75} />
           </button>
         </div>
       </div>
 
+      <AddItemModal open={editing} item={item} onClose={() => setEditing(false)} />
+
       {reflecting && (
         <div className="mt-3 pt-3 border-t border-borderC">
+          <label className="block text-caption uppercase text-textMuted mb-1">Date completed</label>
+          <input
+            type="date"
+            className="w-full bg-surface2 border border-borderC rounded-sm px-3 py-2 text-bodySm mb-2 outline-none focus:border-forestAccent shadow-field"
+            value={completedDate}
+            max={todayKey()}
+            onChange={e => setCompletedDate(e.target.value)}
+          />
           <textarea
             className="w-full bg-surface2 border border-borderC rounded-sm px-3 py-2 text-bodySm mb-2 outline-none focus:border-forestAccent"
             rows={2}

@@ -48,7 +48,7 @@ export default function Settings() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <SectionTitle>My YOU</SectionTitle>
+      <SectionTitle>Your Own Universe</SectionTitle>
       <div className="text-bodySm text-textSecondary -mt-2 mb-4">Who you are, in your own words.</div>
 
       {!loaded ? (

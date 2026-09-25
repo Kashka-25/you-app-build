@@ -95,5 +95,13 @@ export const ALL_VALUES_LIB = [
     {text:"Find beauty in something you usually overlook",pts:3,diff:"gentle"},
     {text:"Spend a day noticing everything that is working",pts:5,diff:"bold"},
     {text:"Write a letter of gratitude to a past version of yourself",pts:6,diff:"bold"},
-    {text:"Practice gratitude in a moment of difficulty - find the lesson",pts:7,diff:"brave"}]}
+    {text:"Practice gratitude in a moment of difficulty - find the lesson",pts:7,diff:"brave"}]},
+  {name:"Family",icon:"\ud83c\udfe1",tagline:"The people who knew you before you knew yourself",challenges:[
+    {text:"Call a family member you haven't spoken to in a while",pts:3,diff:"gentle"},
+    {text:"Ask an elder in your family about their life story",pts:4,diff:"gentle"},
+    {text:"Write a letter to a family member telling them what they mean to you",pts:5,diff:"bold"},
+    {text:"Plan and host a family gathering, big or small",pts:6,diff:"bold"},
+    {text:"Spend a day fully present with family - no phone",pts:4,diff:"gentle"},
+    {text:"Start a new family tradition",pts:5,diff:"bold"},
+    {text:"Repair a small rift with a sibling or parent",pts:8,diff:"brave"}]}
 ];

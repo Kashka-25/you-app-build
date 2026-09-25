@@ -107,6 +107,11 @@ export default function Home() {
         )}
       </HeroCard>
 
+      <Link to="/pursue" className="flex items-center justify-between mt-4 mb-1">
+        <span className="font-serif text-h2 font-medium text-textPrimary">Your pursuits</span>
+        <ChevronRight size={18} strokeWidth={1.75} className="text-textMuted" />
+      </Link>
+
       {activeItems.length > 0 && (
         // overflow-x-auto forces overflow-y to an effective "auto" too (per
         // spec, an axis can't stay "visible" once its sibling axis isn't),

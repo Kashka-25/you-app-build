@@ -2,10 +2,16 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown, MessageCircle, Flame, Eye, Shield, Target, Heart,
-  Telescope, Moon, ShieldCheck, Paintbrush, Feather, Gem, Sparkles
+  Telescope, Moon, ShieldCheck, Paintbrush, Feather, Gem, Sparkles, Users,
+  Dot, Sprout, TreeDeciduous, Flower, Flower2, LeafyGreen, Sparkle, Sun
 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { getTier, VALUE_COLORS } from "../../constants/app.const";
+import { getTier, VALUE_COLORS, TIERS, prestigeRequirement, getPrestigeStage } from "../../constants/app.const";
+
+// One icon per authored PRESTIGE_LEVELS stage, same order -- a small growth
+// arc (point -> shoot -> tree -> blossom x2 -> tended green -> single spark
+// -> full sun) that reads distinctly from the VALUE_ICONS glyphs below.
+const PRESTIGE_ICONS = [Dot, Sprout, TreeDeciduous, Flower, Flower2, LeafyGreen, Sparkle, Sun];
 import { ALL_VALUES_LIB } from "../../constants/values.const";
 import { easeOut } from "../ui/motion";
 import { GlowBubble } from "../ui/GlowBubble";
@@ -22,7 +28,8 @@ const VALUE_ICONS = {
   Integrity: ShieldCheck,
   Creativity: Paintbrush,
   Vulnerability: Feather,
-  Gratitude: Gem
+  Gratitude: Gem,
+  Family: Users
 };
 
 export default function ValuesPanel() {
@@ -66,7 +73,17 @@ export default function ValuesPanel() {
     <div>
       <div className="space-y-2.5 mb-4">
         {values.map(v => {
-          const tier = getTier(v.rating);
+          const prestige = v.prestige || 0;
+          const requirement = prestigeRequirement(prestige);
+          const pct = Math.min(100, Math.round((v.rating / requirement) * 100));
+          // Tier reads off progress *through the current cycle*, not the raw
+          // rating number, so a value that's just prestiged (rating reset to
+          // 0 on a bigger requirement) shows as "Awakening" again rather than
+          // whatever tier its old high rating used to map to.
+          const tier = getTier(Math.min(99, Math.round((v.rating / requirement) * 99)));
+          const stage = getPrestigeStage(prestige);
+          const StageIcon = PRESTIGE_ICONS[stage.index];
+          const stageColor = TIERS[prestige % TIERS.length].color;
           const color = VALUE_COLORS[v.name];
           const Icon = VALUE_ICONS[v.name];
           const open = openName === v.name;
@@ -77,9 +94,20 @@ export default function ValuesPanel() {
               <button onClick={() => setOpenName(open ? null : v.name)} className="w-full flex items-center gap-3">
                 {Icon && <GlowBubble icon={Icon} size={40} color={color} />}
                 <div className="flex-1 min-w-0 text-left">
-                  <div className="flex justify-between text-body mb-1">
-                    <span className="font-serif text-h3 text-textPrimary">{v.name}</span>
-                    <span className="text-bodySm" style={{ color: tier.color }}>{tier.name} · {v.rating}</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-serif text-h3 text-textPrimary flex-1 min-w-0 truncate">{v.name}</span>
+                    {/* A solid chip (bold, its own background) rather than plain
+                        colored text -- next to the tier caption below, plain text
+                        of the same weight was easy to read as one blurred phrase
+                        instead of two separate signals. */}
+                    <span
+                      className="flex items-center gap-1 text-caption font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full flex-none"
+                      style={{ color: stageColor, background: `color-mix(in srgb, ${stageColor} 18%, transparent)` }}
+                      title={stage.desc}
+                    >
+                      {StageIcon && <StageIcon size={11} strokeWidth={2} />}
+                      {stage.name}
+                    </span>
                   </div>
                   {/* A smooth gradient fill (vs. Pillars' segmented bar) — values are
                       personal and continuous, pillars are a game-like stat track. */}
@@ -87,10 +115,13 @@ export default function ValuesPanel() {
                     <div
                       className="h-full rounded-full"
                       style={{
-                        width: `${Math.min(100, Math.round((v.rating / 99) * 100))}%`,
+                        width: `${pct}%`,
                         background: `linear-gradient(90deg, color-mix(in srgb, ${color} 55%, white), ${color})`
                       }}
                     />
+                  </div>
+                  <div className="text-caption text-textMuted mt-1">
+                    <span style={{ color: tier.color }}>{tier.name}</span> · {v.rating}/{requirement}
                   </div>
                 </div>
                 <ChevronDown

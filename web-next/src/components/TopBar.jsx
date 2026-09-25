@@ -19,7 +19,7 @@ export default function TopBar({ onMenuClick }) {
           <Bell size={18} strokeWidth={1.75} />
           <span className="absolute -top-0.5 -right-0.5 w-[7px] h-[7px] rounded-full bg-ember border border-surface2" />
         </button>
-        <Link to="/settings" className="relative w-8 h-8 flex-none" aria-label="My YOU">
+        <Link to="/settings" className="relative w-8 h-8 flex-none" aria-label="Your Own Universe">
           <div
             className="w-8 h-8 rounded-full"
             style={{ background: "radial-gradient(circle at 35% 30%, var(--sage), var(--forest) 70%)" }}

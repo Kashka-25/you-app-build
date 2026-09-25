@@ -35,14 +35,21 @@ export function SectionTitle({ children }) {
 // SectionTitle followed by an always-expanded panel — used where a screen
 // has several sizeable panels (e.g. You's Pillars + Values) and showing
 // every row of every one at once made the page read as one long wall.
-export function DropdownSection({ title, defaultOpen = false, children }) {
+// `level` lets a section nest inside another (e.g. Pursue's Pillar ->
+// sub-category -> sub-sub-category) — each level down shrinks the heading
+// and adds a left rail so the hierarchy stays legible instead of every
+// level looking like the same size heading repeated.
+const LEVEL_HEADING = ["font-serif text-h2 font-medium", "font-serif text-h3 font-medium", "text-body font-semibold text-textSecondary"];
+
+export function DropdownSection({ title, defaultOpen = false, level = 0, children }) {
   const [open, setOpen] = useState(defaultOpen);
+  const headingClass = LEVEL_HEADING[Math.min(level, LEVEL_HEADING.length - 1)];
   return (
-    <div className="mt-5 first:mt-0">
+    <div className={`mt-5 first:mt-0 ${level > 0 ? "pl-3.5 border-l border-borderC" : ""}`}>
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between py-1 mb-2">
-        <span className="font-serif text-h2 font-medium">{title}</span>
+        <span className={headingClass}>{title}</span>
         <ChevronDown
-          size={19}
+          size={level > 0 ? 16 : 19}
           strokeWidth={1.75}
           className={`text-textMuted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />

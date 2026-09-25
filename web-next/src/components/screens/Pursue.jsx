@@ -1,10 +1,52 @@
 import { useState } from "react";
 import { useAppData } from "../../lib/AppDataContext";
-import { BackRow, SectionTitle } from "../Primitives";
+import { PILLARS } from "../../constants/app.const";
+import { BackRow, SectionTitle, DropdownSection } from "../Primitives";
 import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
 
 const FILTERS = ["all", "habit", "goal", "dream", "done"];
+
+function pathSegments(item) {
+  return (item.subcat || "").split("/").map(s => s.trim()).filter(Boolean);
+}
+
+// Splits a list of items into ones that stop at this depth (rendered
+// directly) vs ones that continue deeper, bucketed by their next segment
+// (e.g. depth 0 on "Music/Songs" buckets under "Music"; depth 1 on what's
+// left buckets under "Songs"). Recursing this one level at a time is what
+// lets "Creative -> Music -> Songs" nest to arbitrary depth from a single
+// free-text field instead of needing fixed subcategory/sub-subcategory
+// columns.
+function splitByDepth(items, depth) {
+  const direct = [];
+  const childMap = {};
+  for (const item of items) {
+    const segs = pathSegments(item);
+    if (segs.length <= depth) {
+      direct.push(item);
+    } else {
+      const key = segs[depth];
+      (childMap[key] || (childMap[key] = [])).push(item);
+    }
+  }
+  const children = Object.keys(childMap).sort().map(name => ({ name, items: childMap[name] }));
+  return { direct, children };
+}
+
+function GroupNode({ items, depth }) {
+  const { direct, children } = splitByDepth(items, depth);
+  return (
+    <>
+      {direct.map(item => <ItemCard key={item.id} item={item} />)}
+      {children.map(({ name, items: childItems }) => (
+        <DropdownSection key={name} title={`${name} (${childItems.length})`} level={depth + 1} defaultOpen>
+          <GroupNode items={childItems} depth={depth + 1} />
+        </DropdownSection>
+      ))}
+    </>
+  );
+}
 
 export default function Pursue() {
   const { items } = useAppData();
@@ -16,6 +58,12 @@ export default function Pursue() {
     return filter === "all" ? !i.done : true;
   });
   const sorted = filter === "all" ? [...filtered.filter(i => !i.done), ...items.filter(i => i.done)] : filtered;
+
+  // Grouped by life area — a flat list stopped being scannable once there
+  // were more than a handful of items. PILLARS gives a fixed, consistent
+  // order; groups with nothing in them (given the current filter) are
+  // skipped rather than shown empty.
+  const groups = PILLARS.map(cat => ({ cat, list: sorted.filter(i => i.cat === cat) })).filter(g => g.list.length > 0);
 
   return (
     <div className="pt-1 pb-24 px-5">
@@ -40,7 +88,11 @@ export default function Pursue() {
           description="Your YOUniverse awaits your intentions. Tap Add to plant something."
         />
       ) : (
-        sorted.map(item => <ItemCard key={item.id} item={item} />)
+        groups.map(({ cat, list }) => (
+          <DropdownSection key={cat} title={`${cat} (${list.length})`} defaultOpen>
+            <GroupNode items={list} depth={0} />
+          </DropdownSection>
+        ))
       )}
     </div>
   );

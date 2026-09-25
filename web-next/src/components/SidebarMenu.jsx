@@ -62,7 +62,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                   }`
                 }
               >
-                My YOU
+                Your Own Universe
               </NavLink>
               <div className="px-5">
                 <button

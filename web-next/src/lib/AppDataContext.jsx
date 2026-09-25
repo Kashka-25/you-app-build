@@ -3,7 +3,7 @@ import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import {
   XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2,
-  STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier
+  STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
 import { ALL_VALUES_LIB } from "../constants/values.const";
 
@@ -20,9 +20,16 @@ function todayKey() {
 function niceDate() {
   return new Date().toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
+// Same display format as niceDate(), but for an arbitrary date-key rather
+// than always "today" — lets backdated items/completions (building a
+// backlog of things already done, priming YOU with real history) show a
+// real date instead of the day they happened to be entered.
+function niceDateFrom(dateKey) {
+  return new Date(dateKey + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
+}
 function dbToItem(row) {
   return {
-    id: row.id, name: row.name, type: row.type, cat: row.cat, note: row.note || "",
+    id: row.id, name: row.name, type: row.type, cat: row.cat, subcat: row.subcat || "", note: row.note || "",
     tags: row.tags || [], intention: row.intention || "", milestones: row.milestones || [],
     done: row.done, streak: row.streak || 0,
     days: row.days || [false, false, false, false, false, false, false],
@@ -31,7 +38,7 @@ function dbToItem(row) {
 }
 function itemToRow(item, userId) {
   const row = {
-    user_id: userId, name: item.name, type: item.type, cat: item.cat, note: item.note || "",
+    user_id: userId, name: item.name, type: item.type, cat: item.cat, subcat: item.subcat || "", note: item.note || "",
     tags: item.tags || [], intention: item.intention || "", milestones: item.milestones || [],
     done: item.done, streak: item.streak || 0,
     days: item.days || [false, false, false, false, false, false, false],
@@ -52,6 +59,7 @@ export function AppDataProvider({ children }) {
   const [chapters, setChapters] = useState([]);
   const [valueChallenges, setValueChallenges] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
+  const [identityVisions, setIdentityVisions] = useState([]);
   // Journal AI state is intentionally NOT part of the initial `load()`
   // batch — insights/photos/weekly reflections are fetched lazily, on
   // demand, so opening the app doesn't pull in every entry's AI output and
@@ -96,7 +104,7 @@ export function AppDataProvider({ children }) {
           new Promise((_, reject) => setTimeout(() => reject(new Error(`Supabase request timed out after ${ms}ms`)), ms))
         ]);
 
-      const [itemsRes, memoryRes, moodRes, valuesRes, profileRes, momentsRes, chaptersRes, valueChallengesRes, journalRes] = await withTimeout(
+      const [itemsRes, memoryRes, moodRes, valuesRes, profileRes, momentsRes, chaptersRes, valueChallengesRes, journalRes, identityVisionsRes] = await withTimeout(
         Promise.all([
           supabase.from("items").select("*").eq("user_id", userId).order("inserted_at"),
           supabase.from("memory").select("*").eq("user_id", userId).order("inserted_at", { ascending: false }),
@@ -106,19 +114,21 @@ export function AppDataProvider({ children }) {
           supabase.from("life_moments").select("*").eq("user_id", userId).order("moment_date", { ascending: false }),
           supabase.from("life_chapters").select("*").eq("user_id", userId).order("range_start", { ascending: false }),
           supabase.from("value_challenges").select("*").eq("user_id", userId).order("inserted_at", { ascending: false }),
-          supabase.from("journal_entries").select("*").eq("user_id", userId).order("entry_date", { ascending: false })
+          supabase.from("journal_entries").select("*").eq("user_id", userId).order("entry_date", { ascending: false }),
+          supabase.from("identity_visions").select("*").eq("user_id", userId).order("inserted_at", { ascending: false })
         ]),
         LOAD_TIMEOUT_MS
       );
       setItems((itemsRes.data || []).map(dbToItem));
       setMemory(memoryRes.data || []);
       setMoodLog(moodRes.data || []);
-      setValues((valuesRes.data || []).map(r => ({ name: r.name, rating: r.rating || 0, completed: r.completed || [] })));
+      setValues((valuesRes.data || []).map(r => ({ name: r.name, rating: r.rating || 0, completed: r.completed || [], prestige: r.prestige || 0 })));
       setProfile(profileRes.data || null);
       setMoments(await attachSignedPhotoUrls(momentsRes.data || []));
       setChapters(chaptersRes.data || []);
       setValueChallenges(valueChallengesRes.data || []);
       setJournalEntries(journalRes.data || []);
+      setIdentityVisions(identityVisionsRes.data || []);
       setSync("synced");
     } catch (e) {
       console.error("[AppDataContext] load failed — continuing with local/empty state:", e);
@@ -157,25 +167,31 @@ export function AppDataProvider({ children }) {
     setSync("synced");
   }
 
-  async function addItem({ name, type, cat, note, tags, milestones, intention }) {
+  async function addItem({ name, type, cat, subcat, note, tags, milestones, intention, createdDate }) {
+    const dateKey = createdDate || todayKey();
     const item = {
-      id: "temp_" + Date.now(), name, type, cat, note: note || "",
+      id: "temp_" + Date.now(), name, type, cat, subcat: subcat || "", note: note || "",
       tags: tags || [], milestones: (milestones || []).map(m => ({ text: m.text, done: false })),
       done: false, streak: 0, days: [false, false, false, false, false, false, false],
-      lastCheckin: null, intention: intention || "", created: niceDate(), createdDate: todayKey()
+      lastCheckin: null, intention: intention || "", created: niceDateFrom(dateKey), createdDate: dateKey
     };
     setItems(prev => [...prev, item]);
     await saveItemRow(item);
     return item;
   }
 
-  async function completeItem(id, reflection) {
+  // completedDate lets a pursuit be marked done as of a real past date
+  // instead of always "today" — the point being able to go back through
+  // things already achieved (a diploma, a trip already taken) and have the
+  // XP register against that history rather than backdating being a lie.
+  async function completeItem(id, reflection, completedDate) {
     const item = items.find(i => i.id === id);
     if (!item || item.done) return;
     const xp = XP_VALS[item.type] || 10;
+    const dateKey = completedDate || todayKey();
     const updated = { ...item, done: true, note: reflection ? (item.note ? item.note + " | " + reflection : reflection) : item.note };
     const entry = {
-      name: item.name, type: item.type, xp, date: niceDate(), date_key: todayKey(),
+      name: item.name, type: item.type, xp, date: niceDateFrom(dateKey), date_key: dateKey,
       cat: item.cat, tags: item.tags || [], itemId: item.id
     };
     setItems(prev => prev.map(i => (i.id === id ? updated : i)));
@@ -310,12 +326,12 @@ export function AppDataProvider({ children }) {
     setValues(newValues);
     await supabase.from("user_values").delete().eq("user_id", userId);
     if (newValues.length === 0) return;
-    const rows = newValues.map(v => ({ user_id: userId, name: v.name, rating: v.rating || 0, completed: v.completed || [] }));
+    const rows = newValues.map(v => ({ user_id: userId, name: v.name, rating: v.rating || 0, completed: v.completed || [], prestige: v.prestige || 0 }));
     await supabase.from("user_values").insert(rows);
   }
 
   async function addValue(name) {
-    await persistValues([...values, { name, rating: 0, completed: [] }]);
+    await persistValues([...values, { name, rating: 0, completed: [], prestige: 0 }]);
   }
 
   // Partial update only — this only ever sets the columns "My YOU" actually
@@ -401,6 +417,39 @@ export function AppDataProvider({ children }) {
       prev.map(m => (m.id === id ? updatedMoment : m)).sort((a, b) => new Date(b.moment_date) - new Date(a.moment_date))
     );
     return updatedMoment;
+  }
+
+  // Identity/vision statements — "who I'm becoming", not a task list, so
+  // unlike items there's no done flag, no XP, nothing this feeds into.
+  // `category` is whatever free text the user types (UI offers suggestions,
+  // doesn't enforce them); `visionDate` follows the same backdating pattern
+  // as everything else in this file rather than always defaulting to today.
+  async function addIdentityVision({ category, title, statement, reflection, visionDate }) {
+    const row = {
+      user_id: userId, category: (category || "").trim(), title: title.trim(), statement: statement.trim(),
+      reflection: (reflection || "").trim() || null, vision_date: visionDate || todayKey()
+    };
+    const res = await supabase.from("identity_visions").insert(row).select().single();
+    if (res.error) throw res.error;
+    setIdentityVisions(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
+  async function editIdentityVision(id, { category, title, statement, reflection, visionDate }) {
+    const updates = {
+      category: (category || "").trim(), title: title.trim(), statement: statement.trim(),
+      reflection: (reflection || "").trim() || null, vision_date: visionDate,
+      updated_at: new Date().toISOString()
+    };
+    const res = await supabase.from("identity_visions").update(updates).eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setIdentityVisions(prev => prev.map(v => (v.id === id ? res.data : v)));
+    return res.data;
+  }
+
+  async function deleteIdentityVision(id) {
+    setIdentityVisions(prev => prev.filter(v => v.id !== id));
+    await supabase.from("identity_visions").delete().eq("id", id).eq("user_id", userId);
   }
 
   // Journal entries. Kept distinct from `memory` (the auto-generated XP
@@ -633,13 +682,13 @@ export function AppDataProvider({ children }) {
     if (!challenge) return;
     const v = values.find(v => v.name === valueName);
     if (!v || (v.completed || []).includes(challengeIdx)) return;
-    const newRating = Math.min(99, v.rating + challenge.pts);
+    const { rating: newRating, prestige: newPrestige } = applyPrestigeGain(v.rating, v.prestige || 0, challenge.pts);
     const newValues = values.map(x => (x.name === valueName
-      ? { ...x, rating: newRating, completed: [...(x.completed || []), challengeIdx] }
+      ? { ...x, rating: newRating, prestige: newPrestige, completed: [...(x.completed || []), challengeIdx] }
       : x));
     await persistValues(newValues);
     await awardValuePillarXP(valueName, challenge.pts, valueName + " challenge: " + challenge.text.slice(0, 30));
-    return { prevRating: v.rating, newRating };
+    return { prevRating: v.rating, newRating, prestiged: newPrestige > (v.prestige || 0) };
   }
 
   // AI-generated challenges live in their own table (value_challenges) with
@@ -650,13 +699,13 @@ export function AppDataProvider({ children }) {
     if (!challenge || challenge.completed) return;
     const v = values.find(x => x.name === challenge.value_name);
     if (!v) return;
-    const newRating = Math.min(99, v.rating + challenge.pts);
-    const newValues = values.map(x => (x.name === challenge.value_name ? { ...x, rating: newRating } : x));
+    const { rating: newRating, prestige: newPrestige } = applyPrestigeGain(v.rating, v.prestige || 0, challenge.pts);
+    const newValues = values.map(x => (x.name === challenge.value_name ? { ...x, rating: newRating, prestige: newPrestige } : x));
     await persistValues(newValues);
     setValueChallenges(prev => prev.map(c => (c.id === id ? { ...c, completed: true } : c)));
     await supabase.from("value_challenges").update({ completed: true }).eq("id", id).eq("user_id", userId);
     await awardValuePillarXP(challenge.value_name, challenge.pts, challenge.value_name + " challenge: " + challenge.text.slice(0, 30));
-    return { prevRating: v.rating, newRating };
+    return { prevRating: v.rating, newRating, prestiged: newPrestige > (v.prestige || 0) };
   }
 
   // Calls the suggest-value-challenges Edge Function (Claude, server-side)
@@ -697,11 +746,13 @@ export function AppDataProvider({ children }) {
 
   const value = {
     userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
+    identityVisions,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
+    addIdentityVision, editIdentityVision, deleteIdentityVision,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
     loadJournalPhotos, addJournalPhoto, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Star, Map, MessageCircle, Search, Compass as CompassIcon, Sparkles } from "lucide-react";
+import { Star, Map, MessageCircle, Search, Compass as CompassIcon, Sparkles, Telescope } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { pickCurrentChapter, pickNoticedPatterns, pickNextStep } from "../../lib/compass";
 import { BackRow } from "../Primitives";
@@ -32,7 +32,7 @@ function Beat({ icon: Icon, label, children }) {
 // "sanctuary" feeling comes from the floating glowing bubble below, not
 // from forcing the whole shell dark.
 export default function BringMeBackToMyself() {
-  const { values, items, chapters, journalEntries, recentInsights, loaded, loadRecentInsights } = useAppData();
+  const { values, items, chapters, journalEntries, recentInsights, identityVisions, loaded, loadRecentInsights } = useAppData();
   const [insightsLoaded, setInsightsLoaded] = useState(false);
 
   useEffect(() => {
@@ -83,6 +83,24 @@ export default function BringMeBackToMyself() {
         ) : (
           <div className="text-bodySm text-textMuted">No dreams set yet — what kind of life do you want?</div>
         )}
+      </Beat>
+
+      <Beat icon={Telescope} label="Who you're becoming">
+        {identityVisions.length > 0 ? (
+          <div className="space-y-2">
+            {identityVisions.slice(0, 3).map(v => (
+              <div key={v.id} className="text-body text-textPrimary">
+                <span className="font-medium">{v.title}</span>
+                <span className="text-textSecondary"> — {v.statement}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-bodySm text-textMuted">Not a goal — who are you trying to become? Start with a title.</div>
+        )}
+        <Link to="/journey" state={{ tab: "identity" }} className="inline-block mt-2 text-bodySm text-gold underline">
+          Open your visions
+        </Link>
       </Beat>
 
       <Beat icon={Map} label="Your current chapter">
