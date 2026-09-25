@@ -1,5 +1,5 @@
 import { useAppData } from "../../lib/AppDataContext";
-import { SectionTitle, Pill, ExploreLink, Placeholder } from "../Primitives";
+import { SectionTitle, Pill, ExploreLink, Placeholder, DropdownSection } from "../Primitives";
 import ValuesPanel from "../values/ValuesPanel";
 import PillarsPanel from "../pillars/PillarsPanel";
 import { GlowBubble } from "../ui/GlowBubble";
@@ -15,11 +15,13 @@ export default function You() {
         <Pill>{level.name} — companion presence</Pill>
       </div>
 
-      <SectionTitle>Pillars</SectionTitle>
-      <PillarsPanel />
+      <DropdownSection title="Pillars">
+        <PillarsPanel />
+      </DropdownSection>
 
-      <SectionTitle>Values</SectionTitle>
-      <ValuesPanel />
+      <DropdownSection title="Values">
+        <ValuesPanel />
+      </DropdownSection>
 
       <div className="mt-4">
         <Placeholder label="avatar upgrade station">
