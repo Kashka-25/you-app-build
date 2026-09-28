@@ -30,73 +30,59 @@ everyone, regardless of how any individual mind works.
 
 ---
 
-## Fix first (small, high-value) — done Jul 16
+## Fix first (small, high-value)
 
-- [x] Hamburger menu overlay scrim — now `bg-black/60` + `backdrop-blur-sm`,
-      hero properly recedes instead of bleeding through.
-- [x] Hero pill relabeled "Current Chapter" → "Level — Seedling". "Current
-      Chapter" is reserved for when real Chapters data exists.
+- [ ] Hamburger menu overlay — hero text bleeds through behind the scrim
+      when the menu is open (see screenshots, Jul 15). Scrim needs full
+      opacity or the hero needs to properly recede/blur behind it.
+- [ ] Hero pill currently reads "Current Chapter — Seedling" — this is
+      actually the **Seed Being level**, not a Life Chapter. These are two
+      separate systems (see `03-YOU-LIVING-BIOGRAPHY-pivot-brief.md`).
+      Relabel to "Level — Seedling" now. Reserve "Current Chapter" for when
+      real Chapters data exists, so the two concepts don't blur together
+      from day one.
 
-## Build: the Add action-sheet gap — done Jul 16
+## Build: the Add action-sheet gap
 
-`AddActionSheet.jsx` now shows the 3-choice sheet on tapping **+**:
+Claude Code flagged (Jul 15) that `nav-bars-mockup.html` specifies a 3-choice
+sheet on tapping **+**, but the app currently jumps straight to the full
+`AddItemModal`. This needs actually building, not just a rename:
 
-- [ ] **Today's list** — still an open data-shape decision (reuse `items`
-      with `type: "todo"`, or its own shape?). The sheet stops at surfacing
-      this question rather than guessing — nothing is built here yet.
-- [x] **Habit, goal, or dream** — routes to the existing `AddItemModal`,
+- [ ] **Today's list** — quick one-off task, today only. **Open decision:**
+      does this reuse the `items` table with a new `type: "todo"`, or does
+      it need its own shape? Confirm with the data-layer side before
+      building — this is a real schema decision, not just UI.
+- [ ] **Habit, goal, or dream** — routes to the existing `AddItemModal`,
       unchanged.
-- [x] **Journal entry** — working quick-capture UI; honest in the confirmation
-      copy that Reflections is still a placeholder so nothing persists yet.
+- [ ] **Journal entry** — quick reflection entry, feeds the Reflections
+      screen (currently placeholder — check whether Reflections needs real
+      wiring now or can stay a placeholder that this feeds later).
 
-## Other loose ends — confirmed Jul 16
+## Other loose ends to confirm, not just build
 
-- [x] `/styleguide` exists and loads clean (`src/components/screens/Styleguide.jsx`).
-- [x] Home's "Living Atlas" explore card is confirmed **hardcoded**, not
-      dynamic — noting so it isn't mistaken for finished logic later.
-- [x] Values challenges do **not** auto-regenerate once a value's full
-      challenge list is completed — confirmed no such logic exists in
-      `completeChallenge` or `values.const.js`. Needs a scoping decision
-      (where does "new" challenge content come from?) before building.
+- [ ] Has the Phase 1 `/styleguide` component library actually been built
+      yet? If Phase 2 screens are being styled before it exists, components
+      (cards, buttons, inputs) are being designed twice. Check before
+      continuing Phase 2.
+- [ ] Home's "Living Atlas" explore card — confirm whether the "one
+      contextual card" logic is actually dynamic (e.g. picks Healing Journey
+      vs Atlas based on recent activity) or currently hardcoded. Hardcoded
+      is fine for now — just don't want it mistaken for finished logic.
 
 ---
 
 ## Phase 2 — screen-by-screen order
 
-- [x] **Home** — built
-- [x] **YOU tab** — Pillars/Values rebuilt as icon-led accordions (lucide
-      icons, expand/collapse), Seed Being avatar, Legacy card. Pillars now
-      level up every 100 XP with a fill-and-reset bar + badge, same pattern
-      as Values' tiers. Avatar-upgrade-station is a placeholder card only
-      (same treatment as Legacy) — the mechanic itself isn't designed yet.
-- [x] **Journey** — segmented control (Chapters / Tree & Stars /
-      YOUnderstanding) built. Chapters has mock era cards (name + date
-      range + blurb) plus a Season card, Your Pursuits ordered right after
-      Season. Tree & Stars is a single fused ambient scene (tree rooted
-      below, sky/starfield above, real time-of-day, independent of the
-      dark/light toggle) — tapping the tree opens the interactive Tree of
-      YOU (roots = 12 Values by tier, canopy = 7 Pillars by XP, tap either
-      to trace the Value→Pillar connection); tapping the sky opens
-      Constellations. Back from either returns to the ambient scene.
-- [x] **Pursue** — migrated to the design system (floating cards, icons,
-      type scale). All data calls (items, completeItem, toggleDay,
-      toggleMilestone, deleteItem, unachieveItem, addItem) unchanged.
-      **Habit XP exploit fixed**: check-in XP is now idempotent per
-      day-slot per prestige cycle (undo zeroes the XP but keeps a
-      permanent lock, so toggling on/off/on can't re-farm it). Streak is
-      now derived from the days array instead of tracked incrementally, so
-      it can't drift. New: 7-day streaks offer a prestige reset (fresh
-      cycle + permanent tier badge).
-- [x] **Everything else** — given basic interactive (local-state, not
-      backend-wired) shells instead of static placeholders: Events
-      (join/leave), CommYOUnity (likeable mock feed — **see decision
-      below, this is about to be replaced with real Kronk data**), Healing
-      (session timeline), Therapists (booking flow), Challenges (full
-      Active/Suggested/Overcome flow per the spec below), Saved (tabbed
-      shell, category still unscoped), Review (real feedback form), Shop
-      (mock cart, no real commerce). Empatherapy and a new Settings screen
-      (Settings/Account consolidated here from the YOU tab) stay minimal
-      parked stubs — both genuinely deferred, not under-built.
+- [x] **Home** — built, minor fixes above aside
+- [ ] **YOU tab** (formerly Profile) — Pillars + Values attribute bars, Seed
+      Being, level/stats, Legacy card
+- [ ] **Journey** — segmented control (Chapters / Tree & Stars /
+      YOUnderstanding), Life Chapters cards, Season indicator
+- [ ] **Pursue** (full list — reached from Journey → Chapters or Home
+      "View all") — most function-heavy screen, go carefully
+- [ ] **Everything else** (lower priority, still placeholder): CommYOUnity,
+      Atlas, Tree & Stars detail, Healing Journey, Therapists, Empatherapy,
+      Events/Calendar, Shop, Challenges, Saved, Review, Legacy Mode
 
 ---
 
@@ -106,58 +92,9 @@ everyone, regardless of how any individual mind works.
   wiring real login yet.
 - Don't touch `AppDataContext.jsx` / `AuthContext.jsx` without asking —
   that's the data-layer friend's territory.
-- Kronk integration stays contained in its own file(s), not folded into
-  `AppDataContext.jsx`/`AuthContext.jsx` or scattered into `Community.jsx`
-  as inline fetches — see the CommYOUnity section below for why.
 - Stay on `feature/living-biography-ui`. No new branches.
 - Seed Being keeps its existing name/branding — not renamed. Only the
   Journey insight feature was renamed, to **YOUnderstanding**.
-
----
-
-## Kronk Integration Cross-Reference Notes (added Jul 16)
-
-Prep for whoever runs the Kronk auth/API setup session — open questions
-and dependencies gathered in one place so they don't get rediscovered
-mid-build, and so the session can cover both CommYOUnity and the
-Calendar-Kronk skeleton (see Calendar below) in one pass rather than two.
-
-- **Auth/account linking — unresolved.** Does a YOUser need a separate
-  Mastodon account, or does YOU auto-provision one on Kronk? Where would a
-  Kronk identity/token live (`profiles` table? its own table?) and under
-  what RLS rule? **Flag explicitly:** `DEV_MODE` is still `"bypass"` in
-  `AuthContext.jsx` — real auth isn't wired yet, so don't build the Kronk
-  auth flow against mock auth by mistake. Real login needs to land first,
-  or at least be accounted for in how tokens get associated with a user.
-- **Data/security boundary.** No Kronk API keys or tokens should ever live
-  in the vanilla app's client-side JS at the repo root — it has no build
-  step, so anything in `js/` is fully visible to anyone who views source.
-  This constraint holds until/unless the React + Vite migration fully
-  replaces the vanilla app; until then, any Kronk credentials belong
-  server-side or in `web-next` env vars, never in `js/`.
-- **Notification bell.** The bell already needs to surface CommYOUnity
-  notifications (per the nav decisions). If Kronk adds its own
-  notification types (mentions, boosts, replies), document that event
-  schema here when it's known, so the bell's notification model isn't
-  designed twice — once for the mock, once for real Kronk events.
-- **Branding.** Confirm the "Proudly powered and supported by Kronk"
-  credit line and the feed's reskin-to-YOU-palette approach before build
-  starts, not as an afterthought once the feed is already pulling in.
-- **Shop.** YOU's marketplace and Kronk's marketplace are separate
-  systems with some crossover items only, not a merged store/inventory
-  (see the Shop brain-dump note below). Don't let the Kronk integration
-  session accidentally wire shared inventory between the two.
-- **Therapists.** Open idea, not decided: a filter/toggle between
-  therapist-authored posts and their linked Kronk feed, and whether
-  that's built inside Empatherapy or natively in YOU. Leave open — don't
-  build this as a side effect of the CommYOUnity integration work.
-- **Share.** Referral system + shareable YOU profile link that
-  auto-connects a recipient to CommYOUnity — depends on Kronk accounts
-  existing. Noting the dependency only; not scoped for this pass.
-- **Build order.** This integration is intentionally ahead of the
-  ecosystem doc's originally stated order (Kronk was planned after
-  Empatherapy) — confirmed decision (Jul 16), not scope creep. See the
-  CommYOUnity brain-dump note below for the full context.
 
 ---
 
@@ -169,32 +106,12 @@ existing, and a few overlap with things already defined elsewhere in the
 ecosystem docs (flagged below).
 
 ### CommYOUnity
-- **Decision confirmed (Jul 16): real Kronk integration, now.** This
-  supersedes the earlier "rename only, no Kronk wiring yet" decision and
-  moves Kronk earlier than the ecosystem build order originally had it
-  (YOU Core → Empatherapy → Kronk → Elemental Game) — worth a corresponding
-  note in `03-YOU-LIVING-BIOGRAPHY-pivot-brief.md` if that order is
-  genuinely changing, not just this one feature jumping the queue.
-- **Containment rule, not a suggestion: keep all Kronk integration code in
-  its own file(s)** — e.g. a `KronkContext.jsx` / `lib/kronkClient.js`,
-  parallel to how `AppDataContext.jsx` and `AuthContext.jsx` are already
-  split out, not folded into either of them. `Community.jsx` should read
-  from that new context/hook the same way every other screen reads from
-  `useAppData()` — it shouldn't grow inline `fetch` calls to Kronk's API,
-  and Kronk's data/auth shape shouldn't leak into `AppDataContext.jsx`.
-  This is what keeps the two data sources (Supabase for the core app,
-  Kronk for the social feed) from cross-contaminating each other as the
-  codebase grows — every other screen should be able to keep ignoring
-  Kronk entirely, the same way they currently ignore Supabase auth details.
-- Pull the feed in from Kronk (friend's Mastodon server), reskin to YOU
-  branding, credit line: "Proudly powered and supported by Kronk."
-- `Community.jsx` currently has a **mock local-state feed** (post cards
-  with like-toggling, no persistence) — built as a structural placeholder,
-  not real data. Whoever wires up Kronk will likely replace this outright
-  rather than adapt it, since a Mastodon-shaped feed (boosts, replies,
-  media attachments, remote authors) doesn't map cleanly onto the
-  simple post shape mocked here. Treat the current UI as a rough visual
-  reference, not a data contract to preserve.
+- Real integration with Kronk (friend's Mastodon server) — pull the feed in,
+  reskin to YOU branding, credit line: "Proudly powered and supported by
+  Kronk." **This is further than the "rename only, no Kronk wiring yet"
+  decision on record** — worth explicitly re-confirming timing before
+  Claude Code builds toward it, since build order currently has Kronk as a
+  later mission.
 
 ### Therapists
 - Once Empatherapy exists as its own site, Therapists page links out to it
@@ -270,13 +187,6 @@ ecosystem docs (flagged below).
   personal calendar; pull in Kronk events posted by friends; pull in
   Empatherapy session bookings. Depends on both Kronk and Empatherapy
   existing. Not scoped, just noted.
-- **Kronk event pull-in skeleton built Jul 16** — `Events.jsx` ("Events /
-  Calendar" in the nav) now renders a "From Kronk" section alongside
-  personal events, using `EventCard`'s new optional `source`/`organizer`/
-  `link` props for the "via Kronk" tag, host name, and link back to the
-  Kronk post. Real API wiring is pending the Kronk integration session —
-  single seam at `fetchKronkEvents()` in `src/lib/kronkClient.js`. Mock
-  data only, nothing here makes a real network call yet.
 
 ### YOU tab
 - Direction: Pillars/Values XP should lead to something *usable and
