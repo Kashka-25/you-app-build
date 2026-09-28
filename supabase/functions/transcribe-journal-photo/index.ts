@@ -59,7 +59,7 @@ Deno.serve(async req => {
     try {
       const transcription = await callClaude({
         system: SYSTEM_PROMPT,
-        maxTokens: 2000,
+        maxTokens: 2000, usage: { req, fn: "transcribe-journal-photo" },
         messages: [
           {
             role: "user",

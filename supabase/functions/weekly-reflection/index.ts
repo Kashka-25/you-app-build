@@ -94,7 +94,7 @@ Deno.serve(async req => {
 
     const raw = await callClaude({
       system: SYSTEM_PROMPT,
-      maxTokens: 2000,
+      maxTokens: 2000, usage: { req, fn: "weekly-reflection" },
       messages: [{ role: "user", content: JSON.stringify(contextDigest, null, 2) }]
     });
 

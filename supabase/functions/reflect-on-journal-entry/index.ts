@@ -104,7 +104,7 @@ ${JSON.stringify(contextDigest, null, 2)}`;
 
     const raw = await callClaude({
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userMessage }]
+      messages: [{ role: "user", content: userMessage }], usage: { req, fn: "reflect-on-journal-entry" }
     });
 
     const parsed = parseJsonResponse<{

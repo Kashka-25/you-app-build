@@ -11,6 +11,7 @@
 // call sends this automatically) — not a public/unauthenticated endpoint.
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { logUsage } from "../_shared/usage.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 // Haiku is the cheap/fast tier — plenty for grouping + naming a timeline.
@@ -83,6 +84,7 @@ ${timeline}`;
     }
 
     const data = await res.json();
+    await logUsage({ req, fn: "suggest-chapters", data });
     const text = data.content?.[0]?.text || "[]";
 
     let chapters;
