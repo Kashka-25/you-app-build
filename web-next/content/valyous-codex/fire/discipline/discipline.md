@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 The practice of choosing yourself, every day.
 
 ## Light
-Discipline is keeping small promises to yourself until they become who you are. It isn't punishment. It's devotion in repeated form. Through it, what you care about gets time, attention and the chance to grow.
+Discipline is the steady drip of water that, day by day, shapes stone. It's keeping small promises to yourself until they become who you are. In plain terms: doing what you've chosen to do, consistently, even when motivation dips. It isn't punishment. It's devotion in repeated form, giving what you care about time, attention and the chance to grow.
 
 ## Shadow (excess)
 Too much, and discipline hardens into rigidity or self-punishment. Rules replace listening, and missing a day feels like failing as a person. The practice can quietly become a way to control fear rather than to serve life.

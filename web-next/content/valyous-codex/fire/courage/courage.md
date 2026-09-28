@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 The willingness to act in the presence of fear.
 
 ## Light
-Courage isn't the absence of fear; it's moving with it. It speaks the true thing, begins the uncertain thing, stays in the hard conversation. Often it's quiet: getting up again, asking for what you need, choosing the path that feels more alive than safe.
+Courage is the small flame that keeps walking into the wind. It isn't the absence of fear; it's moving with it. Plainly: acting on what matters even when you're afraid, speaking the true thing, beginning the uncertain thing, staying in the hard conversation. Most courage is quiet: getting up again, asking for what you need, choosing what feels more alive than safe.
 
 ## Shadow (excess)
 Unchecked, courage can become recklessness, or a need to prove something. Risk becomes the point rather than the path. You might override signals from your body or the people around you, mistaking constant intensity for strength.

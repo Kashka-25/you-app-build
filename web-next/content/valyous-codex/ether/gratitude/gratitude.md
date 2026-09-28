@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 Finding the sacred in the ordinary.
 
 ## Light
-Gratitude notices what is already given: warmth, a kind word, a body that carried you through the day. It doesn't deny difficulty. It widens the view so difficulty isn't all there is.
+Gratitude is sunlight noticed through the leaves on an ordinary afternoon. It sees what is already given: warmth, a kind word, a body that carried you through the day. Plainly: recognising and appreciating the good in your life, big or small. It doesn't deny difficulty; it widens the view so difficulty isn't all there is.
 
 ## Shadow (excess)
 Forced, gratitude becomes a way to skip over pain: "I should be grateful" said over real grief or injustice. It can turn into an obligation that silences what needs to be felt or changed.

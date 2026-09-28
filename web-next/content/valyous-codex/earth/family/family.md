@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 The people who knew you before you knew yourself.
 
 ## Light
-Family, by blood or by choice, is where belonging takes root. It's the people who hold your history, show up in the ordinary and difficult hours, and let you be known across the years. Tending family is tending your roots.
+Family is the root system beneath the forest floor, quietly connecting and nourishing. By blood or by choice, it's where belonging takes root. Plainly: the people who hold your history, show up in the ordinary and the hard hours, and let you be known across the years. Tending family is tending your roots.
 
 ## Shadow (excess)
 In excess, family can become enmeshment or obligation. Loyalty to the group may cost you your own voice, and old roles keep you smaller than you've become. Love and duty get tangled.

@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 Knowing where you end and where others begin.
 
 ## Light
-Boundaries are how you tell the truth about your limits. They protect your energy, your time and your body, and they make real closeness possible, because people can trust your yes when you're able to say no.
+Boundaries are the garden fence that lets the garden flourish. They mark where you end and others begin. Plainly: knowing your limits with time, energy, body and feelings, and communicating them clearly. Good boundaries make real closeness possible, because people can trust your yes when you're able to say no.
 
 ## Shadow (excess)
 Too rigid, and boundaries become walls. You might keep people out before they can hurt you, or use rules to avoid the risk of real contact. Protection can quietly turn into isolation.

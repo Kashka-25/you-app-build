@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 The art of being truly heard and truly listening.
 
 ## Light
-Communication is the bridge between inner worlds. At its best it's honest and kind at once: saying what's real, hearing what's underneath, repairing when words go wrong. Good communication makes people feel less alone.
+Communication is a bridge built plank by plank between two inner worlds. At its best it's honest and kind at once. In plain terms: saying what's real, listening for what's underneath, and repairing when words go wrong. Good communication makes people feel less alone.
 
 ## Shadow (excess)
 In excess, communication can become a need to be heard at all costs: over-explaining, filling every silence, winning rather than understanding. Words multiply while connection thins.

@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 Making something from nothing, again and again.
 
 ## Light
-Creativity is the part of you that plays with what could be. It turns feeling into form: a song, a meal, a garden, a new way of solving an old problem. Creating reminds you that the world is still being made, and that you're one of its makers.
+Creativity is the spark that leaps from your inner world into form. It's the part of you that plays with what could be. Literally: making something new, a song, a meal, a garden, a fresh way through an old problem, from the raw materials of your life. Creating reminds you the world is still being made, and that you're one of its makers.
 
 ## Shadow (excess)
 Too much, and creativity can scatter into endless beginnings that never finish. Or your worth can become fused with what you make, so every piece becomes a verdict. The muse turns into a harsh critic.

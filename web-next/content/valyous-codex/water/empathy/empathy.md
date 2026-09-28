@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 The capacity to feel into another's world, and to come back to your own.
 
 ## Light
-Empathy lets you sense what someone is carrying before they find the words for it. You listen with more than your ears. People feel less alone near you, not because you fix anything, but because you were willing to feel it with them for a while.
+Empathy is stepping into the river of someone else's feeling and letting it move around you for a while. You sense what they're carrying before they find the words. In plain terms: understanding and sharing another person's feelings, and letting them know they're not alone in them. People feel less alone near you, not because you fix anything, but because you were willing to feel it with them.
 
 ## Shadow (excess)
 Too much, and you start carrying what isn't yours. Other people's moods become your weather. You may lose track of where their pain ends and your own begins, and give until you're empty, then wonder why you feel so tired around people you love.

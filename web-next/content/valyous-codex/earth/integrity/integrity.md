@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 Being the same person in every room.
 
 ## Light
-Integrity is wholeness: what you believe, say and do pointing the same way. It lets others trust you and lets you trust yourself. There's a deep ease in having nothing to keep track of.
+Integrity is a tree whose roots and branches grow from the same seed. What you believe, say and do all point the same way. In plain terms: living by your values consistently, whether or not anyone is watching. It lets others trust you and lets you trust yourself, and there's a deep ease in having nothing to keep track of.
 
 ## Shadow (excess)
 Taken too far, integrity can stiffen into self-righteousness or perfectionism. Every lapse, in yourself or others, becomes a betrayal. The desire to be good can crowd out the humility to be human.

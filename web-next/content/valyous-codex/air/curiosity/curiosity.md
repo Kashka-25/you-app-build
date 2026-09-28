@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 The aliveness of not-knowing, and leaning in.
 
 ## Light
-Curiosity keeps the world fresh. It asks why, and what if, and tell me more. It turns strangers into stories and problems into puzzles. A curious mind keeps growing long after it could have stopped.
+Curiosity is the lantern held up to every unexplored path. It asks why, and what if, and tell me more. Plainly: a genuine interest in learning, exploring and understanding, whether that's people, ideas or the world around you. It turns strangers into stories and problems into puzzles, and keeps a mind growing long after it could have stopped.
 
 ## Shadow (excess)
 Too much, and curiosity scatters: always the next thing, never staying long enough to go deep. It can also cross into intrusion, wanting to know more than someone wants to share.

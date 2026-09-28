@@ -2,7 +2,8 @@
 
 > **DRAFT (Sep 28)** — proposed list of the 40 main values, for Cassidy to
 > approve, swap or rename. Eight per Element. ✎ = drafted, ○ = not yet.
-> The 13 values already in the app are drafted first.
+> All 40 drafted Sep 28 in a warm, poetic voice: an easy metaphor to
+> picture, a plain meaning alongside it.
 
 Slugs must be unique across the whole Codex (main and sub-values share one
 namespace in `values_library`), so a sub-value never reuses a main value's
@@ -14,11 +15,11 @@ name.
 | ✎ | Empathy | Connection, Heart |
 | ✎ | Vulnerability | Heart |
 | ✎ | Rest | Body |
-| ○ | Compassion | Heart, Connection |
-| ○ | Forgiveness | Heart |
-| ○ | Acceptance | Heart, Spirit |
-| ○ | Intuition | Heart, Spirit |
-| ○ | Adaptability | Mind, Heart |
+| ✎ | Compassion | Heart, Connection |
+| ✎ | Forgiveness | Heart |
+| ✎ | Acceptance | Heart, Spirit |
+| ✎ | Intuition | Heart, Spirit |
+| ✎ | Adaptability | Mind, Heart |
 
 ## Fire — will, action, aliveness
 | | Value | Pillars |
@@ -26,11 +27,11 @@ name.
 | ✎ | Courage | Spirit |
 | ✎ | Discipline | Body, Purpose |
 | ✎ | Creativity | Play |
-| ○ | Freedom | Play, Spirit |
-| ○ | Passion | Purpose, Play |
-| ○ | Ambition | Purpose |
-| ○ | Playfulness | Play |
-| ○ | Resilience | Heart, Body |
+| ✎ | Freedom | Play, Spirit |
+| ✎ | Passion | Purpose, Play |
+| ✎ | Ambition | Purpose |
+| ✎ | Playfulness | Play |
+| ✎ | Resilience | Heart, Body |
 
 ## Earth — grounding, structure, the tangible
 | | Value | Pillars |
@@ -38,35 +39,35 @@ name.
 | ✎ | Boundaries | Connection |
 | ✎ | Integrity | Purpose |
 | ✎ | Family | Connection |
-| ○ | Responsibility | Purpose, Home & Earth |
-| ○ | Patience | Heart |
-| ○ | Health | Body |
-| ○ | Stewardship | Home & Earth |
-| ○ | Commitment | Connection, Purpose |
+| ✎ | Responsibility | Purpose, Home & Earth |
+| ✎ | Patience | Heart |
+| ✎ | Health | Body |
+| ✎ | Stewardship | Home & Earth |
+| ✎ | Commitment | Connection, Purpose |
 
 ## Air — mind, voice, perspective
 | | Value | Pillars |
 |---|---|---|
 | ✎ | Communication | Connection |
 | ✎ | Curiosity | Mind, Play |
-| ○ | Honesty | Connection, Mind |
-| ○ | Learning | Mind |
-| ○ | Clarity | Mind |
-| ○ | Fairness | Connection, Purpose |
-| ○ | Humour | Play, Connection |
-| ○ | Openness | Mind, Heart |
+| ✎ | Honesty | Connection, Mind |
+| ✎ | Learning | Mind |
+| ✎ | Clarity | Mind |
+| ✎ | Fairness | Connection, Purpose |
+| ✎ | Humour | Play, Connection |
+| ✎ | Openness | Mind, Heart |
 
 ## Ether — spirit, meaning, the greater
 | | Value | Pillars |
 |---|---|---|
 | ✎ | Presence | Mind |
 | ✎ | Gratitude | Spirit |
-| ○ | Authenticity | Spirit, Heart |
-| ○ | Meaning | Spirit, Purpose |
-| ○ | Wonder | Spirit, Play |
-| ○ | Trust | Spirit, Connection |
-| ○ | Love | Connection, Heart |
-| ○ | Wisdom | Spirit, Mind |
+| ✎ | Authenticity | Spirit, Heart |
+| ✎ | Meaning | Spirit, Purpose |
+| ✎ | Wonder | Spirit, Play |
+| ✎ | Trust | Spirit, Connection |
+| ✎ | Love | Connection, Heart |
+| ✎ | Wisdom | Spirit, Mind |
 
 ## Frontmatter note
 Drafted entries add `status: draft | edited | final` to the template's

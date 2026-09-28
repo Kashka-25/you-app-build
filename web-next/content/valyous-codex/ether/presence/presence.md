@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 Being fully here, in body, mind and soul.
 
 ## Light
-Presence is arriving in your own life. You taste the food, hear the person, feel your feet on the ground. Ordinary moments open up. Presence doesn't change what's happening; it changes whether you're there for it.
+Presence is the still point at the centre of the turning wheel. It's arriving in your own life: tasting the food, hearing the person, feeling your feet on the ground. In plain terms: giving your full attention to this moment, instead of living in worry, memory or a screen. Presence doesn't change what's happening; it changes whether you're there for it.
 
 ## Shadow (excess)
 Taken too far, "just be here" can become a way to avoid the future or the past. Plans, consequences and old wounds get set aside in the name of the present moment. Stillness becomes a way around things rather than through them.

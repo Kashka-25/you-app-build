@@ -16,7 +16,7 @@ status: draft   # draft | edited | final
 The sacred art of doing nothing, fully.
 
 ## Light
-Rest is letting yourself be restored without needing to earn it first. Real rest refills something: it can look like sleep, a slow walk, an afternoon with no plans. From rest, the rest of life becomes possible again.
+Rest is the field lying fallow so it can grow again. It's letting yourself be restored without needing to earn it first. In everyday terms: sleep, stillness, a slow walk, an afternoon with no plans, anything that truly refills you rather than just filling time. From rest, the rest of life becomes possible again.
 
 ## Shadow (excess)
 Too much, and rest can become a place to hide. Stillness slides into avoidance, recovery into numbing, and the things that would bring you alive keep getting postponed. Some tiredness asks for rest; some asks for change.
