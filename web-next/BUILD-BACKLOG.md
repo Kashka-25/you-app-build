@@ -49,7 +49,7 @@ everyone, regardless of how any individual mind works.
 > Habit / Goal / Dream (opens `AddItemModal`). Journal → Entry / Idea /
 > Experience (auto-tagged) plus "Add a memory with a photo instead".
 > Today's list shows on Home as a "Today" card.
-> **Needs:** run `supabase/migrations/20260928130000_todos.sql`.
+> `todos` migration run Sep 28.
 
 Claude Code flagged (Jul 15) that `nav-bars-mockup.html` specifies a 3-choice
 sheet on tapping **+**, but the app currently jumps straight to the full
@@ -325,7 +325,7 @@ On the Tree: inner roots grow deep, outer roots spread wide.
 - [x] `app.const.js`: replace `PILLARS` list, `PILLAR_COLORS`, pillar
       icons (`PillarsPanel`), Pursue category picker. *(Icons now shared in
       `constants/pillarIcons.js`; Atlas regions follow Pillars too.)*
-- [ ] Migration: `items.cat`, `memory.cat` and `identity_visions.category` — Relationships →
+- [x] Migration: `items.cat`, `memory.cat` and `identity_visions.category` — Relationships →
       Connection, Work → Purpose, Adventure → Play, Creative → Play.
 - [x] Remap `VALUE_PILLAR` / `VALUE_PILLAR2` (and the Codex `pillars`
       field) to the new 8. Rest → Body or Play; Vulnerability → Heart.
