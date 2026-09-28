@@ -45,23 +45,24 @@ everyone, regardless of how any individual mind works.
 
 ## Build: the Add action-sheet gap
 
-> **Status (Sep 28 audit):** a sheet exists (`AddActionSheet.jsx`) but with
-> **6** choices — Dream, Memory, Journal, Goal, Idea, Experience. That breaks
-> the 2–3 choices rule and doesn't match the confirmed 3 below: there is no
-> Habit entry point and no Today's list. Needs trimming to the 3, with
-> Memory/Idea/Experience folded in behind Journal (or a "more" step).
+> **Built Sep 28:** top level is Pursuit · Today · Journal. Pursuit →
+> Habit / Goal / Dream (opens `AddItemModal`). Journal → Entry / Idea /
+> Experience (auto-tagged) plus "Add a memory with a photo instead".
+> Today's list shows on Home as a "Today" card.
+> **Needs:** run `supabase/migrations/20260928130000_todos.sql`.
 
 Claude Code flagged (Jul 15) that `nav-bars-mockup.html` specifies a 3-choice
 sheet on tapping **+**, but the app currently jumps straight to the full
 `AddItemModal`. This needs actually building, not just a rename:
 
-- [ ] **Today's list** — quick one-off task, today only. **Open decision:**
+- [x] **Today's list** — quick one-off task, today only. **Open decision:**
       does this reuse the `items` table with a new `type: "todo"`, or does
       it need its own shape? Decide before building — this is a real
-      schema decision, not just UI.
-- [ ] **Habit, goal, or dream** — routes to the existing `AddItemModal`,
+      schema decision, not just UI. *(Decided: own `todos` table — no
+      Pillar, XP or streaks; only today's show, unfinished ones fall away.)*
+- [x] **Habit, goal, or dream** — routes to the existing `AddItemModal`,
       unchanged.
-- [ ] **Journal entry** — quick reflection entry, feeds the Reflections
+- [x] **Journal entry** — quick reflection entry, feeds the Reflections
       screen (currently placeholder — check whether Reflections needs real
       wiring now or can stay a placeholder that this feeds later).
 

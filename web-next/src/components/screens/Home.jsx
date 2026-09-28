@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen } from "lucide-react";
+import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen, Sun, X } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLAR_COLORS } from "../../constants/app.const";
 import {
@@ -63,7 +63,8 @@ function NowRow({ icon: Icon, label, children, divider = true }) {
 // values, chapters, items).
 export default function Home() {
   const {
-    items, values, chapters, journalEntries, recentInsights, profile, loaded, completeItem, loadRecentInsights
+    items, values, chapters, journalEntries, recentInsights, profile, loaded, completeItem, loadRecentInsights,
+    todos, toggleTodo, deleteTodo
   } = useAppData();
   const firstName = profile?.name?.split(" ")[0] || "Seeker";
   const [insightsLoaded, setInsightsLoaded] = useState(false);
@@ -135,6 +136,34 @@ export default function Home() {
         </div>
       </Link>
 
+      {todos.length > 0 && (
+        <div className="rounded-card bg-surface1 shadow-card p-4 mb-4">
+          <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
+            <Sun size={13} strokeWidth={1.75} />
+            Today
+          </div>
+          {todos.map(t => (
+            <div key={t.id} className="flex items-center gap-3 py-1.5">
+              <button
+                onClick={() => toggleTodo(t.id)}
+                role="checkbox"
+                aria-checked={t.done}
+                aria-label={t.done ? `Mark "${t.text}" not done` : `Mark "${t.text}" done`}
+                className={`w-6 h-6 flex-none rounded-full border flex items-center justify-center ${
+                  t.done ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-transparent hover:border-forestAccent"
+                }`}
+              >
+                <Check size={12} strokeWidth={2.5} />
+              </button>
+              <div className={`flex-1 min-w-0 text-body ${t.done ? "text-textMuted line-through" : "text-textPrimary"}`}>{t.text}</div>
+              <button onClick={() => deleteTodo(t.id)} aria-label={`Remove "${t.text}"`} className="text-textMuted flex-none">
+                <X size={15} strokeWidth={1.75} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {hasNowContent && (
         <div className="rounded-card bg-surface1 shadow-card p-4 mb-4">
           <div className="text-label uppercase text-gold mb-3">Right now</div>
@@ -196,7 +225,7 @@ export default function Home() {
         </div>
       )}
 
-      {!hasNowContent && !latestEntry && !hasInsight && (
+      {!hasNowContent && !latestEntry && !hasInsight && todos.length === 0 && (
         <div className="rounded-card border border-dashed border-borderC bg-surface1 p-4 text-bodySm text-textMuted">
           Tap Add to plant a habit, goal, or dream, or write your first journal entry — Home will start filling in from there.
         </div>

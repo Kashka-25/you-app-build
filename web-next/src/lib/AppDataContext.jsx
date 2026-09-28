@@ -60,6 +60,7 @@ export function AppDataProvider({ children }) {
   const [valueChallenges, setValueChallenges] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [identityVisions, setIdentityVisions] = useState([]);
+  const [todos, setTodos] = useState([]);
   // Journal AI state is intentionally NOT part of the initial `load()`
   // batch — insights/photos/weekly reflections are fetched lazily, on
   // demand, so opening the app doesn't pull in every entry's AI output and
@@ -130,6 +131,7 @@ export function AppDataProvider({ children }) {
       setJournalEntries(journalRes.data || []);
       setIdentityVisions((identityVisionsRes.data || []).map(v => ({ ...v, category: normalizePillar(v.category) })));
       setSync("synced");
+      loadTodos();
     } catch (e) {
       console.error("[AppDataContext] load failed — continuing with local/empty state:", e);
       setSync("offline");
@@ -455,6 +457,34 @@ export function AppDataProvider({ children }) {
   // Journal entries. Kept distinct from `memory` (the auto-generated XP
   // log) and `moments` (user-curated timeline highlights) — this is
   // free-form reflection, not tied to completing anything.
+  // Today's list — loaded outside the main batch so a missing `todos`
+  // table (migration not yet run) can't block the rest of the app from
+  // loading. Only today's rows: yesterday's unfinished ones fall away.
+  async function loadTodos() {
+    const res = await supabase.from("todos").select("*").eq("user_id", userId).eq("todo_date", todayKey()).order("inserted_at");
+    if (res.error) { console.error("[AppData] loadTodos failed:", res.error); return; }
+    setTodos(res.data || []);
+  }
+
+  async function addTodo(text) {
+    const res = await supabase.from("todos").insert({ user_id: userId, text, todo_date: todayKey() }).select().single();
+    if (res.error) throw res.error;
+    setTodos(prev => [...prev, res.data]);
+    return res.data;
+  }
+
+  async function toggleTodo(id) {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    setTodos(prev => prev.map(t => (t.id === id ? { ...t, done: !t.done } : t)));
+    await supabase.from("todos").update({ done: !todo.done }).eq("id", id).eq("user_id", userId);
+  }
+
+  async function deleteTodo(id) {
+    setTodos(prev => prev.filter(t => t.id !== id));
+    await supabase.from("todos").delete().eq("id", id).eq("user_id", userId);
+  }
+
   async function addJournalEntry({ content, mood, entryDate, tags }) {
     const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey(), tags: tags || [] };
     const res = await supabase.from("journal_entries").insert(row).select().single();
@@ -777,13 +807,14 @@ export function AppDataProvider({ children }) {
 
   const value = {
     userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
-    identityVisions,
+    identityVisions, todos,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
     addIdentityVision, editIdentityVision, deleteIdentityVision,
+    addTodo, toggleTodo, deleteTodo,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
     loadJournalPhotos, addJournalPhoto, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,
