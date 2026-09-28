@@ -2,12 +2,12 @@
 //
 // Generates new challenges for one Value, scaled to the user's current
 // tier, in the same voice as the hand-written challenge library. Returns
-// suggestions only — the app inserts what comes back into value_challenges.
+// suggestions only - the app inserts what comes back into value_challenges.
 //
 // Deploy: supabase functions deploy suggest-value-challenges
-// Uses the same ANTHROPIC_API_KEY secret as suggest-chapters.
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { logUsage } from "../_shared/usage.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const MODEL = Deno.env.get("ANTHROPIC_MODEL") || "claude-haiku-4-5";
@@ -42,7 +42,7 @@ serve(async (req) => {
 
     const prompt = `You are writing new personal-growth challenges for someone building the value "${valueName}" inside a self-therapy app called YOU. Tagline: "${tagline || ""}".
 
-They are currently in the "${tierName}" tier. Tier meanings: Awakening = just starting out, Practising = building consistency, Embodying = it's becoming natural, Mastering = refining and going deeper. Scale difficulty to fit — someone in Mastering should mostly get "bold"/"brave" challenges, not beginner "gentle" ones; someone in Awakening should get mostly "gentle" ones.
+They are currently in the "${tierName}" tier. Tier meanings: Awakening = just starting out, Practising = building consistency, Embodying = it's becoming natural, Mastering = refining and going deeper. Scale difficulty to fit - someone in Mastering should mostly get "bold"/"brave" challenges, not beginner "gentle" ones; someone in Awakening should get mostly "gentle" ones.
 
 Do not repeat or closely paraphrase any of these existing challenges:
 ${existingBlock}
@@ -51,8 +51,8 @@ Match this exact voice and format (real examples from this value's library):
 ${samplesBlock}
 
 Generate exactly 5 new challenges. Each needs:
-- "text": one concrete, doable, grounded instruction in the same voice as the examples above. No therapy-speak, no clichés, no generic self-help phrasing.
-- "diff": one of "gentle" (worth 2-4 points), "bold" (worth 4-6 points), "brave" (worth 6-8 points) — weight the mix toward what fits their current tier.
+- "text": one concrete, doable, grounded instruction in the same voice as the examples above. No therapy-speak, no cliches, no generic self-help phrasing.
+- "diff": one of "gentle" (worth 2-4 points), "bold" (worth 4-6 points), "brave" (worth 6-8 points) - weight the mix toward what fits their current tier.
 - "pts": an integer inside the range for that diff band.
 
 Respond with ONLY a JSON array, no prose, no markdown code fences, matching this exact shape:
@@ -79,6 +79,8 @@ Respond with ONLY a JSON array, no prose, no markdown code fences, matching this
     }
 
     const data = await res.json();
+    await logUsage({ req, fn: "suggest-value-challenges", data });
+
     const text = data.content?.[0]?.text || "[]";
 
     let challenges;
