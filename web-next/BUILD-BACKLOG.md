@@ -45,6 +45,12 @@ everyone, regardless of how any individual mind works.
 
 ## Build: the Add action-sheet gap
 
+> **Status (Sep 28 audit):** a sheet exists (`AddActionSheet.jsx`) but with
+> **6** choices — Dream, Memory, Journal, Goal, Idea, Experience. That breaks
+> the 2–3 choices rule and doesn't match the confirmed 3 below: there is no
+> Habit entry point and no Today's list. Needs trimming to the 3, with
+> Memory/Idea/Experience folded in behind Journal (or a "more" step).
+
 Claude Code flagged (Jul 15) that `nav-bars-mockup.html` specifies a 3-choice
 sheet on tapping **+**, but the app currently jumps straight to the full
 `AddItemModal`. This needs actually building, not just a rename:
@@ -61,26 +67,30 @@ sheet on tapping **+**, but the app currently jumps straight to the full
 
 ## Other loose ends to confirm, not just build
 
-- [ ] Has the Phase 1 `/styleguide` component library actually been built
+- [x] Has the Phase 1 `/styleguide` component library actually been built
       yet? If Phase 2 screens are being styled before it exists, components
       (cards, buttons, inputs) are being designed twice. Check before
-      continuing Phase 2.
-- [ ] Home's "Living Atlas" explore card — confirm whether the "one
+      continuing Phase 2. *(Yes — `/styleguide` + `components/ui/`.)*
+- [x] Home's "Living Atlas" explore card — confirm whether the "one
       contextual card" logic is actually dynamic (e.g. picks Healing Journey
       vs Atlas based on recent activity) or currently hardcoded. Hardcoded
       is fine for now — just don't want it mistaken for finished logic.
+      *(Moot: the Home redesign removed the explore card.)*
 
 ---
 
 ## Phase 2 — screen-by-screen order
 
 - [x] **Home** — built, minor fixes above aside
-- [ ] **YOU tab** (formerly Profile) — Pillars + Values attribute bars, Seed
-      Being, level/stats, Legacy card
-- [ ] **Journey** — segmented control (Chapters / Tree & Stars /
-      YOUnderstanding), Life Chapters cards, Season indicator
-- [ ] **Pursue** (full list — reached from Journey → Chapters or Home
-      "View all") — most function-heavy screen, go carefully
+- [~] **YOU tab** (formerly Profile) — Pillars + Values attribute bars, Seed
+      Being, level/stats, Legacy card *(built: Seed Being + level, Pillars,
+      Values, Legacy link; avatar upgrade station still a placeholder)*
+- [x] **Journey** — segmented control (Chapters / Tree & Stars /
+      YOUnderstanding), Life Chapters cards, Season indicator *(plus an Identity
+      tab; Season is a preview until AI seasons exist)*
+- [x] **Pursue** (full list — reached from Journey → Chapters or Home
+      "View all") — most function-heavy screen, go carefully *(built: filters, Pillar
+      groups, nested sub-categories, milestones, prestige)*
 - [ ] **Everything else** (lower priority, still placeholder): CommYOUnity,
       Atlas, Tree & Stars detail, Healing Journey, Therapists, Empatherapy,
       Events/Calendar, Shop, Challenges, Saved, Review, Legacy Mode
