@@ -6,7 +6,7 @@ import {
   TIERS, cycleTierIndex, getValueSlots,
   STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
-import { ALL_VALUES_LIB } from "../constants/values.const";
+import { getValueEntry } from "../constants/valueLibrary";
 
 const AppDataContext = createContext(null);
 
@@ -892,7 +892,7 @@ export function AppDataProvider({ children }) {
   }
 
   async function completeChallenge(valueName, challengeIdx) {
-    const lib = ALL_VALUES_LIB.find(v => v.name === valueName);
+    const lib = getValueEntry(valueName);
     if (!lib) return;
     const challenge = lib.challenges[challengeIdx];
     if (!challenge) return;
@@ -931,7 +931,7 @@ export function AppDataProvider({ children }) {
   // "review before saving" step needed — a challenge is low-stakes and
   // easy to just... not do, so extra friction here isn't worth it).
   async function generateValueChallenges(valueName) {
-    const lib = ALL_VALUES_LIB.find(v => v.name === valueName);
+    const lib = getValueEntry(valueName);
     const v = values.find(x => x.name === valueName);
     const tier = getTier(v?.rating || 0);
     const existingTexts = [

@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ChevronDown, MessageCircle, Flame, Eye, Shield, Target, Heart,
-  Telescope, Moon, ShieldCheck, Paintbrush, Feather, Gem, Sparkles, Users,
-  Dot, Sprout, TreeDeciduous, Flower, Flower2, LeafyGreen, Sparkle, Sun, Plus, PenLine, RotateCcw, SunMoon
+  ChevronDown, Moon, Sparkles, Dot, Sprout, TreeDeciduous, Flower, Flower2, LeafyGreen, Sparkle, Sun,
+  Plus, PenLine, RotateCcw, SunMoon
 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import {
   getTier, VALUE_COLORS, TIERS, prestigeRequirement, getPrestigeStage,
   ELEMENTS, VALUE_ELEMENT, MAX_VALUE_SLOTS
 } from "../../constants/app.const";
-import { ALL_VALUES_LIB } from "../../constants/values.const";
+import { VALUE_LIBRARY, VALUE_ICONS, getValueEntry, valueNameForSlug } from "../../constants/valueLibrary";
 import { easeOut } from "../ui/motion";
 import { GlowBubble } from "../ui/GlowBubble";
 import { Button } from "../ui/Button";
@@ -22,21 +21,6 @@ import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 // -> full sun) that reads distinctly from the VALUE_ICONS glyphs below.
 const PRESTIGE_ICONS = [Dot, Sprout, TreeDeciduous, Flower, Flower2, LeafyGreen, Sparkle, Sun];
 
-const VALUE_ICONS = {
-  Communication: MessageCircle,
-  Courage: Flame,
-  Presence: Eye,
-  Boundaries: Shield,
-  Discipline: Target,
-  Empathy: Heart,
-  Curiosity: Telescope,
-  Rest: Moon,
-  Integrity: ShieldCheck,
-  Creativity: Paintbrush,
-  Vulnerability: Feather,
-  Gratitude: Gem,
-  Family: Users
-};
 
 const fieldClass =
   "w-full bg-surface2 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
@@ -64,7 +48,7 @@ export default function ValuesPanel() {
 
   const rested = values.filter(v => v.status === "rested");
   const hasRoom = activeValues.length < valueSlots;
-  const available = ALL_VALUES_LIB.filter(v => !values.some(x => x.name === v.name));
+  const available = VALUE_LIBRARY.filter(v => !values.some(x => x.name === v.name));
 
   async function handleAddValue(name) {
     await addValue(name);
@@ -178,7 +162,7 @@ function ValueCard({
   const stageColor = TIERS[prestige % TIERS.length].color;
   const color = VALUE_COLORS[v.name];
   const Icon = VALUE_ICONS[v.name];
-  const lib = ALL_VALUES_LIB.find(l => l.name === v.name);
+  const lib = getValueEntry(v.name);
 
   async function handleGenerate() {
     setGenerating(true);
@@ -250,7 +234,7 @@ function ValueCard({
             className="overflow-hidden"
           >
             <div className="pt-3">
-              <Definition v={v} tagline={lib.tagline} onSave={onSaveDefinition} />
+              <Definition v={v} entry={lib} onSave={onSaveDefinition} />
 
               <button
                 onClick={() => setExploring(true)}
@@ -271,6 +255,11 @@ function ValueCard({
                   </button>
                 ))}
               </div>
+              {lib.challenges.length === 0 && valueChallenges.length === 0 && (
+                <div className="text-bodySm text-textMuted mb-2">
+                  No challenges written for {v.name} yet. Generate a few below to begin.
+                </div>
+              )}
               <div className="space-y-2">
                 {lib.challenges
                   .map((c, idx) => ({ ...c, idx, done: (v.completed || []).includes(idx) }))
@@ -345,7 +334,7 @@ function ValueCard({
 
 // The Seeker's own words come first; YOU's perspective is revealed after,
 // so it can't anchor what they write.
-function Definition({ v, tagline, onSave }) {
+function Definition({ v, entry, onSave }) {
   const [editing, setEditing] = useState(!v.definition);
   const [skipped, setSkipped] = useState(false);
   const [text, setText] = useState(v.definition || "");
@@ -405,12 +394,7 @@ function Definition({ v, tagline, onSave }) {
         </button>
       )}
 
-      {showPerspective && (
-        <div className="mt-3">
-          <div className="text-label uppercase text-textMuted mb-1">YOU's perspective</div>
-          <div className="text-bodySm text-textSecondary">{tagline}</div>
-        </div>
-      )}
+      {showPerspective && <Perspective entry={entry} />}
     </div>
   );
 }
@@ -483,6 +467,42 @@ function AddValuePicker({ adding, setAdding, available, activeValues, onPick }) 
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// YOU's perspective, from The ValYOU's Codex: the essence line first, the
+// fuller picture (light, shadow, void, what keeps it whole) one tap deeper.
+function Perspective({ entry }) {
+  const [more, setMore] = useState(false);
+  const kin = list => list.map(valueNameForSlug).join(", ");
+  return (
+    <div className="mt-3">
+      <div className="text-label uppercase text-textMuted mb-1">YOU's perspective</div>
+      <div className="font-serif text-body text-textPrimary">{entry.essence}</div>
+      {more && (
+        <div className="space-y-2.5 mt-2.5">
+          {[["Light", entry.light], ["Shadow", entry.shadow], ["Void", entry.void], ["What keeps it whole", entry.whole]]
+            .filter(([, text]) => text)
+            .map(([label, text]) => (
+              <div key={label}>
+                <div className="text-label uppercase text-textMuted mb-0.5">{label}</div>
+                <div className="text-bodySm text-textSecondary">{text}</div>
+              </div>
+            ))}
+          {(entry.balancingKin.length > 0 || entry.nourishingKin.length > 0) && (
+            <div className="text-caption text-textMuted">
+              {entry.balancingKin.length > 0 && <>Balanced by {kin(entry.balancingKin)}</>}
+              {entry.balancingKin.length > 0 && entry.nourishingKin.length > 0 && " · "}
+              {entry.nourishingKin.length > 0 && <>Nourished by {kin(entry.nourishingKin)}</>}
+            </div>
+          )}
+        </div>
+      )}
+      <button onClick={() => setMore(m => !m)} className="flex items-center gap-1 text-caption text-textSecondary mt-1.5">
+        <ChevronDown size={12} strokeWidth={1.75} className={`transition-transform duration-200 ${more ? "rotate-180" : ""}`} />
+        {more ? "Show less" : "Read the fuller picture"}
+      </button>
     </div>
   );
 }

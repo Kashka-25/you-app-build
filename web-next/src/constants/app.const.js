@@ -1,4 +1,5 @@
 // app.const.js — ported from js/config.js, unchanged values/logic.
+import { CODEX } from "./codex.generated";
 
 export const LEVELS = [
   {xp:0,name:"Seedling",desc:"You have just arrived. A quiet glow. The universe has noticed you.",avatar:"SEED"},
@@ -37,13 +38,10 @@ export function normalizePillar(cat) {
   return LEGACY_PILLAR_MAP[cat] || cat;
 }
 
-export const VALUE_PILLAR = {
-  Communication:"Connection", Courage:"Spirit", Presence:"Mind", Boundaries:"Connection",
-  Discipline:"Body", Empathy:"Connection", Curiosity:"Mind", Rest:"Body",
-  Integrity:"Purpose", Creativity:"Play", Vulnerability:"Heart", Gratitude:"Spirit",
-  Family:"Connection"
-};
-export const VALUE_PILLAR2 = { Discipline:"Purpose", Empathy:"Heart", Curiosity:"Play" };
+// Value → Pillar(s), from The ValYOU's Codex (first Pillar full XP, second
+// at half credit — see awardValuePillarXP).
+export const VALUE_PILLAR = Object.fromEntries(CODEX.map(v => [v.name, v.pillars[0]]));
+export const VALUE_PILLAR2 = Object.fromEntries(CODEX.filter(v => v.pillars[1]).map(v => [v.name, v.pillars[1]]));
 
 // One distinct color per value, purely for the icon bubble — VALUE_PILLAR
 // maps several values onto the same pillar (e.g. Courage/Vulnerability/
@@ -69,6 +67,12 @@ export const VALUE_COLORS = {
   // and Courage.
   Family: "hsl(15, 40%, 54%)"
 };
+// The other Codex values get hues spread by the golden angle from a start
+// point between the hand-picked ones above, at the same muted saturation /
+// lightness, so every value stays distinct and in the same family.
+CODEX.filter(v => !VALUE_COLORS[v.name]).forEach((v, i) => {
+  VALUE_COLORS[v.name] = `hsl(${Math.round((7 + i * 137.508) % 360)}, 34%, ${i % 2 ? 50 : 54}%)`;
+});
 
 export const TIERS = [
   {min:0,max:25,name:"Awakening",color:"#9a8870"},
@@ -78,16 +82,9 @@ export const TIERS = [
 ];
 
 // ── Values system (Sep 28) ──
-// Elements. Mirrors values_library.element (seeded by the values_system
-// migration) — The ValYOU's Codex will become the source for both.
+// Elements. From The ValYOU's Codex (also compiled into values_library).
 export const ELEMENTS = ["Water", "Fire", "Earth", "Air", "Ether"];
-export const VALUE_ELEMENT = {
-  Communication:"Air", Curiosity:"Air",
-  Courage:"Fire", Discipline:"Fire", Creativity:"Fire",
-  Boundaries:"Earth", Integrity:"Earth", Family:"Earth",
-  Empathy:"Water", Vulnerability:"Water", Rest:"Water",
-  Presence:"Ether", Gratitude:"Ether"
-};
+export const VALUE_ELEMENT = Object.fromEntries(CODEX.map(v => [v.name, v.element]));
 
 // Slots are capacity for focus, not permission: every value is always
 // choosable. 5 to start, +1 the first time each value crosses into a new

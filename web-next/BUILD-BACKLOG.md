@@ -355,10 +355,13 @@ content/valyous-codex/
 ```
 Folder per Element → folder per main value → sub-value files inside.
 ~400 files, but never more than ~10 in any one folder.
-- [ ] Entry template: name, essence line, Light, Shadow (excess),
+- [x] Entry template: name, essence line, Light, Shadow (excess),
       Void (deficiency), balancing kin, nourishing kin, Pillars (1–2),
       Element, synonyms, sub-values.
-- [ ] Write 40 main values (drafted with Claude, edited in YOU's voice).
+- [~] Write 40 main values (drafted with Claude, edited in YOU's voice).
+      *(All 40 drafted Sep 28 — warm, poetic, plain meaning alongside each
+      metaphor. `status: draft` until Cassidy's pass. `npm run codex`
+      compiles them into the app + `supabase/codex/values_library.sql`.)*
 - [ ] Curated challenges for most-chosen ~20: 4 per tier
       (2 Light : 1 Shadow : 1 Integration).
 - [ ] Voice rule: YOU never claims to heal or fix. It holds space for
@@ -408,8 +411,10 @@ Folder per Element → folder per main value → sub-value files inside.
       light & shadow"; Pillar → "Free a dream"; Reflections → Explorations
       to reread, continue or delete.)*
 - [x] Tier-crossing acknowledgement line.
-- [ ] Tree of YOU v2 (below) — refactor existing
+- [x] Tree of YOU v2 (below) — refactor existing
       `components/journey/tree-stars/TreeOfStars.jsx` to the new mapping.
+      *(Built Sep 28. Not yet: Seasons tint, sub-value twigs, memories as
+      Constellations — sky currently holds Identity visions.)*
 
 ### Tree of YOU v2 — cosmic tree
 - **Roots = 8 Pillars v2**, anchored in soil — inner roots (Body, Heart,
