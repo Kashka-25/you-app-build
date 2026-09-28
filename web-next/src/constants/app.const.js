@@ -77,6 +77,37 @@ export const TIERS = [
   {min:76,max:99,name:"Mastering",color:"#7a8c5e"}
 ];
 
+// ── Values system (Sep 28) ──
+// Elements. Mirrors values_library.element (seeded by the values_system
+// migration) — The ValYOU's Codex will become the source for both.
+export const ELEMENTS = ["Water", "Fire", "Earth", "Air", "Ether"];
+export const VALUE_ELEMENT = {
+  Communication:"Air", Curiosity:"Air",
+  Courage:"Fire", Discipline:"Fire", Creativity:"Fire",
+  Boundaries:"Earth", Integrity:"Earth", Family:"Earth",
+  Empathy:"Water", Vulnerability:"Water", Rest:"Water",
+  Presence:"Ether", Gratitude:"Ether"
+};
+
+// Slots are capacity for focus, not permission: every value is always
+// choosable. 5 to start, +1 the first time each value crosses into a new
+// tier (Practising, Embodying, Mastering), up to MAX_VALUE_SLOTS. Prestige
+// deepens fruit, not slots, so crossings are counted once per value via
+// highest_tier_reached. Derived, never stored.
+export const START_VALUE_SLOTS = 5;
+export const MAX_VALUE_SLOTS = 9;
+export function getValueSlots(values) {
+  const earned = (values || []).reduce((n, v) => n + (v.highestTier || 0), 0);
+  return Math.min(MAX_VALUE_SLOTS, START_VALUE_SLOTS + earned);
+}
+
+// Tier index (0 Awakening … 3 Mastering) read off progress through the
+// current prestige cycle — same reading ValuesPanel shows.
+export function cycleTierIndex(rating, prestige) {
+  const pct = Math.min(99, Math.round((rating / prestigeRequirement(prestige || 0)) * 99));
+  return TIERS.indexOf(getTier(pct));
+}
+
 export function getTier(rating){
   for (const t of TIERS) if (rating >= t.min && rating <= t.max) return t;
   return TIERS[0];

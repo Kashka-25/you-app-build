@@ -3,6 +3,7 @@ import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import {
   XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2, normalizePillar,
+  TIERS, cycleTierIndex, getValueSlots,
   STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
 import { ALL_VALUES_LIB } from "../constants/values.const";
@@ -34,6 +35,23 @@ function dbToItem(row) {
     done: row.done, streak: row.streak || 0,
     days: row.days || [false, false, false, false, false, false, false],
     lastCheckin: row.last_checkin || null, created: row.created, createdDate: row.created_date
+  };
+}
+// user_values columns added by the values_system migration (status,
+// definition, definition_history, highest_tier_reached) default sensibly
+// here, so the app keeps working against a database that hasn't run it yet.
+function dbToValue(row) {
+  return {
+    id: row.id, name: row.name, rating: row.rating || 0, completed: row.completed || [], prestige: row.prestige || 0,
+    status: row.status || "active", definition: row.definition || "", definitionHistory: row.definition_history || [],
+    highestTier: row.highest_tier_reached || 0
+  };
+}
+function valueToRow(v) {
+  return {
+    rating: v.rating || 0, completed: v.completed || [], prestige: v.prestige || 0,
+    status: v.status || "active", definition: v.definition || null, definition_history: v.definitionHistory || [],
+    highest_tier_reached: v.highestTier || 0, updated_at: new Date().toISOString()
   };
 }
 function itemToRow(item, userId) {
@@ -123,7 +141,7 @@ export function AppDataProvider({ children }) {
       setItems((itemsRes.data || []).map(dbToItem));
       setMemory((memoryRes.data || []).map(m => ({ ...m, cat: normalizePillar(m.cat) })));
       setMoodLog(moodRes.data || []);
-      setValues((valuesRes.data || []).map(r => ({ name: r.name, rating: r.rating || 0, completed: r.completed || [], prestige: r.prestige || 0 })));
+      setValues((valuesRes.data || []).map(dbToValue));
       setProfile(profileRes.data || null);
       setMoments(await attachSignedPhotoUrls(momentsRes.data || []));
       setChapters(chaptersRes.data || []);
@@ -324,16 +342,66 @@ export function AppDataProvider({ children }) {
     await saveItemRow(updated);
   }
 
+  // Updates only the rows that actually changed (callers build newValues
+  // with .map, so an untouched value keeps its object identity). Replaces
+  // the old delete-all-then-reinsert, which dropped row ids and would have
+  // wiped the definition/status columns on every challenge completed.
   async function persistValues(newValues) {
+    const prev = values;
     setValues(newValues);
-    await supabase.from("user_values").delete().eq("user_id", userId);
-    if (newValues.length === 0) return;
-    const rows = newValues.map(v => ({ user_id: userId, name: v.name, rating: v.rating || 0, completed: v.completed || [], prestige: v.prestige || 0 }));
-    await supabase.from("user_values").insert(rows);
+    const changed = newValues.filter(v => !prev.includes(v));
+    await Promise.all(changed.map(async v => {
+      const res = await supabase.from("user_values").update(valueToRow(v)).eq("id", v.id).eq("user_id", userId);
+      if (res.error) {
+        // Migration not run yet → retry with only the original columns.
+        console.error("[AppData] value save failed, retrying legacy columns:", res.error);
+        await supabase.from("user_values")
+          .update({ rating: v.rating || 0, completed: v.completed || [], prestige: v.prestige || 0 })
+          .eq("id", v.id).eq("user_id", userId);
+      }
+    }));
   }
 
+  const activeValues = useMemo(() => values.filter(v => v.status !== "rested"), [values]);
+  const valueSlots = useMemo(() => getValueSlots(values), [values]);
+
   async function addValue(name) {
-    await persistValues([...values, { name, rating: 0, completed: [], prestige: 0 }]);
+    if (activeValues.length >= valueSlots) throw new Error("No free value slot");
+    const res = await supabase.from("user_values")
+      .insert({ user_id: userId, name, rating: 0, completed: [], prestige: 0 }).select().single();
+    if (res.error) throw res.error;
+    setValues(prev => [...prev, dbToValue(res.data)]);
+  }
+
+  // Resting keeps XP, tier and definition — nothing is lost, the value just
+  // steps out of focus. Returning needs a free slot.
+  async function setValueStatus(name, status) {
+    if (status === "active" && activeValues.length >= valueSlots) throw new Error("No free value slot");
+    await persistValues(values.map(v => (v.name === name ? { ...v, status } : v)));
+  }
+
+  // The Seeker's own words come first; an earlier definition moves into
+  // history (with the tier it was written at) rather than being overwritten.
+  async function saveValueDefinition(name, text) {
+    const trimmed = (text || "").trim();
+    await persistValues(values.map(v => {
+      if (v.name !== name) return v;
+      const history = v.definition && v.definition !== trimmed
+        ? [...(v.definitionHistory || []), { text: v.definition, at: new Date().toISOString(), tier: TIERS[cycleTierIndex(v.rating, v.prestige)].name }]
+        : v.definitionHistory || [];
+      return { ...v, definition: trimmed, definitionHistory: history };
+    }));
+  }
+
+  // Shared by both challenge paths. Returns the tier name crossed into for
+  // the first time (for the one-line tier moment), or null.
+  function gainValue(v, pts) {
+    const { rating, prestige } = applyPrestigeGain(v.rating, v.prestige || 0, pts);
+    const prestiged = prestige > (v.prestige || 0);
+    const reached = prestiged ? 3 : cycleTierIndex(rating, prestige);
+    const highestTier = Math.max(v.highestTier || 0, reached);
+    const crossedInto = highestTier > (v.highestTier || 0) ? TIERS[highestTier].name : null;
+    return { updated: { ...v, rating, prestige, highestTier }, prestiged, crossedInto };
   }
 
   // Partial update only — this only ever sets the columns "My YOU" actually
@@ -743,13 +811,13 @@ export function AppDataProvider({ children }) {
     if (!challenge) return;
     const v = values.find(v => v.name === valueName);
     if (!v || (v.completed || []).includes(challengeIdx)) return;
-    const { rating: newRating, prestige: newPrestige } = applyPrestigeGain(v.rating, v.prestige || 0, challenge.pts);
+    const { updated, prestiged, crossedInto } = gainValue(v, challenge.pts);
     const newValues = values.map(x => (x.name === valueName
-      ? { ...x, rating: newRating, prestige: newPrestige, completed: [...(x.completed || []), challengeIdx] }
+      ? { ...updated, completed: [...(x.completed || []), challengeIdx] }
       : x));
     await persistValues(newValues);
     await awardValuePillarXP(valueName, challenge.pts, valueName + " challenge: " + challenge.text.slice(0, 30));
-    return { prevRating: v.rating, newRating, prestiged: newPrestige > (v.prestige || 0) };
+    return { prevRating: v.rating, newRating: updated.rating, prestiged, crossedInto };
   }
 
   // AI-generated challenges live in their own table (value_challenges) with
@@ -760,13 +828,13 @@ export function AppDataProvider({ children }) {
     if (!challenge || challenge.completed) return;
     const v = values.find(x => x.name === challenge.value_name);
     if (!v) return;
-    const { rating: newRating, prestige: newPrestige } = applyPrestigeGain(v.rating, v.prestige || 0, challenge.pts);
-    const newValues = values.map(x => (x.name === challenge.value_name ? { ...x, rating: newRating, prestige: newPrestige } : x));
+    const { updated, prestiged, crossedInto } = gainValue(v, challenge.pts);
+    const newValues = values.map(x => (x.name === challenge.value_name ? updated : x));
     await persistValues(newValues);
     setValueChallenges(prev => prev.map(c => (c.id === id ? { ...c, completed: true } : c)));
     await supabase.from("value_challenges").update({ completed: true }).eq("id", id).eq("user_id", userId);
     await awardValuePillarXP(challenge.value_name, challenge.pts, challenge.value_name + " challenge: " + challenge.text.slice(0, 30));
-    return { prevRating: v.rating, newRating, prestiged: newPrestige > (v.prestige || 0) };
+    return { prevRating: v.rating, newRating: updated.rating, prestiged, crossedInto };
   }
 
   // Calls the suggest-value-challenges Edge Function (Claude, server-side)
@@ -812,6 +880,7 @@ export function AppDataProvider({ children }) {
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem,
+    activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
     addIdentityVision, editIdentityVision, deleteIdentityVision,
     addTodo, toggleTodo, deleteTodo,

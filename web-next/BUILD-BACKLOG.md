@@ -271,7 +271,7 @@ paywalled**; only AI depth that costs money is premium.
   requiring) one from each Element. **+1 slot the first time each value
   crosses into a new tier** (Practising, Embodying, Mastering). Prestige
   cycles deepen fruit, not slots, so slot growth can't loop.
-  Open: maximum slot cap (suggest 9).
+  Maximum slot cap: **9** (decided Sep 28).
 - **Pillars v2 (adopted Sep 28): 8 roots — 4 inner, 4 outer.** See
   "Pillars v2" section below.
 - **Sub-values:** branch out from a parent value when it reaches
@@ -302,7 +302,7 @@ paywalled**; only AI depth that costs money is premium.
   through the current cycle.
 - Seed Being levels (total XP): Seedling 0 · Ember 100 · Wanderer 250 ·
   Seeker 500 · Alchemist 900 · Sage 1500 · Oracle 2500 · Elder 4000.
-- [ ] Store `highest_tier_reached` per user value, so slot unlocks and
+- [x] Store `highest_tier_reached` per user value, so slot unlocks and
       sub-value unfolding trigger once, independent of prestige resets.
 
 ### Pillars v2 — adopted Sep 28
@@ -372,17 +372,20 @@ Folder per Element → folder per main value → sub-value files inside.
 - [ ] Revisited at each tier crossing; stored in `definition_history`.
 
 ### Data layer
-- [ ] Tables: `values_library`, `user_values` (extend), `value_challenges`,
-      `reflections`, `custom_value_signals`.
+- [~] Tables: `values_library`, `user_values` (extend), `value_challenges`,
+      `reflections`, `custom_value_signals`. *(Done in
+      `20260928140000_values_system.sql` except `custom_value_signals`,
+      which waits for custom values.)*
 - [ ] `ai_usage` table + token logging in every Edge Function
       (suggest-value-challenges, suggest-chapters,
       reflect-on-journal-entry, weekly-reflection,
       transcribe-journal-photo). *(Logging done in all five; confirm table + RLS.)* RLS on all
       user-owned rows; library + shared challenges read-only public.
-- [ ] Migrate existing 12 values into library; map existing user rows.
+- [x] Migrate existing 12 values into library; map existing user rows.
+      *(13 incl. Family; Elements are a first proposal until the Codex.)*
 - [ ] Move `VALUE_PILLAR` / `VALUE_PILLAR2` into DB; update `pillars.js`.
-- [ ] Slot count derived from tiers, not stored.
-- [ ] `entitlements.is_premium` stub (false).
+- [x] Slot count derived from tiers, not stored.
+- [x] `entitlements.is_premium` stub (false).
 
 ### Edge Functions
 - [ ] `classify-value` (new): library match, Pillar/Element suggestion,
@@ -393,11 +396,14 @@ Folder per Element → folder per main value → sub-value files inside.
 - [ ] Log token usage per call to `ai_usage`; per-user daily rate limit.
 
 ### Frontend (mock data, `DEV_MODE: "bypass"`)
-- [ ] Values discovery: search + name your own, browse by Element.
-- [ ] Active values (3 + earned slots) + Library shelf (rested).
-- [ ] Value card (own definition first, then YOU's perspective).
+- [~] Values discovery: search + name your own, browse by Element.
+      *(Browse by Element / A–Z + gentle one-per-Element hint done; search
+      and name-your-own wait for the 40-value library + `classify-value`.)*
+- [x] Active values (5 + earned slots, cap 9) + Library shelf (rested).
+- [x] Value card (own definition first, then YOU's perspective).
+      *(Revisits keep the old wording in `definition_history`.)*
 - [ ] Both questionnaires.
-- [ ] Tier-crossing acknowledgement line.
+- [x] Tier-crossing acknowledgement line.
 - [ ] Tree of YOU v2 (below) — refactor existing
       `components/journey/tree-stars/TreeOfStars.jsx` to the new mapping.
 

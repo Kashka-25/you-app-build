@@ -63,7 +63,7 @@ function NowRow({ icon: Icon, label, children, divider = true }) {
 // values, chapters, items).
 export default function Home() {
   const {
-    items, values, chapters, journalEntries, recentInsights, profile, loaded, completeItem, loadRecentInsights,
+    items, activeValues, chapters, journalEntries, recentInsights, profile, loaded, completeItem, loadRecentInsights,
     todos, toggleTodo, deleteTodo
   } = useAppData();
   const firstName = profile?.name?.split(" ")[0] || "Seeker";
@@ -82,7 +82,7 @@ export default function Home() {
   const chapter = pickCurrentChapter(chapters);
   const direction = pickDirection(items);
   const quest = pickTodaysQuest(items);
-  const relevantValues = pickRelevantValues(values, recentInsights);
+  const relevantValues = pickRelevantValues(activeValues, recentInsights);
   const latestEntry = journalEntries[0];
   const patterns = pickNoticedPatterns(recentInsights, 1);
   const question = pickReflectionQuestion(recentInsights);
