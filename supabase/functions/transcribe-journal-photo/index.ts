@@ -7,6 +7,7 @@
 // Deploy: supabase functions deploy transcribe-journal-photo
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
+import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude } from "../_shared/anthropic.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -32,6 +33,9 @@ Deno.serve(async req => {
       data: { user }
     } = await supabase.auth.getUser();
     if (!user) return json({ error: "Unauthorized" }, 401);
+
+    const consent = await requireAiConsent(req, corsHeaders);
+    if ("response" in consent) return consent.response;
 
     const { photoId } = await req.json();
     if (!photoId) return json({ error: "photoId is required" }, 400);

@@ -20,8 +20,11 @@ function PhotoCard({ entryId, photo }) {
     try {
       await transcribeJournalPhoto(entryId, photo.id);
     } catch (e) {
-      console.error("[JournalPhotoSection] transcribe failed:", e);
-      setError("Couldn't transcribe that page — check the Edge Function is deployed and try again.");
+      // "Not now" on the consent prompt isn't a failure — say nothing.
+      if (e?.code !== "consent_declined") {
+        console.error("[JournalPhotoSection] transcribe failed:", e);
+        setError("Couldn't transcribe that page — check the Edge Function is deployed and try again.");
+      }
     }
     setTranscribing(false);
   }

@@ -12,6 +12,7 @@
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { logUsage } from "../_shared/usage.ts";
+import { requireAiConsent } from "../_shared/consent.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 // Haiku is the cheap/fast tier — plenty for grouping + naming a timeline.
@@ -37,6 +38,10 @@ serve(async (req) => {
     if (!ANTHROPIC_API_KEY) {
       return jsonResponse({ error: "ANTHROPIC_API_KEY is not configured on this function" }, 500);
     }
+
+    // Memories are reflection text: signed-in Seekers who have consented only.
+    const consent = await requireAiConsent(req, corsHeaders);
+    if ("response" in consent) return consent.response;
 
     const { moments } = await req.json();
     if (!Array.isArray(moments) || moments.length === 0) {

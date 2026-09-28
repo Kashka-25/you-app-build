@@ -23,8 +23,11 @@ export default function SuggestChaptersPanel() {
       const result = await suggestChapters();
       setSuggestions(result);
     } catch (e) {
-      console.error("[SuggestChaptersPanel] suggest failed:", e);
-      setError("Couldn't get suggestions right now — check the Edge Function is deployed and try again.");
+      // "Not now" on the consent prompt isn't a failure — say nothing.
+      if (e?.code !== "consent_declined") {
+        console.error("[SuggestChaptersPanel] suggest failed:", e);
+        setError("Couldn't get suggestions right now — check the Edge Function is deployed and try again.");
+      }
     }
     setLoading(false);
   }

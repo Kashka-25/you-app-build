@@ -8,10 +8,12 @@ import { SegmentedControl } from "../ui/SegmentedControl";
 import { MOODS } from "../ui/Input";
 import JournalEntryModal from "../journal/JournalEntryModal";
 import WeeklyReflectionView from "../journal/WeeklyReflectionView";
+import ExplorationsView from "../questionnaires/ExplorationsView";
 
 const TABS = [
   { value: "entries", label: "Entries" },
-  { value: "week", label: "This Week" }
+  { value: "week", label: "This Week" },
+  { value: "explorations", label: "Explorations" }
 ];
 
 function niceDate(dateStr) {
@@ -74,6 +76,8 @@ export default function Reflections() {
 
       {tab === "week" ? (
         <WeeklyReflectionView />
+      ) : tab === "explorations" ? (
+        <ExplorationsView />
       ) : !loaded ? (
         <div className="text-body text-textSecondary">Loading…</div>
       ) : journalEntries.length === 0 ? (

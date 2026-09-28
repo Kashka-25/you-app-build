@@ -79,6 +79,11 @@ export function AppDataProvider({ children }) {
   const [journalEntries, setJournalEntries] = useState([]);
   const [identityVisions, setIdentityVisions] = useState([]);
   const [todos, setTodos] = useState([]);
+  // AI consent: null = not loaded yet. Reflections = questionnaire answers
+  // (the most intimate data in the app — owner-only, never analytics).
+  const [aiConsent, setAiConsent] = useState(null);
+  const [consentPrompt, setConsentPrompt] = useState(null); // { resolve } while asking
+  const [reflections, setReflections] = useState([]);
   // Journal AI state is intentionally NOT part of the initial `load()`
   // batch — insights/photos/weekly reflections are fetched lazily, on
   // demand, so opening the app doesn't pull in every entry's AI output and
@@ -150,6 +155,8 @@ export function AppDataProvider({ children }) {
       setIdentityVisions((identityVisionsRes.data || []).map(v => ({ ...v, category: normalizePillar(v.category) })));
       setSync("synced");
       loadTodos();
+      loadAiConsent();
+      loadReflections();
     } catch (e) {
       console.error("[AppDataContext] load failed — continuing with local/empty state:", e);
       setSync("offline");
@@ -534,6 +541,82 @@ export function AppDataProvider({ children }) {
     setTodos(res.data || []);
   }
 
+  // ── AI consent ──
+  // Explicit and revocable. Nothing personal is sent to Claude until the
+  // Seeker says yes; the Edge Functions check the same row server-side.
+  async function loadAiConsent() {
+    const res = await supabase.from("ai_consent").select("*").eq("user_id", userId).maybeSingle();
+    if (res.error) { console.error("[AppData] loadAiConsent failed:", res.error); return; }
+    setAiConsent(res.data || { granted: false });
+  }
+
+  async function setAiConsentGranted(granted) {
+    const now = new Date().toISOString();
+    const row = granted
+      ? { user_id: userId, granted: true, granted_at: now, revoked_at: null, updated_at: now }
+      : { user_id: userId, granted: false, revoked_at: now, updated_at: now };
+    const res = await supabase.from("ai_consent").upsert(row).select().single();
+    if (res.error) throw res.error;
+    setAiConsent(res.data);
+  }
+
+  // Resolves true once consent exists — asking first (via AiConsentModal in
+  // AppShell) if it doesn't. Resolves false if the Seeker says not now.
+  function ensureAiConsent() {
+    if (aiConsent?.granted) return Promise.resolve(true);
+    return new Promise(resolve => setConsentPrompt({ resolve }));
+  }
+
+  async function answerConsentPrompt(yes) {
+    const prompt = consentPrompt;
+    setConsentPrompt(null);
+    if (yes) {
+      try {
+        await setAiConsentGranted(true);
+      } catch (e) {
+        console.error("[AppData] granting consent failed:", e);
+        prompt?.resolve(false);
+        return;
+      }
+    }
+    prompt?.resolve(yes);
+  }
+
+  async function withAiConsent() {
+    if (await ensureAiConsent()) return;
+    const err = new Error("AI consent not given");
+    err.code = "consent_declined";
+    throw err;
+  }
+
+  // ── Reflections (questionnaires) ──
+  async function loadReflections() {
+    const res = await supabase.from("reflections").select("*").eq("user_id", userId).order("inserted_at");
+    if (res.error) { console.error("[AppData] loadReflections failed:", res.error); return; }
+    setReflections(res.data || []);
+  }
+
+  // Saved step by step, so a Seeker can stop anywhere and come back. One
+  // row per (session, kind): saving the same step again updates it.
+  async function saveReflectionAnswer({ sessionId, questionnaire, kind, body, prompt, valueName, pillar }) {
+    const existing = reflections.find(r => r.session_id === sessionId && r.kind === kind);
+    const now = new Date().toISOString();
+    const res = existing
+      ? await supabase.from("reflections").update({ body, prompt, updated_at: now }).eq("id", existing.id).eq("user_id", userId).select().single()
+      : await supabase.from("reflections").insert({
+          user_id: userId, session_id: sessionId, questionnaire, kind, body, prompt,
+          value_name: valueName || null, pillar: pillar || null
+        }).select().single();
+    if (res.error) throw res.error;
+    setReflections(prev => existing ? prev.map(r => (r.id === existing.id ? res.data : r)) : [...prev, res.data]);
+    return res.data;
+  }
+
+  async function deleteReflectionSession(sessionId) {
+    setReflections(prev => prev.filter(r => r.session_id !== sessionId));
+    await supabase.from("reflections").delete().eq("session_id", sessionId).eq("user_id", userId);
+  }
+
   async function addTodo(text) {
     const res = await supabase.from("todos").insert({ user_id: userId, text, todo_date: todayKey() }).select().single();
     if (res.error) throw res.error;
@@ -622,6 +705,7 @@ export function AppDataProvider({ children }) {
   // vision, server-side). Saves a first-draft transcription the user can
   // then edit in place via editJournalPhotoTranscription.
   async function transcribeJournalPhoto(entryId, photoId) {
+    await withAiConsent();
     const { data, error } = await supabase.functions.invoke("transcribe-journal-photo", { body: { photoId } });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -661,6 +745,7 @@ export function AppDataProvider({ children }) {
   }
 
   async function generateJournalReflection(entryId) {
+    await withAiConsent();
     const { data, error } = await supabase.functions.invoke("reflect-on-journal-entry", { body: { entryId } });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -717,6 +802,7 @@ export function AppDataProvider({ children }) {
   }
 
   async function generateWeeklyReflection(weekStart) {
+    await withAiConsent();
     const { data, error } = await supabase.functions.invoke("weekly-reflection", { body: { weekStart } });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -764,6 +850,7 @@ export function AppDataProvider({ children }) {
   // the current moments. Returns suggestions only; nothing is saved until
   // saveChapters is called with what the user accepts.
   async function suggestChapters() {
+    await withAiConsent();
     const payload = moments.map(m => ({ title: m.title, moment_date: m.moment_date, description: m.description }));
     const { data, error } = await supabase.functions.invoke("suggest-chapters", { body: { moments: payload } });
     if (error) throw error;
@@ -884,6 +971,8 @@ export function AppDataProvider({ children }) {
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
     addIdentityVision, editIdentityVision, deleteIdentityVision,
     addTodo, toggleTodo, deleteTodo,
+    aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
+    reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
     loadJournalPhotos, addJournalPhoto, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,

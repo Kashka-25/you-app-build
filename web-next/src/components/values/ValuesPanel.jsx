@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown, MessageCircle, Flame, Eye, Shield, Target, Heart,
   Telescope, Moon, ShieldCheck, Paintbrush, Feather, Gem, Sparkles, Users,
-  Dot, Sprout, TreeDeciduous, Flower, Flower2, LeafyGreen, Sparkle, Sun, Plus, PenLine, RotateCcw
+  Dot, Sprout, TreeDeciduous, Flower, Flower2, LeafyGreen, Sparkle, Sun, Plus, PenLine, RotateCcw, SunMoon
 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import {
@@ -15,6 +15,7 @@ import { easeOut } from "../ui/motion";
 import { GlowBubble } from "../ui/GlowBubble";
 import { Button } from "../ui/Button";
 import { DropdownSection } from "../Primitives";
+import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 
 // One icon per authored PRESTIGE_LEVELS stage, same order -- a small growth
 // arc (point -> shoot -> tree -> blossom x2 -> tended green -> single spark
@@ -169,6 +170,7 @@ function ValueCard({
   const [diff, setDiff] = useState("all");
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState("");
+  const [exploring, setExploring] = useState(false);
 
   const { prestige, requirement, pct, tier } = cycleView(v);
   const stage = getPrestigeStage(prestige);
@@ -250,6 +252,14 @@ function ValueCard({
             <div className="pt-3">
               <Definition v={v} tagline={lib.tagline} onSave={onSaveDefinition} />
 
+              <button
+                onClick={() => setExploring(true)}
+                className="w-full flex items-center justify-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-2 mt-4"
+              >
+                <SunMoon size={14} strokeWidth={1.75} />
+                Explore its light &amp; shadow
+              </button>
+
               <div className="flex gap-1.5 mb-3 mt-4">
                 {["all", "gentle", "bold", "brave"].map(d => (
                   <button
@@ -322,6 +332,13 @@ function ValueCard({
           </motion.div>
         )}
       </AnimatePresence>
+
+      <QuestionnaireFlow
+        open={exploring}
+        onClose={() => setExploring(false)}
+        questionnaire="light_shadow"
+        valueName={v.name}
+      />
     </div>
   );
 }

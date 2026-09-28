@@ -93,8 +93,11 @@ export default function JournalReflectionCard({ entryId }) {
     try {
       await generateJournalReflection(entryId);
     } catch (e) {
-      console.error("[JournalReflectionCard] generate failed:", e);
-      setError("Couldn't get a reflection right now — check the Edge Function is deployed and try again.");
+      // "Not now" on the consent prompt isn't a failure — say nothing.
+      if (e?.code !== "consent_declined") {
+        console.error("[JournalReflectionCard] generate failed:", e);
+        setError("Couldn't get a reflection right now — check the Edge Function is deployed and try again.");
+      }
     }
     setLoading(false);
   }

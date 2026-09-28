@@ -330,8 +330,9 @@ On the Tree: inner roots grow deep, outer roots spread wide.
 - [x] Remap `VALUE_PILLAR` / `VALUE_PILLAR2` (and the Codex `pillars`
       field) to the new 8. Rest → Body or Play; Vulnerability → Heart.
       *(Rest → Body; Empathy's second Pillar Spirit → Heart.)*
-- [ ] Freeing the Dream banks: write Heart, Play, Home & Earth; merge
-      old Adventure/Creative/Recreation questions into Play.
+- [x] Freeing the Dream banks: write Heart, Play, Home & Earth; merge
+      old Adventure/Creative/Recreation questions into Play. *(All 8 drafted
+      in `src/constants/questionnaires.js` — Cassidy to edit the wording.)*
 - [x] Pillar XP: recompute from `memory` after migration (derived, so
       no stored totals to fix). *(App also maps old names on read via
       `normalizePillar`, so XP is correct before the migration runs.)*
@@ -364,11 +365,12 @@ Folder per Element → folder per main value → sub-value files inside.
       light and dark as the full human experience.
 
 ### Questionnaires
-- [ ] **Freeing the Dream** (per Pillar): Longing → Vision → Weight →
+- [x] **Freeing the Dream** (per Pillar): Longing → Vision → Weight →
       Seed; close with plant into Pursue / hold as seed / release.
-- [ ] **Light & Shadow of a Value**: Light / Shadow / Void / Integration;
+- [x] **Light & Shadow of a Value**: Light / Shadow / Void / Integration;
       one question per screen; save and return. Also used at onboarding
-      to help choose the first 3 values.
+      to help choose the first values. *(Built Sep 28; onboarding use
+      not yet wired.)*
 - [ ] Revisited at each tier crossing; stored in `definition_history`.
 
 ### Data layer
@@ -402,7 +404,9 @@ Folder per Element → folder per main value → sub-value files inside.
 - [x] Active values (5 + earned slots, cap 9) + Library shelf (rested).
 - [x] Value card (own definition first, then YOU's perspective).
       *(Revisits keep the old wording in `definition_history`.)*
-- [ ] Both questionnaires.
+- [x] Both questionnaires. *(Entry points: value card → "Explore its
+      light & shadow"; Pillar → "Free a dream"; Reflections → Explorations
+      to reread, continue or delete.)*
 - [x] Tier-crossing acknowledgement line.
 - [ ] Tree of YOU v2 (below) — refactor existing
       `components/journey/tree-stars/TreeOfStars.jsx` to the new mapping.
@@ -425,9 +429,13 @@ Folder per Element → folder per main value → sub-value files inside.
 - Growth animates only on user action or a tier moment — no autoplay.
 
 ### Safety & privacy (required before live)
-- [ ] Explicit, revocable consent before any reflection text reaches
-      the Claude API.
-- [ ] Reflections excluded from analytics.
-- [ ] Quiet support-resources link on Shadow/Void screens.
+- [x] Explicit, revocable consent before any reflection text reaches
+      the Claude API. *(`ai_consent` table; asked on first AI use; switch in
+      Your Own Universe; enforced in the 4 Edge Functions via
+      `_shared/consent.ts`.)*
+- [x] Reflections excluded from analytics. *(No analytics exist yet —
+      keep it that way for `reflections` / `journal_entries` when added.)*
+- [x] Quiet support-resources link on Shadow/Void screens. *(Also on
+      Freeing the Dream → Weight. Links to findahelpline.com.)*
 - [ ] Moderation on AI output, not on Seeker input.
 - [ ] Exit on every screen.
