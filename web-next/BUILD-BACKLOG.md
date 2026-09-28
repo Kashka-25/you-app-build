@@ -32,15 +32,16 @@ everyone, regardless of how any individual mind works.
 
 ## Fix first (small, high-value)
 
-- [ ] Hamburger menu overlay — hero text bleeds through behind the scrim
+- [x] Hamburger menu overlay — hero text bleeds through behind the scrim
       when the menu is open (see screenshots, Jul 15). Scrim needs full
       opacity or the hero needs to properly recede/blur behind it.
-- [ ] Hero pill currently reads "Current Chapter — Seedling" — this is
+- [x] Hero pill currently reads "Current Chapter — Seedling" — this is
       actually the **Seed Being level**, not a Life Chapter. These are two
       separate systems (see `03-YOU-LIVING-BIOGRAPHY-pivot-brief.md`).
       Relabel to "Level — Seedling" now. Reserve "Current Chapter" for when
       real Chapters data exists, so the two concepts don't blur together
-      from day one.
+      from day one. *(Done: pill no longer exists — Home redesign
+      replaced it with the real current Chapter from `pickCurrentChapter`.)*
 
 ## Build: the Add action-sheet gap
 
@@ -362,7 +363,7 @@ Folder per Element → folder per main value → sub-value files inside.
 - [ ] `ai_usage` table + token logging in every Edge Function
       (suggest-value-challenges, suggest-chapters,
       reflect-on-journal-entry, weekly-reflection,
-      transcribe-journal-photo). RLS on all
+      transcribe-journal-photo). *(Logging done in all five; confirm table + RLS.)* RLS on all
       user-owned rows; library + shared challenges read-only public.
 - [ ] Migrate existing 12 values into library; map existing user rows.
 - [ ] Move `VALUE_PILLAR` / `VALUE_PILLAR2` into DB; update `pillars.js`.
