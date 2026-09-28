@@ -1,9 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus, X, Dumbbell, Brain, Sparkles, HeartHandshake, Briefcase, Compass, Palette
-} from "lucide-react";
+import { Plus, X } from "lucide-react";
+import { PILLAR_ICONS } from "../../../constants/pillarIcons";
 import { useAppData } from "../../../lib/AppDataContext";
 import {
   PILLAR_COLORS, VALUE_COLORS, VALUE_PILLAR, VALUE_PILLAR2, getTier, getPrestigeStage, prestigeRequirement
@@ -19,11 +18,6 @@ const PILLAR_BASE_Y = 430, PILLAR_ARCH = 150, PILLAR_MARGIN_X = 70;
 const ROOT_Y = 918, ROOT_MARGIN_X = 35;
 const EARTH_CX = TRUNK_X, EARTH_CY = SVG_H + 60, EARTH_RX = 560, EARTH_RY = 170;
 const STORY_ORB = { x: TRUNK_X, y: 55 };
-
-const PILLAR_ICONS = {
-  Body: Dumbbell, Mind: Brain, Spirit: Sparkles, Relationships: HeartHandshake,
-  Work: Briefcase, Adventure: Compass, Creative: Palette
-};
 
 function archPos(i, n, baseX, width, baseY, arch) {
   const t = n <= 1 ? 0.5 : i / (n - 1);

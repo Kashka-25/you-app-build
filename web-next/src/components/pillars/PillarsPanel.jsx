@@ -1,21 +1,12 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Dumbbell, Brain, Sparkles, HeartHandshake, Briefcase, Compass, Palette, Award } from "lucide-react";
+import { ChevronDown, Award } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { getPillarLevel, TIERS } from "../../constants/app.const";
+import { PILLAR_ICONS } from "../../constants/pillarIcons";
 import { easeOut } from "../ui/motion";
 
 const SEGMENTS = 10;
-
-const PILLAR_ICONS = {
-  Body: Dumbbell,
-  Mind: Brain,
-  Spirit: Sparkles,
-  Relationships: HeartHandshake,
-  Work: Briefcase,
-  Adventure: Compass,
-  Creative: Palette
-};
 
 export default function PillarsPanel() {
   const { pillars } = useAppData();

@@ -311,16 +311,19 @@ Replaces the 7 Pillars (and the short-lived Recreation addition).
 Rule: every habit/goal/dream has one obvious Pillar, optional second.
 On the Tree: inner roots grow deep, outer roots spread wide.
 
-- [ ] `app.const.js`: replace `PILLARS` list, `PILLAR_COLORS`, pillar
-      icons (`PillarsPanel`), Pursue category picker.
-- [ ] Migration: `items.cat` and `memory.cat` — Relationships →
+- [x] `app.const.js`: replace `PILLARS` list, `PILLAR_COLORS`, pillar
+      icons (`PillarsPanel`), Pursue category picker. *(Icons now shared in
+      `constants/pillarIcons.js`; Atlas regions follow Pillars too.)*
+- [ ] Migration: `items.cat`, `memory.cat` and `identity_visions.category` — Relationships →
       Connection, Work → Purpose, Adventure → Play, Creative → Play.
-- [ ] Remap `VALUE_PILLAR` / `VALUE_PILLAR2` (and the Codex `pillars`
+- [x] Remap `VALUE_PILLAR` / `VALUE_PILLAR2` (and the Codex `pillars`
       field) to the new 8. Rest → Body or Play; Vulnerability → Heart.
+      *(Rest → Body; Empathy's second Pillar Spirit → Heart.)*
 - [ ] Freeing the Dream banks: write Heart, Play, Home & Earth; merge
       old Adventure/Creative/Recreation questions into Play.
-- [ ] Pillar XP: recompute from `memory` after migration (derived, so
-      no stored totals to fix).
+- [x] Pillar XP: recompute from `memory` after migration (derived, so
+      no stored totals to fix). *(App also maps old names on read via
+      `normalizePillar`, so XP is correct before the migration runs.)*
 - [ ] Legacy vanilla build: leave on old 7 unless still in active use.
 
 ### The Values Codex (content — source of truth)

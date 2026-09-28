@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback } 
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import {
-  XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2,
+  XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2, normalizePillar,
   STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
 import { ALL_VALUES_LIB } from "../constants/values.const";
@@ -29,7 +29,7 @@ function niceDateFrom(dateKey) {
 }
 function dbToItem(row) {
   return {
-    id: row.id, name: row.name, type: row.type, cat: row.cat, subcat: row.subcat || "", note: row.note || "",
+    id: row.id, name: row.name, type: row.type, cat: normalizePillar(row.cat), subcat: row.subcat || "", note: row.note || "",
     tags: row.tags || [], intention: row.intention || "", milestones: row.milestones || [],
     done: row.done, streak: row.streak || 0,
     days: row.days || [false, false, false, false, false, false, false],
@@ -120,7 +120,7 @@ export function AppDataProvider({ children }) {
         LOAD_TIMEOUT_MS
       );
       setItems((itemsRes.data || []).map(dbToItem));
-      setMemory(memoryRes.data || []);
+      setMemory((memoryRes.data || []).map(m => ({ ...m, cat: normalizePillar(m.cat) })));
       setMoodLog(moodRes.data || []);
       setValues((valuesRes.data || []).map(r => ({ name: r.name, rating: r.rating || 0, completed: r.completed || [], prestige: r.prestige || 0 })));
       setProfile(profileRes.data || null);
@@ -128,7 +128,7 @@ export function AppDataProvider({ children }) {
       setChapters(chaptersRes.data || []);
       setValueChallenges(valueChallengesRes.data || []);
       setJournalEntries(journalRes.data || []);
-      setIdentityVisions(identityVisionsRes.data || []);
+      setIdentityVisions((identityVisionsRes.data || []).map(v => ({ ...v, category: normalizePillar(v.category) })));
       setSync("synced");
     } catch (e) {
       console.error("[AppDataContext] load failed — continuing with local/empty state:", e);

@@ -1,15 +1,11 @@
-import { Brain, Dumbbell, Sparkles, HeartHandshake, Palette, Target } from "lucide-react";
 import { BackRow, SectionTitle } from "../Primitives";
 import { HeroCard } from "../ui/Card";
+import { PILLARS } from "../../constants/app.const";
+import { PILLAR_ICONS } from "../../constants/pillarIcons";
 
-const REGIONS = [
-  { name: "Mind", icon: Brain },
-  { name: "Body", icon: Dumbbell },
-  { name: "Spirit", icon: Sparkles },
-  { name: "Relationships", icon: HeartHandshake },
-  { name: "Creativity", icon: Palette },
-  { name: "Purpose", icon: Target }
-];
+// One region per Pillar, so the Atlas grows from the same taxonomy as
+// everything else.
+const REGIONS = PILLARS.map(name => ({ name, icon: PILLAR_ICONS[name] }));
 
 export default function Atlas() {
   return (

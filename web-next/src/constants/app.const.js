@@ -16,20 +16,34 @@ export const STREAK_BONUS_XP = 15;
 export const STREAK_BONUS_INTERVAL = 7;
 export const DAY_LABELS = ["M","T","W","T","F","S","S"];
 
+// Pillars v2 (adopted Sep 28): 8 roots — 4 inner, 4 outer. On the Tree,
+// inner roots grow deep, outer roots spread wide.
+export const INNER_PILLARS = ["Body","Heart","Mind","Spirit"];
+export const OUTER_PILLARS = ["Connection","Purpose","Play","Home & Earth"];
+export const PILLARS = [...INNER_PILLARS, ...OUTER_PILLARS];
+
 export const PILLAR_COLORS = {
-  Body:"#c4783a", Mind:"#7a8c5e", Spirit:"#d4a85a", Relationships:"#9a8870",
-  Work:"#6478a0", Adventure:"#a06448", Creative:"#a06490"
+  Body:"#c4783a", Heart:"#b85f6e", Mind:"#7a8c5e", Spirit:"#d4a85a",
+  Connection:"#a06490", Purpose:"#6478a0", Play:"#4f9a94", "Home & Earth":"#8a7a52"
 };
 
-export const PILLARS = ["Body","Mind","Spirit","Relationships","Work","Adventure","Creative"];
+// The old 7 -> v2. Rows are rewritten by the pillars_v2 migration; this
+// also normalizes on read so nothing drops out of Pillar XP or Pursue
+// groups if the app runs against a database that hasn't been migrated yet.
+export const LEGACY_PILLAR_MAP = {
+  Relationships:"Connection", Work:"Purpose", Adventure:"Play", Creative:"Play", Recreation:"Play"
+};
+export function normalizePillar(cat) {
+  return LEGACY_PILLAR_MAP[cat] || cat;
+}
 
 export const VALUE_PILLAR = {
-  Communication:"Relationships", Courage:"Spirit", Presence:"Mind", Boundaries:"Relationships",
-  Discipline:"Body", Empathy:"Relationships", Curiosity:"Mind", Rest:"Body",
-  Integrity:"Work", Creativity:"Creative", Vulnerability:"Spirit", Gratitude:"Spirit",
-  Family:"Relationships"
+  Communication:"Connection", Courage:"Spirit", Presence:"Mind", Boundaries:"Connection",
+  Discipline:"Body", Empathy:"Connection", Curiosity:"Mind", Rest:"Body",
+  Integrity:"Purpose", Creativity:"Play", Vulnerability:"Heart", Gratitude:"Spirit",
+  Family:"Connection"
 };
-export const VALUE_PILLAR2 = { Discipline:"Work", Empathy:"Spirit", Curiosity:"Adventure" };
+export const VALUE_PILLAR2 = { Discipline:"Purpose", Empathy:"Heart", Curiosity:"Play" };
 
 // One distinct color per value, purely for the icon bubble — VALUE_PILLAR
 // maps several values onto the same pillar (e.g. Courage/Vulnerability/

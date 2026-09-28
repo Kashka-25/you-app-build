@@ -11,8 +11,8 @@ import { PILLAR_COLORS } from "../../constants/app.const";
 // look" treatment as Values.
 const MOCK_POSTS = [
   { id: 1, name: "Maya", initial: "M", tag: "Seeker", text: "Sunsets + good company + open hearts = magic.", likes: 12, color: PILLAR_COLORS.Spirit },
-  { id: 2, name: "Kai", initial: "K", tag: "Seeker", text: "What's one thing you're grateful for today?", likes: 8, color: PILLAR_COLORS.Adventure },
-  { id: 3, name: "Raptor", initial: "R", tag: "Seeker", text: "Grateful for this community & the little moments that change everything.", likes: 21, color: PILLAR_COLORS.Relationships }
+  { id: 2, name: "Kai", initial: "K", tag: "Seeker", text: "What's one thing you're grateful for today?", likes: 8, color: PILLAR_COLORS.Play },
+  { id: 3, name: "Raptor", initial: "R", tag: "Seeker", text: "Grateful for this community & the little moments that change everything.", likes: 21, color: PILLAR_COLORS.Connection }
 ];
 
 function PostCard({ post, liked, onLike }) {

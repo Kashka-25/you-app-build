@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, Compass, Dumbbell, Brain, Sparkles, HeartHandshake, Briefcase, Palette } from "lucide-react";
+import { Plus, Compass, Sparkles } from "lucide-react";
 import { DropdownSection } from "../Primitives";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
+import { PILLAR_ICONS } from "../../constants/pillarIcons";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import IdentityVisionModal from "./IdentityVisionModal";
@@ -11,18 +12,9 @@ function niceDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-// Same icon-per-Pillar mapping as PillarsPanel — one taxonomy (Pillars)
-// used consistently across Pursue, Values and here, rather than Identity
+// Shared icon-per-Pillar mapping — one taxonomy (Pillars) used
+// consistently across Pursue, Values and here, rather than Identity
 // inventing its own categories.
-const PILLAR_ICONS = {
-  Body: Dumbbell,
-  Mind: Brain,
-  Spirit: Sparkles,
-  Relationships: HeartHandshake,
-  Work: Briefcase,
-  Adventure: Compass,
-  Creative: Palette
-};
 
 function CategoryHeading({ category, count }) {
   const Icon = PILLAR_ICONS[category] || Sparkles;
