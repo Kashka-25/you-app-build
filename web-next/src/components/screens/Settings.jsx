@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle, Placeholder } from "../Primitives";
@@ -11,7 +11,7 @@ import { Button } from "../ui/Button";
 // yet, not because they belong to the same concept long-term.
 export default function Settings() {
   const { signOut } = useAuth();
-  const { profile, saveProfile, loaded } = useAppData();
+  const { profile, saveProfile, loaded, aiConsent, setAiConsentGranted } = useAppData();
 
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
@@ -85,12 +85,56 @@ export default function Settings() {
         </form>
       )}
 
+      <AiReflectionsSetting aiConsent={aiConsent} onChange={setAiConsentGranted} />
+
       <div className="mt-6">
         <Placeholder label="preferences">Notifications, privacy, data export — future.</Placeholder>
       </div>
 
       <Button variant="secondary" icon={LogOut} onClick={() => signOut()} className="w-full mt-2">
         Sign out
+      </Button>
+    </div>
+  );
+}
+
+// Revocable any time. Turning it off takes effect immediately: the app stops
+// asking Claude, and the Edge Functions refuse without a current yes.
+function AiReflectionsSetting({ aiConsent, onChange }) {
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const on = Boolean(aiConsent?.granted);
+
+  async function toggle() {
+    setSaving(true);
+    setError("");
+    try {
+      await onChange(!on);
+    } catch (e) {
+      console.error("[Settings] AI consent change failed:", e);
+      setError("Couldn't change that — check your connection and try again.");
+    }
+    setSaving(false);
+  }
+
+  const since = on && aiConsent.granted_at
+    ? new Date(aiConsent.granted_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    : null;
+
+  return (
+    <div className="mt-6 rounded-card bg-surface1 shadow-card p-4">
+      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
+        <Sparkles size={13} strokeWidth={1.75} />
+        AI reflections
+      </div>
+      <div className="text-bodySm text-textSecondary mb-3">
+        {on
+          ? `On${since ? ` since ${since}` : ""}. When you ask for a reflection, the words you chose are sent to Claude (by Anthropic) only to write it.`
+          : "Off. Nothing you write is sent to an AI. You'll be asked before it ever is."}
+      </div>
+      {error && <div className="text-bodySm text-red-500 mb-2">{error}</div>}
+      <Button variant="secondary" size="sm" disabled={saving || aiConsent === null} onClick={toggle}>
+        {saving ? "Saving…" : on ? "Turn off AI reflections" : "Turn on AI reflections"}
       </Button>
     </div>
   );

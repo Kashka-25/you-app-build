@@ -1,0 +1,40 @@
+---
+name: Stewardship
+slug: stewardship
+type: main
+parent:
+element: Earth
+pillars: [Home & Earth]
+balancing_kin: [acceptance]
+nourishing_kin: [responsibility, gratitude]
+synonyms: [guardianship, care of place]
+sub_values: [security, tending-home, care-for-nature]
+status: draft   # draft | edited | final
+---
+
+## Essence
+Caring for home and earth as if they were lent to you.
+
+## Light
+Stewardship is the heart of a guardian: tending your home, your resources and the living world as gifts to pass on. Like someone who plants trees whose shade they may never sit in, it looks beyond the moment. Plainly: using and caring for what you have, money, space, nature, with respect and a thought for those who come after.
+
+## Shadow (excess)
+Too much, and stewardship can become anxious control, or a crushing sense that the whole world's fate rests on your choices. Care turns into guilt, and guilt into paralysis.
+
+## Void (deficiency)
+Without stewardship, things drift: a home that feels temporary, resources that slip away, a sense of disconnection from the land. Often it's not carelessness but overwhelm. Tending one small patch well is a real beginning.
+
+## What keeps it whole
+Acceptance steadies stewardship. You can do your part with love without carrying the whole earth. The garden is shared; so is the tending.
+
+## Questionnaire notes
+- What place, thing or patch of earth do you feel most at home caring for?
+- Where does caring for the world become a weight you carry alone?
+
+## Challenges
+<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
+     The current 7 live in web-next/src/constants/values.const.js. -->
+### Awakening
+### Practising
+### Embodying
+### Mastering

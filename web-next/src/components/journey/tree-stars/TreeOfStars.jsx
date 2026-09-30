@@ -1,62 +1,78 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Plus, X, Dumbbell, Brain, Sparkles, HeartHandshake, Briefcase, Compass, Palette
-} from "lucide-react";
+import { Plus } from "lucide-react";
+import { PILLAR_ICONS } from "../../../constants/pillarIcons";
+import { VALUE_ICONS, getValueEntry } from "../../../constants/valueLibrary";
 import { useAppData } from "../../../lib/AppDataContext";
 import {
-  PILLAR_COLORS, VALUE_COLORS, VALUE_PILLAR, VALUE_PILLAR2, getTier, getPrestigeStage, prestigeRequirement
+  INNER_PILLARS, OUTER_PILLARS, VALUE_COLORS, VALUE_PILLAR, VALUE_PILLAR2, TIERS,
+  getTier, getPrestigeStage, prestigeRequirement
 } from "../../../constants/app.const";
-import { ALL_VALUES_LIB } from "../../../constants/values.const";
 import { easeOut } from "../../ui/motion";
 import IdentityVisionModal from "../IdentityVisionModal";
 import StoryOfYou from "./StoryOfYou";
 
-const SVG_W = 800, SVG_H = 980;
-const TRUNK_X = SVG_W / 2, WAIST_Y = 660;
-const PILLAR_BASE_Y = 430, PILLAR_ARCH = 150, PILLAR_MARGIN_X = 70;
-const ROOT_Y = 918, ROOT_MARGIN_X = 35;
-const EARTH_CX = TRUNK_X, EARTH_CY = SVG_H + 60, EARTH_RX = 560, EARTH_RY = 170;
-const STORY_ORB = { x: TRUNK_X, y: 55 };
+// Tree of YOU v2 (Sep 28) — a cosmic tree:
+//   roots    = the 8 Pillars, underground. Inner roots (Body, Heart, Mind,
+//              Spirit) grow deep; outer roots (Connection, Purpose, Play,
+//              Home & Earth) spread wide. Depth/spread grow with Pillar XP.
+//   trunk    = the Seeker, Seed Being at its base.
+//   branches = your Values. Thickness follows tier; fruit is lived depth
+//              (challenges completed + Light & Shadow explorations), coloured
+//              by prestige. Rested values are dormant branches: bare, never cut.
+//   sky      = the canopy reaches into the cosmos — visions as stars, and
+//              The Story of You above them.
+// Nothing moves on its own: growth shows on open and on the Seeker's taps.
 
-const PILLAR_ICONS = {
-  Body: Dumbbell, Mind: Brain, Spirit: Sparkles, Relationships: HeartHandshake,
-  Work: Briefcase, Adventure: Compass, Creative: Palette
-};
+const SVG_W = 800, SVG_H = 1120;
+const TRUNK_X = SVG_W / 2;
+const GROUND_Y = 720;          // soil line
+const TRUNK_TOP_Y = 560;       // where branches leave the trunk
+const BRANCH_BASE_Y = 360, BRANCH_ARCH = 150, BRANCH_MARGIN_X = 80;
+const STORY_ORB = { x: TRUNK_X, y: 58 };
+const MAX_FRUIT = 8;
 
+// Spread n items across an arch, sampling the middle of each slot so a
+// small canopy (two or three values) sits up and out rather than drooping
+// to the far edges.
 function archPos(i, n, baseX, width, baseY, arch) {
-  const t = n <= 1 ? 0.5 : i / (n - 1);
+  const t = (i + 0.5) / Math.max(n, 1);
   return { x: baseX + t * width, y: baseY - arch * Math.sin(t * Math.PI) };
 }
 
-// Bezier from a root up through a shared "trunk waist" and back out to a
-// branch tip — drawn as one continuous curve per root/pillar pair rather
-// than a literal shared trunk shape, which is what lets any number of
-// roots/branches converge and diverge convincingly without hand-authoring
-// a path per pair.
-function treePath(rootX, tipX, tipY) {
-  return `M ${rootX} ${ROOT_Y - 2} C ${rootX} 820, ${TRUNK_X} 770, ${TRUNK_X} ${WAIST_Y} `
-       + `C ${TRUNK_X} ${WAIST_Y - 70}, ${tipX} ${tipY + 130}, ${tipX} ${tipY}`;
+// Fruit deepens in colour with each prestige cycle.
+const FRUIT_COLORS = ["#E0A458", "#D9764A", "#C9A24D", "#B85F6E", "#8FA05E"];
+
+function branchPath(tipX, tipY) {
+  return `M ${TRUNK_X} ${TRUNK_TOP_Y + 20} C ${TRUNK_X} ${TRUNK_TOP_Y - 60}, ${tipX} ${tipY + 140}, ${tipX} ${tipY}`;
 }
 
-// Fans stars out above a branch tip in a wide upward arc, radius growing
-// per star so a cluster of any size (0 to many) staggers instead of
-// stacking in a straight, overlapping line.
-function starOffset(index, total) {
-  if (total === 1) return { dx: 0, dy: -115 };
-  const spread = Math.min(Math.PI * 0.85, 0.4 + total * 0.12);
-  const startAngle = -Math.PI / 2 - spread / 2;
-  const angle = startAngle + (index / (total - 1)) * spread;
-  const radius = 95 + (index % 3) * 26;
-  return { dx: Math.cos(angle) * radius, dy: Math.sin(angle) * radius };
+function rootPath(tipX, tipY) {
+  const dx = tipX - TRUNK_X;
+  return `M ${TRUNK_X + dx * 0.04} ${GROUND_Y - 6} C ${TRUNK_X + dx * 0.25} ${GROUND_Y + 50}, `
+       + `${tipX - dx * 0.35} ${tipY - 40}, ${tipX} ${tipY}`;
+}
+
+// A trunk that tapers from a wide base to a narrower crown.
+const TRUNK_SHAPE =
+  `M ${TRUNK_X - 30} ${GROUND_Y + 4} C ${TRUNK_X - 22} ${GROUND_Y - 60}, ${TRUNK_X - 14} ${TRUNK_TOP_Y + 80}, ${TRUNK_X - 11} ${TRUNK_TOP_Y + 10} ` +
+  `L ${TRUNK_X + 11} ${TRUNK_TOP_Y + 10} C ${TRUNK_X + 14} ${TRUNK_TOP_Y + 80}, ${TRUNK_X + 22} ${GROUND_Y - 60}, ${TRUNK_X + 30} ${GROUND_Y + 4} Z`;
+
+// Fruit hangs in a small arc beneath and around a branch tip.
+function fruitOffset(i, n) {
+  const spread = Math.min(Math.PI * 1.1, 0.5 + n * 0.22);
+  const start = Math.PI / 2 - spread / 2;
+  const a = n === 1 ? Math.PI / 2 : start + (i / (n - 1)) * spread;
+  const r = 26 + (i % 2) * 7;
+  return { dx: Math.cos(a) * r, dy: Math.sin(a) * r };
 }
 
 function NodeGlow({ x, y, r, color, active }) {
   return (
     <circle
       cx={x} cy={y} r={active ? r * 1.9 : r * 1.5}
-      fill={color} opacity={active ? 0.55 : 0.28} filter="url(#tosBlur)"
+      fill={color} opacity={active ? 0.55 : 0.26} filter="url(#tosBlur)"
       className="transition-all duration-500"
     />
   );
@@ -71,13 +87,17 @@ function NodeCore({ x, y, r, color }) {
   );
 }
 
-// A handful of small stars sampled along a spiral, each pre-computed as a
-// short run of (x, y, opacity) keyframes rather than a literal path —
-// framer-motion just interpolates between them. Every particle's path
-// starts exactly at the origin (r=0, index 0) and spirals out to some
-// scattered radius (index last) — direction of travel (burst out on open,
-// collapse in on close) is decided by which end PortalSwirl plays first,
-// but the r=0 end is always pinned to the circle either way.
+function NodeIcon({ Icon, x, y, size = 14 }) {
+  if (!Icon) return null;
+  return (
+    <foreignObject x={x - size / 2} y={y - size / 2} width={size} height={size} className="pointer-events-none">
+      <Icon size={size} color="white" strokeWidth={1.75} />
+    </foreignObject>
+  );
+}
+
+// Small stars sampled along a spiral, played outward when The Story of You
+// opens and inward when it closes. Only ever runs on a tap.
 function useSpiralParticles(count = 26, samples = 6) {
   return useMemo(() => Array.from({ length: count }, (_, i) => {
     const angle0 = (i / count) * 720 + (i % 2 === 0 ? 6 : -6);
@@ -96,11 +116,6 @@ function useSpiralParticles(count = 26, samples = 6) {
   }), [count, samples]);
 }
 
-// direction "in" = zooming into the circle: stars burst outward from it
-// (the "open" moment). direction "out" = zooming back out: the same
-// trajectories played in reverse, so stars sweep inward and vanish right
-// on the circle (the "close" moment). Either way, the animation is always
-// anchored exactly on "The Story of You" dot, never floating free of it.
 function PortalSwirl({ origin, direction = "in" }) {
   const particles = useSpiralParticles();
   if (!origin) return null;
@@ -125,17 +140,17 @@ function PortalSwirl({ origin, direction = "in" }) {
         const ys = reverse ? [...p.ys].reverse() : p.ys;
         const opacities = reverse ? [...p.opacities].reverse() : p.opacities;
         return (
-        <motion.div
-          key={p.id}
-          className="absolute rounded-full"
-          style={{
-            width: p.size, height: p.size, marginLeft: -p.size / 2, marginTop: -p.size / 2,
-            background: p.gold ? "#C9A24D" : "#EDE6D6"
-          }}
-          initial={{ x: xs[0], y: ys[0], opacity: 0 }}
-          animate={{ x: xs, y: ys, opacity: opacities }}
-          transition={{ duration: 0.9, ease: "easeIn" }}
-        />
+          <motion.div
+            key={p.id}
+            className="absolute rounded-full"
+            style={{
+              width: p.size, height: p.size, marginLeft: -p.size / 2, marginTop: -p.size / 2,
+              background: p.gold ? "#C9A24D" : "#EDE6D6"
+            }}
+            initial={{ x: xs[0], y: ys[0], opacity: 0 }}
+            animate={{ x: xs, y: ys, opacity: opacities }}
+            transition={{ duration: 0.9, ease: "easeIn" }}
+          />
         );
       })}
     </div>
@@ -143,79 +158,92 @@ function PortalSwirl({ origin, direction = "in" }) {
 }
 
 export default function TreeOfStars() {
-  const { pillars, values, identityVisions } = useAppData();
+  const { pillars, values, identityVisions, valueChallenges, reflections, level } = useAppData();
   const [selected, setSelected] = useState(null); // { type: "value"|"pillar"|"star", key }
-  const [addingFor, setAddingFor] = useState(null); // pillar name, or null
+  const [addingVision, setAddingVision] = useState(false);
 
-  const roots = useMemo(() => ALL_VALUES_LIB.map((lib, i) => {
-    const owned = values.find(v => v.name === lib.name);
-    const pos = archPos(i, ALL_VALUES_LIB.length, ROOT_MARGIN_X, SVG_W - ROOT_MARGIN_X * 2, ROOT_Y, 0);
-    return {
-      name: lib.name,
-      rating: owned?.rating || 0,
-      prestige: owned?.prestige || 0,
-      planted: Boolean(owned),
-      color: VALUE_COLORS[lib.name] || "var(--gold)",
-      pillars: [VALUE_PILLAR[lib.name], VALUE_PILLAR2[lib.name]].filter(Boolean),
-      x: pos.x
-    };
-  }), [values]);
-
-  const branches = useMemo(() => pillars.map((p, i) => {
-    const pos = archPos(i, pillars.length, PILLAR_MARGIN_X, SVG_W - PILLAR_MARGIN_X * 2, PILLAR_BASE_Y, PILLAR_ARCH);
-    return { ...p, x: pos.x, y: pos.y };
-  }), [pillars]);
-
-  const starsByPillar = useMemo(() => {
-    const map = {};
-    identityVisions.forEach(v => { (map[v.category] || (map[v.category] = [])).push(v); });
-    return map;
-  }, [identityVisions]);
-
-  const starPositions = useMemo(() => {
-    const map = {};
-    branches.forEach(b => {
-      const cluster = starsByPillar[b.name] || [];
-      cluster.forEach((v, i) => {
-        const off = starOffset(i, cluster.length);
-        map[v.id] = { x: b.x + off.dx, y: b.y + off.dy, pillar: b.name };
-      });
+  // ── Roots: the 8 Pillars ──
+  const roots = useMemo(() => {
+    const maxXp = Math.max(1, ...pillars.map(p => p.xp));
+    const byName = Object.fromEntries(pillars.map(p => [p.name, p]));
+    const inner = INNER_PILLARS.map((name, i) => {
+      const p = byName[name] || { name, xp: 0, color: "#9a8870" };
+      const growth = p.xp / maxXp;
+      const offsets = [-125, -45, 45, 125];
+      return { ...p, inner: true, growth, x: TRUNK_X + offsets[i] * (0.8 + growth * 0.3), y: GROUND_Y + 230 + growth * 140 };
     });
-    return map;
-  }, [branches, starsByPillar]);
+    const outer = OUTER_PILLARS.map((name, i) => {
+      const p = byName[name] || { name, xp: 0, color: "#9a8870" };
+      const growth = p.xp / maxXp;
+      const side = i < 2 ? -1 : 1;
+      const reach = 190 + growth * 150 + (i % 2 === 0 ? 0 : 40);
+      return { ...p, inner: false, growth, x: TRUNK_X + side * Math.min(reach, TRUNK_X - 50), y: GROUND_Y + 55 + (i % 2) * 50 + growth * 20 };
+    });
+    return [...inner, ...outer];
+  }, [pillars]);
+
+  // ── Branches: the Seeker's values (active first, then resting) ──
+  const branches = useMemo(() => {
+    const ordered = [...values.filter(v => v.status !== "rested"), ...values.filter(v => v.status === "rested")];
+    return ordered.map((v, i) => {
+      const prestige = v.prestige || 0;
+      const req = prestigeRequirement(prestige);
+      const tierIndex = TIERS.indexOf(getTier(Math.min(99, Math.round((v.rating / req) * 99))));
+      const aiDone = valueChallenges.filter(c => c.value_name === v.name && c.completed).length;
+      const explorations = new Set(reflections.filter(r => r.value_name === v.name && r.questionnaire === "light_shadow").map(r => r.session_id)).size;
+      const fruit = (v.completed || []).length + aiDone + explorations;
+      const pos = archPos(i, ordered.length, BRANCH_MARGIN_X, SVG_W - BRANCH_MARGIN_X * 2, BRANCH_BASE_Y, BRANCH_ARCH);
+      return {
+        name: v.name, rating: v.rating, prestige, tierIndex, fruit,
+        resting: v.status === "rested",
+        color: VALUE_COLORS[v.name] || "#C9A24D",
+        fruitColor: FRUIT_COLORS[prestige % FRUIT_COLORS.length],
+        pillars: [VALUE_PILLAR[v.name], VALUE_PILLAR2[v.name]].filter(Boolean),
+        x: pos.x, y: pos.y
+      };
+    });
+  }, [values, valueChallenges, reflections]);
+
+  // ── Sky: visions as stars, spread across the cosmos above the canopy ──
+  const stars = useMemo(() => {
+    const n = identityVisions.length;
+    return identityVisions.map((v, i) => {
+      const t = n <= 1 ? 0.25 : i / (n - 1);
+      let x = 70 + t * (SVG_W - 140);
+      if (Math.abs(x - TRUNK_X) < 70) x += x < TRUNK_X ? -70 : 70; // keep clear of The Story of You
+      return { ...v, x, y: i % 2 ? 150 : 105 };
+    });
+  }, [identityVisions]);
 
   const active = useMemo(() => {
     if (!selected) return null;
-    const vals = new Set(), pils = new Set(), stars = new Set();
-    function addPillar(name) {
+    const vals = new Set(), pils = new Set(), starIds = new Set();
+    const addPillar = name => {
       pils.add(name);
-      (starsByPillar[name] || []).forEach(s => stars.add(s.id));
-    }
+      stars.forEach(s => { if (s.category === name) starIds.add(s.id); });
+    };
     if (selected.type === "value") {
-      const r = roots.find(x => x.name === selected.key);
       vals.add(selected.key);
-      (r?.pillars || []).forEach(addPillar);
+      (branches.find(b => b.name === selected.key)?.pillars || []).forEach(addPillar);
     } else if (selected.type === "pillar") {
       addPillar(selected.key);
-      roots.forEach(r => { if (r.pillars.includes(selected.key)) vals.add(r.name); });
+      branches.forEach(b => { if (b.pillars.includes(selected.key)) vals.add(b.name); });
     } else if (selected.type === "star") {
-      const v = identityVisions.find(x => x.id === selected.key);
-      if (v) {
-        addPillar(v.category);
-        roots.forEach(r => { if (r.pillars.includes(v.category)) vals.add(r.name); });
+      const s = stars.find(x => x.id === selected.key);
+      starIds.add(selected.key);
+      if (s) {
+        pils.add(s.category);
+        branches.forEach(b => { if (b.pillars.includes(s.category)) vals.add(b.name); });
       }
     }
-    return { vals, pils, stars };
-  }, [selected, roots, starsByPillar, identityVisions]);
+    return { vals, pils, starIds };
+  }, [selected, branches, stars]);
 
   function toggle(type, key) {
     setSelected(prev => (prev && prev.type === type && prev.key === key ? null : { type, key }));
   }
 
-  function opacityClass(isMember) {
-    if (!active) return "opacity-100";
-    return isMember ? "opacity-100" : "opacity-[0.12]";
-  }
+  const dim = isMember => (active ? (isMember ? 1 : 0.12) : 1);
 
   const editingVision = selected?.type === "star" ? identityVisions.find(v => v.id === selected.key) : null;
   const [editOpen, setEditOpen] = useState(false);
@@ -225,12 +253,8 @@ export default function TreeOfStars() {
   const [portalDir, setPortalDir] = useState("in");
   const svgRef = useRef(null);
 
-  // Computed from the orb's known SVG-space coordinates mapped through the
-  // *svg element's* own bounding rect, not the clicked element's — the
-  // orb's clickable <g> also contains its label text below the dot, so
-  // that group's bounding box (and therefore its center) sits lower than
-  // the dot actually is. This maps STORY_ORB directly, so the portal is
-  // always centered on the dot itself, exactly where it was clicked.
+  // Maps the orb's SVG coordinates through the svg's own bounding rect, so
+  // the portal is centred on the dot itself, exactly where it was tapped.
   function svgPointToScreen(svgX, svgY) {
     const svg = svgRef.current;
     if (!svg) return { x: window.innerWidth / 2, y: 80 };
@@ -238,11 +262,6 @@ export default function TreeOfStars() {
     return { x: rect.left + (svgX / SVG_W) * rect.width, y: rect.top + (svgY / SVG_H) * rect.height };
   }
 
-  // Zooming in (open): stars burst outward from the circle. Zooming out
-  // (close): the same paths played in reverse, sweeping back in and
-  // vanishing right on the circle. Both ends of every particle's path are
-  // pinned to STORY_ORB, so the swirl always reads as coming from — or
-  // returning to — that exact dot, whichever direction it's playing.
   function toggleStory(open) {
     if (open) setPortalOrigin(svgPointToScreen(STORY_ORB.x, STORY_ORB.y));
     setPortalDir(open ? "in" : "out");
@@ -256,21 +275,27 @@ export default function TreeOfStars() {
     return `circle(${radiusPct}% at ${o.x}px ${o.y}px)`;
   }
 
-  const bgStars = useMemo(() => Array.from({ length: 60 }, () => ({
-    x: Math.random() * SVG_W, y: Math.random() * 250, r: Math.random() * 1.1 + 0.3, delay: Math.random() * 4
-  })), []);
+  // Static background stars (no twinkle loop — nothing moves on its own).
+  const bgStars = useMemo(() => {
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    return Array.from({ length: 60 }, () => ({
+      x: rand() * SVG_W, y: rand() * 280, r: 0.35 + rand() * 1.0, o: 0.15 + rand() * 0.4
+    }));
+  }, []);
 
   return (
     <div className="pt-1 pb-24 px-5">
       <div className="font-serif text-h2 font-medium mb-1">Tree of YOU</div>
       <p className="text-bodySm text-textSecondary mb-4 max-w-[46ch]">
-        Roots are your Values, branches are your Pillars, stars are the versions of yourself you're
-        orienting toward. Tap any of them to trace the connection.
+        Your Pillars are the roots, your Values the branches, bearing fruit as they ripen. The canopy
+        reaches into the stars: the versions of yourself you're growing toward. Tap anything to trace
+        what feeds it.
       </p>
 
       <motion.div
         className="relative rounded-card overflow-hidden border border-borderC"
-        style={{ background: "linear-gradient(180deg, #060b08 0%, #0c1611 38%, #101a14 100%)", boxShadow: "inset 0 0 60px -10px rgba(0,0,0,0.6)" }}
+        style={{ background: "linear-gradient(180deg, #060b08 0%, #0c1611 36%, #101a14 62%, #1a120b 64%, #0d0906 100%)", boxShadow: "inset 0 0 60px -10px rgba(0,0,0,0.6)" }}
         animate={{ scale: storyOpen ? 0.97 : 1, filter: storyOpen ? "blur(1.5px)" : "blur(0px)" }}
         transition={{ duration: 0.5, ease: easeOut }}
       >
@@ -279,15 +304,15 @@ export default function TreeOfStars() {
             <filter id="tosBlur" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur stdDeviation="6" />
             </filter>
-            {/* The ground roots visibly disappear into — a symbolic Earth
-                rather than a bare line, so "roots" reads as literal, not
-                just a UI baseline. Only its topmost arc is ever in frame,
-                which is what sells the "curve of a small planet" look. */}
-            <radialGradient id="tosEarth" cx="50%" cy="0%" r="85%">
-              <stop offset="0%" stopColor="#4a3524" stopOpacity="0.95" />
-              <stop offset="45%" stopColor="#241a12" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#0a0705" stopOpacity="0" />
-            </radialGradient>
+            <linearGradient id="tosSoil" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b2a1c" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#0d0906" stopOpacity="1" />
+            </linearGradient>
+            <linearGradient id="tosBark" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#3a2a1d" />
+              <stop offset="50%" stopColor="#6b4a2f" />
+              <stop offset="100%" stopColor="#3a2a1d" />
+            </linearGradient>
             <radialGradient id="tosGalaxy" cx="35%" cy="35%" r="65%">
               <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
               <stop offset="30%" stopColor="#C9A24D" stopOpacity="0.85" />
@@ -296,160 +321,154 @@ export default function TreeOfStars() {
             </radialGradient>
           </defs>
 
-          {bgStars.map((s, i) => (
-            <circle
-              key={i} cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6"
-              style={{ animation: `tosTwinkle 4.5s ease-in-out ${s.delay}s infinite` }}
-            />
-          ))}
+          {bgStars.map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6" opacity={s.o} />)}
 
-          <ellipse cx={EARTH_CX} cy={EARTH_CY} rx={EARTH_RX} ry={EARTH_RY} fill="url(#tosEarth)" />
-          <ellipse cx={EARTH_CX} cy={EARTH_CY} rx={EARTH_RX} ry={EARTH_RY} fill="none" stroke="#6b4a2f" strokeWidth={1.5} opacity={0.4} />
+          {/* Soil — the unseen: shadow as nourishment, not threat */}
+          <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y} L ${SVG_W} ${SVG_H} L 0 ${SVG_H} Z`} fill="url(#tosSoil)" />
+          <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y}`} fill="none" stroke="#6b4a2f" strokeWidth={1.5} opacity={0.5} />
+          <text x={24} y={GROUND_Y + 30} fontSize="11" fill="#EDE6D6" opacity={0.35} fontFamily="DM Sans, sans-serif" style={{ letterSpacing: "0.08em" }}>
+            OUTER ROOTS SPREAD WIDE
+          </text>
+          <text x={24} y={SVG_H - 22} fontSize="11" fill="#EDE6D6" opacity={0.35} fontFamily="DM Sans, sans-serif" style={{ letterSpacing: "0.08em" }}>
+            INNER ROOTS GROW DEEP
+          </text>
 
-          {/* Root -> branch links */}
-          {roots.flatMap(r => r.pillars.map(pn => {
-            const b = branches.find(x => x.name === pn);
-            if (!b) return null;
-            const isMember = active ? active.vals.has(r.name) && active.pils.has(pn) : false;
+          {/* Roots (Pillars) */}
+          {roots.map((r, i) => {
+            const isMember = active ? active.pils.has(r.name) : false;
             return (
               <motion.path
-                key={r.name + "-" + pn}
-                d={treePath(r.x, b.x, b.y)}
-                fill="none" stroke={r.color} strokeWidth={active && isMember ? 3 : 2}
+                key={r.name + "-root"}
+                d={rootPath(r.x, r.y)}
+                fill="none" stroke={r.color} strokeLinecap="round"
+                strokeWidth={2.5 + r.growth * 4 + (active && isMember ? 1.5 : 0)}
                 initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: active ? (isMember ? 0.95 : 0.06) : 0.5 }}
-                transition={{ pathLength: { duration: 1.1, ease: easeOut }, opacity: { duration: 0.4 } }}
+                animate={{ pathLength: 1, opacity: active ? (isMember ? 0.95 : 0.08) : 0.55 }}
+                transition={{ pathLength: { duration: 1.1, ease: easeOut, delay: 0.05 * i }, opacity: { duration: 0.4 } }}
               />
             );
-          }))}
-
-          {/* Star cluster links */}
-          {branches.map(b => {
-            const cluster = starsByPillar[b.name] || [];
-            return cluster.map((v, i) => {
-              const from = i === 0 ? { x: b.x, y: b.y } : starPositions[cluster[i - 1].id];
-              const to = starPositions[v.id];
-              const isMember = active ? active.pils.has(b.name) : false;
-              return (
-                <motion.line
-                  key={v.id}
-                  x1={from.x} y1={from.y} x2={to.x} y2={to.y}
-                  stroke={b.color} strokeWidth={active && isMember ? 1.8 : 1.2}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: active ? (isMember ? 0.9 : 0.04) : 0.35 }}
-                  transition={{ duration: 0.6, delay: 0.4 + i * 0.1 }}
-                />
-              );
-            });
           })}
 
-          {/* Roots */}
-          {roots.map((r, i) => {
-            const isMember = active ? active.vals.has(r.name) : false;
-            const baseOpacity = r.planted ? 1 : 0.4;
+          {/* Trunk — the Seeker */}
+          <path d={TRUNK_SHAPE} fill="url(#tosBark)" opacity={active ? 0.5 : 0.95} className="transition-opacity duration-500" />
+
+          {/* Branches (Values) */}
+          {branches.map((b, i) => {
+            const isMember = active ? active.vals.has(b.name) : false;
+            const width = b.resting ? 2 : 2.5 + b.tierIndex * 1.8 + Math.min(b.prestige, 4) * 0.6;
             return (
-              <motion.g
-                key={r.name}
-                className={`cursor-pointer transition-opacity duration-500 ${opacityClass(isMember)}`}
-                style={{ opacity: active ? undefined : baseOpacity }}
-                onClick={() => toggle("value", r.name)}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: active ? (isMember ? 1 : 0.12) : baseOpacity, y: 0 }}
-                transition={{ delay: 0.05 * i, duration: 0.5, ease: easeOut }}
-              >
-                <line x1={r.x} y1={ROOT_Y - 4} x2={r.x} y2={ROOT_Y + 42} stroke={r.color} strokeWidth={2.5} opacity={0.5} filter="url(#tosBlur)" />
-                <NodeGlow x={r.x} y={ROOT_Y} r={13} color={r.color} active={active && isMember} />
-                <NodeCore x={r.x} y={ROOT_Y} r={r.planted ? 6.5 : 5} color={r.color} />
-                {isMember && (
-                  <motion.text
-                    initial={{ opacity: 0 }} animate={{ opacity: 0.95 }}
-                    x={r.x} y={ROOT_Y + 26} textAnchor="middle" fontSize="12" fill="#EDE6D6" fontFamily="DM Sans, sans-serif"
-                  >
-                    {r.name}
-                  </motion.text>
-                )}
-              </motion.g>
+              <motion.path
+                key={b.name + "-branch"}
+                d={branchPath(b.x, b.y)}
+                fill="none" strokeLinecap="round"
+                stroke={b.resting ? "#7a7568" : b.color}
+                strokeDasharray={b.resting ? "5 6" : undefined}
+                strokeWidth={width + (active && isMember ? 1.2 : 0)}
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: active ? (isMember ? 0.95 : 0.07) : b.resting ? 0.45 : 0.75 }}
+                transition={{ pathLength: { duration: 1.1, ease: easeOut, delay: 0.3 + 0.05 * i }, opacity: { duration: 0.4 } }}
+              />
             );
           })}
 
-          {/* Branches */}
+          {/* Branch tips: foliage, icon, fruit, name */}
           {branches.map((b, i) => {
-            const isMember = active ? active.pils.has(b.name) : false;
-            const Icon = PILLAR_ICONS[b.name];
+            const isMember = active ? active.vals.has(b.name) : false;
+            const Icon = VALUE_ICONS[b.name];
+            const shownFruit = b.resting ? 0 : Math.min(b.fruit, MAX_FRUIT);
             return (
               <motion.g
                 key={b.name}
-                className={`cursor-pointer transition-opacity duration-500 ${opacityClass(isMember)}`}
-                onClick={() => toggle("pillar", b.name)}
+                className="cursor-pointer"
+                onClick={() => toggle("value", b.name)}
                 initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: active ? (isMember ? 1 : 0.12) : 1, scale: 1 }}
-                transition={{ delay: 0.4 + 0.08 * i, duration: 0.6, ease: easeOut }}
+                animate={{ opacity: dim(isMember) * (b.resting ? 0.6 : 1), scale: 1 }}
+                transition={{ delay: 0.7 + 0.06 * i, duration: 0.5, ease: easeOut }}
               >
-                <NodeGlow x={b.x} y={b.y} r={22} color={b.color} active={active && isMember} />
-                <NodeCore x={b.x} y={b.y} r={12} color={b.color} />
-                {Icon && (
-                  <foreignObject x={b.x - 8} y={b.y - 8} width="16" height="16" className="pointer-events-none">
-                    <Icon size={16} color="white" strokeWidth={1.75} />
-                  </foreignObject>
-                )}
-                <text x={b.x} y={b.y + 34} textAnchor="middle" fontSize="13" fill="#EDE6D6" fontFamily="DM Sans, sans-serif" opacity={0.9}>
-                  {b.name}
+                {!b.resting && <NodeGlow x={b.x} y={b.y} r={22} color={b.color} active={active && isMember} />}
+                <NodeCore x={b.x} y={b.y} r={b.resting ? 9 : 12} color={b.resting ? "#5d5a52" : b.color} />
+                <NodeIcon Icon={Icon} x={b.x} y={b.y} size={b.resting ? 12 : 15} />
+                {Array.from({ length: shownFruit }).map((_, f) => {
+                  const off = fruitOffset(f, shownFruit);
+                  return (
+                    <g key={f}>
+                      <circle cx={b.x + off.dx} cy={b.y + off.dy} r={4.6} fill={b.fruitColor} />
+                      <circle cx={b.x + off.dx - 1.3} cy={b.y + off.dy - 1.3} r={1.4} fill="white" opacity={0.45} />
+                    </g>
+                  );
+                })}
+                <text
+                  x={b.x} y={b.y - 22} textAnchor="middle" fontSize="12.5" fill="#EDE6D6"
+                  fontFamily="DM Sans, sans-serif" opacity={b.resting ? 0.6 : 0.92}
+                >
+                  {b.name}{b.resting ? " · resting" : ""}
                 </text>
               </motion.g>
             );
           })}
 
-          {/* Stars + per-branch "add a vision" affordance */}
-          {branches.map(b => {
-            const cluster = starsByPillar[b.name] || [];
-            const addPos = cluster.length > 0
-              ? { x: b.x + starOffset(cluster.length, cluster.length + 1).dx, y: b.y + starOffset(cluster.length, cluster.length + 1).dy }
-              : { x: b.x, y: b.y - 110 };
-            return (
-              <g key={b.name + "-stars"}>
-                {cluster.map((v, i) => {
-                  const pos = starPositions[v.id];
-                  const isMember = active ? active.stars.has(v.id) : false;
-                  return (
-                    <motion.g
-                      key={v.id}
-                      className={`cursor-pointer transition-opacity duration-500 ${opacityClass(isMember)}`}
-                      onClick={() => toggle("star", v.id)}
-                      initial={{ opacity: 0, scale: 0.3 }}
-                      animate={{ opacity: active ? (isMember ? 1 : 0.12) : 1, scale: 1 }}
-                      transition={{ delay: 0.9 + i * 0.12, duration: 0.5, ease: easeOut }}
-                    >
-                      <NodeGlow x={pos.x} y={pos.y} r={9} color="#EDE6D6" active={active && isMember} />
-                      <NodeCore x={pos.x} y={pos.y} r={4} color="#EDE6D6" />
-                      {isMember && (
-                        <motion.text
-                          initial={{ opacity: 0 }} animate={{ opacity: 0.95 }}
-                          x={pos.x + 12} y={pos.y + 4} fontSize="12" fill="#EDE6D6" fontFamily="DM Sans, sans-serif"
-                        >
-                          {v.title}
-                        </motion.text>
-                      )}
-                    </motion.g>
-                  );
-                })}
+          {branches.length === 0 && (
+            <text x={TRUNK_X} y={BRANCH_BASE_Y - 60} textAnchor="middle" fontSize="14" fill="#EDE6D6" opacity={0.6} fontFamily="DM Sans, sans-serif">
+              Values you choose will grow here as branches.
+            </text>
+          )}
 
-                <g
-                  className="cursor-pointer transition-opacity duration-300 hover:opacity-90"
-                  style={{ opacity: active ? 0.1 : 0.4 }}
-                  onClick={() => setAddingFor(b.name)}
-                >
-                  <circle cx={addPos.x} cy={addPos.y} r={11} fill="none" stroke="#EDE6D6" strokeDasharray="2.5 3" strokeWidth={1.5} />
-                  <foreignObject x={addPos.x - 6} y={addPos.y - 6} width="12" height="12" className="pointer-events-none">
-                    <Plus size={12} color="#EDE6D6" strokeWidth={2} />
-                  </foreignObject>
-                </g>
-              </g>
+          {/* Root tips */}
+          {roots.map((r, i) => {
+            const isMember = active ? active.pils.has(r.name) : false;
+            const Icon = PILLAR_ICONS[r.name];
+            return (
+              <motion.g
+                key={r.name}
+                className="cursor-pointer"
+                onClick={() => toggle("pillar", r.name)}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: dim(isMember) }}
+                transition={{ delay: 0.5 + 0.05 * i, duration: 0.5, ease: easeOut }}
+              >
+                <NodeGlow x={r.x} y={r.y} r={15} color={r.color} active={active && isMember} />
+                <NodeCore x={r.x} y={r.y} r={10} color={r.color} />
+                <NodeIcon Icon={Icon} x={r.x} y={r.y} size={12} />
+                <text x={r.x} y={r.y + 26} textAnchor="middle" fontSize="12" fill="#EDE6D6" opacity={0.85} fontFamily="DM Sans, sans-serif">
+                  {r.name}
+                </text>
+              </motion.g>
             );
           })}
 
-          {/* Floating above everything else in the sky — a small galaxy
-              that opens the Story of You cosmos when tapped, instead of
-              that being a separate section you had to know to scroll to. */}
+          {/* Seed Being, at the base of the trunk */}
+          <g opacity={active ? 0.4 : 1} className="transition-opacity duration-500">
+            <circle cx={TRUNK_X} cy={GROUND_Y - 28} r={18} fill="#C9A24D" opacity={0.35} filter="url(#tosBlur)" />
+            <NodeCore x={TRUNK_X} y={GROUND_Y - 28} r={8} color="#C9A24D" />
+            <text x={TRUNK_X + 22} y={GROUND_Y - 24} fontSize="11" fill="#EDE6D6" opacity={0.75} fontFamily="DM Sans, sans-serif">
+              {level?.name || "Seed"}
+            </text>
+          </g>
+
+          {/* Stars — visions, in the cosmos the canopy reaches toward */}
+          {stars.map((s, i) => {
+            const isMember = active ? active.starIds.has(s.id) : false;
+            return (
+              <motion.g
+                key={s.id}
+                className="cursor-pointer"
+                onClick={() => toggle("star", s.id)}
+                initial={{ opacity: 0, scale: 0.3 }}
+                animate={{ opacity: dim(isMember), scale: 1 }}
+                transition={{ delay: 1 + i * 0.08, duration: 0.5, ease: easeOut }}
+              >
+                <NodeGlow x={s.x} y={s.y} r={9} color="#EDE6D6" active={active && isMember} />
+                <NodeCore x={s.x} y={s.y} r={4} color="#EDE6D6" />
+                {isMember && (
+                  <text x={s.x + 12} y={s.y + 4} fontSize="12" fill="#EDE6D6" fontFamily="DM Sans, sans-serif">
+                    {s.title}
+                  </text>
+                )}
+              </motion.g>
+            );
+          })}
+
+          {/* The Story of You — opens the cosmos of Chapters when tapped */}
           <motion.g
             className="cursor-pointer"
             onClick={() => toggleStory(true)}
@@ -458,10 +477,7 @@ export default function TreeOfStars() {
             transition={{ delay: 1.2, duration: 0.6, ease: easeOut }}
           >
             <circle cx={STORY_ORB.x} cy={STORY_ORB.y} r={44} fill="url(#tosGalaxy)" opacity={0.5} filter="url(#tosBlur)" />
-            <circle
-              cx={STORY_ORB.x} cy={STORY_ORB.y} r={30} fill="none" stroke="#EDE6D6" strokeOpacity={0.3} strokeDasharray="1 5"
-              style={{ transformOrigin: `${STORY_ORB.x}px ${STORY_ORB.y}px`, animation: "tosSpin 24s linear infinite" }}
-            />
+            <circle cx={STORY_ORB.x} cy={STORY_ORB.y} r={30} fill="none" stroke="#EDE6D6" strokeOpacity={0.3} strokeDasharray="1 5" />
             <circle cx={STORY_ORB.x} cy={STORY_ORB.y} r={16} fill="url(#tosGalaxy)" />
             <text
               x={STORY_ORB.x} y={STORY_ORB.y + 46} textAnchor="middle" fontSize="10.5" fill="#EDE6D6" opacity={0.85}
@@ -471,11 +487,6 @@ export default function TreeOfStars() {
             </text>
           </motion.g>
         </svg>
-
-        <style>{`
-          @keyframes tosTwinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 0.55; } }
-          @keyframes tosSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        `}</style>
       </motion.div>
 
       <AnimatePresence>
@@ -493,19 +504,15 @@ export default function TreeOfStars() {
         )}
       </AnimatePresence>
 
-      {/* A gentle portal — small stars drawing inward along a spiral to the
-          exact click point (real pixel coordinates via
-          getBoundingClientRect, not a guessed percentage), layered above
-          the clip-path reveal. No fire, no color wheel — just the same
-          stars the rest of this view is made of, converging. */}
       <AnimatePresence>
         {portalFx && <PortalSwirl origin={portalOrigin} direction={portalDir} />}
       </AnimatePresence>
 
       <div className="flex gap-3 mt-3 text-caption text-textMuted flex-wrap">
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "var(--gold)" }} />Pillars</span>
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#9a8870" }} />Values</span>
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block bg-cream" />Visions</span>
+        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#9a8870" }} />Roots · Pillars</span>
+        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "var(--gold)" }} />Branches · Values</span>
+        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: FRUIT_COLORS[0] }} />Fruit · lived depth</span>
+        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block bg-cream" />Stars · visions</span>
       </div>
 
       <AnimatePresence mode="wait">
@@ -518,34 +525,47 @@ export default function TreeOfStars() {
         >
           {!selected && (
             <div className="text-bodySm text-[#8B8E87]">
-              Tap a root, a branch, or a star to trace the connection.
+              Tap a root, a branch, or a star to trace what feeds it.
             </div>
           )}
 
           {selected?.type === "value" && (() => {
-            const r = roots.find(x => x.name === selected.key);
-            const tier = getTier(Math.min(99, r.rating));
-            const stage = getPrestigeStage(r.prestige);
-            const req = prestigeRequirement(r.prestige);
+            const b = branches.find(x => x.name === selected.key);
+            if (!b) return null;
+            const entry = getValueEntry(b.name);
+            const stage = getPrestigeStage(b.prestige);
             return (
               <>
-                <div className="text-caption uppercase tracking-wide mb-1" style={{ color: r.color }}>Value · root</div>
-                <div className="font-serif text-h3 text-cream mb-1">{r.name}</div>
-                <div className="text-bodySm text-[#B8B3A9]">
-                  {r.planted ? `${stage.name} · ${tier.name} · ${r.rating}/${req}` : "Not yet planted — add it in Values."}
+                <div className="text-caption uppercase tracking-wide mb-1" style={{ color: b.color }}>
+                  Value · branch{b.resting ? " · resting" : ""}
                 </div>
+                <div className="font-serif text-h3 text-cream mb-1">{b.name}</div>
+                {entry?.essence && <div className="text-bodySm text-[#B8B3A9] italic mb-1.5">{entry.essence}</div>}
+                <div className="text-bodySm text-[#B8B3A9]">
+                  {b.resting
+                    ? "Resting — bare for now, never cut. Its growth is kept."
+                    : `${stage.name} · ${TIERS[b.tierIndex].name} · ${b.fruit} fruit of lived depth`}
+                </div>
+                {b.pillars.length > 0 && (
+                  <div className="text-bodySm text-[#8B8E87] mt-1">Draws from {b.pillars.join(" and ")}</div>
+                )}
                 <Link to="/you" className="inline-block mt-2 text-bodySm underline" style={{ color: "var(--gold)" }}>Open in Values →</Link>
               </>
             );
           })()}
 
           {selected?.type === "pillar" && (() => {
-            const b = branches.find(x => x.name === selected.key);
+            const r = roots.find(x => x.name === selected.key);
+            const fed = branches.filter(b => b.pillars.includes(r.name));
             return (
               <>
-                <div className="text-caption uppercase tracking-wide mb-1" style={{ color: b.color }}>Pillar · branch</div>
-                <div className="font-serif text-h3 text-cream mb-1">{b.name}</div>
-                <div className="text-bodySm text-[#B8B3A9]">{b.xp} XP · fed by {roots.filter(r => r.pillars.includes(b.name)).length} values</div>
+                <div className="text-caption uppercase tracking-wide mb-1" style={{ color: r.color }}>
+                  Pillar · {r.inner ? "inner root, grows deep" : "outer root, spreads wide"}
+                </div>
+                <div className="font-serif text-h3 text-cream mb-1">{r.name}</div>
+                <div className="text-bodySm text-[#B8B3A9]">
+                  {r.xp} XP · {fed.length ? `feeds ${fed.map(b => b.name).join(", ")}` : "feeds none of your values yet"}
+                </div>
                 <Link to="/you" className="inline-block mt-2 text-bodySm underline" style={{ color: "var(--gold)" }}>Open in Pillars →</Link>
               </>
             );
@@ -563,13 +583,15 @@ export default function TreeOfStars() {
         </motion.div>
       </AnimatePresence>
 
-      {identityVisions.length === 0 && (
-        <div className="text-caption text-textMuted mt-3">
-          No visions in the sky yet — tap the <Plus size={11} className="inline -mt-0.5" strokeWidth={2} /> above any branch, or add one from the Identity tab.
-        </div>
-      )}
+      <button
+        onClick={() => setAddingVision(true)}
+        className="flex items-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-2 mt-3"
+      >
+        <Plus size={14} strokeWidth={1.75} />
+        Add a vision to the sky
+      </button>
 
-      <IdentityVisionModal open={Boolean(addingFor)} initialCategory={addingFor} onClose={() => setAddingFor(null)} />
+      <IdentityVisionModal open={addingVision} onClose={() => setAddingVision(false)} />
       <IdentityVisionModal open={editOpen} vision={editingVision} onClose={() => setEditOpen(false)} />
     </div>
   );

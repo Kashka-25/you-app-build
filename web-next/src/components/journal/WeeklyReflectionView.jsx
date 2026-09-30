@@ -75,8 +75,11 @@ export default function WeeklyReflectionView() {
       const result = await generateWeeklyReflection(weekStart);
       if (result.empty) setEmptyMessage(result.message);
     } catch (e) {
-      console.error("[WeeklyReflectionView] generate failed:", e);
-      setError("Couldn't build this week's reflection — check the Edge Function is deployed and try again.");
+      // "Not now" on the consent prompt isn't a failure — say nothing.
+      if (e?.code !== "consent_declined") {
+        console.error("[WeeklyReflectionView] generate failed:", e);
+        setError("Couldn't build this week's reflection — check the Edge Function is deployed and try again.");
+      }
     }
     setLoading(false);
   }

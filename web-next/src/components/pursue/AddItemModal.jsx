@@ -20,8 +20,9 @@ const labelClass = "text-label uppercase text-textMuted";
 
 // Handles both "add a new pursuit" and "edit an existing one" — same form
 // either way, prefilled and pointed at editItem when an `item` is passed in
-// (same pattern as AddMomentModal/IdentityVisionModal).
-export default function AddItemModal({ open, onClose, defaultType = "habit", item }) {
+// (same pattern as AddMomentModal/IdentityVisionModal). `prefill` seeds a
+// new pursuit (e.g. a dream planted from Freeing the Dream).
+export default function AddItemModal({ open, onClose, defaultType = "habit", item, prefill }) {
   const { addItem, editItem, deleteItem } = useAppData();
   const isEdit = Boolean(item);
   const [name, setName] = useState("");
@@ -51,11 +52,11 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       setIntention(item.intention || "");
       setCreatedDate(item.createdDate || todayKey());
     } else {
-      setName("");
+      setName(prefill?.name || "");
       setType(defaultType);
-      setCat(PILLARS[0]);
+      setCat(prefill?.cat || PILLARS[0]);
       setSubcat("");
-      setNote("");
+      setNote(prefill?.note || "");
       setTags([]);
       setMilestones([]);
       setIntention("");
@@ -63,7 +64,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
     }
     setTagInput("");
     setMsText("");
-  }, [open, item, defaultType]);
+  }, [open, item, defaultType, prefill]);
 
   function addTag(e) {
     if (e.key && e.key !== "Enter") return;

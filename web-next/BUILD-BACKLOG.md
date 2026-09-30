@@ -30,73 +30,71 @@ everyone, regardless of how any individual mind works.
 
 ---
 
-## Fix first (small, high-value) — done Jul 16
+## Fix first (small, high-value)
 
-- [x] Hamburger menu overlay scrim — now `bg-black/60` + `backdrop-blur-sm`,
-      hero properly recedes instead of bleeding through.
-- [x] Hero pill relabeled "Current Chapter" → "Level — Seedling". "Current
-      Chapter" is reserved for when real Chapters data exists.
+- [x] Hamburger menu overlay — hero text bleeds through behind the scrim
+      when the menu is open (see screenshots, Jul 15). Scrim needs full
+      opacity or the hero needs to properly recede/blur behind it.
+- [x] Hero pill currently reads "Current Chapter — Seedling" — this is
+      actually the **Seed Being level**, not a Life Chapter. These are two
+      separate systems (see `03-YOU-LIVING-BIOGRAPHY-pivot-brief.md`).
+      Relabel to "Level — Seedling" now. Reserve "Current Chapter" for when
+      real Chapters data exists, so the two concepts don't blur together
+      from day one. *(Done: pill no longer exists — Home redesign
+      replaced it with the real current Chapter from `pickCurrentChapter`.)*
 
-## Build: the Add action-sheet gap — done Jul 16
+## Build: the Add action-sheet gap
 
-`AddActionSheet.jsx` now shows the 3-choice sheet on tapping **+**:
+> **Built Sep 28:** top level is Pursuit · Today · Journal. Pursuit →
+> Habit / Goal / Dream (opens `AddItemModal`). Journal → Entry / Idea /
+> Experience (auto-tagged) plus "Add a memory with a photo instead".
+> Today's list shows on Home as a "Today" card.
+> `todos` migration run Sep 28.
 
-- [ ] **Today's list** — still an open data-shape decision (reuse `items`
-      with `type: "todo"`, or its own shape?). The sheet stops at surfacing
-      this question rather than guessing — nothing is built here yet.
+Claude Code flagged (Jul 15) that `nav-bars-mockup.html` specifies a 3-choice
+sheet on tapping **+**, but the app currently jumps straight to the full
+`AddItemModal`. This needs actually building, not just a rename:
+
+- [x] **Today's list** — quick one-off task, today only. **Open decision:**
+      does this reuse the `items` table with a new `type: "todo"`, or does
+      it need its own shape? Decide before building — this is a real
+      schema decision, not just UI. *(Decided: own `todos` table — no
+      Pillar, XP or streaks; only today's show, unfinished ones fall away.)*
 - [x] **Habit, goal, or dream** — routes to the existing `AddItemModal`,
       unchanged.
-- [x] **Journal entry** — working quick-capture UI; honest in the confirmation
-      copy that Reflections is still a placeholder so nothing persists yet.
+- [x] **Journal entry** — quick reflection entry, feeds the Reflections
+      screen (currently placeholder — check whether Reflections needs real
+      wiring now or can stay a placeholder that this feeds later).
 
-## Other loose ends — confirmed Jul 16
+## Other loose ends to confirm, not just build
 
-- [x] `/styleguide` exists and loads clean (`src/components/screens/Styleguide.jsx`).
-- [x] Home's "Living Atlas" explore card is confirmed **hardcoded**, not
-      dynamic — noting so it isn't mistaken for finished logic later.
-- [x] Values challenges do **not** auto-regenerate once a value's full
-      challenge list is completed — confirmed no such logic exists in
-      `completeChallenge` or `values.const.js`. Needs a scoping decision
-      (where does "new" challenge content come from?) before building.
+- [x] Has the Phase 1 `/styleguide` component library actually been built
+      yet? If Phase 2 screens are being styled before it exists, components
+      (cards, buttons, inputs) are being designed twice. Check before
+      continuing Phase 2. *(Yes — `/styleguide` + `components/ui/`.)*
+- [x] Home's "Living Atlas" explore card — confirm whether the "one
+      contextual card" logic is actually dynamic (e.g. picks Healing Journey
+      vs Atlas based on recent activity) or currently hardcoded. Hardcoded
+      is fine for now — just don't want it mistaken for finished logic.
+      *(Moot: the Home redesign removed the explore card.)*
 
 ---
 
 ## Phase 2 — screen-by-screen order
 
-- [x] **Home** — built
-- [x] **YOU tab** — Pillars/Values rebuilt as icon-led accordions (lucide
-      icons, expand/collapse), Seed Being avatar, Legacy card. Pillars now
-      level up every 100 XP with a fill-and-reset bar + badge, same pattern
-      as Values' tiers. Avatar-upgrade-station is a placeholder card only
-      (same treatment as Legacy) — the mechanic itself isn't designed yet.
+- [x] **Home** — built, minor fixes above aside
+- [~] **YOU tab** (formerly Profile) — Pillars + Values attribute bars, Seed
+      Being, level/stats, Legacy card *(built: Seed Being + level, Pillars,
+      Values, Legacy link; avatar upgrade station still a placeholder)*
 - [x] **Journey** — segmented control (Chapters / Tree & Stars /
-      YOUnderstanding) built. Chapters has mock era cards (name + date
-      range + blurb) plus a Season card, Your Pursuits ordered right after
-      Season. Tree & Stars is a single fused ambient scene (tree rooted
-      below, sky/starfield above, real time-of-day, independent of the
-      dark/light toggle) — tapping the tree opens the interactive Tree of
-      YOU (roots = 12 Values by tier, canopy = 7 Pillars by XP, tap either
-      to trace the Value→Pillar connection); tapping the sky opens
-      Constellations. Back from either returns to the ambient scene.
-- [x] **Pursue** — migrated to the design system (floating cards, icons,
-      type scale). All data calls (items, completeItem, toggleDay,
-      toggleMilestone, deleteItem, unachieveItem, addItem) unchanged.
-      **Habit XP exploit fixed**: check-in XP is now idempotent per
-      day-slot per prestige cycle (undo zeroes the XP but keeps a
-      permanent lock, so toggling on/off/on can't re-farm it). Streak is
-      now derived from the days array instead of tracked incrementally, so
-      it can't drift. New: 7-day streaks offer a prestige reset (fresh
-      cycle + permanent tier badge).
-- [x] **Everything else** — given basic interactive (local-state, not
-      backend-wired) shells instead of static placeholders: Events
-      (join/leave), CommYOUnity (likeable mock feed — **see decision
-      below, this is about to be replaced with real Kronk data**), Healing
-      (session timeline), Therapists (booking flow), Challenges (full
-      Active/Suggested/Overcome flow per the spec below), Saved (tabbed
-      shell, category still unscoped), Review (real feedback form), Shop
-      (mock cart, no real commerce). Empatherapy and a new Settings screen
-      (Settings/Account consolidated here from the YOU tab) stay minimal
-      parked stubs — both genuinely deferred, not under-built.
+      YOUnderstanding), Life Chapters cards, Season indicator *(plus an Identity
+      tab; Season is a preview until AI seasons exist)*
+- [x] **Pursue** (full list — reached from Journey → Chapters or Home
+      "View all") — most function-heavy screen, go carefully *(built: filters, Pillar
+      groups, nested sub-categories, milestones, prestige)*
+- [ ] **Everything else** (lower priority, still placeholder): CommYOUnity,
+      Atlas, Tree & Stars detail, Healing Journey, Therapists, Empatherapy,
+      Events/Calendar, Shop, Challenges, Saved, Review, Legacy Mode
 
 ---
 
@@ -104,60 +102,12 @@ everyone, regardless of how any individual mind works.
 
 - `DEV_MODE` stays `"bypass"` — building with mock data deliberately, not
   wiring real login yet.
-- Don't touch `AppDataContext.jsx` / `AuthContext.jsx` without asking —
-  that's the data-layer friend's territory.
-- Kronk integration stays contained in its own file(s), not folded into
-  `AppDataContext.jsx`/`AuthContext.jsx` or scattered into `Community.jsx`
-  as inline fetches — see the CommYOUnity section below for why.
+- Solo build (Sep 28): the data layer is ours now. Change
+  `AppDataContext.jsx` / `AuthContext.jsx` deliberately — one migration
+  at a time, tested with mock data first.
 - Stay on `feature/living-biography-ui`. No new branches.
 - Seed Being keeps its existing name/branding — not renamed. Only the
   Journey insight feature was renamed, to **YOUnderstanding**.
-
----
-
-## Kronk Integration Cross-Reference Notes (added Jul 16)
-
-Prep for whoever runs the Kronk auth/API setup session — open questions
-and dependencies gathered in one place so they don't get rediscovered
-mid-build, and so the session can cover both CommYOUnity and the
-Calendar-Kronk skeleton (see Calendar below) in one pass rather than two.
-
-- **Auth/account linking — unresolved.** Does a YOUser need a separate
-  Mastodon account, or does YOU auto-provision one on Kronk? Where would a
-  Kronk identity/token live (`profiles` table? its own table?) and under
-  what RLS rule? **Flag explicitly:** `DEV_MODE` is still `"bypass"` in
-  `AuthContext.jsx` — real auth isn't wired yet, so don't build the Kronk
-  auth flow against mock auth by mistake. Real login needs to land first,
-  or at least be accounted for in how tokens get associated with a user.
-- **Data/security boundary.** No Kronk API keys or tokens should ever live
-  in the vanilla app's client-side JS at the repo root — it has no build
-  step, so anything in `js/` is fully visible to anyone who views source.
-  This constraint holds until/unless the React + Vite migration fully
-  replaces the vanilla app; until then, any Kronk credentials belong
-  server-side or in `web-next` env vars, never in `js/`.
-- **Notification bell.** The bell already needs to surface CommYOUnity
-  notifications (per the nav decisions). If Kronk adds its own
-  notification types (mentions, boosts, replies), document that event
-  schema here when it's known, so the bell's notification model isn't
-  designed twice — once for the mock, once for real Kronk events.
-- **Branding.** Confirm the "Proudly powered and supported by Kronk"
-  credit line and the feed's reskin-to-YOU-palette approach before build
-  starts, not as an afterthought once the feed is already pulling in.
-- **Shop.** YOU's marketplace and Kronk's marketplace are separate
-  systems with some crossover items only, not a merged store/inventory
-  (see the Shop brain-dump note below). Don't let the Kronk integration
-  session accidentally wire shared inventory between the two.
-- **Therapists.** Open idea, not decided: a filter/toggle between
-  therapist-authored posts and their linked Kronk feed, and whether
-  that's built inside Empatherapy or natively in YOU. Leave open — don't
-  build this as a side effect of the CommYOUnity integration work.
-- **Share.** Referral system + shareable YOU profile link that
-  auto-connects a recipient to CommYOUnity — depends on Kronk accounts
-  existing. Noting the dependency only; not scoped for this pass.
-- **Build order.** This integration is intentionally ahead of the
-  ecosystem doc's originally stated order (Kronk was planned after
-  Empatherapy) — confirmed decision (Jul 16), not scope creep. See the
-  CommYOUnity brain-dump note below for the full context.
 
 ---
 
@@ -169,32 +119,12 @@ existing, and a few overlap with things already defined elsewhere in the
 ecosystem docs (flagged below).
 
 ### CommYOUnity
-- **Decision confirmed (Jul 16): real Kronk integration, now.** This
-  supersedes the earlier "rename only, no Kronk wiring yet" decision and
-  moves Kronk earlier than the ecosystem build order originally had it
-  (YOU Core → Empatherapy → Kronk → Elemental Game) — worth a corresponding
-  note in `03-YOU-LIVING-BIOGRAPHY-pivot-brief.md` if that order is
-  genuinely changing, not just this one feature jumping the queue.
-- **Containment rule, not a suggestion: keep all Kronk integration code in
-  its own file(s)** — e.g. a `KronkContext.jsx` / `lib/kronkClient.js`,
-  parallel to how `AppDataContext.jsx` and `AuthContext.jsx` are already
-  split out, not folded into either of them. `Community.jsx` should read
-  from that new context/hook the same way every other screen reads from
-  `useAppData()` — it shouldn't grow inline `fetch` calls to Kronk's API,
-  and Kronk's data/auth shape shouldn't leak into `AppDataContext.jsx`.
-  This is what keeps the two data sources (Supabase for the core app,
-  Kronk for the social feed) from cross-contaminating each other as the
-  codebase grows — every other screen should be able to keep ignoring
-  Kronk entirely, the same way they currently ignore Supabase auth details.
-- Pull the feed in from Kronk (friend's Mastodon server), reskin to YOU
-  branding, credit line: "Proudly powered and supported by Kronk."
-- `Community.jsx` currently has a **mock local-state feed** (post cards
-  with like-toggling, no persistence) — built as a structural placeholder,
-  not real data. Whoever wires up Kronk will likely replace this outright
-  rather than adapt it, since a Mastodon-shaped feed (boosts, replies,
-  media attachments, remote authors) doesn't map cleanly onto the
-  simple post shape mocked here. Treat the current UI as a rough visual
-  reference, not a data contract to preserve.
+- Real integration with Kronk (friend's Mastodon server) — pull the feed in,
+  reskin to YOU branding, credit line: "Proudly powered and supported by
+  Kronk." **This is further than the "rename only, no Kronk wiring yet"
+  decision on record** — worth explicitly re-confirming timing before
+  Claude Code builds toward it, since build order currently has Kronk as a
+  later mission.
 
 ### Therapists
 - Once Empatherapy exists as its own site, Therapists page links out to it
@@ -207,26 +137,8 @@ ecosystem docs (flagged below).
 ### Journey section — per-feature notes
 - **Constellations** — unchanged: memories as stars, pulled from Memory
   Bank, connecting stars reveals patterns.
-- **Tree of YOU** — resolved driver: **Values**. Design direction: Values
-  are already mechanically linked to Pillars in the data model (each Value
-  feeds one or two Pillars via `VALUE_PILLAR`/`VALUE_PILLAR2` in
-  `app.const.js` — completing a Value challenge already awards XP to its
-  linked Pillar). The tree should make that existing relationship visible
-  and interactive, not invent a new one:
-  - **Roots = the 12 Values.** Each root's thickness/color follows the
-    Value's tier (Awakening → Practising → Embodying → Mastering, using
-    the existing tier colors).
-  - **Branches/canopy = the 7 Pillars.** Fullness/leaf density follows
-    Pillar XP, same data already computed in `pillars.js`/`PillarsPanel`.
-  - **The interaction:** tapping a root highlights which branch(es) it
-    feeds (a glow/line through the trunk, following the existing
-    Value→Pillar mapping); tapping a branch highlights which roots feed
-    it. This turns "here's a value, here's a pillar" from two separate
-    lists into one visual cause-and-effect map — the actual teaching
-    value of the metaphor.
-  - Keep this distinct from Seed Being: Seed Being is identity/mythic
-    progression ("who I'm becoming"), the Tree is a structural map of
-    growth ("here's what's feeding what"). Different job, both stay.
+- **Tree of YOU** — **SUPERSEDED (Sep 28)**: roots are now Pillars,
+  branches are Values. See "Values System → Tree of YOU v2" below.
 - **Chapters** — recommendation (Cassidy to confirm): give it a distinct
   job by thinking of Journey as three zoom levels, not three overlapping
   features —
@@ -270,13 +182,6 @@ ecosystem docs (flagged below).
   personal calendar; pull in Kronk events posted by friends; pull in
   Empatherapy session bookings. Depends on both Kronk and Empatherapy
   existing. Not scoped, just noted.
-- **Kronk event pull-in skeleton built Jul 16** — `Events.jsx` ("Events /
-  Calendar" in the nav) now renders a "From Kronk" section alongside
-  personal events, using `EventCard`'s new optional `source`/`organizer`/
-  `link` props for the "via Kronk" tag, host name, and link back to the
-  Kronk post. Real API wiring is pending the Kronk integration session —
-  single seam at `fetchKronkEvents()` in `src/lib/kronkClient.js`. Mock
-  data only, nothing here makes a real network call yet.
 
 ### YOU tab
 - Direction: Pillars/Values XP should lead to something *usable and
@@ -353,3 +258,189 @@ choice at the point of donating.
   (current painterly landscape style) is fine to keep using in the
   meantime — don't block build momentum waiting on final brand assets.
 
+
+---
+
+## Values System + Questionnaires (Sep 28) — approved direction
+
+Replaces the fixed 12-value library. Access to values is **never
+paywalled**; only AI depth that costs money is premium.
+
+### Locked decisions
+- **Slots:** start with **5** active values, gently encouraging (never
+  requiring) one from each Element. **+1 slot the first time each value
+  crosses into a new tier** (Practising, Embodying, Mastering). Prestige
+  cycles deepen fruit, not slots, so slot growth can't loop.
+  Maximum slot cap: **9** (decided Sep 28).
+- **Pillars v2 (adopted Sep 28): 8 roots — 4 inner, 4 outer.** See
+  "Pillars v2" section below.
+- **Sub-values:** branch out from a parent value when it reaches
+  **Practising**.
+- **Rested values keep their XP and tier.** Rotation is free, unlimited.
+- **Free tier:** 3 AI-personal challenges per custom value.
+- **Reflections:** new `reflections` table, surfaced in the Journal tab.
+- **v1 library:** 40 main values (parent values), each with sub-values
+  that unfold as the parent deepens. v2 expands toward ~150 / 250+.
+- **Language:** nothing is "locked". Values *unfold*, *branch*, *ripen*.
+  All 40 main values are always choosable; slots are capacity for focus,
+  not permission.
+- **Suggestions, not favouritism:** after a tier crossing, offer 2–3
+  kin values (balancing / nourishing) drawn from the Seeker's own
+  answers and the Codex kinship web. Never ranked by popularity;
+  library browsed by Element or A–Z.
+- **Value card order:** Seeker writes their own definition **first**;
+  YOU's perspective is revealed after (avoids anchoring).
+- **Tier-crossing moment:** one brief, personal, kind line. No confetti.
+- **Premium (v2):** `tailor-value-questions`, AI-personal challenges
+  beyond the free 3, YOUnderstanding definition-evolution reflections.
+
+### Current XP gates (found Sep 28, `app.const.js` + `js/config.js`)
+- Value rating 0–99: Awakening 0–25 · Practising 26–50 ·
+  Embodying 51–75 · Mastering 76–99.
+- Challenges award 2–8 pts. web-next already has prestige cycles
+  (`prestigeRequirement`, `getPrestigeStage`): tier is read from progress
+  through the current cycle.
+- Seed Being levels (total XP): Seedling 0 · Ember 100 · Wanderer 250 ·
+  Seeker 500 · Alchemist 900 · Sage 1500 · Oracle 2500 · Elder 4000.
+- [x] Store `highest_tier_reached` per user value, so slot unlocks and
+      sub-value unfolding trigger once, independent of prestige resets.
+
+### Pillars v2 — adopted Sep 28
+Replaces the 7 Pillars (and the short-lived Recreation addition).
+
+| | Pillar | Holds | Absorbs |
+|---|---|---|---|
+| Inner | **Body** | Health, movement, rest, sensation | Body |
+| Inner | **Heart** | Emotions, feeling, healing, emotional literacy | new |
+| Inner | **Mind** | Thought, learning, curiosity, perspective | Mind |
+| Inner | **Spirit** | Meaning, practice, connection to the greater | Spirit |
+| Outer | **Connection** | Love, family, friendship, community | Relationships |
+| Outer | **Purpose** | Work, vocation, contribution | Work |
+| Outer | **Play** | Adventure, recreation, creativity, joy | Adventure + Creative |
+| Outer | **Home & Earth** | Place, nature, security, resources | new |
+
+Rule: every habit/goal/dream has one obvious Pillar, optional second.
+On the Tree: inner roots grow deep, outer roots spread wide.
+
+- [x] `app.const.js`: replace `PILLARS` list, `PILLAR_COLORS`, pillar
+      icons (`PillarsPanel`), Pursue category picker. *(Icons now shared in
+      `constants/pillarIcons.js`; Atlas regions follow Pillars too.)*
+- [x] Migration: `items.cat`, `memory.cat` and `identity_visions.category` — Relationships →
+      Connection, Work → Purpose, Adventure → Play, Creative → Play.
+- [x] Remap `VALUE_PILLAR` / `VALUE_PILLAR2` (and the Codex `pillars`
+      field) to the new 8. Rest → Body or Play; Vulnerability → Heart.
+      *(Rest → Body; Empathy's second Pillar Spirit → Heart.)*
+- [x] Freeing the Dream banks: write Heart, Play, Home & Earth; merge
+      old Adventure/Creative/Recreation questions into Play. *(All 8 drafted
+      in `src/constants/questionnaires.js` — Cassidy to edit the wording.)*
+- [x] Pillar XP: recompute from `memory` after migration (derived, so
+      no stored totals to fix). *(App also maps old names on read via
+      `normalizePillar`, so XP is correct before the migration runs.)*
+- [ ] Legacy vanilla build: leave on old 7 unless still in active use.
+
+### The Values Codex (content — source of truth)
+Working name: **The ValYOU's Codex**. One entry per value; feeds seed
+data, AI prompts, challenges, and questionnaire tailoring.
+Lives in the repo (versioned with git), compiled to seed SQL/JSON:
+
+```
+content/valyous-codex/
+  _TEMPLATE.md
+  water/
+    compassion/
+      compassion.md        ← main value
+      kindness.md          ← sub-value (parent: compassion)
+      self-compassion.md
+  fire/ …
+```
+Folder per Element → folder per main value → sub-value files inside.
+~400 files, but never more than ~10 in any one folder.
+- [x] Entry template: name, essence line, Light, Shadow (excess),
+      Void (deficiency), balancing kin, nourishing kin, Pillars (1–2),
+      Element, synonyms, sub-values.
+- [~] Write 40 main values (drafted with Claude, edited in YOU's voice).
+      *(All 40 drafted Sep 28 — warm, poetic, plain meaning alongside each
+      metaphor. `status: draft` until Cassidy's pass. `npm run codex`
+      compiles them into the app + `supabase/codex/values_library.sql`.)*
+- [ ] Curated challenges for most-chosen ~20: 4 per tier
+      (2 Light : 1 Shadow : 1 Integration).
+- [ ] Voice rule: YOU never claims to heal or fix. It holds space for
+      light and dark as the full human experience.
+
+### Questionnaires
+- [x] **Freeing the Dream** (per Pillar): Longing → Vision → Weight →
+      Seed; close with plant into Pursue / hold as seed / release.
+- [x] **Light & Shadow of a Value**: Light / Shadow / Void / Integration;
+      one question per screen; save and return. Also used at onboarding
+      to help choose the first values. *(Built Sep 28; onboarding use
+      not yet wired.)*
+- [ ] Revisited at each tier crossing; stored in `definition_history`.
+
+### Data layer
+- [~] Tables: `values_library`, `user_values` (extend), `value_challenges`,
+      `reflections`, `custom_value_signals`. *(Done in
+      `20260928140000_values_system.sql` except `custom_value_signals`,
+      which waits for custom values.)*
+- [ ] `ai_usage` table + token logging in every Edge Function
+      (suggest-value-challenges, suggest-chapters,
+      reflect-on-journal-entry, weekly-reflection,
+      transcribe-journal-photo). *(Logging done in all five; confirm table + RLS.)* RLS on all
+      user-owned rows; library + shared challenges read-only public.
+- [x] Migrate existing 12 values into library; map existing user rows.
+      *(13 incl. Family; Elements are a first proposal until the Codex.)*
+- [ ] Move `VALUE_PILLAR` / `VALUE_PILLAR2` into DB; update `pillars.js`.
+- [x] Slot count derived from tiers, not stored.
+- [x] `entitlements.is_premium` stub (false).
+
+### Edge Functions
+- [ ] `classify-value` (new): library match, Pillar/Element suggestion,
+      harm flag.
+- [ ] `suggest-value-challenges` (update): personal definition as input,
+      lens balance, shared cache for library values.
+- [ ] `tailor-value-questions` (v2, premium).
+- [ ] Log token usage per call to `ai_usage`; per-user daily rate limit.
+
+### Frontend (mock data, `DEV_MODE: "bypass"`)
+- [~] Values discovery: search + name your own, browse by Element.
+      *(Browse by Element / A–Z + gentle one-per-Element hint done; search
+      and name-your-own wait for the 40-value library + `classify-value`.)*
+- [x] Active values (5 + earned slots, cap 9) + Library shelf (rested).
+- [x] Value card (own definition first, then YOU's perspective).
+      *(Revisits keep the old wording in `definition_history`.)*
+- [x] Both questionnaires. *(Entry points: value card → "Explore its
+      light & shadow"; Pillar → "Free a dream"; Reflections → Explorations
+      to reread, continue or delete.)*
+- [x] Tier-crossing acknowledgement line.
+- [x] Tree of YOU v2 (below) — refactor existing
+      `components/journey/tree-stars/TreeOfStars.jsx` to the new mapping.
+      *(Built Sep 28. Not yet: Seasons tint, sub-value twigs, memories as
+      Constellations — sky currently holds Identity visions.)*
+
+### Tree of YOU v2 — cosmic tree
+- **Roots = 8 Pillars v2**, anchored in soil — inner roots (Body, Heart,
+  Mind, Spirit) grow deep, outer roots (Connection, Purpose, Play,
+  Home & Earth) spread wide; depth and spread grow with
+  Pillar XP. Underground = the unseen: shadow as nourishment, not threat.
+- **Trunk = the Seeker** (Seed Being as companion at its base).
+- **Branches = active Values**; thickness follows tier.
+- **Extending branches = sub-values** as they unfold.
+- **Fruit = lived depth** (completed challenges + reflections).
+- **Rested values = dormant branches** — bare, never cut.
+- **Canopy reaches into the cosmos**; Constellations (memories) are the
+  stars above it — one continuous Tree & Stars view.
+- **Interaction:** tap a branch → the roots (Pillars) it draws from glow;
+  tap a root → the branches it feeds glow.
+- **Seasons** tint foliage (from Living Biography Seasons).
+- Growth animates only on user action or a tier moment — no autoplay.
+
+### Safety & privacy (required before live)
+- [x] Explicit, revocable consent before any reflection text reaches
+      the Claude API. *(`ai_consent` table; asked on first AI use; switch in
+      Your Own Universe; enforced in the 4 Edge Functions via
+      `_shared/consent.ts`.)*
+- [x] Reflections excluded from analytics. *(No analytics exist yet —
+      keep it that way for `reflections` / `journal_entries` when added.)*
+- [x] Quiet support-resources link on Shadow/Void screens. *(Also on
+      Freeing the Dream → Weight. Links to findahelpline.com.)*
+- [ ] Moderation on AI output, not on Seeker input.
+- [ ] Exit on every screen.

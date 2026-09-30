@@ -7,6 +7,7 @@
 // Deploy: supabase functions deploy reflect-on-journal-entry
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
+import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -50,6 +51,9 @@ Deno.serve(async req => {
       data: { user }
     } = await supabase.auth.getUser();
     if (!user) return json({ error: "Unauthorized" }, 401);
+
+    const consent = await requireAiConsent(req, corsHeaders);
+    if ("response" in consent) return consent.response;
 
     const { entryId } = await req.json();
     if (!entryId) return json({ error: "entryId is required" }, 400);
@@ -104,7 +108,7 @@ ${JSON.stringify(contextDigest, null, 2)}`;
 
     const raw = await callClaude({
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userMessage }]
+      messages: [{ role: "user", content: userMessage }], usage: { req, fn: "reflect-on-journal-entry" }
     });
 
     const parsed = parseJsonResponse<{

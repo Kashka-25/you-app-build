@@ -2,10 +2,11 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback } 
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import {
-  XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2,
+  XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2, normalizePillar,
+  TIERS, cycleTierIndex, getValueSlots,
   STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
-import { ALL_VALUES_LIB } from "../constants/values.const";
+import { getValueEntry } from "../constants/valueLibrary";
 
 const AppDataContext = createContext(null);
 
@@ -29,11 +30,28 @@ function niceDateFrom(dateKey) {
 }
 function dbToItem(row) {
   return {
-    id: row.id, name: row.name, type: row.type, cat: row.cat, subcat: row.subcat || "", note: row.note || "",
+    id: row.id, name: row.name, type: row.type, cat: normalizePillar(row.cat), subcat: row.subcat || "", note: row.note || "",
     tags: row.tags || [], intention: row.intention || "", milestones: row.milestones || [],
     done: row.done, streak: row.streak || 0,
     days: row.days || [false, false, false, false, false, false, false],
     lastCheckin: row.last_checkin || null, created: row.created, createdDate: row.created_date
+  };
+}
+// user_values columns added by the values_system migration (status,
+// definition, definition_history, highest_tier_reached) default sensibly
+// here, so the app keeps working against a database that hasn't run it yet.
+function dbToValue(row) {
+  return {
+    id: row.id, name: row.name, rating: row.rating || 0, completed: row.completed || [], prestige: row.prestige || 0,
+    status: row.status || "active", definition: row.definition || "", definitionHistory: row.definition_history || [],
+    highestTier: row.highest_tier_reached || 0
+  };
+}
+function valueToRow(v) {
+  return {
+    rating: v.rating || 0, completed: v.completed || [], prestige: v.prestige || 0,
+    status: v.status || "active", definition: v.definition || null, definition_history: v.definitionHistory || [],
+    highest_tier_reached: v.highestTier || 0, updated_at: new Date().toISOString()
   };
 }
 function itemToRow(item, userId) {
@@ -60,6 +78,12 @@ export function AppDataProvider({ children }) {
   const [valueChallenges, setValueChallenges] = useState([]);
   const [journalEntries, setJournalEntries] = useState([]);
   const [identityVisions, setIdentityVisions] = useState([]);
+  const [todos, setTodos] = useState([]);
+  // AI consent: null = not loaded yet. Reflections = questionnaire answers
+  // (the most intimate data in the app — owner-only, never analytics).
+  const [aiConsent, setAiConsent] = useState(null);
+  const [consentPrompt, setConsentPrompt] = useState(null); // { resolve } while asking
+  const [reflections, setReflections] = useState([]);
   // Journal AI state is intentionally NOT part of the initial `load()`
   // batch — insights/photos/weekly reflections are fetched lazily, on
   // demand, so opening the app doesn't pull in every entry's AI output and
@@ -120,16 +144,19 @@ export function AppDataProvider({ children }) {
         LOAD_TIMEOUT_MS
       );
       setItems((itemsRes.data || []).map(dbToItem));
-      setMemory(memoryRes.data || []);
+      setMemory((memoryRes.data || []).map(m => ({ ...m, cat: normalizePillar(m.cat) })));
       setMoodLog(moodRes.data || []);
-      setValues((valuesRes.data || []).map(r => ({ name: r.name, rating: r.rating || 0, completed: r.completed || [], prestige: r.prestige || 0 })));
+      setValues((valuesRes.data || []).map(dbToValue));
       setProfile(profileRes.data || null);
       setMoments(await attachSignedPhotoUrls(momentsRes.data || []));
       setChapters(chaptersRes.data || []);
       setValueChallenges(valueChallengesRes.data || []);
       setJournalEntries(journalRes.data || []);
-      setIdentityVisions(identityVisionsRes.data || []);
+      setIdentityVisions((identityVisionsRes.data || []).map(v => ({ ...v, category: normalizePillar(v.category) })));
       setSync("synced");
+      loadTodos();
+      loadAiConsent();
+      loadReflections();
     } catch (e) {
       console.error("[AppDataContext] load failed — continuing with local/empty state:", e);
       setSync("offline");
@@ -322,16 +349,66 @@ export function AppDataProvider({ children }) {
     await saveItemRow(updated);
   }
 
+  // Updates only the rows that actually changed (callers build newValues
+  // with .map, so an untouched value keeps its object identity). Replaces
+  // the old delete-all-then-reinsert, which dropped row ids and would have
+  // wiped the definition/status columns on every challenge completed.
   async function persistValues(newValues) {
+    const prev = values;
     setValues(newValues);
-    await supabase.from("user_values").delete().eq("user_id", userId);
-    if (newValues.length === 0) return;
-    const rows = newValues.map(v => ({ user_id: userId, name: v.name, rating: v.rating || 0, completed: v.completed || [], prestige: v.prestige || 0 }));
-    await supabase.from("user_values").insert(rows);
+    const changed = newValues.filter(v => !prev.includes(v));
+    await Promise.all(changed.map(async v => {
+      const res = await supabase.from("user_values").update(valueToRow(v)).eq("id", v.id).eq("user_id", userId);
+      if (res.error) {
+        // Migration not run yet → retry with only the original columns.
+        console.error("[AppData] value save failed, retrying legacy columns:", res.error);
+        await supabase.from("user_values")
+          .update({ rating: v.rating || 0, completed: v.completed || [], prestige: v.prestige || 0 })
+          .eq("id", v.id).eq("user_id", userId);
+      }
+    }));
   }
 
+  const activeValues = useMemo(() => values.filter(v => v.status !== "rested"), [values]);
+  const valueSlots = useMemo(() => getValueSlots(values), [values]);
+
   async function addValue(name) {
-    await persistValues([...values, { name, rating: 0, completed: [], prestige: 0 }]);
+    if (activeValues.length >= valueSlots) throw new Error("No free value slot");
+    const res = await supabase.from("user_values")
+      .insert({ user_id: userId, name, rating: 0, completed: [], prestige: 0 }).select().single();
+    if (res.error) throw res.error;
+    setValues(prev => [...prev, dbToValue(res.data)]);
+  }
+
+  // Resting keeps XP, tier and definition — nothing is lost, the value just
+  // steps out of focus. Returning needs a free slot.
+  async function setValueStatus(name, status) {
+    if (status === "active" && activeValues.length >= valueSlots) throw new Error("No free value slot");
+    await persistValues(values.map(v => (v.name === name ? { ...v, status } : v)));
+  }
+
+  // The Seeker's own words come first; an earlier definition moves into
+  // history (with the tier it was written at) rather than being overwritten.
+  async function saveValueDefinition(name, text) {
+    const trimmed = (text || "").trim();
+    await persistValues(values.map(v => {
+      if (v.name !== name) return v;
+      const history = v.definition && v.definition !== trimmed
+        ? [...(v.definitionHistory || []), { text: v.definition, at: new Date().toISOString(), tier: TIERS[cycleTierIndex(v.rating, v.prestige)].name }]
+        : v.definitionHistory || [];
+      return { ...v, definition: trimmed, definitionHistory: history };
+    }));
+  }
+
+  // Shared by both challenge paths. Returns the tier name crossed into for
+  // the first time (for the one-line tier moment), or null.
+  function gainValue(v, pts) {
+    const { rating, prestige } = applyPrestigeGain(v.rating, v.prestige || 0, pts);
+    const prestiged = prestige > (v.prestige || 0);
+    const reached = prestiged ? 3 : cycleTierIndex(rating, prestige);
+    const highestTier = Math.max(v.highestTier || 0, reached);
+    const crossedInto = highestTier > (v.highestTier || 0) ? TIERS[highestTier].name : null;
+    return { updated: { ...v, rating, prestige, highestTier }, prestiged, crossedInto };
   }
 
   // Partial update only — this only ever sets the columns "My YOU" actually
@@ -455,6 +532,110 @@ export function AppDataProvider({ children }) {
   // Journal entries. Kept distinct from `memory` (the auto-generated XP
   // log) and `moments` (user-curated timeline highlights) — this is
   // free-form reflection, not tied to completing anything.
+  // Today's list — loaded outside the main batch so a missing `todos`
+  // table (migration not yet run) can't block the rest of the app from
+  // loading. Only today's rows: yesterday's unfinished ones fall away.
+  async function loadTodos() {
+    const res = await supabase.from("todos").select("*").eq("user_id", userId).eq("todo_date", todayKey()).order("inserted_at");
+    if (res.error) { console.error("[AppData] loadTodos failed:", res.error); return; }
+    setTodos(res.data || []);
+  }
+
+  // ── AI consent ──
+  // Explicit and revocable. Nothing personal is sent to Claude until the
+  // Seeker says yes; the Edge Functions check the same row server-side.
+  async function loadAiConsent() {
+    const res = await supabase.from("ai_consent").select("*").eq("user_id", userId).maybeSingle();
+    if (res.error) { console.error("[AppData] loadAiConsent failed:", res.error); return; }
+    setAiConsent(res.data || { granted: false });
+  }
+
+  async function setAiConsentGranted(granted) {
+    const now = new Date().toISOString();
+    const row = granted
+      ? { user_id: userId, granted: true, granted_at: now, revoked_at: null, updated_at: now }
+      : { user_id: userId, granted: false, revoked_at: now, updated_at: now };
+    const res = await supabase.from("ai_consent").upsert(row).select().single();
+    if (res.error) throw res.error;
+    setAiConsent(res.data);
+  }
+
+  // Resolves true once consent exists — asking first (via AiConsentModal in
+  // AppShell) if it doesn't. Resolves false if the Seeker says not now.
+  function ensureAiConsent() {
+    if (aiConsent?.granted) return Promise.resolve(true);
+    return new Promise(resolve => setConsentPrompt({ resolve }));
+  }
+
+  async function answerConsentPrompt(yes) {
+    const prompt = consentPrompt;
+    setConsentPrompt(null);
+    if (yes) {
+      try {
+        await setAiConsentGranted(true);
+      } catch (e) {
+        console.error("[AppData] granting consent failed:", e);
+        prompt?.resolve(false);
+        return;
+      }
+    }
+    prompt?.resolve(yes);
+  }
+
+  async function withAiConsent() {
+    if (await ensureAiConsent()) return;
+    const err = new Error("AI consent not given");
+    err.code = "consent_declined";
+    throw err;
+  }
+
+  // ── Reflections (questionnaires) ──
+  async function loadReflections() {
+    const res = await supabase.from("reflections").select("*").eq("user_id", userId).order("inserted_at");
+    if (res.error) { console.error("[AppData] loadReflections failed:", res.error); return; }
+    setReflections(res.data || []);
+  }
+
+  // Saved step by step, so a Seeker can stop anywhere and come back. One
+  // row per (session, kind): saving the same step again updates it.
+  async function saveReflectionAnswer({ sessionId, questionnaire, kind, body, prompt, valueName, pillar }) {
+    const existing = reflections.find(r => r.session_id === sessionId && r.kind === kind);
+    const now = new Date().toISOString();
+    const res = existing
+      ? await supabase.from("reflections").update({ body, prompt, updated_at: now }).eq("id", existing.id).eq("user_id", userId).select().single()
+      : await supabase.from("reflections").insert({
+          user_id: userId, session_id: sessionId, questionnaire, kind, body, prompt,
+          value_name: valueName || null, pillar: pillar || null
+        }).select().single();
+    if (res.error) throw res.error;
+    setReflections(prev => existing ? prev.map(r => (r.id === existing.id ? res.data : r)) : [...prev, res.data]);
+    return res.data;
+  }
+
+  async function deleteReflectionSession(sessionId) {
+    setReflections(prev => prev.filter(r => r.session_id !== sessionId));
+    await supabase.from("reflections").delete().eq("session_id", sessionId).eq("user_id", userId);
+  }
+
+  async function addTodo(text) {
+    const res = await supabase.from("todos").insert({ user_id: userId, text, todo_date: todayKey() }).select().single();
+    if (res.error) throw res.error;
+    setTodos(prev => [...prev, res.data]);
+    return res.data;
+  }
+
+  async function toggleTodo(id) {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    setTodos(prev => prev.map(t => (t.id === id ? { ...t, done: !t.done } : t)));
+    await supabase.from("todos").update({ done: !todo.done }).eq("id", id).eq("user_id", userId);
+  }
+
+  async function deleteTodo(id) {
+    setTodos(prev => prev.filter(t => t.id !== id));
+    await supabase.from("todos").delete().eq("id", id).eq("user_id", userId);
+  }
+
   async function addJournalEntry({ content, mood, entryDate, tags }) {
     const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey(), tags: tags || [] };
     const res = await supabase.from("journal_entries").insert(row).select().single();
@@ -524,6 +705,7 @@ export function AppDataProvider({ children }) {
   // vision, server-side). Saves a first-draft transcription the user can
   // then edit in place via editJournalPhotoTranscription.
   async function transcribeJournalPhoto(entryId, photoId) {
+    await withAiConsent();
     const { data, error } = await supabase.functions.invoke("transcribe-journal-photo", { body: { photoId } });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -563,6 +745,7 @@ export function AppDataProvider({ children }) {
   }
 
   async function generateJournalReflection(entryId) {
+    await withAiConsent();
     const { data, error } = await supabase.functions.invoke("reflect-on-journal-entry", { body: { entryId } });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -619,6 +802,7 @@ export function AppDataProvider({ children }) {
   }
 
   async function generateWeeklyReflection(weekStart) {
+    await withAiConsent();
     const { data, error } = await supabase.functions.invoke("weekly-reflection", { body: { weekStart } });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
@@ -666,6 +850,7 @@ export function AppDataProvider({ children }) {
   // the current moments. Returns suggestions only; nothing is saved until
   // saveChapters is called with what the user accepts.
   async function suggestChapters() {
+    await withAiConsent();
     const payload = moments.map(m => ({ title: m.title, moment_date: m.moment_date, description: m.description }));
     const { data, error } = await supabase.functions.invoke("suggest-chapters", { body: { moments: payload } });
     if (error) throw error;
@@ -707,19 +892,19 @@ export function AppDataProvider({ children }) {
   }
 
   async function completeChallenge(valueName, challengeIdx) {
-    const lib = ALL_VALUES_LIB.find(v => v.name === valueName);
+    const lib = getValueEntry(valueName);
     if (!lib) return;
     const challenge = lib.challenges[challengeIdx];
     if (!challenge) return;
     const v = values.find(v => v.name === valueName);
     if (!v || (v.completed || []).includes(challengeIdx)) return;
-    const { rating: newRating, prestige: newPrestige } = applyPrestigeGain(v.rating, v.prestige || 0, challenge.pts);
+    const { updated, prestiged, crossedInto } = gainValue(v, challenge.pts);
     const newValues = values.map(x => (x.name === valueName
-      ? { ...x, rating: newRating, prestige: newPrestige, completed: [...(x.completed || []), challengeIdx] }
+      ? { ...updated, completed: [...(x.completed || []), challengeIdx] }
       : x));
     await persistValues(newValues);
     await awardValuePillarXP(valueName, challenge.pts, valueName + " challenge: " + challenge.text.slice(0, 30));
-    return { prevRating: v.rating, newRating, prestiged: newPrestige > (v.prestige || 0) };
+    return { prevRating: v.rating, newRating: updated.rating, prestiged, crossedInto };
   }
 
   // AI-generated challenges live in their own table (value_challenges) with
@@ -730,13 +915,13 @@ export function AppDataProvider({ children }) {
     if (!challenge || challenge.completed) return;
     const v = values.find(x => x.name === challenge.value_name);
     if (!v) return;
-    const { rating: newRating, prestige: newPrestige } = applyPrestigeGain(v.rating, v.prestige || 0, challenge.pts);
-    const newValues = values.map(x => (x.name === challenge.value_name ? { ...x, rating: newRating, prestige: newPrestige } : x));
+    const { updated, prestiged, crossedInto } = gainValue(v, challenge.pts);
+    const newValues = values.map(x => (x.name === challenge.value_name ? updated : x));
     await persistValues(newValues);
     setValueChallenges(prev => prev.map(c => (c.id === id ? { ...c, completed: true } : c)));
     await supabase.from("value_challenges").update({ completed: true }).eq("id", id).eq("user_id", userId);
     await awardValuePillarXP(challenge.value_name, challenge.pts, challenge.value_name + " challenge: " + challenge.text.slice(0, 30));
-    return { prevRating: v.rating, newRating, prestiged: newPrestige > (v.prestige || 0) };
+    return { prevRating: v.rating, newRating: updated.rating, prestiged, crossedInto };
   }
 
   // Calls the suggest-value-challenges Edge Function (Claude, server-side)
@@ -746,7 +931,7 @@ export function AppDataProvider({ children }) {
   // "review before saving" step needed — a challenge is low-stakes and
   // easy to just... not do, so extra friction here isn't worth it).
   async function generateValueChallenges(valueName) {
-    const lib = ALL_VALUES_LIB.find(v => v.name === valueName);
+    const lib = getValueEntry(valueName);
     const v = values.find(x => x.name === valueName);
     const tier = getTier(v?.rating || 0);
     const existingTexts = [
@@ -777,13 +962,17 @@ export function AppDataProvider({ children }) {
 
   const value = {
     userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
-    identityVisions,
+    identityVisions, todos,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
     getPrestigeTier, prestigeItem,
+    activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
     addIdentityVision, editIdentityVision, deleteIdentityVision,
+    addTodo, toggleTodo, deleteTodo,
+    aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
+    reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
     loadJournalPhotos, addJournalPhoto, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,

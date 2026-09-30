@@ -1,7 +1,8 @@
 // Thin wrapper around the Anthropic Messages API for the journal AI
-// functions. ANTHROPIC_API_KEY is a project secret (already set — the
-// existing suggest-chapters / suggest-value-challenges functions depend on
-// the same secret) and never reaches the browser.
+// functions. ANTHROPIC_API_KEY is a project secret and never reaches the browser.
+// Pass `usage: { req, fn: "function-name" }` to log tokens to ai_usage.
+import { logUsage } from "./usage.ts";
+
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const MODEL = "claude-sonnet-5";
 
@@ -12,11 +13,13 @@ type ContentBlock =
 export async function callClaude({
   system,
   messages,
-  maxTokens = 1500
+  maxTokens = 1500,
+  usage
 }: {
   system: string;
   messages: { role: "user" | "assistant"; content: string | ContentBlock[] }[];
   maxTokens?: number;
+  usage?: { req?: Request; fn: string };
 }): Promise<string> {
   if (!ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY is not configured on this project.");
@@ -43,15 +46,15 @@ export async function callClaude({
   }
 
   const data = await res.json();
+  if (usage) await logUsage({ ...usage, data });
+
   const text = (data.content || []).map((b: { text?: string }) => b.text || "").join("");
   if (!text) throw new Error("Anthropic API returned no text content.");
   return text;
 }
 
-// Claude is asked to return JSON directly (system prompt enforces "JSON
-// only, no prose"), but models occasionally wrap it in a code fence or add
-// a stray sentence — strip that defensively before parsing rather than
-// letting the whole request fail on an otherwise-usable response.
+// Claude is asked to return JSON directly, but occasionally wraps it in a
+// code fence or adds a stray sentence - strip that defensively before parsing.
 export function parseJsonResponse<T>(text: string): T {
   const cleaned = text
     .trim()

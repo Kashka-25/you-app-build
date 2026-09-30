@@ -1,25 +1,18 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Dumbbell, Brain, Sparkles, HeartHandshake, Briefcase, Compass, Palette, Award } from "lucide-react";
+import { ChevronDown, Award, Feather } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { getPillarLevel, TIERS } from "../../constants/app.const";
+import { PILLAR_ICONS } from "../../constants/pillarIcons";
+import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { easeOut } from "../ui/motion";
 
 const SEGMENTS = 10;
 
-const PILLAR_ICONS = {
-  Body: Dumbbell,
-  Mind: Brain,
-  Spirit: Sparkles,
-  Relationships: HeartHandshake,
-  Work: Briefcase,
-  Adventure: Compass,
-  Creative: Palette
-};
-
 export default function PillarsPanel() {
   const { pillars } = useAppData();
   const [openPillar, setOpenPillar] = useState(null);
+  const [dream, setDream] = useState({ open: false, pillar: null });
 
   return (
     <div className="space-y-2.5">
@@ -84,12 +77,28 @@ export default function PillarsPanel() {
                     <span>Active: {p.active}</span>
                     <span>Best streak: {p.bestStreak}d</span>
                   </div>
+                  <div className="pl-12 pt-2.5">
+                    <button
+                      onClick={() => setDream({ open: true, pillar: p.name })}
+                      className="flex items-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-1.5"
+                    >
+                      <Feather size={14} strokeWidth={1.75} />
+                      Free a dream in {p.name}
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         );
       })}
+
+      <QuestionnaireFlow
+        open={dream.open}
+        onClose={() => setDream(d => ({ ...d, open: false }))}
+        questionnaire="freeing_dream"
+        pillar={dream.pillar}
+      />
     </div>
   );
 }

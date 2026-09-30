@@ -6,6 +6,7 @@ import AddMomentModal from "./journey/AddMomentModal";
 import AddActionSheet from "./AddActionSheet";
 import TopBar from "./TopBar";
 import SidebarMenu from "./SidebarMenu";
+import AiConsentModal from "./AiConsentModal";
 
 export default function AppShell() {
   const [mode, setMode] = useState("light");
@@ -70,6 +71,7 @@ export default function AppShell() {
 
       <AddItemModal open={addOpen} onClose={() => setAddOpen(false)} defaultType={addType} />
       <AddMomentModal open={momentOpen} onClose={() => setMomentOpen(false)} />
+      <AiConsentModal />
       <AddActionSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}

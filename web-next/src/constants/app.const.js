@@ -1,4 +1,5 @@
 // app.const.js — ported from js/config.js, unchanged values/logic.
+import { CODEX } from "./codex.generated";
 
 export const LEVELS = [
   {xp:0,name:"Seedling",desc:"You have just arrived. A quiet glow. The universe has noticed you.",avatar:"SEED"},
@@ -16,20 +17,31 @@ export const STREAK_BONUS_XP = 15;
 export const STREAK_BONUS_INTERVAL = 7;
 export const DAY_LABELS = ["M","T","W","T","F","S","S"];
 
+// Pillars v2 (adopted Sep 28): 8 roots — 4 inner, 4 outer. On the Tree,
+// inner roots grow deep, outer roots spread wide.
+export const INNER_PILLARS = ["Body","Heart","Mind","Spirit"];
+export const OUTER_PILLARS = ["Connection","Purpose","Play","Home & Earth"];
+export const PILLARS = [...INNER_PILLARS, ...OUTER_PILLARS];
+
 export const PILLAR_COLORS = {
-  Body:"#c4783a", Mind:"#7a8c5e", Spirit:"#d4a85a", Relationships:"#9a8870",
-  Work:"#6478a0", Adventure:"#a06448", Creative:"#a06490"
+  Body:"#c4783a", Heart:"#b85f6e", Mind:"#7a8c5e", Spirit:"#d4a85a",
+  Connection:"#a06490", Purpose:"#6478a0", Play:"#4f9a94", "Home & Earth":"#8a7a52"
 };
 
-export const PILLARS = ["Body","Mind","Spirit","Relationships","Work","Adventure","Creative"];
-
-export const VALUE_PILLAR = {
-  Communication:"Relationships", Courage:"Spirit", Presence:"Mind", Boundaries:"Relationships",
-  Discipline:"Body", Empathy:"Relationships", Curiosity:"Mind", Rest:"Body",
-  Integrity:"Work", Creativity:"Creative", Vulnerability:"Spirit", Gratitude:"Spirit",
-  Family:"Relationships"
+// The old 7 -> v2. Rows are rewritten by the pillars_v2 migration; this
+// also normalizes on read so nothing drops out of Pillar XP or Pursue
+// groups if the app runs against a database that hasn't been migrated yet.
+export const LEGACY_PILLAR_MAP = {
+  Relationships:"Connection", Work:"Purpose", Adventure:"Play", Creative:"Play", Recreation:"Play"
 };
-export const VALUE_PILLAR2 = { Discipline:"Work", Empathy:"Spirit", Curiosity:"Adventure" };
+export function normalizePillar(cat) {
+  return LEGACY_PILLAR_MAP[cat] || cat;
+}
+
+// Value → Pillar(s), from The ValYOU's Codex (first Pillar full XP, second
+// at half credit — see awardValuePillarXP).
+export const VALUE_PILLAR = Object.fromEntries(CODEX.map(v => [v.name, v.pillars[0]]));
+export const VALUE_PILLAR2 = Object.fromEntries(CODEX.filter(v => v.pillars[1]).map(v => [v.name, v.pillars[1]]));
 
 // One distinct color per value, purely for the icon bubble — VALUE_PILLAR
 // maps several values onto the same pillar (e.g. Courage/Vulnerability/
@@ -55,6 +67,12 @@ export const VALUE_COLORS = {
   // and Courage.
   Family: "hsl(15, 40%, 54%)"
 };
+// The other Codex values get hues spread by the golden angle from a start
+// point between the hand-picked ones above, at the same muted saturation /
+// lightness, so every value stays distinct and in the same family.
+CODEX.filter(v => !VALUE_COLORS[v.name]).forEach((v, i) => {
+  VALUE_COLORS[v.name] = `hsl(${Math.round((7 + i * 137.508) % 360)}, 34%, ${i % 2 ? 50 : 54}%)`;
+});
 
 export const TIERS = [
   {min:0,max:25,name:"Awakening",color:"#9a8870"},
@@ -62,6 +80,30 @@ export const TIERS = [
   {min:51,max:75,name:"Embodying",color:"#d4a85a"},
   {min:76,max:99,name:"Mastering",color:"#7a8c5e"}
 ];
+
+// ── Values system (Sep 28) ──
+// Elements. From The ValYOU's Codex (also compiled into values_library).
+export const ELEMENTS = ["Water", "Fire", "Earth", "Air", "Ether"];
+export const VALUE_ELEMENT = Object.fromEntries(CODEX.map(v => [v.name, v.element]));
+
+// Slots are capacity for focus, not permission: every value is always
+// choosable. 5 to start, +1 the first time each value crosses into a new
+// tier (Practising, Embodying, Mastering), up to MAX_VALUE_SLOTS. Prestige
+// deepens fruit, not slots, so crossings are counted once per value via
+// highest_tier_reached. Derived, never stored.
+export const START_VALUE_SLOTS = 5;
+export const MAX_VALUE_SLOTS = 9;
+export function getValueSlots(values) {
+  const earned = (values || []).reduce((n, v) => n + (v.highestTier || 0), 0);
+  return Math.min(MAX_VALUE_SLOTS, START_VALUE_SLOTS + earned);
+}
+
+// Tier index (0 Awakening … 3 Mastering) read off progress through the
+// current prestige cycle — same reading ValuesPanel shows.
+export function cycleTierIndex(rating, prestige) {
+  const pct = Math.min(99, Math.round((rating / prestigeRequirement(prestige || 0)) * 99));
+  return TIERS.indexOf(getTier(pct));
+}
 
 export function getTier(rating){
   for (const t of TIERS) if (rating >= t.min && rating <= t.max) return t;
