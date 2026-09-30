@@ -32,8 +32,16 @@ Wisdom guides trust. Trust thoughtfully, test gently, and let trust grow as it's
 - What would you do differently if you trusted yourself a little more?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Write down one person who has earned your trust, and why
+- [gentle · 3] Let someone else lead on something small
+- [gentle · 3] Notice one moment you trusted yourself and it went well
+- [gentle · 4] Share something small with someone you're getting to know
+- [bold · 5] Ask for help and let it be given
+- [bold · 6] Make a decision without checking it with anyone
+- [brave · 7] Notice where you're trusting blindly, and gently check one thing
 ### Awakening
 ### Practising
 ### Embodying

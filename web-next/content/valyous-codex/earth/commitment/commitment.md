@@ -32,8 +32,16 @@ Freedom keeps commitment alive. A promise freely made, and freely renewed, is st
 - Where does loyalty keep you somewhere you've outgrown?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Choose one small practice and do it every day this week
+- [gentle · 3] Show up on time for something you've committed to
+- [gentle · 3] Write down the three commitments that matter most to you
+- [gentle · 4] Stay with a task until it's finished, even when your enthusiasm dips
+- [bold · 5] Renew a promise to someone you love, out loud
+- [bold · 6] Keep going with something for a full month
+- [brave · 8] Honestly ask whether one commitment still fits, and choose it again or let it go
 ### Awakening
 ### Practising
 ### Embodying

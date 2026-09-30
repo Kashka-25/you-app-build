@@ -32,8 +32,16 @@ Acceptance keeps health gentle. Your body will change, age and sometimes struggl
 - What is your body asking for that you keep postponing?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Drink a glass of water first thing in the morning
+- [gentle · 3] Move your body for fifteen minutes in a way that feels good
+- [gentle · 3] Eat one meal slowly, noticing how it nourishes you
+- [gentle · 4] Go to bed thirty minutes earlier than usual
+- [bold · 5] Book a check-up you've been putting off
+- [bold · 6] Keep one caring health habit for a whole week
+- [brave · 7] Notice where caring for your health has turned into control, and soften one rule
 ### Awakening
 ### Practising
 ### Embodying

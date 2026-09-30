@@ -32,8 +32,16 @@ Boundaries give openness a frame. You can welcome the world and still choose wha
 - Where has being open meant letting in something you didn't want?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Try a food you've never tasted
+- [gentle · 3] Ask someone about their life with genuine curiosity
+- [gentle · 3] Read or listen to a view very different from yours
+- [gentle · 4] Say "tell me more" instead of disagreeing, once
+- [bold · 5] Try an activity you've always said isn't for you
+- [bold · 6] Change your mind about something and say so
+- [brave · 7] Notice one opinion you took on without choosing it, and decide what you really think
 ### Awakening
 ### Practising
 ### Embodying

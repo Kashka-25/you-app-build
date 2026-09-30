@@ -34,6 +34,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What are you still arguing with that has already happened?",
       "Where has accepting things become a way of not asking for more?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Name one thing today you can't change, and breathe with it for a minute",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice a feeling you don't like and let it be there without pushing it away",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down three things about your body or life you're willing to accept today",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Let a plan change today without complaint, and notice what happens",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Accept a compliment with a simple thank you, no deflecting",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Write about one loss you've been resisting, and what accepting it might free",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where acceptance has become giving up, and take one small step to change it",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -69,6 +106,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "When do you bend to fit in, and when do you bend to grow?",
       "What change are you bracing against right now, and what might it be offering?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Take a different route somewhere familiar today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Change one small habit for a day and notice how you meet it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "When something doesn't go to plan, name one thing it makes possible",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Try doing a routine task in a completely new way",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say yes to an unplanned invitation or change of plan",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Learn the basics of something unfamiliar in a single afternoon",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where you bend to fit in, and hold your ground there once",
+        "pts": 8,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -104,6 +178,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "Who receives your gentlest voice, and who gets your harshest? Where do you land in that?",
       "Where does caring for others become a way of not tending to yourself?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one moment of harsh self-talk today and answer it the way you'd answer a friend",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Put your hand on your heart for a minute and say one kind thing to yourself",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask someone how they're really doing, and listen without trying to fix it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Do one small, quiet kindness for someone who won't know it was you",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down what you'd want to hear on your hardest day, then read it to yourself",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Sit with someone who is struggling and simply keep them company",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Say no to one thing you're doing out of rescuing rather than care",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -139,7 +250,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "Whose feelings do you find yourself carrying long after the moment has passed?",
       "When did you last let someone feel with you, instead of the other way round?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Forgiveness",
@@ -173,6 +285,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What would you need to feel or say before forgiveness could be real, rather than polite?",
       "Is there something you haven't forgiven yourself for? What would it cost you to try?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Name one small grudge you're carrying, just to notice its weight",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down one thing you did that you'd like to forgive yourself for",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Let one minor annoyance today pass without replaying it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write an unsent letter to someone who hurt you, saying everything",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Offer yourself forgiveness out loud for a mistake that still stings",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Apologise sincerely for something you've been avoiding",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Name a hurt honestly to the person involved, without needing them to change",
+        "pts": 8,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -208,6 +357,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "When has your gut known something long before your mind would admit it?",
       "How do you tell the difference between intuition and fear?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Before a small choice today, pause and ask your body what it wants",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down one hunch you have right now, then check back on it in a week",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice where tension or ease shows up in your body during a conversation",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend ten minutes in silence and write whatever comes up, unedited",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make one decision today on your gut feeling, and notice how it turns out",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Write down a dream you remember and what it might be pointing to",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Check one strong feeling against the facts: is it intuition, or is it fear?",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -243,7 +429,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "What does your tiredness tend to be asking for: sleep, stillness, or something to change?",
       "Who taught you that rest has to be earned?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Vulnerability",
@@ -277,7 +464,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "When have you shared something tender and felt more alone afterwards? What did that teach you?",
       "What would you let someone see, if you trusted they would stay?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Ambition",
@@ -311,6 +499,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "Whose approval is hiding inside your ambitions?",
       "What would \"enough\" look like for you, if you let yourself define it?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down one thing you'd love to achieve this year",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Break a big goal into one small step you can take today",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice whose approval sits inside one of your ambitions",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Celebrate one thing you've already achieved before reaching for the next",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tell someone out loud about a goal you've been keeping quiet",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Apply for, pitch, or ask for something just beyond your reach",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Define what \"enough\" means to you, and let yourself rest there for a day",
+        "pts": 8,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -346,7 +571,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "When has being brave actually been a way of not feeling something?",
       "What small fear, if you moved through it, would open the most?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Creativity",
@@ -381,7 +607,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "What did you love making as a child, before anyone judged it?",
       "When does creating stop feeling like play for you?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Discipline",
@@ -417,7 +644,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "Does your discipline feel more like devotion or like punishment? Where did that come from?",
       "What would change if missing a day didn't mean anything about who you are?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Freedom",
@@ -452,6 +680,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "Where do you feel most caged right now, and who holds the key?",
       "What has your need for freedom cost you, and was it worth it?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Spend an hour with no plan and follow whatever calls you",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one \"should\" today and ask whose voice it really is",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make one choice today purely because you want to",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down three things you'd do if no one were watching or judging",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say no to an obligation that doesn't fit who you're becoming",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Take a solo outing somewhere you've never been",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Choose one commitment you're keeping at arm's length and give it your whole yes",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -487,6 +752,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What did you lose track of time doing, the last time you truly lost track of time?",
       "Where does your passion start to cost more than it gives?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "List five things that make you lose track of time",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend twenty minutes on something you love, just for the joy of it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tell someone about something you're passionate about and notice how you light up",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Revisit something you used to love and haven't done in a long time",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give one evening this week fully to your passion",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Share something you made or love with people, even if it feels exposing",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where your passion is burning you out, and set one caring limit around it",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -521,6 +823,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "When did you last play with no purpose at all?",
       "When is your lightness a gift, and when is it a way of not staying?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Do something silly today, just for the fun of it",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Play a game with someone, no phones",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Turn one boring task into a game",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend time outside doing something with no purpose but joy",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Try something you'd usually say you're too old for",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Plan a playful adventure with a friend",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice when you use a joke to dodge something serious, and stay with it instead",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -556,6 +895,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What has helped you through before, when you thought you couldn't go on?",
       "Where are you being strong when you'd rather be held?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down one hard thing you've come through, and what helped",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Name one person you could lean on, and reach out to them",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "After a setback today, take one small step to begin again",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Build one tiny recovery ritual for hard days: a walk, a song, a cup of tea",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask for help with something you'd usually push through alone",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Return to something you gave up on after a setback",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let someone see you struggling instead of saying you're fine",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -590,7 +966,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "Where do you say yes while your body is saying no?",
       "Which of your boundaries were built for a danger that has since passed?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Commitment",
@@ -625,6 +1002,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What are you committed to that you would choose again today?",
       "Where does loyalty keep you somewhere you've outgrown?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Choose one small practice and do it every day this week",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Show up on time for something you've committed to",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down the three commitments that matter most to you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Stay with a task until it's finished, even when your enthusiasm dips",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Renew a promise to someone you love, out loud",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Keep going with something for a full month",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Honestly ask whether one commitment still fits, and choose it again or let it go",
+        "pts": 8,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -660,7 +1074,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "What role were you given in your family, and does it still fit?",
       "Who is your family now, by any definition that feels true?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Health",
@@ -694,6 +1109,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "Do you care for your body as a friend or manage it as a project?",
       "What is your body asking for that you keep postponing?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Drink a glass of water first thing in the morning",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Move your body for fifteen minutes in a way that feels good",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Eat one meal slowly, noticing how it nourishes you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Go to bed thirty minutes earlier than usual",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Book a check-up you've been putting off",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Keep one caring health habit for a whole week",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where caring for your health has turned into control, and soften one rule",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -729,7 +1181,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "In which room are you least like yourself, and why?",
       "Who do you find hardest to forgive for falling short: others, or you?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Patience",
@@ -763,6 +1216,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What are you trying to rush that might need more time?",
       "Where has patience turned into putting up with something?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Take three slow breaths before you respond when you feel rushed",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Wait in a queue or traffic without reaching for your phone",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Let someone finish their whole thought before you speak",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Plant something and tend it without expecting quick results",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Stay with something frustrating for ten minutes longer than you'd like",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Write down one thing you've been rushing, and give it more time",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where patience has become putting up with it, and speak up once",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -798,6 +1288,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What are you carrying that was never yours to carry?",
       "Where do you avoid owning your part, and what are you afraid it would mean?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Keep one small promise to yourself today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tidy one thing you've been meaning to take care of",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one thing you're carrying that isn't yours, and name it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Follow through on something you said you'd do for someone",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Own a mistake openly, without excuses",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Take on one responsibility that matters to your community",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Hand back one responsibility that was never yours to carry",
+        "pts": 8,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -832,6 +1359,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What place, thing or patch of earth do you feel most at home caring for?",
       "Where does caring for the world become a weight you carry alone?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Spend ten minutes tending a corner of your home",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Pick up litter on a walk",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one thing you could reuse instead of throwing away",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Look at where your money went this week, without judgement",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Grow something, or care for a plant, for a month",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Give time to a local nature, garden or community project",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let go of one worry about the whole world, and tend one small patch well instead",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -866,6 +1430,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What do you already know, beneath the confusion?",
       "Where might your certainty be keeping something new from reaching you?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down the one thing that matters most today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Clear one cluttered space: a drawer, a desk, your inbox",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Before a decision, write what you actually want in one sentence",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend ten quiet minutes letting your thoughts settle",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say a clear, kind no instead of a vague maybe",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Write your top three priorities for this season and share them",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Take a view you're certain about and genuinely consider that you might be wrong",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -901,7 +1502,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "What is the conversation you keep rehearsing in your head but not having?",
       "When do you talk to be understood, and when to be right?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Curiosity",
@@ -937,7 +1539,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "What have you stopped asking about because you think you already know?",
       "Where does your curiosity scatter, and what might it be avoiding?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Fairness",
@@ -972,6 +1575,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "Where in your life is the balance of giving and receiving uneven?",
       "When does your sense of fairness turn into keeping score?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice who does most of the unseen work around you",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share credit for something you did with others",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Listen fully to a view you disagree with",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Balance one relationship where you've been taking more than giving",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Speak up when someone is treated unfairly",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Learn about an injustice and take one small action",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where you're keeping score, and let one tally go",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1007,6 +1647,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What's one truth you've been avoiding telling yourself?",
       "When has your honesty been more about you than about the other person?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one small untruth you tell by habit, like \"I'm fine\"",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Answer \"how are you?\" honestly once today",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down one truth you've been avoiding telling yourself",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give honest, kind feedback when someone asks for it",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Admit something you got wrong",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Tell someone a truth that matters, with care",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice when your honesty is more about you than them, and choose kindness first",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1042,6 +1719,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What do you joke about so you don't have to feel it?",
       "Who makes you laugh until it hurts, and when did you last see them?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Find one thing to laugh about today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share something funny with someone who needs a lift",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Laugh gently at one of your own mistakes",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Watch or read something that makes you really laugh",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Bring lightness to a heavy moment, kindly",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Spend time with the person who makes you laugh the most",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice when a joke is covering a feeling, and name the feeling instead",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1076,6 +1790,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What would you love to learn if no one would ever grade you?",
       "Where does learning more become a way of not starting?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Learn one new word or fact today and share it with someone",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend twenty minutes on a topic you're curious about",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask someone to teach you something they're good at",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Reflect on one lesson life taught you this week",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Start a short course or a tutorial",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Practise a new skill until you've made three mistakes and learned from them",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Stop preparing and begin the thing you've been \"learning about\" for too long",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1111,6 +1862,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What idea or person have you closed the door on too quickly?",
       "Where has being open meant letting in something you didn't want?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Try a food you've never tasted",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask someone about their life with genuine curiosity",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Read or listen to a view very different from yours",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say \"tell me more\" instead of disagreeing, once",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Try an activity you've always said isn't for you",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Change your mind about something and say so",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice one opinion you took on without choosing it, and decide what you really think",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1146,6 +1934,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "Where do you feel most like yourself, and where least?",
       "What part of you do you hide because it once wasn't welcome?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one moment today when you felt most like yourself",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Wear or do something that feels truly you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down three values you live by",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say what you actually think in one conversation",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share a part of yourself you usually hide",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Make one choice that fits you, even if it's not what's expected",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where \"being myself\" has become a reason not to grow, and try growing there",
+        "pts": 8,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1180,7 +2005,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "Where do you use \"I should be grateful\" to quiet something that needs to be heard?",
       "What small thing held you today that you almost didn't notice?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Love",
@@ -1215,6 +2041,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "Where is love easiest for you to give, and hardest to receive?",
       "Where does love become a need to control?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Tell someone you love them, or what you appreciate about them",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Do one loving thing for yourself today",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give someone your full, undistracted attention",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write a short note of love to someone",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Reach out to someone you've drifted from",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Let yourself receive love or care without deflecting it",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where love has become needing someone to be a certain way, and loosen your grip",
+        "pts": 8,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1250,6 +2113,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "When have you felt most sure your life mattered?",
       "Where does the search for meaning make ordinary joy feel not enough?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down one moment this week that felt meaningful",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask yourself why you do one of your daily tasks",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Do one small thing for someone else, just because it matters",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write a few lines about what you'd want your life to stand for",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give time to a cause you care about",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Talk with someone about what gives their life meaning",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let one day be simple and light, without needing it to mean anything",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1285,7 +2185,8 @@ export const CODEX = [
     "questionnaireNotes": [
       "What pulls you out of the present most often, and what might it be sparing you?",
       "Where has \"living in the moment\" let something important slide?"
-    ]
+    ],
+    "starterChallenges": []
   },
   {
     "name": "Trust",
@@ -1320,6 +2221,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "Who or what has earned your trust, and how do you know?",
       "What would you do differently if you trusted yourself a little more?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down one person who has earned your trust, and why",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Let someone else lead on something small",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one moment you trusted yourself and it went well",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share something small with someone you're getting to know",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask for help and let it be given",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Make a decision without checking it with anyone",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where you're trusting blindly, and gently check one thing",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1355,6 +2293,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "What has life taught you that you could only have learned the hard way?",
       "When does your wisdom stop listening?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down one lesson life has taught you",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Pause before giving advice and ask a question instead",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask an elder or mentor what they wish they'd known sooner",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Reflect on a mistake and what it taught you",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share a hard-won lesson with someone who might need it",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Sleep on one important decision before making it",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Notice where you think you know best, and truly listen instead",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   },
   {
@@ -1390,6 +2365,43 @@ export const CODEX = [
     "questionnaireNotes": [
       "When did something last take your breath away?",
       "What have you stopped noticing because you think you've seen it before?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Look at the sky for five minutes, day or night",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice something ordinary as if seeing it for the first time",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Learn one astonishing fact about nature or the universe",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend time somewhere beautiful and just take it in",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Watch a sunrise or a sunset from start to finish",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Go somewhere that makes you feel small in the best way",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Bring one piece of wonder back into a practical task you've been avoiding",
+        "pts": 7,
+        "diff": "brave"
+      }
     ]
   }
 ];

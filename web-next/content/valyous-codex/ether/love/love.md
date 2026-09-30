@@ -32,8 +32,16 @@ Freedom keeps love healthy. Love that lets the other be themselves, and you be y
 - Where does love become a need to control?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Tell someone you love them, or what you appreciate about them
+- [gentle · 3] Do one loving thing for yourself today
+- [gentle · 3] Give someone your full, undistracted attention
+- [gentle · 4] Write a short note of love to someone
+- [bold · 5] Reach out to someone you've drifted from
+- [bold · 6] Let yourself receive love or care without deflecting it
+- [brave · 8] Notice where love has become needing someone to be a certain way, and loosen your grip
 ### Awakening
 ### Practising
 ### Embodying

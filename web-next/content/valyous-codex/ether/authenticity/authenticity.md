@@ -32,8 +32,16 @@ Adaptability lets authenticity breathe. You can flex to meet the moment and stil
 - What part of you do you hide because it once wasn't welcome?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Notice one moment today when you felt most like yourself
+- [gentle · 3] Wear or do something that feels truly you
+- [gentle · 3] Write down three values you live by
+- [gentle · 4] Say what you actually think in one conversation
+- [bold · 5] Share a part of yourself you usually hide
+- [bold · 6] Make one choice that fits you, even if it's not what's expected
+- [brave · 8] Notice where "being myself" has become a reason not to grow, and try growing there
 ### Awakening
 ### Practising
 ### Embodying

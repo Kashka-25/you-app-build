@@ -32,8 +32,16 @@ Vulnerability gives humour depth. Laughing at yourself while letting others see 
 - Who makes you laugh until it hurts, and when did you last see them?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Find one thing to laugh about today
+- [gentle · 3] Share something funny with someone who needs a lift
+- [gentle · 3] Laugh gently at one of your own mistakes
+- [gentle · 4] Watch or read something that makes you really laugh
+- [bold · 5] Bring lightness to a heavy moment, kindly
+- [bold · 6] Spend time with the person who makes you laugh the most
+- [brave · 7] Notice when a joke is covering a feeling, and name the feeling instead
 ### Awakening
 ### Practising
 ### Embodying

@@ -32,8 +32,16 @@ Rest banks the fire so it lasts through the night. Passion that knows when to pa
 - Where does your passion start to cost more than it gives?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] List five things that make you lose track of time
+- [gentle · 3] Spend twenty minutes on something you love, just for the joy of it
+- [gentle · 3] Tell someone about something you're passionate about and notice how you light up
+- [gentle · 4] Revisit something you used to love and haven't done in a long time
+- [bold · 5] Give one evening this week fully to your passion
+- [bold · 6] Share something you made or love with people, even if it feels exposing
+- [brave · 7] Notice where your passion is burning you out, and set one caring limit around it
 ### Awakening
 ### Practising
 ### Embodying

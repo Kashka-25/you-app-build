@@ -32,8 +32,16 @@ Vulnerability is what makes resilience humane. Letting others see you struggle, 
 - Where are you being strong when you'd rather be held?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Write down one hard thing you've come through, and what helped
+- [gentle · 3] Name one person you could lean on, and reach out to them
+- [gentle · 3] After a setback today, take one small step to begin again
+- [gentle · 4] Build one tiny recovery ritual for hard days: a walk, a song, a cup of tea
+- [bold · 5] Ask for help with something you'd usually push through alone
+- [bold · 6] Return to something you gave up on after a setback
+- [brave · 7] Let someone see you struggling instead of saying you're fine
 ### Awakening
 ### Practising
 ### Embodying

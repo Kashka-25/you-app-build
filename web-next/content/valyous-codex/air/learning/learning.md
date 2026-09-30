@@ -32,8 +32,16 @@ Wisdom asks what learning is for. Knowledge becomes wisdom when it's lived, test
 - Where does learning more become a way of not starting?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Learn one new word or fact today and share it with someone
+- [gentle · 3] Spend twenty minutes on a topic you're curious about
+- [gentle · 3] Ask someone to teach you something they're good at
+- [gentle · 4] Reflect on one lesson life taught you this week
+- [bold · 5] Start a short course or a tutorial
+- [bold · 6] Practise a new skill until you've made three mistakes and learned from them
+- [brave · 7] Stop preparing and begin the thing you've been "learning about" for too long
 ### Awakening
 ### Practising
 ### Embodying

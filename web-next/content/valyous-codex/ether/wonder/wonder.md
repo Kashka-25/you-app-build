@@ -32,8 +32,16 @@ Clarity keeps wonder grounded. You can marvel at mystery and still see clearly. 
 - What have you stopped noticing because you think you've seen it before?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Look at the sky for five minutes, day or night
+- [gentle · 3] Notice something ordinary as if seeing it for the first time
+- [gentle · 3] Learn one astonishing fact about nature or the universe
+- [gentle · 4] Spend time somewhere beautiful and just take it in
+- [bold · 5] Watch a sunrise or a sunset from start to finish
+- [bold · 6] Go somewhere that makes you feel small in the best way
+- [brave · 7] Bring one piece of wonder back into a practical task you've been avoiding
 ### Awakening
 ### Practising
 ### Embodying

@@ -32,8 +32,16 @@ Boundaries are the lantern's glass: they let the flame shine without being blown
 - Where does caring for others become a way of not tending to yourself?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 3] Notice one moment of harsh self-talk today and answer it the way you'd answer a friend
+- [gentle · 2] Put your hand on your heart for a minute and say one kind thing to yourself
+- [gentle · 3] Ask someone how they're really doing, and listen without trying to fix it
+- [gentle · 4] Do one small, quiet kindness for someone who won't know it was you
+- [bold · 5] Write down what you'd want to hear on your hardest day, then read it to yourself
+- [bold · 6] Sit with someone who is struggling and simply keep them company
+- [brave · 7] Say no to one thing you're doing out of rescuing rather than care
 ### Awakening
 ### Practising
 ### Embodying

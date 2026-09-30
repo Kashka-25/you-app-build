@@ -32,8 +32,16 @@ Clarity walks with intuition, checking the hunch against what's real. The gut su
 - How do you tell the difference between intuition and fear?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Before a small choice today, pause and ask your body what it wants
+- [gentle · 3] Write down one hunch you have right now, then check back on it in a week
+- [gentle · 3] Notice where tension or ease shows up in your body during a conversation
+- [gentle · 4] Spend ten minutes in silence and write whatever comes up, unedited
+- [bold · 5] Make one decision today on your gut feeling, and notice how it turns out
+- [bold · 6] Write down a dream you remember and what it might be pointing to
+- [brave · 7] Check one strong feeling against the facts: is it intuition, or is it fear?
 ### Awakening
 ### Practising
 ### Embodying

@@ -32,8 +32,16 @@ Courage knows when waiting has become avoiding. Patience holds; courage acts. To
 - Where has patience turned into putting up with something?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Take three slow breaths before you respond when you feel rushed
+- [gentle · 3] Wait in a queue or traffic without reaching for your phone
+- [gentle · 3] Let someone finish their whole thought before you speak
+- [gentle · 4] Plant something and tend it without expecting quick results
+- [bold · 5] Stay with something frustrating for ten minutes longer than you'd like
+- [bold · 6] Write down one thing you've been rushing, and give it more time
+- [brave · 7] Notice where patience has become putting up with it, and speak up once
 ### Awakening
 ### Practising
 ### Embodying

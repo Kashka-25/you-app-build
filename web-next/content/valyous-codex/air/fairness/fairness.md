@@ -32,8 +32,16 @@ Forgiveness keeps fairness warm. Justice without mercy grows cold; mercy without
 - When does your sense of fairness turn into keeping score?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Notice who does most of the unseen work around you
+- [gentle · 3] Share credit for something you did with others
+- [gentle · 3] Listen fully to a view you disagree with
+- [gentle · 4] Balance one relationship where you've been taking more than giving
+- [bold · 5] Speak up when someone is treated unfairly
+- [bold · 6] Learn about an injustice and take one small action
+- [brave · 7] Notice where you're keeping score, and let one tally go
 ### Awakening
 ### Practising
 ### Embodying

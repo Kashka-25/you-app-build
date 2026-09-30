@@ -32,8 +32,16 @@ Courage is acceptance's companion: accept what cannot be changed, and find the n
 - Where has accepting things become a way of not asking for more?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Name one thing today you can't change, and breathe with it for a minute
+- [gentle · 3] Notice a feeling you don't like and let it be there without pushing it away
+- [gentle · 3] Write down three things about your body or life you're willing to accept today
+- [gentle · 4] Let a plan change today without complaint, and notice what happens
+- [bold · 5] Accept a compliment with a simple thank you, no deflecting
+- [bold · 6] Write about one loss you've been resisting, and what accepting it might free
+- [brave · 7] Notice where acceptance has become giving up, and take one small step to change it
 ### Awakening
 ### Practising
 ### Embodying
