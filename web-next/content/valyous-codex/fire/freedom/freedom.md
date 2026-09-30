@@ -32,8 +32,16 @@ Commitment gives freedom a home to return to. Choosing what to be bound by is it
 - What has your need for freedom cost you, and was it worth it?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Spend an hour with no plan and follow whatever calls you
+- [gentle · 3] Notice one "should" today and ask whose voice it really is
+- [gentle · 3] Make one choice today purely because you want to
+- [gentle · 4] Write down three things you'd do if no one were watching or judging
+- [bold · 5] Say no to an obligation that doesn't fit who you're becoming
+- [bold · 6] Take a solo outing somewhere you've never been
+- [brave · 7] Choose one commitment you're keeping at arm's length and give it your whole yes
 ### Awakening
 ### Practising
 ### Embodying

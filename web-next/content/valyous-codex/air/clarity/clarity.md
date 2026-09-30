@@ -32,8 +32,16 @@ Openness keeps clarity humble. Clear sight plus a willingness to be wrong makes 
 - Where might your certainty be keeping something new from reaching you?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Write down the one thing that matters most today
+- [gentle · 3] Clear one cluttered space: a drawer, a desk, your inbox
+- [gentle · 3] Before a decision, write what you actually want in one sentence
+- [gentle · 4] Spend ten quiet minutes letting your thoughts settle
+- [bold · 5] Say a clear, kind no instead of a vague maybe
+- [bold · 6] Write your top three priorities for this season and share them
+- [brave · 7] Take a view you're certain about and genuinely consider that you might be wrong
 ### Awakening
 ### Practising
 ### Embodying

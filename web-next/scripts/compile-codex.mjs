@@ -58,6 +58,12 @@ function parseSections(src) {
   }
   const notes = (src.match(/## Questionnaire notes\r?\n([\s\S]*?)(?=\r?\n## |$)/) || [])[1] || "";
   out.questionnaireNotes = notes.split(/\r?\n/).map(l => l.replace(/^-\s*/, "").trim()).filter(Boolean);
+  // Starter challenges: "- [gentle · 3] text" lines under "### Starter".
+  const starter = (src.match(/### Starter\r?\n([\s\S]*?)(?=\r?\n### |\r?\n## |$)/) || [])[1] || "";
+  out.starterChallenges = starter.split(/\r?\n/)
+    .map(l => l.match(/^-\s*\[(gentle|bold|brave)\s*·\s*(\d+)\]\s*(.+)$/))
+    .filter(Boolean)
+    .map(([, diff, pts, text]) => ({ text: text.trim(), pts: Number(pts), diff }));
   return out;
 }
 
@@ -72,7 +78,7 @@ const entries = walk(CODEX_DIR).map(file => {
     pillars: fm.pillars || [], balancingKin: fm.balancing_kin || [], nourishingKin: fm.nourishing_kin || [],
     synonyms: fm.synonyms || [], subValues: fm.sub_values || [],
     essence: s.essence || "", light: s.light || "", shadow: s.shadow || "", void: s.void || "",
-    whole: s.whole || "", questionnaireNotes: s.questionnaireNotes
+    whole: s.whole || "", questionnaireNotes: s.questionnaireNotes, starterChallenges: s.starterChallenges
   };
 }).filter(Boolean).sort((a, b) =>
   ELEMENT_ORDER.indexOf(a.element) - ELEMENT_ORDER.indexOf(b.element) || a.name.localeCompare(b.name)

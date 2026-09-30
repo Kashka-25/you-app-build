@@ -32,8 +32,16 @@ Compassion softens honesty's edge. Truth told with care is heard; truth thrown i
 - When has your honesty been more about you than about the other person?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Notice one small untruth you tell by habit, like "I'm fine"
+- [gentle · 3] Answer "how are you?" honestly once today
+- [gentle · 3] Write down one truth you've been avoiding telling yourself
+- [gentle · 4] Give honest, kind feedback when someone asks for it
+- [bold · 5] Admit something you got wrong
+- [bold · 6] Tell someone a truth that matters, with care
+- [brave · 7] Notice when your honesty is more about you than them, and choose kindness first
 ### Awakening
 ### Practising
 ### Embodying

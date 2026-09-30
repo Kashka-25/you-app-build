@@ -32,8 +32,16 @@ Humour keeps wisdom humble. Taking yourself lightly, even as you think deeply, i
 - When does your wisdom stop listening?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Write down one lesson life has taught you
+- [gentle · 3] Pause before giving advice and ask a question instead
+- [gentle · 3] Ask an elder or mentor what they wish they'd known sooner
+- [gentle · 4] Reflect on a mistake and what it taught you
+- [bold · 5] Share a hard-won lesson with someone who might need it
+- [bold · 6] Sleep on one important decision before making it
+- [brave · 7] Notice where you think you know best, and truly listen instead
 ### Awakening
 ### Practising
 ### Embodying

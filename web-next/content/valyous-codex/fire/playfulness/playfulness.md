@@ -32,8 +32,16 @@ Responsibility gives play a safe field to run in. When the important things are 
 - When is your lightness a gift, and when is it a way of not staying?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Do something silly today, just for the fun of it
+- [gentle · 3] Play a game with someone, no phones
+- [gentle · 3] Turn one boring task into a game
+- [gentle · 4] Spend time outside doing something with no purpose but joy
+- [bold · 5] Try something you'd usually say you're too old for
+- [bold · 6] Plan a playful adventure with a friend
+- [brave · 7] Notice when you use a joke to dodge something serious, and stay with it instead
 ### Awakening
 ### Practising
 ### Embodying

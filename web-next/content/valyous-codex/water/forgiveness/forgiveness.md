@@ -32,8 +32,16 @@ Fairness keeps forgiveness honest. You can release the grudge and still name wha
 - Is there something you haven't forgiven yourself for? What would it cost you to try?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 3] Name one small grudge you're carrying, just to notice its weight
+- [gentle · 2] Write down one thing you did that you'd like to forgive yourself for
+- [gentle · 3] Let one minor annoyance today pass without replaying it
+- [gentle · 4] Write an unsent letter to someone who hurt you, saying everything
+- [bold · 5] Offer yourself forgiveness out loud for a mistake that still stings
+- [bold · 6] Apologise sincerely for something you've been avoiding
+- [brave · 8] Name a hurt honestly to the person involved, without needing them to change
 ### Awakening
 ### Practising
 ### Embodying

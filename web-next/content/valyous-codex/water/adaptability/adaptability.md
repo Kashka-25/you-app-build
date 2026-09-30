@@ -32,8 +32,16 @@ Integrity is the riverbed that adaptability flows through. You can change your c
 - What change are you bracing against right now, and what might it be offering?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Take a different route somewhere familiar today
+- [gentle · 3] Change one small habit for a day and notice how you meet it
+- [gentle · 3] When something doesn't go to plan, name one thing it makes possible
+- [gentle · 4] Try doing a routine task in a completely new way
+- [bold · 5] Say yes to an unplanned invitation or change of plan
+- [bold · 6] Learn the basics of something unfamiliar in a single afternoon
+- [brave · 8] Notice where you bend to fit in, and hold your ground there once
 ### Awakening
 ### Practising
 ### Embodying

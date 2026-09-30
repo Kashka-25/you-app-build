@@ -32,8 +32,16 @@ Trust lets responsibility rest. You don't have to hold everything; others are ca
 - Where do you avoid owning your part, and what are you afraid it would mean?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Keep one small promise to yourself today
+- [gentle · 3] Tidy one thing you've been meaning to take care of
+- [gentle · 3] Notice one thing you're carrying that isn't yours, and name it
+- [gentle · 4] Follow through on something you said you'd do for someone
+- [bold · 5] Own a mistake openly, without excuses
+- [bold · 6] Take on one responsibility that matters to your community
+- [brave · 8] Hand back one responsibility that was never yours to carry
 ### Awakening
 ### Practising
 ### Embodying

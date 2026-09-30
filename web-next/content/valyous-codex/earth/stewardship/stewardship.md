@@ -32,8 +32,16 @@ Acceptance steadies stewardship. You can do your part with love without carrying
 - Where does caring for the world become a weight you carry alone?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Spend ten minutes tending a corner of your home
+- [gentle · 3] Pick up litter on a walk
+- [gentle · 3] Notice one thing you could reuse instead of throwing away
+- [gentle · 4] Look at where your money went this week, without judgement
+- [bold · 5] Grow something, or care for a plant, for a month
+- [bold · 6] Give time to a local nature, garden or community project
+- [brave · 7] Let go of one worry about the whole world, and tend one small patch well instead
 ### Awakening
 ### Practising
 ### Embodying

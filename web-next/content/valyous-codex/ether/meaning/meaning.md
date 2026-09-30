@@ -32,8 +32,16 @@ Playfulness lightens meaning. Not everything has to matter enormously. Sometimes
 - Where does the search for meaning make ordinary joy feel not enough?
 
 ## Challenges
-<!-- Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write.
-     The current 7 live in web-next/src/constants/values.const.js. -->
+<!-- Starter set: 7 challenges (4 gentle, 2 bold, 1 brave), shown in the app.
+     Curated 4 per tier (2 light : 1 shadow : 1 integration) still to write. -->
+### Starter
+- [gentle · 2] Write down one moment this week that felt meaningful
+- [gentle · 3] Ask yourself why you do one of your daily tasks
+- [gentle · 3] Do one small thing for someone else, just because it matters
+- [gentle · 4] Write a few lines about what you'd want your life to stand for
+- [bold · 5] Give time to a cause you care about
+- [bold · 6] Talk with someone about what gives their life meaning
+- [brave · 7] Let one day be simple and light, without needing it to mean anything
 ### Awakening
 ### Practising
 ### Embodying
