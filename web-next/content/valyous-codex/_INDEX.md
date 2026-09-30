@@ -1,6 +1,6 @@
 # The ValYOU's Codex — index
 
-> **DRAFT (Sep 28)** — proposed list of the 40 main values, for Cassidy to
+> **Final (Sep 28)** — proposed list of the 40 main values, for Cassidy to
 > approve, swap or rename. Eight per Element. ✎ = drafted, ○ = not yet.
 > All 40 drafted Sep 28 in a warm, poetic voice: an easy metaphor to
 > picture, a plain meaning alongside it.
