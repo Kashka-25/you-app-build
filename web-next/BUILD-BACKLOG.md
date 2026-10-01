@@ -274,8 +274,25 @@ and code keep `journey` so old links still work. Travel plans are
       passwords, so it matters.
 
 ### Later
-- [ ] Memories, journal entries and photos pinned to stops; later these
-      become Life Constellations.
+- [x] **Memories pinned to places** (Oct 1). A life moment ("Add a memory",
+      with its photo) or a journal entry can be pinned to one stop
+      (`stop_id`, `20261001160000_memory_places.sql`; removing a stop only
+      unpins, never deletes).
+      - Both forms show "Where was this?" **only** when a stop covers that
+        date (or it's already pinned). New memories made while travelling
+        are pinned to where you are automatically, with one tap to change
+        or choose "Not pinned".
+      - Each stop has **Memories here**: what's pinned (with photo
+        thumbnails, unpin), "From your days here" suggestions (unpinned
+        memories dated within the stop, "Pin here"), and "Add a memory
+        here".
+      - Stop rows show "· N memories". Memory cards in Chapters and journal
+        cards in Reflections show a small place tag.
+      - The travelling Threshold card has "Capture a memory in <place>".
+      - *(Migration applied and tested end to end Oct 1: suggest, pin,
+        add here, auto-pin, hidden off-trip, unpin on stop removal.)*
+- [ ] Next: these pinned memories become Life Constellations (stars over
+      the places they happened).
 - [ ] "Everywhere you've been": a world map of travelled Wanderings in
       Story of You, for Legacy and the Mirror.
 - [ ] A finished Wandering offers to mark its Dream achieved.

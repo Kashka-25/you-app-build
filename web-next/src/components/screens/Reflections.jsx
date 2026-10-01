@@ -7,6 +7,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { SegmentedControl } from "../ui/SegmentedControl";
 import { MOODS } from "../ui/Input";
 import JournalEntryModal from "../journal/JournalEntryModal";
+import { PlaceTag } from "../wandering/PlacePicker";
 import WeeklyReflectionView from "../journal/WeeklyReflectionView";
 import ExplorationsView from "../questionnaires/ExplorationsView";
 
@@ -34,6 +35,7 @@ function EntryCard({ entry, onEdit }) {
         )}
       </div>
       <div className="text-bodySm text-textPrimary whitespace-pre-wrap line-clamp-4">{entry.content}</div>
+      <PlaceTag stopId={entry.stop_id} className="mt-1.5" />
       {entry.tags?.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {entry.tags.map(t => (

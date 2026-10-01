@@ -464,7 +464,9 @@ export function AppDataProvider({ children }) {
   // uploads to a private bucket under this user's own folder (matches the
   // storage RLS policy: auth.uid() must equal the first path segment) and
   // only the storage path is persisted — see attachSignedPhotoUrls for why.
-  async function addMoment({ title, momentDate, description, photoFile }) {
+  // stopId (optional): pin the memory to a Wandering stop. Only sent when
+  // given, so nothing changes for memories made where there's no stop.
+  async function addMoment({ title, momentDate, description, photoFile, stopId }) {
     let photoPath = null;
     if (photoFile) {
       const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
@@ -473,6 +475,7 @@ export function AppDataProvider({ children }) {
       if (upErr) throw upErr;
     }
     const row = { user_id: userId, title, description: description || "", moment_date: momentDate, photo_path: photoPath };
+    if (stopId !== undefined) row.stop_id = stopId;
     const res = await supabase.from("life_moments").insert(row).select().single();
     if (res.error) throw res.error;
 
@@ -500,7 +503,7 @@ export function AppDataProvider({ children }) {
   // or its place in the timeline. photoFile replaces any existing photo
   // (old file is removed from storage); removePhoto clears it with no
   // replacement; passing neither leaves the existing photo untouched.
-  async function editMoment(id, { title, momentDate, description, photoFile, removePhoto }) {
+  async function editMoment(id, { title, momentDate, description, photoFile, removePhoto, stopId }) {
     const moment = moments.find(m => m.id === id);
     if (!moment) return;
 
@@ -518,6 +521,7 @@ export function AppDataProvider({ children }) {
     }
 
     const updates = { title, description: description || "", moment_date: momentDate, photo_path: photoPath };
+    if (stopId !== undefined) updates.stop_id = stopId;
     const res = await supabase.from("life_moments").update(updates).eq("id", id).eq("user_id", userId).select().single();
     if (res.error) throw res.error;
 
@@ -790,6 +794,16 @@ export function AppDataProvider({ children }) {
     await updateWanderingStop(other.id, { position: stop.position });
   }
 
+  // Pin (or unpin, with null) an existing memory from a stop's page.
+  // kind: "moment" (life_moments) or "entry" (journal_entries).
+  async function pinMemory(kind, id, stopId) {
+    const table = kind === "moment" ? "life_moments" : "journal_entries";
+    const res = await supabase.from(table).update({ stop_id: stopId }).eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    if (kind === "moment") setMoments(prev => prev.map(m => (m.id === id ? { ...m, stop_id: stopId } : m)));
+    else setJournalEntries(prev => prev.map(e => (e.id === id ? { ...e, stop_id: stopId } : e)));
+  }
+
   async function setStopDayPlan(stopId, dateKey, steps) {
     const stop = wanderingStops.find(s => s.id === stopId);
     if (!stop) return;
@@ -915,8 +929,9 @@ export function AppDataProvider({ children }) {
     await supabase.from("todos").delete().eq("id", id).eq("user_id", userId);
   }
 
-  async function addJournalEntry({ content, mood, entryDate, tags }) {
+  async function addJournalEntry({ content, mood, entryDate, tags, stopId }) {
     const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey(), tags: tags || [] };
+    if (stopId !== undefined) row.stop_id = stopId;
     const res = await supabase.from("journal_entries").insert(row).select().single();
     if (res.error) throw res.error;
     setJournalEntries(prev =>
@@ -925,8 +940,9 @@ export function AppDataProvider({ children }) {
     return res.data;
   }
 
-  async function editJournalEntry(id, { content, mood, entryDate, tags }) {
+  async function editJournalEntry(id, { content, mood, entryDate, tags, stopId }) {
     const updates = { content, mood: mood || null, entry_date: entryDate, tags: tags || [], updated_at: new Date().toISOString() };
+    if (stopId !== undefined) updates.stop_id = stopId;
     const res = await supabase.from("journal_entries").update(updates).eq("id", id).eq("user_id", userId).select().single();
     if (res.error) throw res.error;
     setJournalEntries(prev =>
@@ -1253,7 +1269,7 @@ export function AppDataProvider({ children }) {
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
-    moveWanderingStop, setStopDayPlan,
+    moveWanderingStop, setStopDayPlan, pinMemory,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,

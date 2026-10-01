@@ -110,3 +110,12 @@ export function stopForToday(wanderings, stopsByWandering, today = localDateKey(
   }
   return null;
 }
+
+// Stops whose dates include a given day (arrival through departure day),
+// latest arrival first — on a travel day, where you arrived wins.
+export function stopsCoveringDate(stops, dateKey) {
+  if (!dateKey) return [];
+  return stops
+    .filter(s => s.arrive && s.arrive <= dateKey && (s.depart || s.arrive) >= dateKey)
+    .sort((a, b) => (b.arrive > a.arrive ? 1 : -1));
+}

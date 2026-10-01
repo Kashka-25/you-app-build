@@ -10,6 +10,7 @@ import { StepList } from "../ui/StepList";
 import { Button } from "../ui/Button";
 import WanderingMap from "./WanderingMap";
 import PlaceSearch from "./PlaceSearch";
+import StopMemories from "./StopMemories";
 
 const STATUS_LABEL = { dreaming: "Dreaming", planned: "Planned", travelling: "Travelling", travelled: "Travelled" };
 const KINDS = [
@@ -120,6 +121,8 @@ function StopDetail({ stop, isFirst, isLast }) {
         </div>
       )}
 
+      <StopMemories stop={stop} />
+
       {error && <div className="text-caption text-error">{error}</div>}
 
       <div className="flex items-center gap-2 pt-1">
@@ -150,7 +153,8 @@ function StopDetail({ stop, isFirst, isLast }) {
 export default function WanderingScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { loaded, wanderings, wanderingStops, items, releasedItems, renameWandering, addWanderingStop } = useAppData();
+  const { loaded, wanderings, wanderingStops, items, releasedItems, renameWandering, addWanderingStop, moments, journalEntries } = useAppData();
+  const memoryCount = stopId => moments.filter(m => m.stop_id === stopId).length + journalEntries.filter(e => e.stop_id === stopId).length;
   const [selectedId, setSelectedId] = useState(null);
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState("");
@@ -252,7 +256,10 @@ export default function WanderingScreen() {
                       <span className="text-label px-2 py-0.5 rounded-full bg-surface3 text-textSecondary">{KINDS.find(k => k.key === s.kind)?.label}</span>
                     </span>
                     {s.place_detail && <span className="block text-caption text-textMuted">{s.place_detail}</span>}
-                    <span className="block text-caption text-textSecondary mt-0.5">{stopDateLabel(s)}</span>
+                    <span className="block text-caption text-textSecondary mt-0.5">
+                      {stopDateLabel(s)}
+                      {memoryCount(s.id) > 0 && ` · ${memoryCount(s.id)} ${memoryCount(s.id) === 1 ? "memory" : "memories"}`}
+                    </span>
                     {s.note && !open && <span className="block text-caption text-textSecondary italic mt-0.5">{s.note}</span>}
                   </span>
                 </button>

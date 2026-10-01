@@ -7,6 +7,8 @@ import { MoodSelector } from "../ui/Input";
 import JournalPhotoSection from "./JournalPhotoSection";
 import JournalReflectionCard from "./JournalReflectionCard";
 import { localDateKey as todayKey } from "../../lib/week";
+import { stopsCoveringDate } from "../../lib/wandering";
+import PlacePicker from "../wandering/PlacePicker";
 
 const labelClass = "block text-label uppercase text-textMuted mb-1.5";
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
@@ -18,7 +20,7 @@ const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 p
 // edit mode, since photos/AI reflection both need a real entry_id to attach
 // to and can't exist before the first save.
 export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
-  const { addJournalEntry, editJournalEntry, deleteJournalEntry } = useAppData();
+  const { addJournalEntry, editJournalEntry, deleteJournalEntry, wanderingStops } = useAppData();
   const isEdit = Boolean(entry);
 
   const [content, setContent] = useState("");
@@ -29,6 +31,7 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [stopId, setStopId] = useState(null);
 
   useEffect(() => {
     if (!open) return;
@@ -36,6 +39,7 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
     setMood(entry?.mood || null);
     setEntryDate(entry?.entry_date || todayKey());
     setTags(entry?.tags || []);
+    setStopId(entry?.stop_id || null);
     setTagInput("");
     setError("");
   }, [open, entry]);
@@ -55,12 +59,14 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
     }
     setSaving(true);
     setError("");
+    // Only send a place when one could be chosen (see AddMomentModal).
+    const place = stopsCoveringDate(wanderingStops, entryDate).length > 0 || entry?.stop_id ? stopId : undefined;
     try {
       if (isEdit) {
-        const saved = await editJournalEntry(entry.id, { content: content.trim(), mood, entryDate, tags });
+        const saved = await editJournalEntry(entry.id, { content: content.trim(), mood, entryDate, tags, stopId: place });
         onSaved ? onSaved(saved) : onClose();
       } else {
-        const saved = await addJournalEntry({ content: content.trim(), mood, entryDate, tags });
+        const saved = await addJournalEntry({ content: content.trim(), mood, entryDate, tags, stopId: place });
         onSaved ? onSaved(saved) : onClose();
       }
     } catch (e) {
@@ -92,6 +98,8 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
         max={todayKey()}
         onChange={e => setEntryDate(e.target.value)}
       />
+
+      <PlacePicker dateKey={entryDate} value={stopId} onChange={setStopId} autoSelect={!isEdit} />
 
       <label className={labelClass}>How are you feeling? (optional)</label>
       <MoodSelector value={mood} onChange={setMood} className="mb-3" />

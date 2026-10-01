@@ -4,6 +4,8 @@ import { useAppData } from "../../lib/AppDataContext";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { localDateKey as todayKey } from "../../lib/week";
+import { stopsCoveringDate } from "../../lib/wandering";
+import PlacePicker from "../wandering/PlacePicker";
 
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
@@ -12,8 +14,10 @@ const labelClass = "text-label uppercase text-textMuted";
 // either way, just prefilled and pointed at editMoment when a `moment` is
 // passed in. This is what makes "type it up now, attach a photo later
 // from your phone" work: the moment already exists, this just updates it.
-export default function AddMomentModal({ open, onClose, moment }) {
-  const { addMoment, editMoment, deleteMoment } = useAppData();
+// `defaults` ({ momentDate, stopId }) seeds a new memory, e.g. "Add a
+// memory here" on a Wandering stop.
+export default function AddMomentModal({ open, onClose, moment, defaults }) {
+  const { addMoment, editMoment, deleteMoment, wanderingStops } = useAppData();
   const isEdit = Boolean(moment);
 
   const [title, setTitle] = useState("");
@@ -25,6 +29,7 @@ export default function AddMomentModal({ open, onClose, moment }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [stopId, setStopId] = useState(null);
 
   // Re-prefill whenever a different moment is opened for editing (or the
   // modal is opened fresh to add one).
@@ -34,16 +39,20 @@ export default function AddMomentModal({ open, onClose, moment }) {
       setTitle(moment.title || "");
       setMomentDate(moment.moment_date || todayKey());
       setDescription(moment.description || "");
+      setStopId(moment.stop_id || null);
     } else {
       setTitle("");
-      setMomentDate(todayKey());
+      setMomentDate(defaults?.momentDate || todayKey());
       setDescription("");
+      setStopId(defaults?.stopId || null);
     }
     setPhotoFile(null);
     setPhotoPreview(null);
     setRemovePhoto(false);
     setError("");
-  }, [open, moment]);
+    // Keyed on the default values, not the object, so a parent re-render
+    // can't reset the form mid-typing.
+  }, [open, moment, defaults?.momentDate, defaults?.stopId]);
 
   function handleFile(e) {
     const file = e.target.files?.[0];
@@ -64,11 +73,14 @@ export default function AddMomentModal({ open, onClose, moment }) {
     }
     setSaving(true);
     setError("");
+    // Only send a place when one could be chosen, so memories made away
+    // from any Wandering are saved exactly as before.
+    const place = stopsCoveringDate(wanderingStops, momentDate).length > 0 || moment?.stop_id ? stopId : undefined;
     try {
       if (isEdit) {
-        await editMoment(moment.id, { title: title.trim(), momentDate, description: description.trim(), photoFile, removePhoto });
+        await editMoment(moment.id, { title: title.trim(), momentDate, description: description.trim(), photoFile, removePhoto, stopId: place });
       } else {
-        await addMoment({ title: title.trim(), momentDate, description: description.trim(), photoFile });
+        await addMoment({ title: title.trim(), momentDate, description: description.trim(), photoFile, stopId: place });
       }
       close();
     } catch (e) {
@@ -105,6 +117,8 @@ export default function AddMomentModal({ open, onClose, moment }) {
         max={todayKey()}
         onChange={e => setMomentDate(e.target.value)}
       />
+
+      <PlacePicker dateKey={momentDate} value={stopId} onChange={setStopId} autoSelect={!isEdit && !defaults?.stopId} />
 
       <label className={labelClass}>What happened (optional)</label>
       <textarea className={fieldClass} rows={3} value={description} onChange={e => setDescription(e.target.value)} />

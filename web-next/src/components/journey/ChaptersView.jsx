@@ -5,6 +5,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import AddMomentModal from "./AddMomentModal";
+import { PlaceTag } from "../wandering/PlacePicker";
 import SuggestChaptersPanel from "./SuggestChaptersPanel";
 
 function niceMomentDate(dateStr) {
@@ -27,6 +28,7 @@ function MomentCard({ moment, onEdit }) {
         <span className="text-caption text-textMuted flex-none">{niceMomentDate(moment.moment_date)}</span>
       </div>
       {moment.description && <div className="text-bodySm text-textSecondary">{moment.description}</div>}
+      <PlaceTag stopId={moment.stop_id} className="mt-1.5" />
       {!moment.photo_url && <div className="text-caption text-textMuted mt-1.5">Tap to edit or add a photo</div>}
     </button>
   );

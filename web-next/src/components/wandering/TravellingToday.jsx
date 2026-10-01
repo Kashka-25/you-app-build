@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, ChevronRight } from "lucide-react";
+import { MapPin, ChevronRight, Camera } from "lucide-react";
+import AddMomentModal from "../journey/AddMomentModal";
 import { useAppData } from "../../lib/AppDataContext";
 import { localDateKey } from "../../lib/week";
 import { stopForToday, niceDay } from "../../lib/wandering";
@@ -12,6 +13,7 @@ import { StepList } from "../ui/StepList";
 export default function TravellingToday() {
   const { wanderings, wanderingStops, setStopDayPlan } = useAppData();
   const [error, setError] = useState("");
+  const [capturing, setCapturing] = useState(false);
   const today = localDateKey();
 
   const byWandering = useMemo(() => {
@@ -53,11 +55,20 @@ export default function TravellingToday() {
             onRemove={i => save(plans.filter((_, j) => j !== i)).catch(() => {})}
           />
           {error && <div className="text-caption text-error mt-1">{error}</div>}
+          <button type="button" onClick={() => setCapturing(true)} className="mt-2 inline-flex items-center gap-1.5 text-caption text-forestAccent font-medium">
+            <Camera size={13} strokeWidth={1.75} />
+            Capture a memory in {stop.place_name}
+          </button>
           <div className="text-caption text-textMuted mt-2">
             {next ? `Next: ${next.place_name} on ${niceDay(next.arrive)}` : "The last stop of this wandering."}
           </div>
         </div>
       </div>
+      <AddMomentModal
+        open={capturing}
+        onClose={() => setCapturing(false)}
+        defaults={capturing ? { momentDate: today, stopId: stop.id } : undefined}
+      />
     </section>
   );
 }
