@@ -8,12 +8,9 @@ import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import { StepList } from "../ui/StepList";
 import AddItemModal from "./AddItemModal";
+import { localDateKey as todayKey } from "../../lib/week";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
 
 // 8 small sparks radiating outward from the checkbox and fading — the one
 // moment (right when an item is confirmed complete) that gets an animated

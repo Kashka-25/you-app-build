@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
+import { weekStartKey } from "../../lib/week";
 
 const SECTION_LABELS = [
   ["your_week", "Your week"],
@@ -22,7 +23,9 @@ function toDateKey(d) {
 
 // Monday of the week containing `d` — same rule the weekly-reflection Edge
 // Function uses server-side, kept in sync deliberately so the week the user
-// sees here is always the week that gets generated.
+// sees here is always the week that gets generated. Only ever given a date
+// key parsed as UTC midnight (pure calendar maths); "this week" itself comes
+// from weekStartKey(), the Seeker's local Monday, never UTC "now".
 function startOfWeek(d) {
   const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
   const day = date.getUTCDay();
@@ -41,14 +44,14 @@ function niceRange(weekStart) {
 
 export default function WeeklyReflectionView() {
   const { weeklyReflections, journalEntries, loadWeeklyReflection, generateWeeklyReflection } = useAppData();
-  const [weekStart, setWeekStart] = useState(() => toDateKey(startOfWeek(new Date())));
+  const [weekStart, setWeekStart] = useState(() => weekStartKey());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [emptyMessage, setEmptyMessage] = useState("");
   const [checkedWeeks, setCheckedWeeks] = useState({});
 
   const reflection = weeklyReflections[weekStart];
-  const isCurrentWeek = weekStart === toDateKey(startOfWeek(new Date()));
+  const isCurrentWeek = weekStart === weekStartKey();
   const hasEntriesThisWeek = journalEntries.some(e => {
     const entryWeekStart = toDateKey(startOfWeek(new Date(e.entry_date + "T00:00:00Z")));
     return entryWeekStart === weekStart;

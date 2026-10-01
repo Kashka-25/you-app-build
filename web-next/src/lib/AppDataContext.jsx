@@ -9,6 +9,9 @@ import {
 import { getValueEntry } from "../constants/valueLibrary";
 import { localDateKey, weekStartKey, sowWeekStartKey } from "./week";
 
+// "Today" is always the Seeker's local date, never UTC.
+const todayKey = localDateKey;
+
 const AppDataContext = createContext(null);
 
 // How long we'll wait on Supabase before giving up and rendering with
@@ -19,9 +22,6 @@ const LOAD_TIMEOUT_MS = 8000;
 // XP for tending a sown intention — same as a habit check-in.
 const TEND_XP = 3;
 
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
 function niceDate() {
   return new Date().toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }

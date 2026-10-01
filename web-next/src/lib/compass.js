@@ -1,3 +1,5 @@
+import { localDateKey as todayKey } from "./week";
+
 // Shared selection logic for "Bring Me Back To Myself" and the Home screen.
 // Both screens answer the same underlying question — "what matters to me
 // right now?" — from the same data (values, items, chapters, journal
@@ -9,10 +11,6 @@
 // chapters/recentInsights) — no AI call happens just from opening these
 // screens. The AI cost already happened when each journal insight/weekly
 // reflection was generated; this just re-reads and synthesizes that.
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
 
 // Ongoing chapters (range_end null) win; otherwise whichever chapter's
 // range actually contains today; otherwise the most recently started one.

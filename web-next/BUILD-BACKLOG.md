@@ -203,9 +203,13 @@ from real effort. It borrows Forest's *visible growth from effort*, but
       (user, week, item). RLS own-rows only.
 - [x] Loaded outside the main batch (like `todos`), so a missing table
       can't block the app.
-- [x] Dates are the Seeker's **local** date, not UTC. (Note: older
-      `todayKey()` helpers use UTC `toISOString()`, which reads as
-      yesterday in Australian mornings. Worth fixing app-wide separately.)
+- [x] Dates are the Seeker's **local** date, not UTC. *(Oct 1: fixed
+      app-wide. Every `todayKey()` (todos, check-ins, completions, journal,
+      moments, visions, chapters, Home's mood) now uses `localDateKey()`
+      from `lib/week.js`, and the weekly reflection's "this week" uses the
+      local Monday. The old UTC keys read as yesterday early in the
+      morning: until 10–11am in Australia, or until 1am in the UK during
+      BST. Existing rows keep the dates they were saved with.)*
 
 ---
 

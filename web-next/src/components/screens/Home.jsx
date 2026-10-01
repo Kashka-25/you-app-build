@@ -11,17 +11,13 @@ import { GlowBubble } from "../ui/GlowBubble";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
-import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey } from "../../lib/week";
+import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, localDateKey as todayKey } from "../../lib/week";
 
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
-}
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
 }
 
 function niceDate(dateStr) {

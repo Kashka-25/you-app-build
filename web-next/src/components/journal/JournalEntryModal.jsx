@@ -6,13 +6,10 @@ import { Button } from "../ui/Button";
 import { MoodSelector } from "../ui/Input";
 import JournalPhotoSection from "./JournalPhotoSection";
 import JournalReflectionCard from "./JournalReflectionCard";
+import { localDateKey as todayKey } from "../../lib/week";
 
 const labelClass = "block text-label uppercase text-textMuted mb-1.5";
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
 
 // Add and edit share one form, same pattern as AddMomentModal — prefilled
 // and pointed at editJournalEntry when an `entry` is passed in. On a
