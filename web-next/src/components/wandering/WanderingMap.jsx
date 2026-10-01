@@ -1,44 +1,7 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-
-// OpenFreeMap: free vector tiles from OpenStreetMap data, no key needed.
-const STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
-
-// Positron recoloured into YOU's palette — sand land, soft blue-grey water,
-// moss parks — with a forest-at-dusk set for dark mode.
-const PALETTE = {
-  light: {
-    background: "#EFE8DB", water: "#C9D6D8", waterway: "#B7C8CB", park: "#DCE3CC", wood: "#D3DCC2",
-    residential: "#E8E0D0", building: "#E3DACB", road: "#F6F2EA", boundary: "#B5AE9E", label: "#4A4A44"
-  },
-  dark: {
-    background: "#1A1F1D", water: "#142229", waterway: "#1B2D35", park: "#1E2D22", wood: "#1C2A20",
-    residential: "#202624", building: "#242B28", road: "#2A2F2C", boundary: "#4A524D", label: "#B8B3A9"
-  }
-};
-
-function paint(map, layer, prop, value) {
-  if (map.getLayer(layer)) {
-    try { map.setPaintProperty(layer, prop, value); } catch { /* layer lacks this property */ }
-  }
-}
-
-function applyPalette(map) {
-  const c = PALETTE[document.documentElement.getAttribute("data-mode") === "dark" ? "dark" : "light"];
-  paint(map, "background", "background-color", c.background);
-  paint(map, "water", "fill-color", c.water);
-  paint(map, "waterway", "line-color", c.waterway);
-  paint(map, "park", "fill-color", c.park);
-  paint(map, "landcover_wood", "fill-color", c.wood);
-  paint(map, "landuse_residential", "fill-color", c.residential);
-  paint(map, "building", "fill-color", c.building);
-  ["highway_minor", "highway_major_inner", "highway_motorway_inner", "highway_path"].forEach(l => paint(map, l, "line-color", c.road));
-  ["boundary_2", "boundary_3", "boundary_disputed"].forEach(l => paint(map, l, "line-color", c.boundary));
-  map.getStyle().layers
-    .filter(l => l.type === "symbol" && l.id.startsWith("label_"))
-    .forEach(l => paint(map, l.id, "text-color", c.label));
-}
+import { STYLE_URL, applyPalette } from "./mapStyle";
 
 function reducedMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -118,7 +81,9 @@ export default function WanderingMap({ stops, selectedId, onSelect, className = 
   function fitAll(map, list, animate) {
     if (!list.length) return;
     if (list.length === 1) {
-      map[animate ? "easeTo" : "jumpTo"]({ center: [list[0].lng, list[0].lat], zoom: 9 });
+      // A whole country (no place beneath it) needs a much wider view than a town.
+      const zoom = list[0].place_detail ? 9 : 4;
+      map[animate ? "easeTo" : "jumpTo"]({ center: [list[0].lng, list[0].lat], zoom });
       return;
     }
     const b = new maplibregl.LngLatBounds();

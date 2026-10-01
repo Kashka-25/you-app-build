@@ -84,3 +84,20 @@ body {
   transform: scale(1.18);
 }
 .maplibregl-ctrl-attrib { font-size: 10px; }
+
+/* Night map chrome ("Everywhere you've been"): attribution and zoom
+   buttons dimmed to sit in the night palette instead of glaring white. */
+.night-map .maplibregl-ctrl-attrib,
+.night-map .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: rgba(7, 11, 20, 0.75);
+  color: #8B8E87;
+}
+.night-map .maplibregl-ctrl-attrib a { color: #B8B3A9; }
+.night-map .maplibregl-ctrl-group {
+  background: rgba(20, 24, 22, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.night-map .maplibregl-ctrl-group button + button { border-top-color: rgba(255, 255, 255, 0.08); }
+.night-map .maplibregl-ctrl-group .maplibregl-ctrl-icon { filter: invert(0.85); }
+.night-map .maplibregl-ctrl-attrib-button { filter: invert(0.85); }
+.night-map .maplibregl-ctrl-top-right { top: 150px; }

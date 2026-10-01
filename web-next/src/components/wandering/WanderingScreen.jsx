@@ -182,7 +182,10 @@ export default function WanderingScreen() {
   if (!loaded) return shell(<div className="text-body text-textSecondary">Unfolding the map…</div>);
   if (!wandering) return shell(<div className="text-body text-textSecondary">This wandering couldn't be found.</div>);
 
-  const status = wanderingStatus(stops);
+  // A Dream already marked done is a journey taken, even before its dates
+  // are filled in.
+  const derived = wanderingStatus(stops);
+  const status = dream?.done && derived === "dreaming" ? "travelled" : derived;
   const range = wanderingRange(stops);
   const totalNights = range ? nightsBetween(range.start, range.end) : null;
 

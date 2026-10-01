@@ -322,8 +322,37 @@ and code keep `journey` so old links still work. Travel plans are
       brightness (bright stars shimmer and occasionally catch a warm or
       cool tint; faint ones are nearly still). Era stars get a calm glimmer
       instead of a pulse. It's off under prefers-reduced-motion.
-- [ ] "Everywhere you've been": a world map of travelled Wanderings in
-      Story of You, for Legacy and the Mirror.
+- [x] **"Everywhere you've been"** (Oct 1). A door in The Story of You (and
+      "See them on the world map" in Life Constellations) opens a
+      full-screen night-coloured world map. It shows every place you've
+      actually reached: stops whose arrival date has come, so future plans
+      don't count yet. Each Wandering's route is drawn in its own colour, and
+      places glow larger with each memory there. The header reads "N places ·
+      N countries · N wanderings", with the countries named. Tap a place for
+      its trip, month and year, dates, memory count and "Open the
+      wandering". A tap on several overlapping places zooms in to separate
+      them. Still on arrival (fits without animating). Lazy-loaded; shares
+      the map chunk. No migration needed.
+      - Shared `wandering/mapStyle.js` now styles every map, adding a
+        `night` palette. Ice, ocean labels, label outlines, and all road,
+        rail and runway lines are recoloured for every palette (they glared
+        white on the darker ones).
+      - "Been" also includes every stop of a Dream marked **done**: exact
+        dates aren't needed to have been somewhere.
+- [x] Country-level stops (a whole country, no place beneath it) open at a
+      country-wide zoom. Place details never repeat the name ("Egypt" isn't
+      shown under Egypt). A done Dream's Wandering reads **Travelled** even
+      without dates.
+- [x] Cassidy's data (Oct 1): a Wandering on each travel dream (Egypt,
+      Estonia, Finland, Iceland, India, Indonesia, Italy, Japan,
+      Philippines, Walk the Road to Santiago at Santiago de Compostela;
+      Cambodia and Ko Pha-ngan as travelled). Van life has none (not a
+      place). New done dream **Portugal** (Spirit/Travel, +50 XP on 1 Oct
+      2026) with a Wandering: Lisbon, Porto, Sintra, Cascais, Terra Sangha
+      (not on OpenStreetMap; pinned just south-east of Santo António das
+      Areias, Marvão, near the Spanish border, per Cassidy) and Nazaré, July to
+      October 2026, undated.
+- [ ] For Legacy and the Mirror: a yearly "places you reached this year".
 - [ ] A finished Wandering offers to mark its Dream achieved.
 
 ### Also fixed alongside

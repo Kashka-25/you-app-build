@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Globe2 } from "lucide-react";
 import { useAppData } from "../../../lib/AppDataContext";
 import { pickCurrentChapter } from "../../../lib/compass";
 import { Modal } from "../../ui/Modal";
 import { TWINKLE_CSS, PATTERNS, twinkle, randomTwinkle } from "./twinkle";
+
+// Loaded on demand: the map library only downloads when the world is opened.
+const EverywhereMap = lazy(() => import("../../wandering/EverywhereMap"));
 
 // Portrait-shaped viewBox (not the Tree scene's wide landscape one) — this
 // fills the entire screen edge to edge via preserveAspectRatio="slice", so
@@ -43,6 +46,7 @@ export default function StoryOfYou({ onClose }) {
   const { chapters, moments, loadEraInsights, loadEraWeeklyReflections } = useAppData();
   const [openIndex, setOpenIndex] = useState(null);
   const [eraData, setEraData] = useState({}); // chapterId -> { loading, insights, weekly }
+  const [worldOpen, setWorldOpen] = useState(false);
 
   const eras = useMemo(
     () => [...chapters].sort((a, b) => new Date(a.range_start) - new Date(b.range_start)),
@@ -196,6 +200,14 @@ export default function StoryOfYou({ onClose }) {
             Drift out past every star, until your whole life becomes a single thread of light.
             Choose an era. Open the door. Step back inside it.
           </p>
+          <button
+            onClick={() => setWorldOpen(true)}
+            className="pointer-events-auto inline-flex items-center gap-1.5 mt-3 text-caption uppercase tracking-wide px-3 py-1.5 rounded-full border"
+            style={{ color: "#EDE6D6", borderColor: "rgba(237,230,214,0.25)" }}
+          >
+            <Globe2 size={14} strokeWidth={1.75} className="text-gold" />
+            Everywhere you've been
+          </button>
         </div>
 
         {eras.length === 0 && (
@@ -210,6 +222,12 @@ export default function StoryOfYou({ onClose }) {
           </div>
         )}
       </div>
+
+      {worldOpen && (
+        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#070b14" }} />}>
+          <EverywhereMap onClose={() => setWorldOpen(false)} />
+        </Suspense>
+      )}
 
       <Modal open={Boolean(openEra)} title={openEra?.title || ""} onClose={() => setOpenIndex(null)}>
         {openEra && (

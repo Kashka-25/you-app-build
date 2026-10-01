@@ -25,8 +25,10 @@ export async function searchPlaces(query, signal) {
   return (data.features || [])
     .map(f => {
       const p = f.properties || {};
-      const detail = [p.city !== p.name ? p.city : null, p.state !== p.name ? p.state : null, p.country]
-        .filter(Boolean)
+      // Context under the name, never repeating it ("Egypt" isn't shown
+      // under Egypt).
+      const detail = [p.city, p.state, p.country]
+        .filter(v => v && v !== p.name)
         .filter((v, i, a) => a.indexOf(v) === i)
         .join(", ");
       return {

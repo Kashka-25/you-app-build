@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
-import { X, MapPin, BookOpen } from "lucide-react";
+import { X, MapPin, BookOpen, Globe2 } from "lucide-react";
 import { useAppData } from "../../../lib/AppDataContext";
 import { niceDay, wanderingRange } from "../../../lib/wandering";
 import { Modal } from "../../ui/Modal";
@@ -13,6 +13,8 @@ import { TWINKLE_CSS, PATTERNS, twinkle } from "./twinkle";
 // there; stops with nothing remembered stay faint, holding the shape.
 // The sky twinkles the way a real one does (shared with The Story of You):
 // irregular, brighter stars shimmering more, still under reduced motion.
+
+const EverywhereMap = lazy(() => import("../../wandering/EverywhereMap"));
 
 const BOX_W = 160, BOX_H = 120, PAD = 14;
 
@@ -99,6 +101,7 @@ function Constellation({ wandering, points, counts, total, onStar }) {
 export default function LifeConstellations({ onClose }) {
   const { wanderings, wanderingStops, moments, journalEntries } = useAppData();
   const [openStop, setOpenStop] = useState(null);
+  const [worldOpen, setWorldOpen] = useState(false);
 
   // Memories by stop: moments and journal entries alike.
   const memoriesByStop = useMemo(() => {
@@ -164,6 +167,14 @@ export default function LifeConstellations({ onClose }) {
             Every wandering you remember becomes a constellation, drawn in the true shape of the way you went.
             The brighter the star, the more you carried home from there.
           </p>
+          <button
+            onClick={() => setWorldOpen(true)}
+            className="inline-flex items-center gap-1.5 mt-3 text-caption uppercase tracking-wide px-3 py-1.5 rounded-full border"
+            style={{ color: "#EDE6D6", borderColor: "rgba(237,230,214,0.25)" }}
+          >
+            <Globe2 size={14} strokeWidth={1.75} className="text-gold" />
+            See them on the world map
+          </button>
         </div>
 
         {constellations.length === 0 ? (
@@ -182,6 +193,12 @@ export default function LifeConstellations({ onClose }) {
           </div>
         )}
       </div>
+
+      {worldOpen && (
+        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#070b14" }} />}>
+          <EverywhereMap onClose={() => setWorldOpen(false)} />
+        </Suspense>
+      )}
 
       <Modal open={Boolean(openStop)} title={openStop?.place_name || ""} onClose={() => setOpenStop(null)}>
         {openStop && (
