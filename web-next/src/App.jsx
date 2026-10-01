@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./lib/AuthContext";
 import SignIn from "./components/SignIn";
 import AppShell from "./components/AppShell";
@@ -13,10 +14,28 @@ import Reflections from "./components/screens/Reflections";
 import Legacy from "./components/screens/Legacy";
 import Settings from "./components/screens/Settings";
 import Styleguide from "./components/screens/Styleguide";
+import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
+import SowScreen from "./components/sow/SowScreen";
 import { ParkedScreen } from "./components/Primitives";
+import { thresholdOnOpen } from "./lib/week";
+
+// Opening the app lands on the Threshold first — once per session, only
+// when arriving at Home (a deep link goes where it points), and only if
+// the Seeker hasn't switched it off in My YOU.
+function useThresholdOnOpen(ready) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    if (!ready || location.pathname !== "/" || !thresholdOnOpen()) return;
+    let seen = false;
+    try { seen = sessionStorage.getItem(THRESHOLD_SEEN) === "1"; } catch { /* ignore */ }
+    if (!seen) navigate("/threshold", { replace: true });
+  }, [ready]);
+}
 
 export default function App() {
   const { userId, loading } = useAuth();
+  useThresholdOnOpen(!loading && Boolean(userId));
 
   if (loading) {
     return (
@@ -30,6 +49,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/styleguide" element={<Styleguide />} />
+      {/* Full-screen layers, outside the shell: no top bar, no nav. */}
+      <Route path="/threshold" element={<Threshold />} />
+      <Route path="/sow" element={<SowScreen />} />
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
         <Route path="/bring-me-back" element={<BringMeBackToMyself />} />

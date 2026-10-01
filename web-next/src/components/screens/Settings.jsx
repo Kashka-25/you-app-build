@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { LogOut, Sparkles } from "lucide-react";
+import { LogOut, Sparkles, Sun } from "lucide-react";
+import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
 import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle, Placeholder } from "../Primitives";
@@ -86,6 +87,7 @@ export default function Settings() {
       )}
 
       <AiReflectionsSetting aiConsent={aiConsent} onChange={setAiConsentGranted} />
+      <ThresholdSetting />
 
       <div className="mt-6">
         <Placeholder label="preferences">Notifications, privacy, data export — future.</Placeholder>
@@ -135,6 +137,34 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
       {error && <div className="text-bodySm text-red-500 mb-2">{error}</div>}
       <Button variant="secondary" size="sm" disabled={saving || aiConsent === null} onClick={toggle}>
         {saving ? "Saving…" : on ? "Turn off AI reflections" : "Turn on AI reflections"}
+      </Button>
+    </div>
+  );
+}
+
+// Escape hatch for the Threshold. Per device for now (localStorage), so it
+// needs no migration; move to the profile if it should follow the Seeker.
+function ThresholdSetting() {
+  const [on, setOn] = useState(thresholdOnOpen);
+
+  function toggle() {
+    setThresholdOnOpen(!on);
+    setOn(!on);
+  }
+
+  return (
+    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
+      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
+        <Sun size={13} strokeWidth={1.75} />
+        Open on the Threshold
+      </div>
+      <div className="text-bodySm text-textSecondary mb-3">
+        {on
+          ? "On. When you open YOU, you'll land on today first, with a portal into the rest."
+          : "Off. YOU opens straight to Home. The Threshold is still a tap away from the Today card."}
+      </div>
+      <Button variant="secondary" size="sm" onClick={toggle}>
+        {on ? "Open straight to Home" : "Open on the Threshold"}
       </Button>
     </div>
   );

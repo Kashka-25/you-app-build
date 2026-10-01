@@ -98,6 +98,117 @@ sheet on tapping **+**, but the app currently jumps straight to the full
 
 ---
 
+## Sow · Tend · Harvest + the Threshold (Oct 1) — approved direction
+
+**The problem it answers:** "Why should I use this app, and how will it
+help me?" Writing a habit down isn't motivating on its own. This loop links
+today's small action to who the Seeker is becoming, and lets the Tree grow
+from real effort. It borrows Forest's *visible growth from effort*, but
+**not** its loss aversion: nothing dies, wilts or resets.
+
+### The Threshold: the app's first layer
+- [x] On opening the app (once per session), the Seeker lands on the
+      **Threshold**: a calm full-screen layer, like a screensaver for the
+      app. Greeting, date, today's sown intentions, the quick list, and one
+      **portal** that leads deeper into the app (Home).
+- [x] **Two questions, in order:** "What do you want to plant today?"
+      (today's sown pursuits with their next step, then the quick list and
+      its add field), then "What do you want to plant this week?" (an
+      invitation to Sow, what's already growing, or "you chose to rest").
+      Today comes first because it's always answerable. Sow's heading uses
+      "plant" too.
+- [x] Layers within the app: Threshold (today) → Home (your life now) →
+      Journey, YOU and the rest (the whole story).
+- [x] No autoplay motion (standing rule). The portal moves only when
+      tapped.
+- [x] Escape hatch: "Open on the Threshold" switch in My YOU (default on).
+      Stored per device in localStorage for now.
+- [x] Threshold is reachable any time from the Today card on Home.
+- [x] **Quick list with inline add** on both the Threshold and Home's
+      Today card ("Add something for today"). These are plain `todos`: no
+      Pillar, no XP, no streak, gone at day's end. The Threshold has no +
+      button, so without this a to-do couldn't be added from the first layer.
+
+### Sow (weekly, about 5 minutes)
+- [x] "What do you want to grow this week?" Pick **up to 3** of the
+      Seeker's existing, unfinished habits, goals and dreams. No new setup.
+- [x] Each pick shows its type, Pillar and a **Value**. It defaults only to
+      an active value that really draws from that Pillar, otherwise "no
+      value yet" (never an unrelated guess). Tap to cycle through all values.
+- [x] Loose day chips: Mon–Sun, or none = "sometime this week". No time
+      slots.
+- [x] "Resting is allowed too": sowing fewer than 3, or nothing, is valid.
+- [x] On Sundays, Sow plans the week starting tomorrow; any other day it
+      plans the current week (weeks run Monday to Sunday).
+- [x] Re-opening Sow edits that week's sowing rather than duplicating it.
+- [x] Prompted from the Threshold and Home when the week isn't sown yet (and
+      every Sunday for the next week). Never a red badge, never a nag.
+
+### Tend (daily)
+- [x] Today shows intentions sown for today's weekday, plus "sometime this
+      week" ones until they've been tended once that week.
+- [x] Each shows its **thread**: the item's own *intention* text (the "why"
+      the Seeker wrote in AddItemModal) or its type, then Value, then Pillar.
+- [x] Ticking one = **tended**: logs a small `memory` entry (3 XP, same as a
+      habit check-in) to the item's Pillar, so the **Tree's roots grow**.
+      Shows "Your <Pillar> roots grew". Unticking removes it again (net XP
+      stays honest, no exploit).
+- [x] "Rest today": hides it for today, no lost progress. A "sometime this
+      week" one comes back tomorrow.
+- [x] **Rhythm, not streaks:** "Tended on N days this week". Counts what was
+      done, never resets to zero, never shows what was missed.
+- [ ] **Focus session** ("Tend" timer, the gentle Forest part): a bud grows
+      while you work; stopping early leaves a *resting seed*, never a dead
+      tree. Design pass first.
+- [ ] Decide: should tending also feed **Value** growth (branch thickness /
+      tier)? Not done yet on purpose, because it would move tier gates.
+      Today, tending feeds Pillar roots only.
+- [ ] A sown habit tended on Today and also checked in on Pursue earns both
+      (3 + 3 XP). Decide whether tending a habit should *be* its check-in.
+
+### Steps: break anything down (Oct 1)
+- [x] Every pursuit (habit, goal and dream; habits were excluded before)
+      can be broken into smaller **steps**. Same data as before
+      (`items.milestones`), but the UI now says "steps" everywhere.
+- [x] Steps can be added, ticked and removed **right on the Pursue card**
+      ("Break it into steps"), not only in the edit form.
+- [x] Quick-list to-dos get steps too ("Steps" on each to-do), stored in
+      `todos.steps` (`20261001130000_todo_steps.sql`). Still no Pillar, no XP.
+- [x] On Today and the Threshold, a sown pursuit shows its **next step**
+      with its own tick, so the breakdown is visible where you act.
+- [ ] Decide: should finishing a step give a little XP or growth? It
+      doesn't for now. A step is a way in, not a score.
+
+### Found while testing with real data (Oct 1)
+- [x] Sow listed every unfinished pursuit in one long list. **Now grouped
+      by Pillar** (in Pillar order, empty Pillars hidden, no-Pillar items
+      under "Other"). Groups start collapsed, except ones already holding
+      this week's picks. Each header shows its count and "N sown". Within a
+      group: habits, then goals, then dreams (most week-sized first).
+- [x] "Rest this week" is a quiet secondary button until something is
+      picked, so it can't be the loudest thing on arrival.
+
+### Harvest (end of week): not built yet
+- [ ] A calm look back at the week: which roots grew, plus one
+      AI-noticed pattern (reuse `weekly-reflection`, behind AI consent).
+- [ ] For each unfinished intention: **carry forward / rest / release**
+      (mirrors Freeing the Dream's plant / hold / release).
+- [ ] Harvests feed Seasons, Chapters and The Mirror.
+
+### Data
+- [x] `week_intentions` table (`20261001120000_week_intentions.sql`): one
+      row per sown item per week. `item_id` → `items` (cascade), `week_start`
+      (Monday), `days smallint[]` (0 = Mon … 6 = Sun, empty = any day),
+      `value_name`, `tended_dates date[]`, `rested_dates date[]`. Unique per
+      (user, week, item). RLS own-rows only.
+- [x] Loaded outside the main batch (like `todos`), so a missing table
+      can't block the app.
+- [x] Dates are the Seeker's **local** date, not UTC. (Note: older
+      `todayKey()` helpers use UTC `toISOString()`, which reads as
+      yesterday in Australian mornings. Worth fixing app-wide separately.)
+
+---
+
 ## Reminders that keep coming up
 
 - `DEV_MODE` stays `"bypass"` — building with mock data deliberately, not

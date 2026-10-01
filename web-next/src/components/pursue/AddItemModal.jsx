@@ -77,7 +77,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
     if (e.key && e.key !== "Enter") return;
     const v = msText.trim();
     if (!v) return;
-    setMilestones([...milestones, { text: v }]);
+    setMilestones([...milestones, { text: v, done: false }]);
     setMsText("");
   }
 
@@ -165,28 +165,24 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
         placeholder="Type a tag, press enter"
       />
 
-      {type !== "habit" && (
-        <>
-          <label className={labelClass}>Milestones</label>
-          <div className="mb-1.5">
-            {milestones.map((m, i) => (
-              <div key={i} className="text-bodySm text-textSecondary flex justify-between items-center py-1">
-                <span>{i + 1}. {m.text}</span>
-                <button onClick={() => setMilestones(milestones.filter((_, mi) => mi !== i))} aria-label="Remove milestone">
-                  <X size={13} strokeWidth={1.75} />
-                </button>
-              </div>
-            ))}
+      <label className={labelClass}>Steps (optional)</label>
+      <div className="mb-1.5">
+        {milestones.map((m, i) => (
+          <div key={i} className="text-bodySm text-textSecondary flex justify-between items-center py-1">
+            <span>{i + 1}. {m.text}</span>
+            <button onClick={() => setMilestones(milestones.filter((_, mi) => mi !== i))} aria-label="Remove step">
+              <X size={13} strokeWidth={1.75} />
+            </button>
           </div>
-          <input
-            className={fieldClass}
-            value={msText}
-            onChange={e => setMsText(e.target.value)}
-            onKeyDown={addMilestone}
-            placeholder="Add a milestone, press enter"
-          />
-        </>
-      )}
+        ))}
+      </div>
+      <input
+        className={fieldClass}
+        value={msText}
+        onChange={e => setMsText(e.target.value)}
+        onKeyDown={addMilestone}
+        placeholder="Break it down: add a smaller step, press enter"
+      />
 
       <label className={labelClass}>{INTENTION_PROMPTS[type]}</label>
       <textarea

@@ -7,6 +7,7 @@ import {
   STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
 import { getValueEntry } from "../constants/valueLibrary";
+import { localDateKey, weekStartKey, sowWeekStartKey } from "./week";
 
 const AppDataContext = createContext(null);
 
@@ -14,6 +15,9 @@ const AppDataContext = createContext(null);
 // whatever's in local state. Keeps the app usable even if the backend is
 // unreachable (e.g. a paused free-tier Supabase project).
 const LOAD_TIMEOUT_MS = 8000;
+
+// XP for tending a sown intention — same as a habit check-in.
+const TEND_XP = 3;
 
 function todayKey() {
   return new Date().toISOString().split("T")[0];
@@ -79,6 +83,7 @@ export function AppDataProvider({ children }) {
   const [journalEntries, setJournalEntries] = useState([]);
   const [identityVisions, setIdentityVisions] = useState([]);
   const [todos, setTodos] = useState([]);
+  const [weekIntentions, setWeekIntentions] = useState([]);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
   const [aiConsent, setAiConsent] = useState(null);
@@ -155,6 +160,7 @@ export function AppDataProvider({ children }) {
       setIdentityVisions((identityVisionsRes.data || []).map(v => ({ ...v, category: normalizePillar(v.category) })));
       setSync("synced");
       loadTodos();
+      loadWeekIntentions();
       loadAiConsent();
       loadReflections();
     } catch (e) {
@@ -345,6 +351,24 @@ export function AppDataProvider({ children }) {
     if (!item) return;
     const milestones = item.milestones.map((m, i) => (i === mi ? { ...m, done: !m.done } : m));
     const updated = { ...item, milestones };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
+  }
+
+  // Steps (stored as `milestones`) can be added and removed straight from a
+  // pursuit's card, not only from the edit form.
+  async function addMilestone(itemId, text) {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    const updated = { ...item, milestones: [...(item.milestones || []), { text, done: false }] };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
+  }
+
+  async function removeMilestone(itemId, mi) {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    const updated = { ...item, milestones: (item.milestones || []).filter((_, i) => i !== mi) };
     setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
     await saveItemRow(updated);
   }
@@ -541,6 +565,87 @@ export function AppDataProvider({ children }) {
     setTodos(res.data || []);
   }
 
+  // ── Sow · Tend · Harvest ──
+  // Loaded outside the main batch for the same reason as todos: a database
+  // that hasn't run the week_intentions migration yet shouldn't stop the
+  // rest of the app loading. Only the current week and the week Sow is
+  // planning for (they differ on Sundays).
+  async function loadWeekIntentions() {
+    const weeks = [...new Set([weekStartKey(), sowWeekStartKey()])];
+    const res = await supabase.from("week_intentions").select("*").eq("user_id", userId).in("week_start", weeks).order("inserted_at");
+    if (res.error) { console.error("[AppData] loadWeekIntentions failed:", res.error); return; }
+    setWeekIntentions(res.data || []);
+  }
+
+  // Replaces a week's sowing with `picks` ([{ itemId, days, valueName }]).
+  // Kept rows keep their tended/rested history; dropped rows are removed
+  // (any XP they already earned stays in memory — it really happened).
+  async function sowWeek(weekStart, picks) {
+    const existing = weekIntentions.filter(w => w.week_start === weekStart);
+    const keepIds = new Set(picks.map(p => p.itemId));
+    const dropped = existing.filter(w => !keepIds.has(w.item_id));
+    if (dropped.length) {
+      const del = await supabase.from("week_intentions").delete().in("id", dropped.map(w => w.id)).eq("user_id", userId);
+      if (del.error) throw del.error;
+    }
+    const rows = picks.map(p => ({
+      user_id: userId, item_id: p.itemId, week_start: weekStart,
+      days: [...p.days].sort(), value_name: p.valueName || null
+    }));
+    let saved = [];
+    if (rows.length) {
+      const res = await supabase.from("week_intentions").upsert(rows, { onConflict: "user_id,week_start,item_id" }).select();
+      if (res.error) throw res.error;
+      saved = res.data || [];
+    }
+    setWeekIntentions(prev => [...prev.filter(w => w.week_start !== weekStart), ...saved]);
+  }
+
+  async function updateWeekIntention(id, updates) {
+    setWeekIntentions(prev => prev.map(w => (w.id === id ? { ...w, ...updates } : w)));
+    const res = await supabase.from("week_intentions").update(updates).eq("id", id).eq("user_id", userId);
+    if (res.error) console.error("[AppData] updateWeekIntention failed:", res.error);
+  }
+
+  // Tending logs a small memory entry against the item's Pillar, which is
+  // what grows that root on the Tree. Untending removes it again, so
+  // toggling can never farm XP.
+  async function toggleTended(id) {
+    const w = weekIntentions.find(x => x.id === id);
+    const item = w && items.find(i => i.id === w.item_id);
+    if (!w || !item) return;
+    const today = localDateKey();
+    const name = `Tended: ${item.name}`;
+    const tended = w.tended_dates || [];
+
+    if (tended.includes(today)) {
+      await updateWeekIntention(id, { tended_dates: tended.filter(d => d !== today) });
+      const mem = memory.find(m => m.name === name && m.date_key === today);
+      setMemory(prev => prev.filter(m => m !== mem));
+      if (mem?.id) await supabase.from("memory").delete().eq("id", mem.id).eq("user_id", userId);
+      return;
+    }
+
+    await updateWeekIntention(id, { tended_dates: [...tended, today] });
+    const entry = { name, type: item.type, xp: TEND_XP, date: niceDate(), date_key: today, cat: item.cat, tags: item.tags || [] };
+    setMemory(prev => [entry, ...prev]);
+    const res = await supabase.from("memory").insert({
+      user_id: userId, name: entry.name, type: entry.type, xp: entry.xp,
+      date: entry.date, date_key: entry.date_key, cat: entry.cat || null, tags: entry.tags
+    }).select().single();
+    if (res.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: res.data.id } : m)));
+  }
+
+  async function restIntentionToday(id) {
+    const w = weekIntentions.find(x => x.id === id);
+    if (!w) return;
+    const today = localDateKey();
+    const rested = w.rested_dates || [];
+    await updateWeekIntention(id, {
+      rested_dates: rested.includes(today) ? rested.filter(d => d !== today) : [...rested, today]
+    });
+  }
+
   // ── AI consent ──
   // Explicit and revocable. Nothing personal is sent to Claude until the
   // Seeker says yes; the Edge Functions check the same row server-side.
@@ -629,6 +734,30 @@ export function AppDataProvider({ children }) {
     if (!todo) return;
     setTodos(prev => prev.map(t => (t.id === id ? { ...t, done: !t.done } : t)));
     await supabase.from("todos").update({ done: !todo.done }).eq("id", id).eq("user_id", userId);
+  }
+
+  // A to-do's own smaller steps (todos.steps). Like the to-do itself: no
+  // Pillar, no XP — just a way to make a big-feeling thing doable.
+  async function setTodoSteps(id, steps) {
+    const prevTodos = todos;
+    setTodos(prev => prev.map(t => (t.id === id ? { ...t, steps } : t)));
+    const res = await supabase.from("todos").update({ steps }).eq("id", id).eq("user_id", userId);
+    if (res.error) {
+      setTodos(prevTodos);
+      throw res.error;
+    }
+  }
+  async function addTodoStep(id, text) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) await setTodoSteps(id, [...(todo.steps || []), { text, done: false }]);
+  }
+  async function toggleTodoStep(id, si) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) await setTodoSteps(id, (todo.steps || []).map((s, i) => (i === si ? { ...s, done: !s.done } : s)));
+  }
+  async function removeTodoStep(id, si) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) await setTodoSteps(id, (todo.steps || []).filter((_, i) => i !== si));
   }
 
   async function deleteTodo(id) {
@@ -965,12 +1094,13 @@ export function AppDataProvider({ children }) {
     identityVisions, todos,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
-    addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
+    addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
     addIdentityVision, editIdentityVision, deleteIdentityVision,
-    addTodo, toggleTodo, deleteTodo,
+    addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
+    weekIntentions, sowWeek, toggleTended, restIntentionToday,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,

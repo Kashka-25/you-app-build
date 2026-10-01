@@ -6,6 +6,7 @@ import { DAY_LABELS, TIERS, PILLAR_COLORS } from "../../constants/app.const";
 import { riseIn } from "../ui/motion";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
+import { StepList } from "../ui/StepList";
 import AddItemModal from "./AddItemModal";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
@@ -38,7 +39,7 @@ function CompletionBurst() {
 
 export default function ItemCard({ item }) {
   const {
-    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone,
+    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
     getPrestigeTier, prestigeItem
   } = useAppData();
   const [expanded, setExpanded] = useState(false);
@@ -153,34 +154,30 @@ export default function ItemCard({ item }) {
               <div className="h-1.5 rounded-full bg-surface3 overflow-hidden">
                 <div className="h-full bg-forestAccent" style={{ width: `${msPct}%` }} />
               </div>
-              <div className="text-caption text-textMuted mt-1">{msDone}/{msTotal} milestones</div>
+              <div className="text-caption text-textMuted mt-1">{msDone} of {msTotal} {msTotal === 1 ? "step" : "steps"}</div>
             </div>
           )}
 
-          {(item.intention || item.note || msTotal > 0) && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-caption text-textSecondary mt-2"
-            >
-              {expanded ? "Collapse" : "Expand"}
-              {expanded ? <ChevronUp size={13} strokeWidth={1.75} /> : <ChevronDown size={13} strokeWidth={1.75} />}
-            </button>
-          )}
+          {/* Always offered, so any pursuit can be broken into smaller,
+              achievable steps right from its card. */}
+          <button
+            onClick={() => setExpanded(!expanded)}
+            aria-expanded={expanded}
+            className="flex items-center gap-1 text-caption text-textSecondary mt-2"
+          >
+            {expanded ? "Collapse" : msTotal > 0 || item.intention || item.note ? "Steps and notes" : "Break it into steps"}
+            {expanded ? <ChevronUp size={13} strokeWidth={1.75} /> : <ChevronDown size={13} strokeWidth={1.75} />}
+          </button>
           {expanded && (
-            <div className="mt-2 text-bodySm text-textSecondary space-y-1.5">
+            <div className="mt-2 text-bodySm text-textSecondary space-y-2">
               {item.intention && <div className="italic">{item.intention}</div>}
               {item.note && <div>{item.note}</div>}
-              {(item.milestones || []).map((m, mi) => (
-                <div key={mi} className="flex items-center gap-2">
-                  <button
-                    onClick={() => toggleMilestone(item.id, mi)}
-                    className={`w-4 h-4 flex-none rounded-full border text-[9px] ${m.done ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
-                  >
-                    {m.done ? "✓" : ""}
-                  </button>
-                  <span className={m.done ? "line-through decoration-wavy decoration-gold text-textMuted" : ""}>{m.text}</span>
-                </div>
-              ))}
+              <StepList
+                steps={item.milestones || []}
+                onToggle={mi => toggleMilestone(item.id, mi)}
+                onAdd={item.done ? null : text => addMilestone(item.id, text)}
+                onRemove={item.done ? null : mi => removeMilestone(item.id, mi)}
+              />
             </div>
           )}
         </div>
