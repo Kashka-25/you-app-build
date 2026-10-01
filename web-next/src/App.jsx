@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./lib/AuthContext";
 import SignIn from "./components/SignIn";
@@ -17,6 +17,8 @@ import Styleguide from "./components/screens/Styleguide";
 import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
 import SowScreen from "./components/sow/SowScreen";
 import HarvestScreen from "./components/sow/HarvestScreen";
+// Loaded on demand: the map library is large, and only a Wandering needs it.
+const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
 import { thresholdOnOpen } from "./lib/week";
 
@@ -54,6 +56,14 @@ export default function App() {
       <Route path="/threshold" element={<Threshold />} />
       <Route path="/sow" element={<SowScreen />} />
       <Route path="/harvest" element={<HarvestScreen />} />
+      <Route
+        path="/wandering/:id"
+        element={
+          <Suspense fallback={<div className="min-h-dvh bg-bg flex justify-center items-center font-sans"><LoadingScreen label="Unfolding the map" /></div>}>
+            <WanderingScreen />
+          </Suspense>
+        }
+      />
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
         <Route path="/bring-me-back" element={<BringMeBackToMyself />} />

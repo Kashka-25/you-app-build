@@ -6,6 +6,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { easeOut } from "../ui/motion";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
+import TravellingToday from "../wandering/TravellingToday";
 import { tendedDaysThisWeek, isSunday, weekStartKey, sowWeekStartKey, isWeekRested, harvestDue } from "../../lib/week";
 
 export const THRESHOLD_SEEN = "you.threshold.seen";
@@ -113,6 +114,9 @@ export default function Threshold() {
 
         {loaded && (
           <div className="mt-8 space-y-7 flex-1">
+            {/* While travelling, where you are today comes first of all. */}
+            <TravellingToday />
+
             {/* Today first: the one question that's always answerable. */}
             <section>
               <h2 className="font-serif text-h2 text-textPrimary mb-2.5">What do you want to plant today?</h2>

@@ -232,6 +232,60 @@ from real effort. It borrows Forest's *visible growth from effort*, but
       morning: until 10–11am in Australia, or until 1am in the UK during
       BST. Existing rows keep the dates they were saved with.)*
 
+## Wanderings: travel plans inside Dreams (Oct 1)
+
+**Naming:** the Journey tab is now shown as **YOUrney**. The whole life
+story is the YOUrney, and it fits CommYOUnity and YOUnderstanding. The route
+and code keep `journey` so old links still work. Travel plans are
+**Wanderings** (echoing the Wanderer level), and they live inside Dreams.
+
+### v1 (built)
+- [x] Any Dream can "Plan a wandering" (in its expanded card). Dreams that
+      have one show "Wandering · N stops" on the card. One per dream.
+- [x] **Wandering screen** (`/wandering/:id`): status is derived, never
+      stored (Dreaming → Planned → Travelling → Travelled). Shows the date
+      range and nights, "from your dream …", and an editable title.
+- [x] **Map:** MapLibre + OpenFreeMap (OpenStreetMap vector tiles, free, no
+      key), recoloured into YOU's palette for light and dark. Numbered pins,
+      a dashed gold route, fits all stops on arrival **without animating**.
+      It moves only when a stop is tapped (and jumps instead under
+      reduced motion). Two-finger pan so the page still scrolls on phones.
+      Lazy-loaded: the map library loads only when a Wandering is opened.
+- [x] **Stops:** type any place, pick from matches (Photon / OpenStreetMap
+      place search; only the place name is sent, towns and cities first).
+      Each stop has arrive and leave dates, a kind (stay / visit / passing
+      through), a note, earlier/later reorder, and remove with a confirm. A
+      new stop starts on the day the previous one leaves.
+- [x] **Plan the days:** each day at a stop has its own little list (same
+      step list as everywhere else).
+- [x] **Travelling Threshold:** while a stop's dates include today (local
+      device date, so it follows timezones), the Threshold opens with
+      "Today in Kyoto · Day 2 of 4 · Japan", that day's plans (add and tick
+      right there), and "Next: Osaka on Thu 22 Apr".
+- [x] Data: `20261001150000_wanderings.sql`, which adds `wanderings` (one per
+      dream) and `wandering_stops` (coordinates, dates, kind, note,
+      `day_plans`). RLS: rows may only point at your own dream and your own
+      wandering. *(Applied and tested end to end Oct 1.)*
+- [x] Place search ranking: keeps Photon's own order (Lisbon, Portugal
+      before Lisbon, Iowa), puts places above stations and airports, and
+      prefers an exact name ("Kyoto" the city before Kyoto Prefecture or
+      Kyoto Station).
+- [ ] Turn on leaked-password protection in Supabase Auth: sign-in uses
+      passwords, so it matters.
+
+### Later
+- [ ] Memories, journal entries and photos pinned to stops; later these
+      become Life Constellations.
+- [ ] "Everywhere you've been": a world map of travelled Wanderings in
+      Story of You, for Legacy and the Mirror.
+- [ ] A finished Wandering offers to mark its Dream achieved.
+
+### Also fixed alongside
+- [x] The service worker cached *every* GET, including Supabase data
+      responses (and would have cached unlimited map tiles). It now caches
+      only same-origin app files. The cache was bumped to v2 so old copies
+      are cleared.
+
 ---
 
 ## Reminders that keep coming up

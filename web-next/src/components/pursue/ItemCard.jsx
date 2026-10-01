@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award, Star, Target, Sparkles, Pencil } from "lucide-react";
+import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award, Star, Target, Sparkles, Pencil, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAppData } from "../../lib/AppDataContext";
 import { DAY_LABELS, TIERS, PILLAR_COLORS } from "../../constants/app.const";
 import { riseIn } from "../ui/motion";
@@ -37,8 +38,27 @@ function CompletionBurst() {
 export default function ItemCard({ item }) {
   const {
     completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
-    getPrestigeTier, prestigeItem
+    getPrestigeTier, prestigeItem, wanderings, wanderingStops, createWandering
   } = useAppData();
+  const navigate = useNavigate();
+  const [planning, setPlanning] = useState(false);
+  const [planError, setPlanError] = useState("");
+  // A dream's travel plan, if it has one (Wanderings live inside Dreams).
+  const wandering = item.type === "dream" ? wanderings.find(w => w.item_id === item.id) : null;
+  const wanderingStopCount = wandering ? wanderingStops.filter(s => s.wandering_id === wandering.id).length : 0;
+
+  async function planWandering() {
+    setPlanning(true);
+    setPlanError("");
+    try {
+      const w = await createWandering(item);
+      navigate(`/wandering/${w.id}`);
+    } catch (e) {
+      console.error("[ItemCard] createWandering failed:", e);
+      setPlanError("Couldn't start the wandering. Check your connection and try again.");
+      setPlanning(false);
+    }
+  }
   const [expanded, setExpanded] = useState(false);
   const [reflecting, setReflecting] = useState(false);
   const [reflection, setReflection] = useState("");
@@ -119,6 +139,16 @@ export default function ItemCard({ item }) {
             )}
           </div>
 
+          {wandering && (
+            <button
+              onClick={() => navigate(`/wandering/${wandering.id}`)}
+              className="mt-2 inline-flex items-center gap-1.5 text-caption text-forestAccent font-medium"
+            >
+              <MapPin size={13} strokeWidth={1.75} />
+              Wandering · {wanderingStopCount} {wanderingStopCount === 1 ? "stop" : "stops"}
+            </button>
+          )}
+
           {item.type === "habit" && !item.done && (
             <div className="flex gap-1.5 mt-2.5">
               {DAY_LABELS.map((d, i) => (
@@ -169,6 +199,15 @@ export default function ItemCard({ item }) {
             <div className="mt-2 text-bodySm text-textSecondary space-y-2">
               {item.intention && <div className="italic">{item.intention}</div>}
               {item.note && <div>{item.note}</div>}
+              {item.type === "dream" && !wandering && !item.done && (
+                <div>
+                  <button onClick={planWandering} disabled={planning} className="inline-flex items-center gap-1.5 text-caption text-forestAccent font-medium disabled:opacity-60">
+                    <MapPin size={13} strokeWidth={1.75} />
+                    {planning ? "Unfolding the map…" : "Does this dream take you somewhere? Plan a wandering"}
+                  </button>
+                  {planError && <div className="text-caption text-error mt-1">{planError}</div>}
+                </div>
+              )}
               <StepList
                 steps={item.milestones || []}
                 onToggle={mi => toggleMilestone(item.id, mi)}

@@ -88,6 +88,8 @@ export function AppDataProvider({ children }) {
   const [todos, setTodos] = useState([]);
   const [weekIntentions, setWeekIntentions] = useState([]);
   const [weekHarvests, setWeekHarvests] = useState([]);
+  const [wanderings, setWanderings] = useState([]);
+  const [wanderingStops, setWanderingStops] = useState([]);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
   const [aiConsent, setAiConsent] = useState(null);
@@ -166,6 +168,7 @@ export function AppDataProvider({ children }) {
       loadTodos();
       loadWeekIntentions();
       loadWeekHarvests();
+      loadWanderings();
       loadAiConsent();
       loadReflections();
     } catch (e) {
@@ -717,6 +720,82 @@ export function AppDataProvider({ children }) {
     });
   }
 
+  // ── Wanderings ──
+  // Travel plans that live as part of a Dream (one per dream). Loaded
+  // outside the main batch so a database without the wanderings migration
+  // still loads everything else.
+  async function loadWanderings() {
+    const [y, st] = await Promise.all([
+      supabase.from("wanderings").select("*").eq("user_id", userId).order("created_at"),
+      supabase.from("wandering_stops").select("*").eq("user_id", userId).order("position")
+    ]);
+    if (y.error || st.error) { console.error("[AppData] loadWanderings failed:", y.error || st.error); return; }
+    setWanderings(y.data || []);
+    setWanderingStops(st.data || []);
+  }
+
+  async function createWandering(item) {
+    const existing = wanderings.find(y => y.item_id === item.id);
+    if (existing) return existing;
+    const res = await supabase.from("wanderings").insert({ user_id: userId, item_id: item.id, title: item.name }).select().single();
+    if (res.error) throw res.error;
+    setWanderings(prev => [...prev, res.data]);
+    return res.data;
+  }
+
+  async function renameWandering(id, title) {
+    const res = await supabase.from("wanderings").update({ title, updated_at: new Date().toISOString() }).eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setWanderings(prev => prev.map(y => (y.id === id ? { ...y, title } : y)));
+  }
+
+  async function addWanderingStop(wanderingId, place) {
+    const siblings = wanderingStops.filter(s => s.wandering_id === wanderingId);
+    const last = [...siblings].sort((a, b) => a.position - b.position).pop();
+    const res = await supabase.from("wandering_stops").insert({
+      user_id: userId, wandering_id: wanderingId, position: (last?.position ?? -1) + 1,
+      place_name: place.name, place_detail: place.detail || null, country_code: place.countryCode || null,
+      lat: place.lat, lng: place.lng,
+      // A new stop starts where the last one leaves, so dates flow on.
+      arrive: last?.depart || null
+    }).select().single();
+    if (res.error) throw res.error;
+    setWanderingStops(prev => [...prev, res.data]);
+    return res.data;
+  }
+
+  async function updateWanderingStop(id, updates) {
+    const before = wanderingStops;
+    setWanderingStops(prev => prev.map(s => (s.id === id ? { ...s, ...updates } : s)));
+    const res = await supabase.from("wandering_stops").update(updates).eq("id", id).eq("user_id", userId);
+    if (res.error) { setWanderingStops(before); throw res.error; }
+  }
+
+  async function removeWanderingStop(id) {
+    const before = wanderingStops;
+    setWanderingStops(prev => prev.filter(s => s.id !== id));
+    const res = await supabase.from("wandering_stops").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) { setWanderingStops(before); throw res.error; }
+  }
+
+  // Swap a stop with its neighbour (dir -1 = earlier, +1 = later).
+  async function moveWanderingStop(id, dir) {
+    const stop = wanderingStops.find(s => s.id === id);
+    if (!stop) return;
+    const ordered = wanderingStops.filter(s => s.wandering_id === stop.wandering_id).sort((a, b) => a.position - b.position);
+    const idx = ordered.findIndex(s => s.id === id);
+    const other = ordered[idx + dir];
+    if (!other) return;
+    await updateWanderingStop(stop.id, { position: other.position });
+    await updateWanderingStop(other.id, { position: stop.position });
+  }
+
+  async function setStopDayPlan(stopId, dateKey, steps) {
+    const stop = wanderingStops.find(s => s.id === stopId);
+    if (!stop) return;
+    await updateWanderingStop(stopId, { day_plans: { ...(stop.day_plans || {}), [dateKey]: steps } });
+  }
+
   // ── AI consent ──
   // Explicit and revocable. Nothing personal is sent to Claude until the
   // Seeker says yes; the Edge Functions check the same row server-side.
@@ -1173,6 +1252,8 @@ export function AppDataProvider({ children }) {
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
+    wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
+    moveWanderingStop, setStopDayPlan,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,

@@ -61,3 +61,26 @@ body {
   color: var(--text-primary);
   transition: background 0.2s, color 0.2s;
 }
+
+/* Wandering map pins — numbered stops on the route. Plain CSS because
+   MapLibre markers are DOM elements created outside React. */
+.wandering-pin {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--forest-accent);
+  color: #fff;
+  border: 2px solid var(--surface-2);
+  font: 600 12px/1 "DM Sans", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+.wandering-pin.is-selected {
+  background: var(--gold);
+  transform: scale(1.18);
+}
+.maplibregl-ctrl-attrib { font-size: 10px; }
