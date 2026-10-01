@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Check, X, Star } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Check, X, Star, Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { goBack } from "../../lib/week";
 import {
@@ -233,7 +233,18 @@ export default function WanderingScreen() {
         </div>
       )}
 
-      <WanderingMap stops={stops} selectedId={selectedId} onSelect={setSelectedId} className="h-64 mt-4 mb-5 shadow-card" />
+      <WanderingMap stops={stops} selectedId={selectedId} onSelect={setSelectedId} className="h-64 mt-4 mb-2 shadow-card" />
+      {stops.some(s => memoryCount(s.id) > 0) ? (
+        <button
+          onClick={() => navigate("/journey", { state: { tab: "tree-stars", open: "constellations" } })}
+          className="inline-flex items-center gap-1.5 text-caption text-forestAccent font-medium mb-5"
+        >
+          <Sparkles size={13} strokeWidth={1.75} />
+          See it among your Life Constellations
+        </button>
+      ) : (
+        <div className="mb-5" />
+      )}
 
       {stops.length === 0 && (
         <p className="font-serif text-h3 italic text-textSecondary mb-4">Where does this dream take you? Add your first stop.</p>

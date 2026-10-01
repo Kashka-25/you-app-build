@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useAppData } from "../../../lib/AppDataContext";
 import { pickCurrentChapter } from "../../../lib/compass";
 import { Modal } from "../../ui/Modal";
+import { TWINKLE_CSS, PATTERNS, twinkle, randomTwinkle } from "./twinkle";
 
 // Portrait-shaped viewBox (not the Tree scene's wide landscape one) — this
 // fills the entire screen edge to edge via preserveAspectRatio="slice", so
@@ -52,8 +53,8 @@ export default function StoryOfYou({ onClose }) {
   const positions = useMemo(() => eras.map((_, i) => eraPos(i, eras.length)), [eras]);
 
   const bgStars = useMemo(() => Array.from({ length: 90 }, () => ({
-    x: Math.random() * SVG_W, y: Math.random() * SVG_H, r: Math.random() * 1 + 0.3, delay: Math.random() * 5
-  })), []);
+    x: Math.random() * SVG_W, y: Math.random() * SVG_H, r: Math.random() * 1 + 0.3
+  })).map(s => ({ ...s, tw: randomTwinkle(s.r, false) })), []);
 
   // A dense scatter following the galaxy band's centerline (with jitter),
   // layered under the sparse uniform bgStars — the difference between "a
@@ -65,7 +66,9 @@ export default function StoryOfYou({ onClose }) {
     const centerX = BAND_CX + Math.tan((BAND_ANGLE * Math.PI) / 180) * (y - BAND_CY);
     const spread = (Math.random() - 0.5) * 140 * Math.pow(Math.random(), 0.6);
     const x = Math.max(0, Math.min(SVG_W, centerX + spread));
-    return { x, y, r: Math.random() * 1.3 + 0.3, delay: Math.random() * 5, bright: Math.random() > 0.92 };
+    const r = Math.random() * 1.3 + 0.3;
+    const bright = Math.random() > 0.92;
+    return { x, y, r, bright, tw: randomTwinkle(r, bright) };
   }), []);
 
   const openEra = chapters.length > 0 && openIndex !== null ? eras[openIndex] : null;
@@ -117,17 +120,13 @@ export default function StoryOfYou({ onClose }) {
 
         {milkyStars.map((s, i) => (
           <circle
-            key={"mw" + i} cx={s.x} cy={s.y} r={s.bright ? s.r + 0.8 : s.r} fill="#EDE6D6"
-            opacity={s.bright ? 0.95 : 0.6}
-            style={{ animation: `sboyTwinkle ${s.bright ? 3 : 4.5}s ease-in-out ${s.delay}s infinite` }}
+            key={"mw" + i} className="sboy-tw" cx={s.x} cy={s.y} r={s.bright ? s.r + 0.8 : s.r} fill="#EDE6D6"
+            style={s.tw}
           />
         ))}
 
         {bgStars.map((s, i) => (
-          <circle
-            key={i} cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6"
-            style={{ animation: `sboyTwinkle 4.5s ease-in-out ${s.delay}s infinite` }}
-          />
+          <circle key={i} className="sboy-tw" cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6" style={s.tw} />
         ))}
 
         {eras.length > 1 && (
@@ -155,9 +154,11 @@ export default function StoryOfYou({ onClose }) {
             <g key={e.id} className="cursor-pointer" onClick={() => setOpenIndex(i)}>
               <circle cx={x} cy={y} r={r * 3.4} fill={color} opacity={0.24} style={{ filter: "blur(11px)" }} />
               <circle cx={x} cy={y} r={r * 1.8} fill="#EDE6D6" opacity={0.35} style={{ filter: "blur(4px)" }} />
+              {/* A calm, barely-there glimmer — an era star should feel
+                  steady, not pulse like a heartbeat. */}
               <circle
-                cx={x} cy={y} r={r} fill="#EDE6D6"
-                style={{ animation: `sboyStarPulse ${isNow ? 2.2 : 3.6}s ease-in-out infinite` }}
+                className="sboy-tw" cx={x} cy={y} r={r} fill="#EDE6D6"
+                style={twinkle(1, isNow ? 0.1 : 0.06, isNow ? 5.5 : 7.5, (i * 1.7) % 6, PATTERNS[i % 3])}
               />
               <circle cx={x} cy={y} r={r * 0.5} fill={color} opacity={0.9} />
               <text x={x} y={y + r + 20} textAnchor="middle" fontSize="13" fontFamily="Cormorant Garamond, Georgia, serif" fill="#EDE6D6">
@@ -170,10 +171,7 @@ export default function StoryOfYou({ onClose }) {
           );
         })}
 
-        <style>{`
-          @keyframes sboyTwinkle { 0%,100% { opacity: 0.15; } 50% { opacity: 0.55; } }
-          @keyframes sboyStarPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
-        `}</style>
+        <style>{TWINKLE_CSS}</style>
       </svg>
 
       {/* pointer-events-none on the wrapper — it spans the full height so

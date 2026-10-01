@@ -21,6 +21,9 @@ everyone, regardless of how any individual mind works.
 - **No urgency or pressure cues** — no countdown timers, no "streak about to
   break!" red alerts, no flashing badges.
 - **No autoplay motion** — nothing moves without the user acting on it.
+  *(One agreed exception, Oct 1: a night sky may twinkle if it looks real.
+  That means irregular, brightness-scaled scintillation, never a uniform
+  blink or pulse, and it's still under prefers-reduced-motion.)*
 - **Icons always paired with text labels** — never icon-only for anything
   actionable.
 - **Generous, consistent spacing** — if in doubt, remove content rather than
@@ -291,8 +294,34 @@ and code keep `journey` so old links still work. Travel plans are
       - The travelling Threshold card has "Capture a memory in <place>".
       - *(Migration applied and tested end to end Oct 1: suggest, pin,
         add here, auto-pin, hidden off-trip, unpin on stop removal.)*
-- [ ] Next: these pinned memories become Life Constellations (stars over
-      the places they happened).
+- [x] **Life Constellations** (Oct 1). A second doorway in the Tree &
+      Stars sky (top right, beside The Story of You), through the same
+      portal. Every Wandering with pinned memories becomes a constellation
+      in the **true shape of its route**: stops are projected from their
+      coordinates and joined in travel order. A star grows brighter with
+      each memory there. Stops with nothing remembered stay faint, holding
+      the shape. Tap a star to see that place's memories (photos, journal
+      excerpts) and "Open the wandering". A Wandering with memories links
+      to it ("See it among your Life Constellations"). The sky twinkles
+      realistically, the same as The Story of You (shared
+      `tree-stars/twinkle.js`): memory stars glimmer calmly, and it's still
+      under reduced motion. No migration needed.
+
+### Found while testing (Oct 1)
+- [x] YOUrney's segmented control overflowed at phone width ("Tree & Stars"
+      wrapped to three lines, "YOUnderstanding" was clipped). **Fixed in the
+      shared `SegmentedControl`**, which also helps Reflections, Saved and
+      Challenges: labels never wrap, tabs share the width when they fit,
+      and the row scrolls sideways when they don't, with a soft fade on the
+      edge that has more. The selected tab always scrolls into view.
+- [x] The Story of You's stars blinked on a uniform loop (all fading
+      15%→55% on one smooth wave; era stars pulsed like a heartbeat).
+      **Cassidy: autoplay is fine here if it looks real.** Now it's
+      realistic scintillation: three irregular flicker patterns, each star
+      with its own speed and offset, and an amplitude that scales with
+      brightness (bright stars shimmer and occasionally catch a warm or
+      cool tint; faint ones are nearly still). Era stars get a calm glimmer
+      instead of a pulse. It's off under prefers-reduced-motion.
 - [ ] "Everywhere you've been": a world map of travelled Wanderings in
       Story of You, for Legacy and the Mirror.
 - [ ] A finished Wandering offers to mark its Dream achieved.
