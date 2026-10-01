@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sprout, ChevronRight } from "lucide-react";
+import { Sprout, ChevronRight, Wheat } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { easeOut } from "../ui/motion";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
-import { tendedDaysThisWeek, isSunday, weekStartKey, sowWeekStartKey, isWeekRested } from "../../lib/week";
+import { tendedDaysThisWeek, isSunday, weekStartKey, sowWeekStartKey, isWeekRested, harvestDue } from "../../lib/week";
 
 export const THRESHOLD_SEEN = "you.threshold.seen";
 
@@ -75,7 +75,7 @@ function WeekPlanting({ weekIntentions, items }) {
 // loaded data; nothing generates on open.
 export default function Threshold() {
   const navigate = useNavigate();
-  const { profile, loaded, weekIntentions, items } = useAppData();
+  const { profile, loaded, weekIntentions, weekHarvests, items } = useAppData();
   const [entering, setEntering] = useState(false);
   const firstName = profile?.name?.split(" ")[0] || "Seeker";
 
@@ -133,6 +133,16 @@ export default function Threshold() {
               <h2 className="font-serif text-h2 text-textPrimary mb-2.5">
                 What do you want to plant {isSunday() ? "next week" : "this week"}?
               </h2>
+              {harvestDue(weekIntentions, weekHarvests) && (
+                <Link to="/harvest" className="flex items-center gap-3 rounded-card bg-surface1 shadow-card p-4 mb-3">
+                  <Wheat size={20} strokeWidth={1.75} className="text-gold flex-none" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-body text-textPrimary">{isSunday() ? "Harvest this week first" : "Harvest last week"}</div>
+                    <div className="text-caption text-textSecondary mt-0.5">See what grew, and choose what to carry forward</div>
+                  </div>
+                  <ChevronRight size={18} strokeWidth={1.75} className="text-textMuted flex-none" />
+                </Link>
+              )}
               <WeekPlanting weekIntentions={weekIntentions} items={items} />
             </section>
           </div>

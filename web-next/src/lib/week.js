@@ -102,3 +102,23 @@ export function needsSowing(intentions, date = new Date()) {
   const week = sowWeekStartKey(date);
   return !intentions.some(i => i.week_start === week) && !isWeekRested(week);
 }
+
+// A date key `n` days from another (pure calendar maths, local dates).
+export function addDaysKey(dateKey, n) {
+  return localDateKey(addDays(new Date(dateKey + "T00:00:00"), n));
+}
+
+// The week Harvest looks back on: on Sunday it's the week now ending; any
+// other day it's last week (a missed Sunday doesn't mean a missed harvest).
+export function harvestWeekStartKey(date = new Date()) {
+  return isSunday(date) ? weekStartKey(date) : addDaysKey(weekStartKey(date), -7);
+}
+
+// Offer Harvest only when that week had something sown and hasn't been
+// harvested yet. After its window passes, it quietly stops asking.
+export function harvestDue(intentions, harvests, date = new Date()) {
+  const week = harvestWeekStartKey(date);
+  const sown = intentions.some(i => i.week_start === week);
+  const done = harvests.some(h => h.week_start === week);
+  return sown && !done ? week : null;
+}

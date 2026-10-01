@@ -188,12 +188,33 @@ from real effort. It borrows Forest's *visible growth from effort*, but
 - [x] "Rest this week" is a quiet secondary button until something is
       picked, so it can't be the loudest thing on arrival.
 
-### Harvest (end of week): not built yet
-- [ ] A calm look back at the week: which roots grew, plus one
-      AI-noticed pattern (reuse `weekly-reflection`, behind AI consent).
-- [ ] For each unfinished intention: **carry forward / rest / release**
-      (mirrors Freeing the Dream's plant / hold / release).
-- [ ] Harvests feed Seasons, Chapters and The Mirror.
+### Harvest (end of week) — built Oct 1
+- [x] **When:** on Sunday it looks back on the week now ending; Monday to
+      Saturday, on last week (a missed Sunday isn't a missed harvest). It's
+      offered only if that week had something sown and isn't harvested yet,
+      as a quiet card above "What do you want to plant this week?" on the
+      Threshold and a line on Home's Today card. Once its week has passed,
+      it stops asking.
+- [x] **Your roots:** XP logged that week, by Pillar ("Play grew +6"), with
+      a link to the Tree. A quiet week says roots grow in the dark too.
+- [x] **Noticed:** one line from the existing weekly reflection (patterns,
+      else "your week"). If there's none but there are journal entries,
+      "Reflect on last week" generates it, behind AI consent. Hidden when
+      there's no journal that week. No new Edge Function.
+- [x] **What you sowed:** each intention with "Tended on Mon and Wed" (never
+      a list of what was missed), its steps and value, then **Carry forward
+      / Let it rest / Release**. Anything unchosen rests. Carrying sows it
+      into next week with the same days and value, never past 3.
+- [x] **Release = archive** (Cassidy's call). `items.released_at` takes it
+      out of Pursue, Sow, Home and Today, keeping history, steps and XP.
+      Pursue → **Released** lists them, with "Bring back".
+- [x] **Something to remember:** optional note, kept in `week_harvests`.
+- [x] Re-opening a harvested week shows what was chosen, and it can be
+      updated.
+- [ ] Feed harvests (notes, outcomes) into Seasons, Chapters and The Mirror.
+- [x] Data: `20261001140000_harvest.sql`, which adds `items.released_at`,
+      `week_intentions.outcome` and the `week_harvests` table. *(Applied
+      Oct 1. Tested end to end: harvest, carry forward, release, bring back.)*
 
 ### Data
 - [x] `week_intentions` table (`20261001120000_week_intentions.sql`): one

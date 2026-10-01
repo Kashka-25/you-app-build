@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen, Sun, X, Sprout } from "lucide-react";
+import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen, Sun, X, Sprout, Wheat } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLAR_COLORS } from "../../constants/app.const";
 import {
@@ -11,7 +11,7 @@ import { GlowBubble } from "../ui/GlowBubble";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
-import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, localDateKey as todayKey } from "../../lib/week";
+import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -63,7 +63,7 @@ function NowRow({ icon: Icon, label, children, divider = true }) {
 export default function Home() {
   const {
     items, activeValues, chapters, journalEntries, recentInsights, profile, loaded, completeItem, loadRecentInsights,
-    todos, weekIntentions
+    todos, weekIntentions, weekHarvests
   } = useAppData();
   const hasIntentions = !useTodayList().isEmpty;
   const firstName = profile?.name?.split(" ")[0] || "Seeker";
@@ -155,6 +155,14 @@ export default function Home() {
         <div className={hasIntentions ? "mt-2 pt-2 border-t border-borderC" : ""}>
           <QuickList showLabel={hasIntentions} />
         </div>
+
+        {harvestDue(weekIntentions, weekHarvests) && (
+          <Link to="/harvest" className="flex items-center gap-2.5 text-bodySm text-textPrimary mt-3 pt-3 border-t border-borderC">
+            <Wheat size={16} strokeWidth={1.75} className="text-gold" />
+            <span className="flex-1">{isSunday() ? "Harvest this week" : "Harvest last week"}: see what grew</span>
+            <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
+          </Link>
+        )}
 
         {offerSow ? (
           <Link to="/sow" className="flex items-center gap-2.5 text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">

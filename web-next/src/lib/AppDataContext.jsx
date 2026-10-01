@@ -7,7 +7,7 @@ import {
   STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
 import { getValueEntry } from "../constants/valueLibrary";
-import { localDateKey, weekStartKey, sowWeekStartKey } from "./week";
+import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
 
 // "Today" is always the Seeker's local date, never UTC.
 const todayKey = localDateKey;
@@ -38,7 +38,10 @@ function dbToItem(row) {
     tags: row.tags || [], intention: row.intention || "", milestones: row.milestones || [],
     done: row.done, streak: row.streak || 0,
     days: row.days || [false, false, false, false, false, false, false],
-    lastCheckin: row.last_checkin || null, created: row.created, createdDate: row.created_date
+    lastCheckin: row.last_checkin || null, created: row.created, createdDate: row.created_date,
+    // Deliberately not written back by itemToRow: release/restore set it with
+    // their own update, so ordinary saves never touch (or depend on) it.
+    releasedAt: row.released_at || null
   };
 }
 // user_values columns added by the values_system migration (status,
@@ -84,6 +87,7 @@ export function AppDataProvider({ children }) {
   const [identityVisions, setIdentityVisions] = useState([]);
   const [todos, setTodos] = useState([]);
   const [weekIntentions, setWeekIntentions] = useState([]);
+  const [weekHarvests, setWeekHarvests] = useState([]);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
   const [aiConsent, setAiConsent] = useState(null);
@@ -161,6 +165,7 @@ export function AppDataProvider({ children }) {
       setSync("synced");
       loadTodos();
       loadWeekIntentions();
+      loadWeekHarvests();
       loadAiConsent();
       loadReflections();
     } catch (e) {
@@ -172,6 +177,11 @@ export function AppDataProvider({ children }) {
 
   useEffect(() => { if (!authLoading) load(); }, [authLoading, load]);
 
+  // Released pursuits are archived: everything outside this provider sees
+  // only active ones as `items`, and the archive as `releasedItems`.
+  const activeItems = useMemo(() => items.filter(i => !i.releasedAt), [items]);
+  const releasedItems = useMemo(() => items.filter(i => i.releasedAt), [items]);
+
   const totalXP = useMemo(() => memory.reduce((s, m) => s + (m.xp || 0), 0), [memory]);
   const level = useMemo(() => getLevel(totalXP), [totalXP]);
 
@@ -180,7 +190,7 @@ export function AppDataProvider({ children }) {
     const counts = Object.fromEntries(PILLARS.map(p => [p, 0]));
     const streaks = Object.fromEntries(PILLARS.map(p => [p, 0]));
     memory.forEach(m => { if (m.cat && xp[m.cat] !== undefined) xp[m.cat] += (m.xp || 0); });
-    items.filter(i => !i.done).forEach(i => {
+    activeItems.filter(i => !i.done).forEach(i => {
       if (i.cat && counts[i.cat] !== undefined) {
         counts[i.cat]++;
         if (i.streak > streaks[i.cat]) streaks[i.cat] = i.streak;
@@ -191,7 +201,7 @@ export function AppDataProvider({ children }) {
       name: p, xp: xp[p], pct: Math.round((xp[p] / maxXp) * 100),
       active: counts[p], bestStreak: streaks[p], color: PILLAR_COLORS[p]
     }));
-  }, [memory, items]);
+  }, [memory, activeItems]);
 
   async function saveItemRow(item) {
     const row = itemToRow(item, userId);
@@ -571,7 +581,7 @@ export function AppDataProvider({ children }) {
   // rest of the app loading. Only the current week and the week Sow is
   // planning for (they differ on Sundays).
   async function loadWeekIntentions() {
-    const weeks = [...new Set([weekStartKey(), sowWeekStartKey()])];
+    const weeks = [...new Set([harvestWeekStartKey(), weekStartKey(), sowWeekStartKey()])];
     const res = await supabase.from("week_intentions").select("*").eq("user_id", userId).in("week_start", weeks).order("inserted_at");
     if (res.error) { console.error("[AppData] loadWeekIntentions failed:", res.error); return; }
     setWeekIntentions(res.data || []);
@@ -599,6 +609,67 @@ export function AppDataProvider({ children }) {
       saved = res.data || [];
     }
     setWeekIntentions(prev => [...prev.filter(w => w.week_start !== weekStart), ...saved]);
+  }
+
+  async function loadWeekHarvests() {
+    const res = await supabase.from("week_harvests").select("*").eq("user_id", userId).order("week_start", { ascending: false }).limit(12);
+    if (res.error) { console.error("[AppData] loadWeekHarvests failed:", res.error); return; }
+    setWeekHarvests(res.data || []);
+  }
+
+  // Release = archive, never delete: the pursuit leaves Pursue, Sow and
+  // Home but keeps its history, steps and XP, and can be restored.
+  async function setReleased(itemId, releasedAt) {
+    const res = await supabase.from("items").update({ released_at: releasedAt }).eq("id", itemId).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setItems(prev => prev.map(i => (i.id === itemId ? { ...i, releasedAt } : i)));
+  }
+  const releaseItem = itemId => setReleased(itemId, new Date().toISOString());
+  const restoreItem = itemId => setReleased(itemId, null);
+
+  // Closes a sown week. decisions: { [intentionId]: "carried" | "rested" |
+  // "released" } (anything unchosen rests). Carried ones are sown into the
+  // following week with the same days and value, up to Sow's limit of 3.
+  async function harvestWeek(weekStart, decisions, note) {
+    const sown = weekIntentions.filter(w => w.week_start === weekStart);
+    const nextWeek = addDaysKey(weekStart, 7);
+    const nextExisting = weekIntentions.filter(w => w.week_start === nextWeek);
+    const room = Math.max(0, 3 - nextExisting.length);
+    const outcomes = Object.fromEntries(sown.map(w => [w.id, decisions[w.id] || "rested"]));
+    const carried = sown
+      .filter(w => outcomes[w.id] === "carried" && !nextExisting.some(n => n.item_id === w.item_id))
+      .slice(0, room);
+
+    for (const w of sown) {
+      const res = await supabase.from("week_intentions").update({ outcome: outcomes[w.id] }).eq("id", w.id).eq("user_id", userId);
+      if (res.error) throw res.error;
+    }
+
+    let carriedRows = [];
+    if (carried.length) {
+      const res = await supabase.from("week_intentions").upsert(
+        carried.map(w => ({ user_id: userId, item_id: w.item_id, week_start: nextWeek, days: w.days || [], value_name: w.value_name })),
+        { onConflict: "user_id,week_start,item_id" }
+      ).select();
+      if (res.error) throw res.error;
+      carriedRows = res.data || [];
+      markWeekRested(nextWeek, false);
+    }
+
+    for (const w of sown.filter(x => outcomes[x.id] === "released")) await releaseItem(w.item_id);
+
+    const res = await supabase.from("week_harvests").upsert(
+      { user_id: userId, week_start: weekStart, note: (note || "").trim() || null, updated_at: new Date().toISOString() },
+      { onConflict: "user_id,week_start" }
+    ).select().single();
+    if (res.error) throw res.error;
+
+    setWeekIntentions(prev => [
+      ...prev.map(w => (outcomes[w.id] ? { ...w, outcome: outcomes[w.id] } : w)).filter(w => !carriedRows.some(c => c.id === w.id)),
+      ...carriedRows
+    ]);
+    setWeekHarvests(prev => [res.data, ...prev.filter(h => h.week_start !== weekStart)]);
+    return { carried: carriedRows.length, skippedForRoom: sown.filter(w => outcomes[w.id] === "carried").length - carried.length };
   }
 
   async function updateWeekIntention(id, updates) {
@@ -1090,7 +1161,7 @@ export function AppDataProvider({ children }) {
   }
 
   const value = {
-    userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
+    userId, loaded, sync, items: activeItems, releasedItems, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
     identityVisions, todos,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
@@ -1101,6 +1172,7 @@ export function AppDataProvider({ children }) {
     addIdentityVision, editIdentityVision, deleteIdentityVision,
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
+    weekHarvests, harvestWeek, releaseItem, restoreItem,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,

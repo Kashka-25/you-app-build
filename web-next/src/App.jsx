@@ -16,6 +16,7 @@ import Settings from "./components/screens/Settings";
 import Styleguide from "./components/screens/Styleguide";
 import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
 import SowScreen from "./components/sow/SowScreen";
+import HarvestScreen from "./components/sow/HarvestScreen";
 import { ParkedScreen } from "./components/Primitives";
 import { thresholdOnOpen } from "./lib/week";
 
@@ -52,6 +53,7 @@ export default function App() {
       {/* Full-screen layers, outside the shell: no top bar, no nav. */}
       <Route path="/threshold" element={<Threshold />} />
       <Route path="/sow" element={<SowScreen />} />
+      <Route path="/harvest" element={<HarvestScreen />} />
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
         <Route path="/bring-me-back" element={<BringMeBackToMyself />} />
