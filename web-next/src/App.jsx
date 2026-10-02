@@ -13,6 +13,7 @@ import Empatherapy from "./components/screens/Empatherapy";
 import Reflections from "./components/screens/Reflections";
 import Legacy from "./components/screens/Legacy";
 import Mirror from "./components/screens/Mirror";
+import MyStory from "./components/screens/MyStory";
 import Settings from "./components/screens/Settings";
 import Styleguide from "./components/screens/Styleguide";
 import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
@@ -57,6 +58,7 @@ export default function App() {
       <Route path="/threshold" element={<Threshold />} />
       <Route path="/sow" element={<SowScreen />} />
       <Route path="/harvest" element={<HarvestScreen />} />
+      <Route path="/my-story" element={<MyStory />} />
       <Route
         path="/wandering/:id"
         element={

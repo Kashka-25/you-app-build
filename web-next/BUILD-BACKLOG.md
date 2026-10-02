@@ -274,8 +274,17 @@ and code keep `journey` so old links still work. Travel plans are
       before Lisbon, Iowa), puts places above stations and airports, and
       prefers an exact name ("Kyoto" the city before Kyoto Prefecture or
       Kyoto Station).
-- [ ] Turn on leaked-password protection in Supabase Auth: sign-in uses
-      passwords, so it matters.
+- [ ] Leaked-password protection (HaveIBeenPwned) needs Supabase **Pro**.
+      The org is on **Free** (confirmed Oct 2), so the advisor warning is
+      expected and stays until an upgrade; then it's one switch in Auth →
+      Email. Meanwhile the free alternative: minimum password length 12, and
+      lowercase, uppercase, digits and symbols required (Cassidy sets this in
+      the dashboard).
+- [x] `handle_new_user()` locked down (`20261002130000_lock_handle_new_user.sql`):
+      EXECUTE revoked from public/anon/authenticated, so it's no longer
+      callable through `/rest/v1/rpc`. Verified that a trigger still fires
+      for a role that can't call its function directly. Both advisor
+      warnings for it are cleared.
 
 ### Later
 - [x] **Memories pinned to places** (Oct 1). A life moment ("Add a memory",
@@ -436,9 +445,26 @@ and code keep `journey` so old links still work. Travel plans are
       season, latest harvest note) and "One year ago" (the same week last
       year: places you were, memories, journal, harvest notes), or an
       honest empty state. Nothing is generated; it's only what was kept.
-- [x] **Legacy** is no longer a placeholder: The Mirror card plus "Your
-      years", every year with life in it, newest first, each with places
-      and what it held. The memoir export ("My Story") is still to come.
+- [x] **Legacy** is no longer a placeholder: My Story, The Mirror, and
+      "Your years", every year with life in it, newest first, each with
+      places and what it held.
+- [x] **"My Story" memoir** (`/my-story`, from Legacy; Oct 2). Built only from
+      what the Seeker kept, in their own words: no AI, and assembled in the
+      browser, never uploaded (`lib/myStory.js` is one book model for both
+      outputs).
+      - Book: cover (name, years) · contents · **the years**, oldest first
+        (seasons, where I went with countries and stop notes, dreams lived,
+        memories with photos and places, harvest notes, journal) ·
+        chapters · **what I'm growing toward** (values in their own
+        definitions, identity visions, dreams still ahead).
+      - Section switches; **journal entries start off** (most private).
+      - **Print or save as PDF** (print styles: only the book, on white, one
+        year per page, photos never split) and **Download text** (Markdown,
+        `my-story-YYYY-MM-DD.md`).
+      - No repetition: single-place trips read "Cambodia", not "Cambodia:
+        Cambodia", and travel dreams aren't listed twice in a year.
+      - Later: optional AI-written chapter introductions (with consent),
+        and a cover photo.
 - [x] Dreams count in the year they were **lived**: a dream with a dated
       Wandering belongs to the year the journey began, not the day it was
       ticked off in the app.

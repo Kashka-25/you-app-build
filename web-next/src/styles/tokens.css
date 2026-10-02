@@ -101,3 +101,17 @@ body {
 .night-map .maplibregl-ctrl-group .maplibregl-ctrl-icon { filter: invert(0.85); }
 .night-map .maplibregl-ctrl-attrib-button { filter: invert(0.85); }
 .night-map .maplibregl-ctrl-top-right { top: 150px; }
+
+/* "My Story" printing: only the book, on white, one year per page. The
+   book uses its own print typography (fixed point sizes), separate from
+   the app's type scale. */
+@media print {
+  @page { margin: 18mm 16mm; }
+  .no-print { display: none !important; }
+  html, body, .my-story { background: #fff !important; }
+  .my-story .book { box-shadow: none !important; border-radius: 0 !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
+  .my-story .book-page { break-before: page; }
+  .my-story .book-cover { break-after: page; padding-top: 30vh; }
+  .my-story .book-keep { break-inside: avoid; }
+  .my-story img { max-height: 90mm !important; }
+}

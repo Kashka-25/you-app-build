@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ChevronRight, Sparkles, Star, Wheat } from "lucide-react";
+import { ChevronRight, Sparkles, Star, Wheat, BookOpen } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { yearsWithLife, yearSummary } from "../../lib/years";
 import { BackRow, SectionTitle, DropdownSection } from "../Primitives";
@@ -48,6 +48,15 @@ export default function Legacy() {
       <SectionTitle>Legacy</SectionTitle>
       <p className="text-bodySm text-textSecondary -mt-1 mb-4">Your life, year by year: where it took you, and what each year held.</p>
 
+      <Link to="/my-story" className="flex items-center gap-3 rounded-card shadow-card p-4 mb-2.5" style={{ background: "linear-gradient(135deg, var(--forest), var(--forest-accent))" }}>
+        <BookOpen size={20} strokeWidth={1.75} className="text-cream flex-none" />
+        <span className="flex-1 min-w-0">
+          <span className="block font-serif text-h3 text-cream">My Story</span>
+          <span className="block text-caption text-[color-mix(in_srgb,var(--cream)_80%,transparent)]">Your life so far as a book: print it, save it as a PDF, or keep a text copy</span>
+        </span>
+        <ChevronRight size={18} strokeWidth={1.75} className="text-cream flex-none" />
+      </Link>
+
       <Link to="/mirror" className="flex items-center gap-3 rounded-card bg-surface1 shadow-card p-4 mb-5">
         <Sparkles size={20} strokeWidth={1.75} className="text-gold flex-none" />
         <span className="flex-1 min-w-0">
@@ -64,10 +73,6 @@ export default function Legacy() {
           <YearBody year={y} />
         </DropdownSection>
       ))}
-
-      <p className="text-caption text-textMuted mt-6">
-        One day, all of this can become your memoir, "My Story", exported as a book. That part is still to come.
-      </p>
     </div>
   );
 }
