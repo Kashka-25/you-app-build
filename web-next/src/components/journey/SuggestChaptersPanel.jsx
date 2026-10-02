@@ -26,7 +26,7 @@ export default function SuggestChaptersPanel() {
       // "Not now" on the consent prompt isn't a failure — say nothing.
       if (e?.code !== "consent_declined") {
         console.error("[SuggestChaptersPanel] suggest failed:", e);
-        setError("Couldn't get suggestions right now — check the Edge Function is deployed and try again.");
+        setError(e?.friendly || "Couldn't get suggestions right now. Try again in a little while.");
       }
     }
     setLoading(false);

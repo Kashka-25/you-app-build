@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
+import { useEscape } from "./ui/useEscape";
 import { fadeIn, easeOut } from "./ui/motion";
 
 // Journey-before-CommYOUnity is deliberate: the app is about the individual
@@ -33,6 +34,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
   const location = useLocation();
   const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
   const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
+  useEscape(open, onClose);
   // Opening the menu while on one of those pages shows where you are.
   useEffect(() => { if (open && onComingSoonPage) setSoonOpen(true); }, [open, onComingSoonPage]);
 
@@ -48,6 +50,11 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
             onClick={e => e.stopPropagation()}
             className="absolute top-0 left-0 h-full w-[240px] bg-surface2 border-r border-borderC py-3.5 flex flex-col"
           >
+            <div className="flex justify-end px-3 pb-1">
+              <button onClick={onClose} aria-label="Close menu" className="flex items-center gap-1 text-caption text-textMuted hover:text-textPrimary px-2 py-1">
+                <X size={16} strokeWidth={1.75} /> Close
+              </button>
+            </div>
             <div className="flex-1 overflow-y-auto">
               {SITEMAP.map(item => (
                 <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose} className={linkClass}>

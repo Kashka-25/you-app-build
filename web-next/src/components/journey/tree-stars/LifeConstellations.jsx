@@ -1,6 +1,7 @@
 import { useMemo, useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { X, MapPin, BookOpen, Globe2 } from "lucide-react";
+import { useEscape } from "../../ui/useEscape";
 import { useAppData } from "../../../lib/AppDataContext";
 import { niceDay, wanderingPeriodLabel } from "../../../lib/wandering";
 import { Modal } from "../../ui/Modal";
@@ -95,6 +96,7 @@ function Constellation({ wandering, points, counts, total, onStar }) {
 }
 
 export default function LifeConstellations({ onClose }) {
+  useEscape(true, onClose);
   const { wanderings, wanderingStops, moments, journalEntries } = useAppData();
   const [openStop, setOpenStop] = useState(null);
   const [worldOpen, setWorldOpen] = useState(false);

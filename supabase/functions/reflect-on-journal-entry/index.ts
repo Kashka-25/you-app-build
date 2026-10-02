@@ -9,11 +9,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
 import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
+import { checkDailyLimit } from "../_shared/limit.ts";
+import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-const SYSTEM_PROMPT = `You are part of YOU, a personal life-journaling app. You are reflecting on a single journal entry the user just wrote.
+const SYSTEM_PROMPT = `You are part of YOU, a self-love and personal-growth app where people journal their lives. You are reflecting on a single journal entry the user just wrote.
 
 Your role is a mirror and reflective guide, never an authority. Follow these rules strictly:
 - Use tentative, invitational language: "I noticed...", "A possible pattern is...", "You mentioned...", "This may connect with...". Never state a psychological or emotional fact as certain.
@@ -54,6 +56,8 @@ Deno.serve(async req => {
 
     const consent = await requireAiConsent(req, corsHeaders);
     if ("response" in consent) return consent.response;
+    const limited = await checkDailyLimit(req, corsHeaders);
+    if (limited) return limited;
 
     const { entryId } = await req.json();
     if (!entryId) return json({ error: "entryId is required" }, 400);
@@ -111,7 +115,7 @@ ${JSON.stringify(contextDigest, null, 2)}`;
       messages: [{ role: "user", content: userMessage }], usage: { req, fn: "reflect-on-journal-entry" }
     });
 
-    const parsed = parseJsonResponse<{
+    const unmoderated = parseJsonResponse<{
       summary: string;
       insights: { category: string; text: string }[];
       connections: Record<string, string[]>;
@@ -119,7 +123,11 @@ ${JSON.stringify(contextDigest, null, 2)}`;
       suggested_next_step: string;
     }>(raw);
 
-    const insightsWithIds = (parsed.insights || []).map((item, i) => ({
+    // Output moderation; `connections` only echoes the Seeker's own names.
+    const { value: parsed, stats } = moderate(unmoderated, ["connections"]);
+    if (stats.blocked) return json({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
+
+    const insightsWithIds = (parsed.insights || []).filter(item => item.text).map((item, i) => ({
       id: `${entryId}-${i}`,
       category: item.category,
       text: item.text,

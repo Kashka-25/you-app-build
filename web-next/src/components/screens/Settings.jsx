@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { LogOut, Sparkles, Sun } from "lucide-react";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
+import { AI_USER_MONTHLY_USD } from "../../lib/aiCost";
 import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle, Placeholder } from "../Primitives";
@@ -103,9 +104,16 @@ export default function Settings() {
 // Revocable any time. Turning it off takes effect immediately: the app stops
 // asking Claude, and the Edge Functions refuse without a current yes.
 function AiReflectionsSetting({ aiConsent, onChange }) {
+  const { aiUsageThisMonth } = useAppData();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [usage, setUsage] = useState(null);
   const on = Boolean(aiConsent?.granted);
+
+  // The beta allowance, so a limit is never a surprise.
+  useEffect(() => {
+    aiUsageThisMonth().then(setUsage).catch(e => console.error("[Settings] usage read failed:", e));
+  }, []);
 
   async function toggle() {
     setSaving(true);
@@ -134,6 +142,22 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
           ? `On${since ? ` since ${since}` : ""}. When you ask for a reflection, the words you chose are sent to Claude (by Anthropic) only to write it.`
           : "Off. Nothing you write is sent to an AI. You'll be asked before it ever is."}
       </div>
+      {usage && (
+        <div className="mb-3">
+          <div className="flex justify-between text-caption text-textSecondary mb-1">
+            <span>Beta allowance this month</span>
+            <span>
+              {usage.usd >= AI_USER_MONTHLY_USD
+                ? "Used up for this month"
+                : `$${usage.usd.toFixed(2)} of $${AI_USER_MONTHLY_USD.toFixed(2)}`}
+            </span>
+          </div>
+          <div className="h-1.5 rounded-full bg-surface3 overflow-hidden">
+            <div className="h-full bg-forestAccent" style={{ width: `${Math.min(100, (usage.usd / AI_USER_MONTHLY_USD) * 100)}%` }} />
+          </div>
+          <div className="text-caption text-textMuted mt-1">Resets on the 1st. When it's used up, AI reflections rest; everything else keeps working.</div>
+        </div>
+      )}
       {error && <div className="text-bodySm text-red-500 mb-2">{error}</div>}
       <Button variant="secondary" size="sm" disabled={saving || aiConsent === null} onClick={toggle}>
         {saving ? "Saving…" : on ? "Turn off AI reflections" : "Turn on AI reflections"}

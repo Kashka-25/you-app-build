@@ -12,13 +12,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
 import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
+import { checkDailyLimit } from "../_shared/limit.ts";
+import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const MODEL = "claude-opus-5-5";
 const WEEKS_BACK = 10;
 
-const SYSTEM_PROMPT = `You are part of YOU, a personal-growth app that treats a life as a living story. You name the "season" a person seems to be in, from their own weekly Harvests: short notes they chose to keep at the end of each week, plus what they decided to carry forward, rest, or release.
+const SYSTEM_PROMPT = `You are part of YOU, a self-love and personal-growth app that treats a life as a living story. You name the "season" a person seems to be in, from their own weekly Harvests: short notes they chose to keep at the end of each week, plus what they decided to carry forward, rest, or release.
 
 A season is the felt quality of this stretch of life, not an achievement or a diagnosis. Name it in the form "Season of …" with two to four plain, grounded words drawn from what they actually wrote and chose (e.g. "Season of Slow Roots", "Season of Letting Go", "Season of Coming Home"). Avoid clichés, therapy-speak and grandiosity.
 
@@ -43,6 +45,8 @@ Deno.serve(async req => {
 
     const consent = await requireAiConsent(req, corsHeaders);
     if ("response" in consent) return consent.response;
+    const limited = await checkDailyLimit(req, corsHeaders);
+    if (limited) return limited;
 
     // Reads go through the Seeker's own session, so RLS keeps it to their rows.
     const { data: harvests } = await supabase
@@ -99,7 +103,8 @@ Deno.serve(async req => {
       usage: { req, fn: "infer-season" },
       messages: [{ role: "user", content: JSON.stringify({ recent_weeks: digest }, null, 2) }]
     });
-    const season = parseJsonResponse<{ name: string; blurb: string; signals?: string[] }>(raw);
+    const { value: season, stats } = moderate(parseJsonResponse<{ name: string; blurb: string; signals?: string[] }>(raw));
+    if (stats.blocked) return json({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
     if (!season?.name) return json({ error: "The season couldn't be read just now." }, 502);
 
     const { data: saved, error: saveErr } = await supabase
@@ -108,7 +113,7 @@ Deno.serve(async req => {
         user_id: user.id,
         name: season.name.trim(),
         blurb: (season.blurb || "").trim(),
-        signals: Array.isArray(season.signals) ? season.signals.slice(0, 4) : [],
+        signals: Array.isArray(season.signals) ? season.signals.filter(Boolean).slice(0, 4) : [],
         based_on: { harvests: harvests.length, notes, from: weeks[weeks.length - 1], to: weeks[0] },
         model: MODEL
       })

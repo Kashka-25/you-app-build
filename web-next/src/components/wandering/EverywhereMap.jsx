@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { X, MapPin, Globe2 } from "lucide-react";
+import { useEscape } from "../ui/useEscape";
 import { useAppData } from "../../lib/AppDataContext";
 import { localDateKey } from "../../lib/week";
 import { stopDateLabel, isExact } from "../../lib/wandering";
@@ -30,6 +31,7 @@ const regionName = (() => {
 // `year` (optional) narrows it to the places reached that year (The Mirror,
 // Legacy): stops that began that year, exact or approximate.
 export default function EverywhereMap({ onClose, year = null }) {
+  useEscape(true, onClose);
   const { wanderings, wanderingStops, moments, journalEntries, items, releasedItems } = useAppData();
   const containerRef = useRef(null);
   const mapRef = useRef(null);

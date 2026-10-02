@@ -88,16 +88,19 @@ sheet on tapping **+**, but the app currently jumps straight to the full
 - [x] **Home** — built, minor fixes above aside
 - [~] **YOU tab** (formerly Profile) — Pillars + Values attribute bars, Seed
       Being, level/stats, Legacy card *(built: Seed Being + level, Pillars,
-      Values, Legacy link; avatar upgrade station still a placeholder)*
+      Values, The Mirror and Legacy links; avatar upgrade station still a
+      placeholder)*
 - [x] **Journey** — segmented control (Chapters / Tree & Stars /
       YOUnderstanding), Life Chapters cards, Season indicator *(plus an Identity
-      tab; Season is a preview until AI seasons exist)*
+      tab. Seasons are real now: read from Harvests, see "Seasons, The
+      Mirror and Legacy")*
 - [x] **Pursue** (full list — reached from Journey → Chapters or Home
       "View all") — most function-heavy screen, go carefully *(built: filters, Pillar
       groups, nested sub-categories, milestones, prestige)*
 - [ ] **Everything else** (lower priority, still placeholder): CommYOUnity,
       Atlas, Tree & Stars detail, Healing Journey, Therapists, Empatherapy,
-      Events/Calendar, Shop, Challenges, Saved, Review, Legacy Mode
+      Events/Calendar, Shop, Challenges, Saved, Review *(Legacy is built
+      now, with My Story)*
 
 ---
 
@@ -473,6 +476,64 @@ and code keep `journey` so old links still work. Travel plans are
   (thinking blocks skipped). Existing functions are unchanged until
   redeployed.
 
+## Beta safety (Oct 2)
+
+Built so Cassidy can share the MVP with friends without paying for
+unlimited AI.
+
+- [x] **AI cost guard** (`functions/_shared/limit.ts`), checked before every
+      Claude call in all six AI functions and counted from `ai_usage`
+      (model + tokens → real cost):
+      - whole-app budget **$20 a month**: AI pauses for everyone until the
+        1st, and nothing else is affected;
+      - **$1 per tester per month** (Cassidy's choice);
+      - **30 calls per rolling 24 hours**, a backstop for runaway bugs.
+
+      Change any of them with Supabase secrets (`AI_MONTHLY_BUDGET_USD`,
+      `AI_USER_MONTHLY_USD`, `AI_DAILY_LIMIT`). If usage can't be read, calls
+      are allowed rather than locking people out. AI is open to everyone
+      who signs up.
+- [x] Testers see their allowance: Your Own Universe → AI reflections
+      shows "$0.32 of $1.00 this month" with a bar (`lib/aiCost.js` mirrors
+      the server's prices; the server enforces).
+- [x] `ai_usage` writes are service-role only
+      (`20261002140000_ai_usage_service_only.sql`). The old self-insert
+      policy would have let a forged row pause everyone's AI.
+- [x] **Output moderation** (`functions/_shared/moderate.ts`), on every AI
+      reply but never on the Seeker's writing (photo transcriptions are
+      exempt):
+      - sentences claiming to heal, cure or fix, diagnosing the Seeker, or
+        giving medication or dose advice are dropped, and the rest shows;
+      - self-harm encouragement withholds the whole reply and points
+        gently to findahelpline.com.
+
+      Unit-tested: 6 gentle sentences kept, 7 unsafe ones dropped, 2
+      blocked. Moderation logs counts only, never content.
+- [x] Friendly AI errors: every AI call goes through `invokeAi()`, so limit
+      and moderation messages reach the Seeker. The old "check the Edge
+      Function is deployed" developer messages are gone from the UI.
+- [x] Prompts describe YOU as "a self-love and personal-growth app"
+      (Cassidy, Oct 2). The old "self-therapy app" wording broke the voice
+      rule.
+- [x] **Exit on every screen**: Escape closes the top layer only (modals,
+      sheets, menu, skies, world map; `ui/useEscape.js`). Added close
+      buttons to the side menu and the + Add sheet, and a label on the
+      modal ✕.
+- [x] Signed-in only: the cost guard returns 401 to callers with no user
+      (just the public anon key), which `suggest-value-challenges` would
+      otherwise have let through uncapped. Usage is read in pages of 1000,
+      so a busy month can't undercount.
+- [x] Live (Oct 2): migration applied and all six AI functions redeployed.
+      Verified without any AI call: anon → 401, a forged `ai_usage` insert →
+      refused by RLS, $1 used → 429 `monthly_allowance`, $20 total → 429
+      `budget_paused`. Settings shows "Used up for this month" past $1.
+      Test rows removed.
+- [x] Supabase Auth: minimum password length 12 (Cassidy, Oct 2).
+- [ ] Hard backstop for Cassidy: a monthly spend limit on the Anthropic API
+      key (Anthropic Console).
+- [ ] `suggest-value-challenges` has no AI-consent check. That's fine, since
+      it sends only a value's name, but worth knowing.
+
 ## Side menu (Oct 2)
 - [x] Kept clean: Home, YOUrney, Reflections, CommYOUnity, then a
       collapsed **Coming soon · 6** (Therapists, Events / Calendar, Shop,
@@ -483,12 +544,14 @@ and code keep `journey` so old links still work. Travel plans are
 
 ## Reminders that keep coming up
 
-- `DEV_MODE` stays `"bypass"` — building with mock data deliberately, not
-  wiring real login yet.
+- `DEV_MODE` is `"live"` (real sign-in) and must **never ship as
+  `"bypass"`**. Flip it only briefly for local UI checks, then flip it back
+  before committing.
 - Solo build (Sep 28): the data layer is ours now. Change
-  `AppDataContext.jsx` / `AuthContext.jsx` deliberately — one migration
-  at a time, tested with mock data first.
-- Stay on `feature/living-biography-ui`. No new branches.
+  `AppDataContext.jsx` / `AuthContext.jsx` deliberately, one migration at
+  a time. Migrations live in `supabase/migrations/` and are applied to
+  project `yikoymzktspamahrsuje` only after Cassidy's go-ahead.
+- Work happens on the `mvp` branch (pushed to GitHub).
 - Seed Being keeps its existing name/branding — not renamed. Only the
   Journey insight feature was renamed, to **YOUnderstanding**.
 
@@ -747,8 +810,10 @@ Folder per Element → folder per main value → sub-value files inside.
       compiles them into the app + `supabase/codex/values_library.sql`.)*
 - [ ] Curated challenges for most-chosen ~20: 4 per tier
       (2 Light : 1 Shadow : 1 Integration).
-- [ ] Voice rule: YOU never claims to heal or fix. It holds space for
-      light and dark as the full human experience.
+- [~] Voice rule: YOU never claims to heal or fix. It holds space for
+      light and dark as the full human experience. *(Enforced on AI output
+      since Oct 2, see "Beta safety"; still to be written into the Codex
+      text itself.)*
 
 ### Questionnaires
 - [x] **Freeing the Dream** (per Pillar): Longing → Vision → Weight →
@@ -764,11 +829,9 @@ Folder per Element → folder per main value → sub-value files inside.
       `reflections`, `custom_value_signals`. *(Done in
       `20260928140000_values_system.sql` except `custom_value_signals`,
       which waits for custom values.)*
-- [ ] `ai_usage` table + token logging in every Edge Function
-      (suggest-value-challenges, suggest-chapters,
-      reflect-on-journal-entry, weekly-reflection,
-      transcribe-journal-photo). *(Logging done in all five; confirm table + RLS.)* RLS on all
-      user-owned rows; library + shared challenges read-only public.
+- [x] `ai_usage` table + token logging in every Edge Function (all six,
+      including infer-season). RLS: Seekers read only their own rows;
+      writes are service-role only (see "Beta safety").
 - [x] Migrate existing 12 values into library; map existing user rows.
       *(13 incl. Family; Elements are a first proposal until the Codex.)*
 - [ ] Move `VALUE_PILLAR` / `VALUE_PILLAR2` into DB; update `pillars.js`.
@@ -781,9 +844,10 @@ Folder per Element → folder per main value → sub-value files inside.
 - [ ] `suggest-value-challenges` (update): personal definition as input,
       lens balance, shared cache for library values.
 - [ ] `tailor-value-questions` (v2, premium).
-- [ ] Log token usage per call to `ai_usage`; per-user daily rate limit.
+- [x] Log token usage per call to `ai_usage`; per-user limits. *(Oct 2: see
+      "Beta safety" for the daily cap, monthly allowance and budget.)*
 
-### Frontend (mock data, `DEV_MODE: "bypass"`)
+### Frontend
 - [~] Values discovery: search + name your own, browse by Element.
       *(Browse by Element / A–Z + gentle one-per-Element hint done; search
       and name-your-own wait for the 40-value library + `classify-value`.)*
@@ -796,8 +860,9 @@ Folder per Element → folder per main value → sub-value files inside.
 - [x] Tier-crossing acknowledgement line.
 - [x] Tree of YOU v2 (below) — refactor existing
       `components/journey/tree-stars/TreeOfStars.jsx` to the new mapping.
-      *(Built Sep 28. Not yet: Seasons tint, sub-value twigs, memories as
-      Constellations — sky currently holds Identity visions.)*
+      *(Built Sep 28. Memories as Life Constellations came Oct 1–2, as a
+      second doorway in the sky. Not yet: Seasons tint the foliage,
+      sub-value twigs.)*
 
 ### Tree of YOU v2 — cosmic tree
 - **Roots = 8 Pillars v2**, anchored in soil — inner roots (Body, Heart,
@@ -825,5 +890,6 @@ Folder per Element → folder per main value → sub-value files inside.
       keep it that way for `reflections` / `journal_entries` when added.)*
 - [x] Quiet support-resources link on Shadow/Void screens. *(Also on
       Freeing the Dream → Weight. Links to findahelpline.com.)*
-- [ ] Moderation on AI output, not on Seeker input.
-- [ ] Exit on every screen.
+- [x] Moderation on AI output, not on Seeker input. *(Oct 2, see "Beta
+      safety".)*
+- [x] Exit on every screen. *(Oct 2, see "Beta safety".)*

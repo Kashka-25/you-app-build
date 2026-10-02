@@ -7,6 +7,7 @@ import {
   STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
 import { getValueEntry } from "../constants/valueLibrary";
+import { callCostUsd } from "./aiCost";
 import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
 
 // "Today" is always the Seeker's local date, never UTC.
@@ -892,6 +893,39 @@ export function AppDataProvider({ children }) {
     await updateWanderingStop(stopId, { day_plans: { ...(stop.day_plans || {}), [dateKey]: steps } });
   }
 
+  // This calendar month's AI spend for the signed-in Seeker (their own
+  // ai_usage rows; RLS allows reading only those), for the allowance shown
+  // in Settings. UTC month, to match the server's count.
+  async function aiUsageThisMonth() {
+    const now = new Date();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+    const res = await supabase.from("ai_usage").select("model, input_tokens, output_tokens").eq("user_id", userId).gte("created_at", monthStart);
+    if (res.error) throw res.error;
+    return { calls: res.data.length, usd: res.data.reduce((s, r) => s + callCostUsd(r.model, r.input_tokens, r.output_tokens), 0) };
+  }
+
+  // Every AI call goes through here, so the server's own explanation (a
+  // beta allowance reached, a reply withheld by moderation) reaches the
+  // Seeker as `e.friendly` instead of a generic failure.
+  async function invokeAi(name, body) {
+    const { data, error } = await supabase.functions.invoke(name, { body });
+    if (error) {
+      let detail = null;
+      try { detail = await error.context?.json?.(); } catch { /* not JSON */ }
+      const e = new Error(detail?.message || detail?.error || error.message);
+      e.code = detail?.error || "ai_failed";
+      if (detail?.message) e.friendly = detail.message;
+      throw e;
+    }
+    if (data?.error) {
+      const e = new Error(data.message || data.error);
+      e.code = data.error;
+      if (data.message) e.friendly = data.message;
+      throw e;
+    }
+    return data;
+  }
+
   // ── Seasons ──
   // Read by the infer-season Edge Function from recent Harvests, only when
   // asked. Newest row = the current season; earlier readings are kept.
@@ -903,9 +937,7 @@ export function AppDataProvider({ children }) {
 
   async function readSeason() {
     await withAiConsent();
-    const { data, error } = await supabase.functions.invoke("infer-season", { body: {} });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    const data = await invokeAi("infer-season", {});
     if (data?.empty) return { empty: true, message: data.message };
     setSeasons(prev => [data.season, ...prev]);
     return { empty: false, season: data.season };
@@ -1102,9 +1134,7 @@ export function AppDataProvider({ children }) {
   // then edit in place via editJournalPhotoTranscription.
   async function transcribeJournalPhoto(entryId, photoId) {
     await withAiConsent();
-    const { data, error } = await supabase.functions.invoke("transcribe-journal-photo", { body: { photoId } });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    const data = await invokeAi("transcribe-journal-photo", { photoId });
     setJournalPhotos(prev => ({
       ...prev,
       [entryId]: (prev[entryId] || []).map(p => (p.id === photoId ? { ...p, ...data.photo } : p))
@@ -1142,9 +1172,7 @@ export function AppDataProvider({ children }) {
 
   async function generateJournalReflection(entryId) {
     await withAiConsent();
-    const { data, error } = await supabase.functions.invoke("reflect-on-journal-entry", { body: { entryId } });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    const data = await invokeAi("reflect-on-journal-entry", { entryId });
     setJournalInsights(prev => ({ ...prev, [entryId]: data.insight }));
     return data.insight;
   }
@@ -1199,9 +1227,7 @@ export function AppDataProvider({ children }) {
 
   async function generateWeeklyReflection(weekStart) {
     await withAiConsent();
-    const { data, error } = await supabase.functions.invoke("weekly-reflection", { body: { weekStart } });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    const data = await invokeAi("weekly-reflection", { weekStart });
     if (data.empty) {
       setWeeklyReflections(prev => ({ ...prev, [weekStart]: null }));
       return { empty: true, message: data.message };
@@ -1252,9 +1278,7 @@ export function AppDataProvider({ children }) {
     // held, not only its milestones. (All of them, not just recent weeks.)
     const harvestRes = await supabase.from("week_harvests").select("week_start, note").eq("user_id", userId).not("note", "is", null);
     const harvests = (harvestRes.data || []).filter(h => (h.note || "").trim());
-    const { data, error } = await supabase.functions.invoke("suggest-chapters", { body: { moments: payload, harvests } });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    const data = await invokeAi("suggest-chapters", { moments: payload, harvests });
     return data.chapters || [];
   }
 
@@ -1338,17 +1362,13 @@ export function AppDataProvider({ children }) {
       ...(lib?.challenges || []).map(c => c.text),
       ...valueChallenges.filter(c => c.value_name === valueName).map(c => c.text)
     ];
-    const { data, error } = await supabase.functions.invoke("suggest-value-challenges", {
-      body: {
+    const data = await invokeAi("suggest-value-challenges", {
         valueName,
         tagline: lib?.tagline || "",
         tierName: tier.name,
         existingTexts,
         sampleChallenges: (lib?.challenges || []).slice(0, 3)
-      }
-    });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+      });
 
     const rows = (data.challenges || []).map(c => ({
       user_id: userId, value_name: valueName, text: c.text, pts: c.pts, diff: c.diff || "bold"
@@ -1373,7 +1393,7 @@ export function AppDataProvider({ children }) {
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
-    seasons, currentSeason: seasons[0] || null, readSeason,
+    seasons, currentSeason: seasons[0] || null, readSeason, aiUsageThisMonth,
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,

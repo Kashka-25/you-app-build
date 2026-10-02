@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X, Globe2 } from "lucide-react";
+import { useEscape } from "../../ui/useEscape";
 import { useAppData } from "../../../lib/AppDataContext";
 import { pickCurrentChapter } from "../../../lib/compass";
 import { Modal } from "../../ui/Modal";
@@ -43,6 +44,7 @@ function eraPos(i, n) {
 }
 
 export default function StoryOfYou({ onClose }) {
+  useEscape(true, onClose);
   const { chapters, moments, loadEraInsights, loadEraWeeklyReflections } = useAppData();
   const [openIndex, setOpenIndex] = useState(null);
   const [eraData, setEraData] = useState({}); // chapterId -> { loading, insights, weekly }

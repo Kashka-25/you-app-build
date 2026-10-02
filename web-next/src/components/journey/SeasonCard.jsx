@@ -23,7 +23,7 @@ export default function SeasonCard() {
       if (result?.empty) setMessage(result.message);
     } catch (e) {
       console.error("[SeasonCard] readSeason failed:", e);
-      if (e?.code !== "consent_declined") setMessage("Your season couldn't be read just now. Try again later.");
+      if (e?.code !== "consent_declined") setMessage(e?.friendly || "Your season couldn't be read just now. Try again later.");
     }
     setReading(false);
   }

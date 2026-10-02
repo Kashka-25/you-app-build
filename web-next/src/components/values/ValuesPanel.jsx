@@ -171,7 +171,7 @@ function ValueCard({
       await onGenerate();
     } catch (e) {
       console.error("[ValuesPanel] generate failed:", e);
-      setGenError("Couldn't generate new challenges — check the Edge Function is deployed and try again.");
+      setGenError(e?.friendly || "Couldn't suggest new challenges right now. Try again in a little while.");
     }
     setGenerating(false);
   }

@@ -111,7 +111,7 @@ export default function HarvestScreen() {
       if (result?.empty) setReflectError(result.message || "Nothing to reflect on yet.");
     } catch (e) {
       console.error("[Harvest] reflection failed:", e);
-      if (e?.code !== "consent_declined") setReflectError("Couldn't reflect on this week just now. Try again later.");
+      if (e?.code !== "consent_declined") setReflectError(e?.friendly || "Couldn't reflect on this week just now. Try again later.");
     }
     setReflecting(false);
   }

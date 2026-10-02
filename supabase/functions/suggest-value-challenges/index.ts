@@ -8,6 +8,8 @@
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { logUsage } from "../_shared/usage.ts";
+import { checkDailyLimit } from "../_shared/limit.ts";
+import { moderate } from "../_shared/moderate.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 const MODEL = Deno.env.get("ANTHROPIC_MODEL") || "claude-haiku-4-5";
@@ -32,6 +34,11 @@ serve(async (req) => {
       return jsonResponse({ error: "ANTHROPIC_API_KEY is not configured on this function" }, 500);
     }
 
+    // No AI consent needed here (only a value's name is sent, none of the
+    // Seeker's writing), but it still counts toward their AI allowance.
+    const limited = await checkDailyLimit(req, corsHeaders);
+    if (limited) return limited;
+
     const { valueName, tagline, tierName, existingTexts, sampleChallenges } = await req.json();
     if (!valueName) return jsonResponse({ error: "valueName is required" }, 400);
 
@@ -40,7 +47,7 @@ serve(async (req) => {
       .map(c => `- ${c.text} (${c.diff}, ${c.pts}pts)`)
       .join("\n") || "(no examples available)";
 
-    const prompt = `You are writing new personal-growth challenges for someone building the value "${valueName}" inside a self-therapy app called YOU. Tagline: "${tagline || ""}".
+    const prompt = `You are writing new personal-growth challenges for someone building the value "${valueName}" inside a self-love and personal-growth app called YOU. Tagline: "${tagline || ""}".
 
 They are currently in the "${tierName}" tier. Tier meanings: Awakening = just starting out, Practising = building consistency, Embodying = it's becoming natural, Mastering = refining and going deeper. Scale difficulty to fit - someone in Mastering should mostly get "bold"/"brave" challenges, not beginner "gentle" ones; someone in Awakening should get mostly "gentle" ones.
 
@@ -95,7 +102,9 @@ Respond with ONLY a JSON array, no prose, no markdown code fences, matching this
       return jsonResponse({ error: "AI response wasn't valid JSON", raw: text }, 502);
     }
 
-    return jsonResponse({ challenges });
+    // Output moderation: a challenge whose text is removed is dropped.
+    const { value: safe } = moderate(Array.isArray(challenges) ? challenges : [], ["diff", "pts"]);
+    return jsonResponse({ challenges: safe.filter(c => c && c.text) });
   } catch (e) {
     console.error("suggest-value-challenges error:", e);
     return jsonResponse({ error: String(e) }, 500);

@@ -81,7 +81,7 @@ export default function WeeklyReflectionView() {
       // "Not now" on the consent prompt isn't a failure — say nothing.
       if (e?.code !== "consent_declined") {
         console.error("[WeeklyReflectionView] generate failed:", e);
-        setError("Couldn't build this week's reflection — check the Edge Function is deployed and try again.");
+        setError(e?.friendly || "Couldn't build this week's reflection right now. Try again in a little while.");
       }
     }
     setLoading(false);

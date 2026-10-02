@@ -9,11 +9,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
 import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
+import { checkDailyLimit } from "../_shared/limit.ts";
+import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-const SYSTEM_PROMPT = `You are part of YOU, a personal life-journaling app. You are writing a weekly reflection by looking across everything the user journaled and did this week.
+const SYSTEM_PROMPT = `You are part of YOU, a self-love and personal-growth app where people journal their lives. You are writing a weekly reflection by looking across everything the user journaled and did this week.
 
 You are a mirror and reflective guide, never an authority. Use tentative language ("It looks like...", "A theme this week may have been...", "You mentioned..."). Never diagnose, never invent events or feelings that are not supported by what's provided, never claim certainty about emotional states. If the week's information is thin, say so plainly rather than padding with generic content.
 
@@ -50,6 +52,8 @@ Deno.serve(async req => {
 
     const consent = await requireAiConsent(req, corsHeaders);
     if ("response" in consent) return consent.response;
+    const limited = await checkDailyLimit(req, corsHeaders);
+    if (limited) return limited;
 
     const body = await req.json().catch(() => ({}));
     const weekStartDate = body.weekStart ? new Date(body.weekStart + "T00:00:00Z") : startOfWeek(new Date());
@@ -102,7 +106,8 @@ Deno.serve(async req => {
       messages: [{ role: "user", content: JSON.stringify(contextDigest, null, 2) }]
     });
 
-    const sections = parseJsonResponse<Record<string, string>>(raw);
+    const { value: sections, stats } = moderate(parseJsonResponse<Record<string, string>>(raw));
+    if (stats.blocked) return json({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
 
     const { data: saved, error: saveErr } = await supabase
       .from("weekly_reflections")

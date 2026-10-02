@@ -23,7 +23,7 @@ function PhotoCard({ entryId, photo }) {
       // "Not now" on the consent prompt isn't a failure — say nothing.
       if (e?.code !== "consent_declined") {
         console.error("[JournalPhotoSection] transcribe failed:", e);
-        setError("Couldn't transcribe that page — check the Edge Function is deployed and try again.");
+        setError(e?.friendly || "Couldn't transcribe that page right now. Try again in a little while.");
       }
     }
     setTranscribing(false);
