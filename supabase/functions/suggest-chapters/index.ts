@@ -1,7 +1,9 @@
 // Supabase Edge Function: suggest-chapters
 //
 // Takes a list of the signed-in user's life moments and asks Claude to
-// group them into named "chapters" (eras). Returns suggestions only —
+// group them into named "chapters" (eras). Weekly Harvest notes, when sent,
+// are context only: they can shape a chapter's name and blurb, but only
+// moments are grouped. Returns suggestions only —
 // nothing is saved here; the app persists what the user accepts.
 //
 // Deploy: supabase functions deploy suggest-chapters
@@ -43,7 +45,7 @@ serve(async (req) => {
     const consent = await requireAiConsent(req, corsHeaders);
     if ("response" in consent) return consent.response;
 
-    const { moments } = await req.json();
+    const { moments, harvests } = await req.json();
     if (!Array.isArray(moments) || moments.length === 0) {
       return jsonResponse({ error: "No moments provided" }, 400);
     }
@@ -52,6 +54,12 @@ serve(async (req) => {
     const timeline = [...moments]
       .sort((a, b) => new Date(a.moment_date) - new Date(b.moment_date))
       .map(m => `${m.moment_date} — ${m.title}${m.description ? `: ${m.description}` : ""}`)
+      .join("\n");
+
+    const harvestLines = (Array.isArray(harvests) ? harvests : [])
+      .filter(h => h && h.week_start && String(h.note || "").trim())
+      .sort((a, b) => (a.week_start > b.week_start ? 1 : -1))
+      .map(h => `week of ${h.week_start} — ${String(h.note).trim()}`)
       .join("\n");
 
     const prompt = `You are helping someone see their own life story reflected back to them inside a personal-growth app called YOU. Below is a chronological timeline of real moments from their life (title and optional description per line).
@@ -66,7 +74,10 @@ Every moment must belong to exactly one chapter. Respond with ONLY a JSON array,
 [{"title": "...", "range_start": "YYYY-MM-DD", "range_end": "YYYY-MM-DD", "blurb": "...", "moment_titles": ["..."]}]
 
 Timeline:
-${timeline}`;
+${timeline}${harvestLines ? `
+
+Weekly harvest notes (things they chose to remember at the end of a week). Use these only as context for naming chapters and writing blurbs that reflect what each era really held; they are not moments, never list them in moment_titles, and don't invent moments from them:
+${harvestLines}` : ""}`;
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",

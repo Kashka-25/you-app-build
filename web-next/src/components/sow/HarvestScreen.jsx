@@ -165,7 +165,10 @@ export default function HarvestScreen() {
               {nextSown === 0 ? `Sow ${intoWeek()}` : `Add to ${intoWeek()}`}
             </Button>
           )}
-          <Button variant="secondary" className="w-full" onClick={() => goBack(navigate)}>Done</Button>
+          <Button variant="secondary" className="w-full" onClick={() => navigate("/journey", { state: { tab: "chapters" } })}>
+            See what season you're in
+          </Button>
+          <Button variant="ghost" className="w-full" onClick={() => goBack(navigate)}>Done</Button>
         </div>
       </>
     );

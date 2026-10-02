@@ -27,7 +27,9 @@ const regionName = (() => {
 // count yet) — on a night-coloured world map, each trip's route in its own
 // colour. A place glows brighter the more you remember from it. Still on
 // arrival; it moves only when touched.
-export default function EverywhereMap({ onClose }) {
+// `year` (optional) narrows it to the places reached that year (The Mirror,
+// Legacy): stops that began that year, exact or approximate.
+export default function EverywhereMap({ onClose, year = null }) {
   const { wanderings, wanderingStops, moments, journalEntries, items, releasedItems } = useAppData();
   const containerRef = useRef(null);
   const mapRef = useRef(null);
@@ -45,7 +47,9 @@ export default function EverywhereMap({ onClose }) {
     ordered.forEach((w, wi) => {
       const travelled = doneDreams.has(w.item_id);
       const been = wanderingStops
-        .filter(s => s.wandering_id === w.id && (travelled || (s.arrive && s.arrive <= today)))
+        .filter(s => s.wandering_id === w.id && (year
+          ? s.arrive && Number(s.arrive.slice(0, 4)) === year
+          : travelled || (s.arrive && s.arrive <= today)))
         .sort((a, b) => a.position - b.position);
       if (!been.length) return;
       const color = ROUTE_COLORS[wi % ROUTE_COLORS.length];
@@ -55,7 +59,7 @@ export default function EverywhereMap({ onClose }) {
     const countries = [...new Set(places.map(p => p.stop.country_code).filter(Boolean))].map(c => regionName(c)).filter(Boolean).sort();
     const placeCount = new Set(places.map(p => `${p.stop.place_name}|${p.stop.lat.toFixed(2)}|${p.stop.lng.toFixed(2)}`)).size;
     return { routes, places, countries, placeCount, wanderingCount: new Set(places.map(p => p.wandering.id)).size };
-  }, [wanderings, wanderingStops, moments, journalEntries, items, releasedItems, today]);
+  }, [wanderings, wanderingStops, moments, journalEntries, items, releasedItems, today, year]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -170,10 +174,10 @@ export default function EverywhereMap({ onClose }) {
       {/* Header floats over the map; only its controls take touches. */}
       <div className="absolute top-0 left-0 right-0 px-5 pt-6 pb-8 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(7,11,20,0.92) 40%, rgba(7,11,20,0))" }}>
         <button onClick={onClose} className="pointer-events-auto flex items-center gap-1.5 text-caption uppercase tracking-wide mb-3" style={{ color: "#8B8E87" }}>
-          <X size={14} strokeWidth={1.75} /> Back to the story
+          <X size={14} strokeWidth={1.75} /> Back
         </button>
         <div className="text-caption uppercase tracking-wide text-gold mb-0.5">Your world</div>
-        <div className="font-serif text-h2 font-medium text-cream">Everywhere you've been</div>
+        <div className="font-serif text-h2 font-medium text-cream">{year ? `Where you went in ${year}` : "Everywhere you've been"}</div>
         {places.length > 0 ? (
           <>
             <div className="text-bodySm mt-0.5" style={{ color: "#B8B3A9" }}>

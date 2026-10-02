@@ -10,16 +10,24 @@ type ContentBlock =
   | { type: "text"; text: string }
   | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
 
+// Optional per call: `model` overrides the default above; `fallbacks: true`
+// turns on Anthropic's server-side refusal fallback (recommended for the
+// Opus 5.5 family), so a safety-classifier refusal is retried on a suitable
+// model instead of failing.
 export async function callClaude({
   system,
   messages,
   maxTokens = 1500,
-  usage
+  usage,
+  model = MODEL,
+  fallbacks = false
 }: {
   system: string;
   messages: { role: "user" | "assistant"; content: string | ContentBlock[] }[];
   maxTokens?: number;
   usage?: { req?: Request; fn: string };
+  model?: string;
+  fallbacks?: boolean;
 }): Promise<string> {
   if (!ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY is not configured on this project.");
@@ -30,13 +38,15 @@ export async function callClaude({
     headers: {
       "content-type": "application/json",
       "x-api-key": ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01"
+      "anthropic-version": "2023-06-01",
+      ...(fallbacks ? { "anthropic-beta": "server-side-fallback-2026-07-01" } : {})
     },
     body: JSON.stringify({
-      model: MODEL,
+      model,
       max_tokens: maxTokens,
       system,
-      messages
+      messages,
+      ...(fallbacks ? { fallbacks: "default" } : {})
     })
   });
 
@@ -47,8 +57,15 @@ export async function callClaude({
 
   const data = await res.json();
   if (usage) await logUsage({ ...usage, data });
+  if (data.stop_reason === "refusal") {
+    throw new Error("The model declined this request.");
+  }
 
-  const text = (data.content || []).map((b: { text?: string }) => b.text || "").join("");
+  // Only text blocks: thinking blocks (on by default on newer models) are skipped.
+  const text = (data.content || [])
+    .filter((b: { type?: string }) => b.type === "text")
+    .map((b: { text?: string }) => b.text || "")
+    .join("");
   if (!text) throw new Error("Anthropic API returned no text content.");
   return text;
 }

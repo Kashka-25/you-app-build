@@ -214,7 +214,8 @@ from real effort. It borrows Forest's *visible growth from effort*, but
 - [x] **Something to remember:** optional note, kept in `week_harvests`.
 - [x] Re-opening a harvested week shows what was chosen, and it can be
       updated.
-- [ ] Feed harvests (notes, outcomes) into Seasons, Chapters and The Mirror.
+- [x] Harvests feed **Chapters**, **Seasons** and **The Mirror** (Oct 2). See
+      "Seasons, The Mirror and Legacy" below.
 - [x] Data: `20261001140000_harvest.sql`, which adds `items.released_at`,
       `week_intentions.outcome` and the `week_harvests` table. *(Applied
       Oct 1. Tested end to end: harvest, carry forward, release, bring back.)*
@@ -394,7 +395,8 @@ and code keep `journey` so old links still work. Travel plans are
       - Cassidy's England and South America journeys made dreams (+50 XP
         each, dated Nov 2023 and 2024). South America reordered and renamed
         **Ecuador, Peru & Bolivia** (Ecuador came first).
-- [ ] For Legacy and the Mirror: a yearly "places you reached this year".
+- [x] For Legacy and the Mirror: a yearly "places you reached this year"
+      (built Oct 2, see below).
 - [ ] A finished Wandering offers to mark its Dream achieved.
 
 ### Also fixed alongside
@@ -404,6 +406,46 @@ and code keep `journey` so old links still work. Travel plans are
       are cleared.
 
 ---
+
+## Seasons, The Mirror and Legacy (Oct 2)
+
+- [x] **Seasons, read from Harvests.** New `infer-season` Edge Function
+      (Claude Opus 5.5, server-side refusal fallback on, behind AI consent,
+      usage logged). It reads the last 10 harvests: the notes, what was
+      carried, rested or released, plus that week's reflection. It names
+      "Season of …" with a short blurb and 2–4 signals, saved to `seasons`
+      (`20261002120000_seasons.sql`); the newest row is current. Read only
+      when asked: "Read my season" on YOUrney → Chapters (replacing the old
+      hard-coded preview), and "See what season you're in" after a Harvest.
+      The card always says what it read from ("Read from 6 harvests · 3 Aug
+      – 28 Sep"). *(Oct 2: migration applied, `infer-season` deployed v1 with
+      JWT required. Verified: refuses without sign-in (401) and without AI
+      consent (403 consent_required), so nothing reaches Claude. The first
+      real reading waits for Cassidy's first Harvest and their own consent.)*
+- [x] **Chapters + Harvests.** "Suggest chapters" now sends every harvest
+      note as context. Chapter names and blurbs can reflect what each era
+      held, but only moments are grouped. Each chapter also shows "From
+      your harvests": the notes kept within its dates. *(suggest-chapters
+      redeployed as v6, Oct 2.)*
+- [x] **"Places you reached this year"** (`lib/years.js` +
+      `YearInPlaces`): stops that began in a year, exact or approximate,
+      grouped by trip, with countries, memory count and "See <year> on the
+      world map" (the world map now takes a `year`).
+- [x] **The Mirror** (`/mirror`, linked from YOU and Legacy): "<year> so
+      far" (places, memories, journal, harvests, dreams lived, current
+      season, latest harvest note) and "One year ago" (the same week last
+      year: places you were, memories, journal, harvest notes), or an
+      honest empty state. Nothing is generated; it's only what was kept.
+- [x] **Legacy** is no longer a placeholder: The Mirror card plus "Your
+      years", every year with life in it, newest first, each with places
+      and what it held. The memoir export ("My Story") is still to come.
+- [x] Dreams count in the year they were **lived**: a dream with a dated
+      Wandering belongs to the year the journey began, not the day it was
+      ticked off in the app.
+- Shared `_shared/anthropic.ts`: optional per-call `model` and `fallbacks`;
+  refusal stop reason surfaced as an error; only text blocks are read
+  (thinking blocks skipped). Existing functions are unchanged until
+  redeployed.
 
 ## Side menu (Oct 2)
 - [x] Kept clean: Home, YOUrney, Reflections, CommYOUnity, then a

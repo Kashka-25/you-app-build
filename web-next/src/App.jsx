@@ -12,6 +12,7 @@ import Pursue from "./components/screens/Pursue";
 import Empatherapy from "./components/screens/Empatherapy";
 import Reflections from "./components/screens/Reflections";
 import Legacy from "./components/screens/Legacy";
+import Mirror from "./components/screens/Mirror";
 import Settings from "./components/screens/Settings";
 import Styleguide from "./components/screens/Styleguide";
 import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
@@ -88,6 +89,7 @@ export default function App() {
         <Route path="/empatherapy" element={<Empatherapy />} />
         <Route path="/reflections" element={<Reflections />} />
         <Route path="/legacy" element={<Legacy />} />
+        <Route path="/mirror" element={<Mirror />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>

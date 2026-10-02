@@ -95,6 +95,7 @@ export function AppDataProvider({ children }) {
   const [weekIntentions, setWeekIntentions] = useState([]);
   const [weekHarvests, setWeekHarvests] = useState([]);
   const [wanderings, setWanderings] = useState([]);
+  const [seasons, setSeasons] = useState([]);
   const [wanderingStops, setWanderingStops] = useState([]);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
@@ -175,6 +176,7 @@ export function AppDataProvider({ children }) {
       loadWeekIntentions();
       loadWeekHarvests();
       loadWanderings();
+      loadSeasons();
       loadAiConsent();
       loadReflections();
     } catch (e) {
@@ -673,7 +675,7 @@ export function AppDataProvider({ children }) {
   }
 
   async function loadWeekHarvests() {
-    const res = await supabase.from("week_harvests").select("*").eq("user_id", userId).order("week_start", { ascending: false }).limit(12);
+    const res = await supabase.from("week_harvests").select("*").eq("user_id", userId).order("week_start", { ascending: false }).limit(600);
     if (res.error) { console.error("[AppData] loadWeekHarvests failed:", res.error); return; }
     setWeekHarvests(res.data || []);
   }
@@ -888,6 +890,25 @@ export function AppDataProvider({ children }) {
     const stop = wanderingStops.find(s => s.id === stopId);
     if (!stop) return;
     await updateWanderingStop(stopId, { day_plans: { ...(stop.day_plans || {}), [dateKey]: steps } });
+  }
+
+  // ── Seasons ──
+  // Read by the infer-season Edge Function from recent Harvests, only when
+  // asked. Newest row = the current season; earlier readings are kept.
+  async function loadSeasons() {
+    const res = await supabase.from("seasons").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(20);
+    if (res.error) { console.error("[AppData] loadSeasons failed:", res.error); return; }
+    setSeasons(res.data || []);
+  }
+
+  async function readSeason() {
+    await withAiConsent();
+    const { data, error } = await supabase.functions.invoke("infer-season", { body: {} });
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+    if (data?.empty) return { empty: true, message: data.message };
+    setSeasons(prev => [data.season, ...prev]);
+    return { empty: false, season: data.season };
   }
 
   // ── AI consent ──
@@ -1227,7 +1248,11 @@ export function AppDataProvider({ children }) {
   async function suggestChapters() {
     await withAiConsent();
     const payload = moments.map(m => ({ title: m.title, moment_date: m.moment_date, description: m.description }));
-    const { data, error } = await supabase.functions.invoke("suggest-chapters", { body: { moments: payload } });
+    // Harvest notes go along as context, so chapters reflect what each era
+    // held, not only its milestones. (All of them, not just recent weeks.)
+    const harvestRes = await supabase.from("week_harvests").select("week_start, note").eq("user_id", userId).not("note", "is", null);
+    const harvests = (harvestRes.data || []).filter(h => (h.note || "").trim());
+    const { data, error } = await supabase.functions.invoke("suggest-chapters", { body: { moments: payload, harvests } });
     if (error) throw error;
     if (data?.error) throw new Error(data.error);
     return data.chapters || [];
@@ -1348,6 +1373,7 @@ export function AppDataProvider({ children }) {
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
+    seasons, currentSeason: seasons[0] || null, readSeason,
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
