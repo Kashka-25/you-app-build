@@ -1,10 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Wind, RotateCcw } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS } from "../../constants/app.const";
 import { BackRow, SectionTitle, DropdownSection } from "../Primitives";
 import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
+import { SegmentedControl } from "../ui/SegmentedControl";
+import WanderingsList from "../wandering/WanderingsList";
+
+// Two views: the pursuits themselves, and the Wanderings that grow out of
+// Dreams. Open on Wanderings with router state { view: "wanderings" }.
+const VIEWS = [
+  { value: "pursuits", label: "Pursuits" },
+  { value: "wanderings", label: "Wanderings" }
+];
 
 const FILTERS = ["all", "habit", "goal", "dream", "done"];
 
@@ -52,6 +62,11 @@ function GroupNode({ items, depth }) {
 export default function Pursue() {
   const { items, releasedItems, restoreItem } = useAppData();
   const [filter, setFilter] = useState("all");
+  const location = useLocation();
+  const [view, setView] = useState(location.state?.view || "pursuits");
+  useEffect(() => {
+    if (location.state?.view) setView(location.state.view);
+  }, [location.key]);
 
   const filtered = items.filter(i => {
     if (filter === "done") return i.done;
@@ -70,6 +85,12 @@ export default function Pursue() {
     <div className="pt-1 pb-24 px-5">
       <BackRow />
       <SectionTitle>Your pursuits</SectionTitle>
+      <div className="mb-4">
+        <SegmentedControl options={VIEWS} value={view} onChange={setView} />
+      </div>
+
+      {view === "wanderings" ? <WanderingsList /> : (
+      <>
       <div className="flex gap-2 mb-4 overflow-x-auto">
         {FILTERS.map(f => (
           <button
@@ -100,6 +121,8 @@ export default function Pursue() {
         <DropdownSection title={`Released (${releasedItems.length})`}>
           <ReleasedList items={releasedItems} onRestore={restoreItem} />
         </DropdownSection>
+      )}
+      </>
       )}
     </div>
   );

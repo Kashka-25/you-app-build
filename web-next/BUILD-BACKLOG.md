@@ -352,6 +352,48 @@ and code keep `journey` so old links still work. Travel plans are
       (not on OpenStreetMap; pinned just south-east of Santo António das
       Areias, Marvão, near the Spanish border, per Cassidy) and Nazaré, July to
       October 2026, undated.
+- [x] **Pursuits → Wanderings tab** (Oct 1). Pursue has two tabs, Pursuits
+      and Wanderings (deliberately not in the side menu). The Wanderings tab
+      shows "Everywhere you've been", "Plan a wandering" (a picker of
+      unfinished dreams, travel first), and every trip grouped as
+      Travelling now / Planned / Dreaming / Travelled, each with its places,
+      when, and memory count. Open it directly with router state
+      `{ view: "wanderings" }`.
+- [x] **Approximate dates** (`20261001170000_stop_date_precision.sql`):
+      `wandering_stops.date_precision` is day / month / year. Remembered
+      trips show only what's known ("2019", "November 2023",
+      "Jul – Oct 2026"), never invented days. Approximate stops count for the
+      world map and Constellations but get no day plans or auto-pinning.
+      Picking real Arrive/Leave dates makes a stop exact.
+- [x] Cassidy's trips (Oct 1): Cambodia and Ko Pha Ngan in 2019; Portugal
+      Jul – Oct 2026; Peru, Ecuador & Bolivia in 2024 and England in early Nov
+      2023 (both standalone, no dream, no XP); Northern Rivers (Ocean Shores,
+      Byron Bay, Wilsons Creek) in 2023, attached to the done dream "Lived
+      in the Northern Rivers (1 year)". **Norway deliberately not added**
+      (deported; didn't truly get to go).
+- [x] **Travel XP: "score what the trip gave you, not how many countries
+      you ticked off"** (Cassidy's choice, Oct 2).
+      - Each memory or journal entry pinned to a Wandering's place earns
+        `TRAVEL_MEMORY_XP` (10) to the trip's Pillar (Spirit by default),
+        logged as "Remembered in <place>" on the memory's own date.
+        Unpinning, deleting the memory, or removing its stop takes it
+        back. One reconcile in AppDataContext keeps the ledger (memory rows
+        tagged `travel:<kind>:<id>`) matched to what's pinned, so there's
+        no XP logic scattered through save paths and no farming.
+      - Completing the journey keeps the usual dream XP as its base. No
+        XP per place or country, deliberately.
+      - A standalone journey has **"Make this a dream"**: it creates a done
+        Spirit · Travel dream, links the Wandering, and logs the dream XP
+        on the journey's first date.
+      - Each Wandering shows what it's given you: "N memories · +N XP".
+      - *(Tested Oct 2: "Add a memory here" on Lisbon gave +10 XP to Spirit,
+        and deleting the memory took it back.)* Fixed while testing: the memory
+        and journal forms dropped a chosen place when the stop's dates were
+        approximate (no exact date "covers" them), so remembered trips
+        couldn't be pinned. A chosen place is now always saved.
+      - Cassidy's England and South America journeys made dreams (+50 XP
+        each, dated Nov 2023 and 2024). South America reordered and renamed
+        **Ecuador, Peru & Bolivia** (Ecuador came first).
 - [ ] For Legacy and the Mirror: a yearly "places you reached this year".
 - [ ] A finished Wandering offers to mark its Dream achieved.
 
@@ -362,6 +404,14 @@ and code keep `journey` so old links still work. Travel plans are
       are cleared.
 
 ---
+
+## Side menu (Oct 2)
+- [x] Kept clean: Home, YOUrney, Reflections, CommYOUnity, then a
+      collapsed **Coming soon · 6** (Therapists, Events / Calendar, Shop,
+      Challenges, Saved, Review), then Your Own Universe and the theme
+      switch. It opens by itself when you're on one of those pages. Move an
+      item up into `SITEMAP` once it's real. Pursuits and Wanderings are
+      deliberately not in the menu (reach them from Home → Your pursuits).
 
 ## Reminders that keep coming up
 

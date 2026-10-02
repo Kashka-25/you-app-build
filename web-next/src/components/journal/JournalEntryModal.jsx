@@ -60,7 +60,7 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
     setSaving(true);
     setError("");
     // Only send a place when one could be chosen (see AddMomentModal).
-    const place = stopsCoveringDate(wanderingStops, entryDate).length > 0 || entry?.stop_id ? stopId : undefined;
+    const place = stopId || stopsCoveringDate(wanderingStops, entryDate).length > 0 || entry?.stop_id ? stopId : undefined;
     try {
       if (isEdit) {
         const saved = await editJournalEntry(entry.id, { content: content.trim(), mood, entryDate, tags, stopId: place });

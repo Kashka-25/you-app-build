@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { fadeIn, easeOut } from "./ui/motion";
 
 // Journey-before-CommYOUnity is deliberate: the app is about the individual
@@ -8,7 +10,12 @@ const SITEMAP = [
   { to: "/", label: "Home", end: true },
   { to: "/journey", label: "YOUrney" },
   { to: "/reflections", label: "Reflections" },
-  { to: "/community", label: "CommYOUnity" },
+  { to: "/community", label: "CommYOUnity" }
+];
+
+// Pages that exist but aren't built yet, folded away so the menu stays
+// clean. Move one up into SITEMAP when it's real.
+const COMING_SOON = [
   { to: "/therapists", label: "Therapists" },
   { to: "/events", label: "Events / Calendar" },
   { to: "/shop", label: "Shop" },
@@ -17,7 +24,18 @@ const SITEMAP = [
   { to: "/review", label: "Review" }
 ];
 
+const linkClass = ({ isActive }) =>
+  `block px-5 py-2.5 text-body border-l-[3px] ${
+    isActive ? "border-gold text-forest font-medium bg-surface1" : "border-transparent text-textPrimary"
+  }`;
+
 export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
+  const location = useLocation();
+  const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
+  const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
+  // Opening the menu while on one of those pages shows where you are.
+  useEffect(() => { if (open && onComingSoonPage) setSoonOpen(true); }, [open, onComingSoonPage]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -32,18 +50,27 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
           >
             <div className="flex-1 overflow-y-auto">
               {SITEMAP.map(item => (
+                <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose} className={linkClass}>
+                  {item.label}
+                </NavLink>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => setSoonOpen(!soonOpen)}
+                aria-expanded={soonOpen}
+                className="w-full flex items-center gap-1.5 px-5 pt-4 pb-2 text-label uppercase text-textMuted"
+              >
+                {soonOpen ? <ChevronDown size={13} strokeWidth={1.75} /> : <ChevronRight size={13} strokeWidth={1.75} />}
+                Coming soon
+                <span className="normal-case tracking-normal">· {COMING_SOON.length}</span>
+              </button>
+              {soonOpen && COMING_SOON.map(item => (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  end={item.end}
                   onClick={onClose}
-                  className={({ isActive }) =>
-                    `block px-5 py-2.5 text-body border-l-[3px] ${
-                      isActive
-                        ? "border-gold text-forest font-medium bg-surface1"
-                        : "border-transparent text-textPrimary"
-                    }`
-                  }
+                  className={({ isActive }) => `${linkClass({ isActive })} text-bodySm ${isActive ? "" : "!text-textSecondary"}`}
                 >
                   {item.label}
                 </NavLink>

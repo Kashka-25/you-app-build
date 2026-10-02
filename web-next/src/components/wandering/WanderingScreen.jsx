@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowUp, ArrowDown, Pencil, Check, X, Star, Sparkles } from "lucide-react";
-import { useAppData } from "../../lib/AppDataContext";
+import { useAppData, TRAVEL_MEMORY_XP } from "../../lib/AppDataContext";
+import { XP_VALS } from "../../constants/app.const";
 import { goBack } from "../../lib/week";
 import {
-  stopDays, stopDateLabel, niceDay, nightsBetween, wanderingRange, wanderingStatus
+  stopDays, stopDateLabel, niceDay, wanderingStatus, wanderingWhenLabel, isExact
 } from "../../lib/wandering";
 import { StepList } from "../ui/StepList";
 import { Button } from "../ui/Button";
@@ -47,21 +48,27 @@ function StopDetail({ stop, isFirst, isLast }) {
       setError("Leaving can't be before arriving.");
       return;
     }
-    save({ [field]: value || null });
+    // Choosing a real date makes the stop exact.
+    save({ [field]: value || null, date_precision: "day" });
   }
 
   const days = stopDays(stop);
 
   return (
     <div className="mt-3 pt-3 border-t border-borderC space-y-3">
+      {!isExact(stop) && stop.arrive && (
+        <p className="text-caption text-textSecondary">
+          Remembered as <span className="text-textPrimary">{stopDateLabel(stop)}</span>. Set exact dates below if you know them.
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-2.5">
         <div>
           <label className={labelClass} htmlFor={`arrive-${stop.id}`}>Arrive</label>
-          <input id={`arrive-${stop.id}`} type="date" className={fieldClass} value={stop.arrive || ""} onChange={e => setDate("arrive", e.target.value)} />
+          <input id={`arrive-${stop.id}`} type="date" className={fieldClass} value={isExact(stop) ? stop.arrive || "" : ""} onChange={e => setDate("arrive", e.target.value)} />
         </div>
         <div>
           <label className={labelClass} htmlFor={`depart-${stop.id}`}>Leave</label>
-          <input id={`depart-${stop.id}`} type="date" className={fieldClass} value={stop.depart || ""} min={stop.arrive || undefined} onChange={e => setDate("depart", e.target.value)} />
+          <input id={`depart-${stop.id}`} type="date" className={fieldClass} value={isExact(stop) ? stop.depart || "" : ""} min={isExact(stop) ? stop.arrive || undefined : undefined} onChange={e => setDate("depart", e.target.value)} />
         </div>
       </div>
 
@@ -153,7 +160,9 @@ function StopDetail({ stop, isFirst, isLast }) {
 export default function WanderingScreen() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { loaded, wanderings, wanderingStops, items, releasedItems, renameWandering, addWanderingStop, moments, journalEntries } = useAppData();
+  const { loaded, wanderings, wanderingStops, items, releasedItems, renameWandering, addWanderingStop, moments, journalEntries, makeWanderingDream } = useAppData();
+  const [makingDream, setMakingDream] = useState(false);
+  const [dreamError, setDreamError] = useState("");
   const memoryCount = stopId => moments.filter(m => m.stop_id === stopId).length + journalEntries.filter(e => e.stop_id === stopId).length;
   const [selectedId, setSelectedId] = useState(null);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -182,12 +191,9 @@ export default function WanderingScreen() {
   if (!loaded) return shell(<div className="text-body text-textSecondary">Unfolding the map…</div>);
   if (!wandering) return shell(<div className="text-body text-textSecondary">This wandering couldn't be found.</div>);
 
-  // A Dream already marked done is a journey taken, even before its dates
-  // are filled in.
-  const derived = wanderingStatus(stops);
-  const status = dream?.done && derived === "dreaming" ? "travelled" : derived;
-  const range = wanderingRange(stops);
-  const totalNights = range ? nightsBetween(range.start, range.end) : null;
+  // A Dream already marked done is a journey taken, whatever its dates say.
+  const status = dream?.done ? "travelled" : wanderingStatus(stops);
+  const when = wanderingWhenLabel(stops);
 
   async function saveTitle() {
     if (!title.trim()) { setTitleError("Give it a name."); return; }
@@ -224,15 +230,51 @@ export default function WanderingScreen() {
         </button>
       )}
       {titleError && <div className="text-caption text-error mt-1">{titleError}</div>}
-      {range && (
-        <div className="text-bodySm text-textSecondary mt-1">
-          {`${niceDay(range.start, { day: "numeric", month: "short" })} – ${niceDay(range.end, { day: "numeric", month: "short", year: "numeric" })}${totalNights ? ` · ${totalNights} nights` : ""}`}
-        </div>
-      )}
+      {when && <div className="text-bodySm text-textSecondary mt-1">{when}</div>}
       {dream && (
         <div className="flex items-center gap-1 text-bodySm text-textSecondary mt-0.5">
           <Star size={12} strokeWidth={1.75} className="text-gold" />
           from your dream "{dream.name}"
+        </div>
+      )}
+      {(() => {
+        // What this journey has given you: scored by what you carried home.
+        const remembered = stops.reduce((n, st) => n + memoryCount(st.id), 0);
+        if (!remembered) return null;
+        return (
+          <div className="text-caption text-textMuted mt-0.5">
+            {remembered} {remembered === 1 ? "memory" : "memories"} · +{remembered * TRAVEL_MEMORY_XP} XP
+          </div>
+        );
+      })()}
+      {!dream && (
+        <div className="rounded-card bg-surface1 border border-dashed border-borderC p-3.5 mt-3">
+          <div className="text-bodySm text-textPrimary">A journey of its own.</div>
+          <div className="text-caption text-textSecondary mt-0.5">
+            Make it a completed dream to give it its place among your Dreams, with {XP_VALS.dream} XP
+            {stops.some(st => st.arrive) ? " dated to when you went" : ""}.
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-2.5"
+            icon={Star}
+            disabled={makingDream}
+            onClick={async () => {
+              setMakingDream(true);
+              setDreamError("");
+              try {
+                await makeWanderingDream(wandering.id);
+              } catch (e) {
+                console.error("[Wandering] makeWanderingDream failed:", e);
+                setDreamError("Couldn't make it a dream. Check your connection and try again.");
+              }
+              setMakingDream(false);
+            }}
+          >
+            {makingDream ? "Making it a dream…" : "Make this a dream"}
+          </Button>
+          {dreamError && <div className="text-caption text-error mt-1.5">{dreamError}</div>}
         </div>
       )}
 

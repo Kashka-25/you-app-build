@@ -73,9 +73,11 @@ export default function AddMomentModal({ open, onClose, moment, defaults }) {
     }
     setSaving(true);
     setError("");
-    // Only send a place when one could be chosen, so memories made away
-    // from any Wandering are saved exactly as before.
-    const place = stopsCoveringDate(wanderingStops, momentDate).length > 0 || moment?.stop_id ? stopId : undefined;
+    // Send a place whenever one is chosen, or could be (so it can also be
+    // cleared). Memories made away from any Wandering are saved as before.
+    // (A chosen place may be an approximate one like "2019", which no exact
+    // date "covers", so the choice itself must count.)
+    const place = stopId || stopsCoveringDate(wanderingStops, momentDate).length > 0 || moment?.stop_id ? stopId : undefined;
     try {
       if (isEdit) {
         await editMoment(moment.id, { title: title.trim(), momentDate, description: description.trim(), photoFile, removePhoto, stopId: place });

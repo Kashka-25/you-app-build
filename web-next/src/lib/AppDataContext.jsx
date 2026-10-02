@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import {
@@ -21,6 +21,12 @@ const LOAD_TIMEOUT_MS = 8000;
 
 // XP for tending a sown intention — same as a habit check-in.
 const TEND_XP = 3;
+
+// Travel is scored by what the trip gave you, not how many places you
+// ticked off: each memory or journal entry pinned to a Wandering's place
+// earns this, to the trip's Pillar. Unpinning or deleting takes it back.
+export const TRAVEL_MEMORY_XP = 10;
+const travelKey = (kind, id) => `travel:${kind}:${id}`;
 
 function niceDate() {
   return new Date().toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
@@ -179,6 +185,54 @@ export function AppDataProvider({ children }) {
   }, [userId]);
 
   useEffect(() => { if (!authLoading) load(); }, [authLoading, load]);
+
+  // ── Travel XP ledger ──
+  // Keeps memory-XP rows (tagged travel:<kind>:<id>) matched to what's
+  // actually pinned, however a memory got pinned or unpinned (forms, a
+  // stop's "Pin here", deleting a memory or a stop). One reconcile instead
+  // of XP logic scattered through every save path.
+  const reconciling = useRef(false);
+  useEffect(() => {
+    if (!loaded || !userId || reconciling.current) return;
+    const stopById = Object.fromEntries(wanderingStops.map(st => [st.id, st]));
+    const pinned = [
+      ...moments.filter(m => m.stop_id && stopById[m.stop_id]).map(m => ({ key: travelKey("moment", m.id), stop: stopById[m.stop_id], date: m.moment_date })),
+      ...journalEntries.filter(e => e.stop_id && stopById[e.stop_id]).map(e => ({ key: travelKey("entry", e.id), stop: stopById[e.stop_id], date: e.entry_date }))
+    ];
+    const ledger = memory.filter(r => (r.tags || []).some(t => t.startsWith("travel:")));
+    const missing = pinned.filter(p => !ledger.some(r => r.tags.includes(p.key)));
+    const stale = ledger.filter(r => !pinned.some(p => r.tags.includes(p.key)));
+    if (!missing.length && !stale.length) return;
+
+    reconciling.current = true;
+    (async () => {
+      try {
+        if (stale.length) {
+          const ids = stale.map(r => r.id).filter(Boolean);
+          if (ids.length) await supabase.from("memory").delete().in("id", ids).eq("user_id", userId);
+        }
+        let added = [];
+        if (missing.length) {
+          const rows = missing.map(p => {
+            const w = wanderings.find(x => x.id === p.stop.wandering_id);
+            const dream = w && items.find(i => i.id === w.item_id);
+            return {
+              user_id: userId, name: `Remembered in ${p.stop.place_name}`, type: "travel", xp: TRAVEL_MEMORY_XP,
+              date: niceDateFrom(p.date), date_key: p.date, cat: dream?.cat || "Spirit", tags: [p.key]
+            };
+          });
+          const res = await supabase.from("memory").insert(rows).select();
+          if (res.error) throw res.error;
+          added = res.data || [];
+        }
+        setMemory(prev => [...added.map(r => ({ ...r, cat: normalizePillar(r.cat) })), ...prev.filter(r => !stale.includes(r))]);
+      } catch (e) {
+        console.error("[AppData] travel XP reconcile failed:", e);
+      } finally {
+        reconciling.current = false;
+      }
+    })();
+  }, [loaded, userId, moments, journalEntries, wanderingStops, wanderings, memory, items]);
 
   // Released pursuits are archived: everything outside this provider sees
   // only active ones as `items`, and the archive as `releasedItems`.
@@ -780,6 +834,32 @@ export function AppDataProvider({ children }) {
     setWanderingStops(prev => prev.filter(s => s.id !== id));
     const res = await supabase.from("wandering_stops").delete().eq("id", id).eq("user_id", userId);
     if (res.error) { setWanderingStops(before); throw res.error; }
+    // The database unpins its memories (on delete set null); mirror that here.
+    setMoments(prev => prev.map(m => (m.stop_id === id ? { ...m, stop_id: null } : m)));
+    setJournalEntries(prev => prev.map(e => (e.stop_id === id ? { ...e, stop_id: null } : e)));
+  }
+
+  // A journey that isn't part of a Dream yet becomes one, already done: the
+  // dream is created (Spirit · Travel), the Wandering joins it, and the
+  // usual dream XP is logged on the journey's own date.
+  async function makeWanderingDream(wanderingId) {
+    const w = wanderings.find(x => x.id === wanderingId);
+    if (!w || w.item_id) return;
+    const starts = wanderingStops.filter(s => s.wandering_id === wanderingId).map(s => s.arrive).filter(Boolean).sort();
+    const dateKey = starts[0] || todayKey();
+    const itemRes = await supabase.from("items").insert({
+      user_id: userId, name: w.title, type: "dream", cat: "Spirit", subcat: "Travel", note: "", tags: [], intention: "",
+      milestones: [], done: true, streak: 0, days: [false, false, false, false, false, false, false],
+      created: niceDateFrom(dateKey), created_date: dateKey
+    }).select().single();
+    if (itemRes.error) throw itemRes.error;
+    const linkRes = await supabase.from("wanderings").update({ item_id: itemRes.data.id, updated_at: new Date().toISOString() }).eq("id", wanderingId).eq("user_id", userId);
+    if (linkRes.error) throw linkRes.error;
+    const memRes = await supabase.from("memory").insert({
+      user_id: userId, name: w.title, type: "dream", xp: XP_VALS.dream, date: niceDateFrom(dateKey), date_key: dateKey, cat: "Spirit", tags: []
+    });
+    if (memRes.error) throw memRes.error;
+    await load();
   }
 
   // Swap a stop with its neighbour (dir -1 = earlier, +1 = later).
@@ -1269,7 +1349,7 @@ export function AppDataProvider({ children }) {
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
-    moveWanderingStop, setStopDayPlan, pinMemory,
+    moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,

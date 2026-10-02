@@ -2,7 +2,7 @@ import { useMemo, useState, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { X, MapPin, BookOpen, Globe2 } from "lucide-react";
 import { useAppData } from "../../../lib/AppDataContext";
-import { niceDay, wanderingRange } from "../../../lib/wandering";
+import { niceDay, wanderingPeriodLabel } from "../../../lib/wandering";
 import { Modal } from "../../ui/Modal";
 import { TWINKLE_CSS, PATTERNS, twinkle } from "./twinkle";
 
@@ -18,11 +18,7 @@ const EverywhereMap = lazy(() => import("../../wandering/EverywhereMap"));
 
 const BOX_W = 160, BOX_H = 120, PAD = 14;
 
-function rangeLabel(stops) {
-  const r = wanderingRange(stops);
-  if (!r) return "";
-  return `${niceDay(r.start, { month: "short", year: "numeric" })}${r.end.slice(0, 7) !== r.start.slice(0, 7) ? ` – ${niceDay(r.end, { month: "short", year: "numeric" })}` : ""}`;
-}
+const rangeLabel = wanderingPeriodLabel;
 
 // Projects a Wandering's stops into its own little box, keeping the true
 // shape (longitude scaled by latitude so places far from the equator

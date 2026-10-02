@@ -5,7 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { X, MapPin, Globe2 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { localDateKey } from "../../lib/week";
-import { stopDateLabel } from "../../lib/wandering";
+import { stopDateLabel, isExact } from "../../lib/wandering";
 import { STYLE_URL, applyPalette } from "./mapStyle";
 
 // One colour per Wandering's route, in the same family as the Story of
@@ -203,7 +203,7 @@ export default function EverywhereMap({ onClose }) {
               {selected.stop.place_detail && <div className="text-caption" style={{ color: "#8B8E87" }}>{selected.stop.place_detail}</div>}
               <div className="text-bodySm mt-1" style={{ color: "#B8B3A9" }}>
                 {selected.wandering.title}
-                {selected.stop.arrive && ` · ${new Date(selected.stop.arrive + "T00:00:00").toLocaleDateString("en-AU", { month: "long", year: "numeric" })}`}
+                {selected.stop.arrive && isExact(selected.stop) && ` · ${new Date(selected.stop.arrive + "T00:00:00").toLocaleDateString("en-AU", { month: "long", year: "numeric" })}`}
               </div>
               {selected.stop.arrive && <div className="text-caption" style={{ color: "#8B8E87" }}>{stopDateLabel(selected.stop)}</div>}
               <div className="text-caption mt-0.5" style={{ color: "#8B8E87" }}>
