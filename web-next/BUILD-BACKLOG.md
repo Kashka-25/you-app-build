@@ -574,9 +574,10 @@ unlimited AI.
 - [x] Cassidy's three memories from Oct 3 re-converted (Oct 3): 4.6, 3.7 and
       3.8 MB → 377, 314 and 311 KB WebP (1200x1600). The memories use the
       small versions.
-- [ ] Cassidy deletes the three originals in the Supabase dashboard
+- [x] Cassidy deletes the three originals in the Supabase dashboard
       (Storage → life-moments): `1791015149289.jpg`, `1791015736882.jpg`,
-      `1791016022929.jpg` in their folder.
+      `1791016022929.jpg` in their folder. *(Done Oct 3; checked: none
+      left, and every memory's photos are still there.)*
 
 ## Scan a journal page (Oct 3)
 
