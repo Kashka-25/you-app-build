@@ -539,8 +539,8 @@ unlimited AI.
       `budget_paused`. Settings shows "Used up for this month" past $1.
       Test rows removed.
 - [x] Supabase Auth: minimum password length 12 (Cassidy, Oct 2).
-- [ ] Hard backstop for Cassidy: a monthly spend limit on the Anthropic API
-      key (Anthropic Console).
+- [x] Hard backstop for Cassidy: a monthly spend limit on the Anthropic API
+      key (Anthropic Console). *(Set Oct 3.)*
 - [ ] `suggest-value-challenges` has no AI-consent check. That's fine, since
       it sends only a value's name, but worth knowing.
 
