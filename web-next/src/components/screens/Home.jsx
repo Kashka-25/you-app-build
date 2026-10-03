@@ -11,6 +11,7 @@ import { GlowBubble } from "../ui/GlowBubble";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
+import { NorthStar } from "../values/Crossroads";
 import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 
 function getGreeting() {
@@ -63,7 +64,7 @@ function NowRow({ icon: Icon, label, children, divider = true }) {
 export default function Home() {
   const {
     items, activeValues, chapters, journalEntries, recentInsights, profile, loaded, completeItem, loadRecentInsights,
-    todos, weekIntentions, weekHarvests
+    todos, weekIntentions, weekHarvests, compass
   } = useAppData();
   const hasIntentions = !useTodayList().isEmpty;
   const firstName = profile?.name?.split(" ")[0] || "Seeker";
@@ -110,6 +111,22 @@ export default function Home() {
           </div>
         )}
       </HeroCard>
+
+      {compass && (
+        <Link to="/you" className="block mt-4 rounded-card bg-surface1 shadow-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <NorthStar size={15} filled color="#9A7A2E" strokeWidth={1.5} />
+            <span className="text-label uppercase text-[#7A6024] dark:text-gold">Your compass</span>
+          </div>
+          {compass.compass_line && (
+            <p className="font-serif italic text-[20px] leading-snug text-forest dark:text-cream m-0 mb-2">{compass.compass_line}</p>
+          )}
+          <div className="text-caption text-textSecondary">
+            True North · <span className="font-semibold text-textPrimary">{compass.ordering[0].join(" & ")}</span>
+            {compass.ordering.length > 1 && <> · then {compass.ordering.slice(1, 3).map(g => g.join(" = ")).join(", ")}</>}
+          </div>
+        </Link>
+      )}
 
       <Link to="/pursue" className="flex items-center justify-between mt-4 mb-1">
         <span className="font-serif text-h2 font-medium text-textPrimary">Your pursuits</span>

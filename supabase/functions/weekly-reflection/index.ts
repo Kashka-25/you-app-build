@@ -11,6 +11,7 @@ import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
 import { checkDailyLimit } from "../_shared/limit.ts";
 import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
+import { loadCompass, COMPASS_GUIDANCE } from "../_shared/compass.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -62,7 +63,7 @@ Deno.serve(async req => {
     const weekStart = toDateKey(weekStartDate);
     const weekEnd = toDateKey(weekEndDate);
 
-    const [{ data: entries }, { data: memoryEntries }, { data: values }, { data: items }] = await Promise.all([
+    const [{ data: entries }, { data: memoryEntries }, { data: values }, { data: items }, compass] = await Promise.all([
       supabase
         .from("journal_entries")
         .select("id, content, mood, entry_date, tags, journal_ai_insights(summary, insights)")
@@ -72,7 +73,8 @@ Deno.serve(async req => {
         .order("entry_date"),
       supabase.from("memory").select("name, type, cat, date_key").eq("user_id", user.id).gte("date_key", weekStart).lte("date_key", weekEnd),
       supabase.from("user_values").select("name, rating").eq("user_id", user.id),
-      supabase.from("items").select("name, type, cat, done").eq("user_id", user.id).in("type", ["goal", "dream"]).limit(30)
+      supabase.from("items").select("name, type, cat, done").eq("user_id", user.id).in("type", ["goal", "dream"]).limit(30),
+      loadCompass(supabase, user.id)
     ]);
 
     if (!entries || entries.length === 0) {
@@ -97,11 +99,14 @@ Deno.serve(async req => {
       })),
       completed_this_week: (memoryEntries || []).map(m => `${m.name} [${m.type}/${m.cat}]`),
       values: (values || []).map(v => `${v.name} (${v.rating || 0}/99)`),
+      compass,
       goals_and_dreams: (items || []).map(i => `${i.name} [${i.type}${i.done ? ", done" : ""}]`)
     };
 
     const raw = await callClaude({
-      system: SYSTEM_PROMPT,
+      system: compass ? `${SYSTEM_PROMPT}
+
+${COMPASS_GUIDANCE}` : SYSTEM_PROMPT,
       maxTokens: 2000, usage: { req, fn: "weekly-reflection" },
       messages: [{ role: "user", content: JSON.stringify(contextDigest, null, 2) }]
     });

@@ -105,6 +105,7 @@ export function AppDataProvider({ children }) {
   const [weekHarvests, setWeekHarvests] = useState([]);
   const [wanderings, setWanderings] = useState([]);
   const [seasons, setSeasons] = useState([]);
+  const [compassHistory, setCompassHistory] = useState([]);
   const [wanderingStops, setWanderingStops] = useState([]);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
@@ -191,6 +192,7 @@ export function AppDataProvider({ children }) {
       loadWeekHarvests();
       loadWanderings();
       loadSeasons();
+      loadCompass();
       loadAiConsent();
       loadReflections();
     } catch (e) {
@@ -962,6 +964,38 @@ export function AppDataProvider({ children }) {
     return { empty: false, season: data.season };
   }
 
+  // ── The Compass ──
+  // One row per walk of the Crossroads; the newest is the current compass,
+  // earlier ones are kept so the Mirror can show how it has shifted.
+  async function loadCompass() {
+    const res = await supabase.from("value_compass").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(20);
+    if (res.error) { console.error("[AppData] loadCompass failed:", res.error); return; }
+    setCompassHistory(res.data || []);
+  }
+
+  async function saveCompass({ ordering, hardest, crossings, compassLine }) {
+    const res = await supabase.from("value_compass").insert({
+      user_id: userId, ordering, hardest: hardest || null, crossings: crossings || 0,
+      compass_line: (compassLine || "").trim() || null
+    }).select().single();
+    if (res.error) throw res.error;
+    setCompassHistory(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
+  // The line can be written (or rewritten) after the order is set; it
+  // belongs to the current compass rather than starting a new one.
+  async function saveCompassLine(text) {
+    const current = compassHistory[0];
+    if (!current) throw new Error("No compass yet");
+    const res = await supabase.from("value_compass")
+      .update({ compass_line: (text || "").trim() || null, updated_at: new Date().toISOString() })
+      .eq("id", current.id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setCompassHistory(prev => [res.data, ...prev.slice(1)]);
+    return res.data;
+  }
+
   // ── AI consent ──
   // Explicit and revocable. Nothing personal is sent to Claude until the
   // Seeker says yes; the Edge Functions check the same row server-side.
@@ -1457,6 +1491,7 @@ export function AppDataProvider({ children }) {
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
     seasons, currentSeason: seasons[0] || null, readSeason, aiUsageThisMonth,
+    compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,

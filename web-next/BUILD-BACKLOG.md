@@ -571,8 +571,12 @@ unlimited AI.
       each, cover choice kept, arrows and counter, removing a photo deletes
       its file, deleting the memory deletes all its files, and the bucket
       refuses an unconverted PNG. Test data removed.
-- [ ] Cassidy's three memories from Oct 3 still hold full-size originals
-      (about 12.6 MB together). Offer: re-convert them (about 0.5 MB).
+- [x] Cassidy's three memories from Oct 3 re-converted (Oct 3): 4.6, 3.7 and
+      3.8 MB → 377, 314 and 311 KB WebP (1200x1600). The memories use the
+      small versions.
+- [ ] Cassidy deletes the three originals in the Supabase dashboard
+      (Storage → life-moments): `1791015149289.jpg`, `1791015736882.jpg`,
+      `1791016022929.jpg` in their folder.
 
 ## Scan a journal page (Oct 3)
 
@@ -920,6 +924,37 @@ Folder per Element → folder per main value → sub-value files inside.
       *(Built Sep 28. Memories as Life Constellations came Oct 1–2, as a
       second doorway in the sky. Not yet: Seasons tint the foliage,
       sub-value twigs.)*
+
+### True North: the Crossroads and the compass line (Oct 3)
+A list of values isn't a compass yet: it needs an order (values only show
+themselves when they pull against each other) and the Seeker's own words.
+Mockup: claude.ai/artifact/TUDRHitZaDygmu6422czUj.
+- [x] **The Crossroads** (`components/values/Crossroads.jsx`, logic in
+      `lib/crossroads.js`): a night-sky ritual opened from the True North
+      card at the top of Values. Two active values at a time, each with the
+      Seeker's own definition (else the Codex essence), and rotating prompts
+      ("If this season only had room for one…"). A binary insertion sort, so
+      5 values take about 8 crossings and 9 take about 21. "They feel equal to me"
+      is allowed (ties share a rank). Back steps back a crossing.
+- [x] **Your compass**: the True North (shared, if tied), the rest in
+      order with up/down to adjust, and "the hardest crossing" (the pair
+      the Seeker sat with longest, from timing only, no AI).
+- [x] **Compass line**: one sentence in their words, with their top three
+      definitions shown as material and starters (I want to live… / My life
+      is going well when… / At the end, I hope I… / I steer by…). Can be
+      written later or rewritten without walking again.
+- [x] Shown on Home (top card, links to YOU) and on the True North card,
+      which notes when the values in focus have changed since.
+- [x] **History kept**: `value_compass`, one row per walk
+      (`20261003120000_value_compass.sql`, applied Oct 3). Latest = current.
+- [x] **Feeds AI** (`_shared/compass.ts`): journal reflections, weekly
+      reflections and Seasons get the compass as context, with a rule to
+      notice gently where life meets or drifts from it, never to judge or
+      score. Deployed Oct 3.
+- [ ] The Mirror: "how your compass has shifted" across walks.
+- [ ] Lived vs. held: the order chosen beside where life actually went.
+- [ ] Offer a fresh walk when a new Season is read.
+- [ ] Bring Me Back To Myself: show the compass line there too.
 
 ### Tree of YOU v2 — cosmic tree
 - **Roots = 8 Pillars v2**, anchored in soil — inner roots (Body, Heart,

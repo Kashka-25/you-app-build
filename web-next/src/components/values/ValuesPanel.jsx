@@ -15,6 +15,7 @@ import { GlowBubble } from "../ui/GlowBubble";
 import { Button } from "../ui/Button";
 import { DropdownSection } from "../Primitives";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
+import TrueNorthCard from "./TrueNorthCard";
 
 // One icon per authored PRESTIGE_LEVELS stage, same order -- a small growth
 // arc (point -> shoot -> tree -> blossom x2 -> tended green -> single spark
@@ -69,6 +70,7 @@ export default function ValuesPanel() {
 
   return (
     <div>
+      <TrueNorthCard />
       <div className="text-bodySm text-textSecondary mb-3">
         {activeValues.length} of {valueSlots} in focus
         <span className="text-textMuted"> · every value is always yours to choose</span>

@@ -11,6 +11,7 @@ import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
 import { checkDailyLimit } from "../_shared/limit.ts";
 import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
+import { loadCompass, COMPASS_GUIDANCE } from "../_shared/compass.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -70,7 +71,7 @@ Deno.serve(async req => {
       .single();
     if (entryErr || !entry) return json({ error: "Entry not found" }, 404);
 
-    const [{ data: photos }, { data: values }, { data: items }, { data: chapters }, { data: recentInsights }] =
+    const [{ data: photos }, { data: values }, { data: items }, { data: chapters }, { data: recentInsights }, compass] =
       await Promise.all([
         supabase.from("journal_photos").select("transcription").eq("entry_id", entryId).not("transcription", "is", null),
         supabase.from("user_values").select("name, rating").eq("user_id", user.id),
@@ -82,13 +83,15 @@ Deno.serve(async req => {
           .eq("user_id", user.id)
           .neq("entry_id", entryId)
           .order("created_at", { ascending: false })
-          .limit(15)
+          .limit(15),
+        loadCompass(supabase, user.id)
       ]);
 
     const transcriptions = (photos || []).map(p => p.transcription).filter(Boolean);
 
     const contextDigest = {
       values: (values || []).map(v => `${v.name} (${v.rating || 0}/99)`),
+      compass,
       goals_and_dreams: (items || []).map(i => `${i.name} [${i.type}${i.done ? ", done" : ""}]`),
       life_chapters: (chapters || []).map(c => `${c.title} (${c.range_start} – ${c.range_end || "ongoing"})`),
       recent_entries: (recentInsights || []).map((r: { summary: string; journal_entries: { entry_date: string } }) => ({
@@ -111,7 +114,9 @@ USER CONTEXT (only use this to find genuine connections — do not restate it as
 ${JSON.stringify(contextDigest, null, 2)}`;
 
     const raw = await callClaude({
-      system: SYSTEM_PROMPT,
+      system: compass ? `${SYSTEM_PROMPT}
+
+${COMPASS_GUIDANCE}` : SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }], usage: { req, fn: "reflect-on-journal-entry" }
     });
 

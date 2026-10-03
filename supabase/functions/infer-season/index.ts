@@ -14,6 +14,7 @@ import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
 import { checkDailyLimit } from "../_shared/limit.ts";
 import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
+import { loadCompass, COMPASS_GUIDANCE } from "../_shared/compass.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -61,7 +62,7 @@ Deno.serve(async req => {
     }
 
     const weeks = harvests.map(h => h.week_start);
-    const [{ data: intentions }, { data: reflections }] = await Promise.all([
+    const [{ data: intentions }, { data: reflections }, compass] = await Promise.all([
       supabase
         .from("week_intentions")
         .select("week_start, outcome, value_name, tended_dates, items(name, type, cat)")
@@ -71,7 +72,8 @@ Deno.serve(async req => {
         .from("weekly_reflections")
         .select("week_start, sections")
         .eq("user_id", user.id)
-        .in("week_start", weeks)
+        .in("week_start", weeks),
+      loadCompass(supabase, user.id)
     ]);
 
     const digest = harvests
@@ -95,13 +97,17 @@ Deno.serve(async req => {
 
     const notes = harvests.filter(h => (h.note || "").trim()).length;
     const raw = await callClaude({
-      system: SYSTEM_PROMPT,
+      // The season is still read from the harvests; the compass only helps
+      // name what the season means for the direction they chose.
+      system: compass ? `${SYSTEM_PROMPT}
+
+${COMPASS_GUIDANCE} Name the season from the harvests themselves, not from the compass.` : SYSTEM_PROMPT,
       model: MODEL,
       fallbacks: true,
       // Opus 5.5 always thinks first; this leaves room for that plus the short JSON.
       maxTokens: 8000,
       usage: { req, fn: "infer-season" },
-      messages: [{ role: "user", content: JSON.stringify({ recent_weeks: digest }, null, 2) }]
+      messages: [{ role: "user", content: JSON.stringify(compass ? { recent_weeks: digest, compass } : { recent_weeks: digest }, null, 2) }]
     });
     const { value: season, stats } = moderate(parseJsonResponse<{ name: string; blurb: string; signals?: string[] }>(raw));
     if (stats.blocked) return json({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
