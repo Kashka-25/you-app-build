@@ -5,7 +5,7 @@ import { useAppData, TRAVEL_MEMORY_XP } from "../../lib/AppDataContext";
 import { XP_VALS } from "../../constants/app.const";
 import { goBack } from "../../lib/week";
 import {
-  stopDays, stopDateLabel, niceDay, wanderingStatus, wanderingWhenLabel, isExact
+  stopDays, stopDateLabel, niceDay, wanderingStatus, wanderingWhenLabel, wanderingRange, isExact
 } from "../../lib/wandering";
 import { StepList } from "../ui/StepList";
 import { Button } from "../ui/Button";
@@ -155,6 +155,55 @@ function StopDetail({ stop, isFirst, isLast }) {
   );
 }
 
+// Once a Wandering's dates are behind you, its Dream can be marked lived:
+// the usual dream XP, dated to when the journey began (the same date the
+// Mirror and Legacy count it in), with an optional line about what it gave.
+function MarkLivedCard({ dream, stops, onLived }) {
+  const { completeItem } = useAppData();
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const start = wanderingRange(stops)?.start;
+  const exact = stops.filter(s => s.arrive).every(isExact);
+  const whenLabel = start
+    ? exact ? niceDay(start, { day: "numeric", month: "long", year: "numeric" }) : niceDay(start, { month: "long", year: "numeric" })
+    : null;
+
+  async function markLived() {
+    setSaving(true);
+    setError("");
+    try {
+      await completeItem(dream.id, note.trim(), start);
+      onLived();
+    } catch (e) {
+      console.error("[Wandering] mark lived failed:", e);
+      setError("Couldn't mark it lived. Check your connection and try again.");
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="rounded-card bg-surface1 border border-gold p-3.5 mt-3">
+      <div className="text-bodySm text-textPrimary">You went. Is "{dream.name}" a dream lived?</div>
+      <div className="text-caption text-textSecondary mt-0.5">
+        Marking it lived gives {XP_VALS.dream} XP to {dream.cat}{whenLabel ? `, dated ${whenLabel}, when you set off` : ""}.
+      </div>
+      <input
+        value={note}
+        onChange={e => setNote(e.target.value)}
+        placeholder="What did it give you? (optional)"
+        aria-label="What did it give you? (optional)"
+        maxLength={280}
+        className={`${fieldClass} mt-2.5 placeholder:text-textMuted`}
+      />
+      <Button variant="secondary" size="sm" className="mt-2.5" icon={Star} disabled={saving} onClick={markLived}>
+        {saving ? "Marking it lived…" : "Mark it lived"}
+      </Button>
+      {error && <div className="text-caption text-error mt-1.5">{error}</div>}
+    </div>
+  );
+}
+
 // A Wandering: a Dream's travel plan made visible — the route on a map, the
 // stops as a timeline, and what each day holds.
 export default function WanderingScreen() {
@@ -162,6 +211,7 @@ export default function WanderingScreen() {
   const navigate = useNavigate();
   const { loaded, wanderings, wanderingStops, items, releasedItems, renameWandering, addWanderingStop, moments, journalEntries, makeWanderingDream } = useAppData();
   const [makingDream, setMakingDream] = useState(false);
+  const [livedNow, setLivedNow] = useState(false);
   const [dreamError, setDreamError] = useState("");
   const memoryCount = stopId => moments.filter(m => m.stop_id === stopId).length + journalEntries.filter(e => e.stop_id === stopId).length;
   const [selectedId, setSelectedId] = useState(null);
@@ -247,6 +297,15 @@ export default function WanderingScreen() {
           </div>
         );
       })()}
+      {dream && !dream.done && wanderingStatus(stops) === "travelled" && items.some(i => i.id === dream.id) && (
+        <MarkLivedCard dream={dream} stops={stops} onLived={() => setLivedNow(true)} />
+      )}
+      {livedNow && dream?.done && (
+        <div className="flex items-center gap-1.5 text-bodySm text-gold mt-3">
+          <Sparkles size={14} strokeWidth={1.75} />
+          A dream lived · +{XP_VALS.dream} XP to {dream.cat}
+        </div>
+      )}
       {!dream && (
         <div className="rounded-card bg-surface1 border border-dashed border-borderC p-3.5 mt-3">
           <div className="text-bodySm text-textPrimary">A journey of its own.</div>

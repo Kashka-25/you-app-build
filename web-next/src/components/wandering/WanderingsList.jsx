@@ -140,6 +140,10 @@ export default function WanderingsList() {
                     <span className="block text-caption text-textMuted mt-0.5">
                       {[when, memoryCount ? `${memoryCount} ${memoryCount === 1 ? "memory" : "memories"}` : null, dream ? null : "A journey of its own"].filter(Boolean).join(" · ")}
                     </span>
+                    {/* Dates behind you, dream not yet marked: a quiet nudge. */}
+                    {dream && !dream.done && g.key === "travelled" && (
+                      <span className="block text-caption text-gold mt-0.5">Ready to mark this dream lived</span>
+                    )}
                   </span>
                   {memoryCount > 0 && <Sparkles size={14} strokeWidth={1.75} className="text-gold flex-none mt-1" aria-hidden="true" />}
                   <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted flex-none mt-1" />

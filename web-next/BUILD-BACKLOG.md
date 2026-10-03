@@ -409,7 +409,17 @@ and code keep `journey` so old links still work. Travel plans are
         **Ecuador, Peru & Bolivia** (Ecuador came first).
 - [x] For Legacy and the Mirror: a yearly "places you reached this year"
       (built Oct 2, see below).
-- [ ] A finished Wandering offers to mark its Dream achieved.
+- [x] **A finished Wandering offers to mark its Dream lived** (Oct 2).
+      Once a Wandering's dates are behind you and its Dream isn't done,
+      the Wandering screen asks "You went. Is "<dream>" a dream lived?",
+      with an optional "What did it give you?" line (saved to the dream's
+      note). "Mark it lived" gives the usual dream XP to the dream's Pillar,
+      **dated to when the journey began** (the same year the Mirror and
+      Legacy count it in), then shows "A dream lived · +50 XP to Spirit".
+      Pursuits → Wanderings shows "Ready to mark this dream lived" on those
+      trips. Uses the normal `completeItem`, so un-achieving in Pursue
+      takes it back. No migration. *(Tested end to end on a throwaway trip
+      to Hobart; test rows removed.)*
 
 ### Also fixed alongside
 - [x] The service worker cached *every* GET, including Supabase data
