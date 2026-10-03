@@ -5,6 +5,7 @@ import { useEscape } from "../../ui/useEscape";
 import { useAppData } from "../../../lib/AppDataContext";
 import { niceDay, wanderingPeriodLabel } from "../../../lib/wandering";
 import { Modal } from "../../ui/Modal";
+import { PhotoCarousel } from "../../ui/PhotoCarousel";
 import { TWINKLE_CSS, PATTERNS, twinkle } from "./twinkle";
 
 // Life Constellations — memories as stars over the places they happened.
@@ -106,10 +107,10 @@ export default function LifeConstellations({ onClose }) {
     const map = {};
     const add = (stopId, m) => { (map[stopId] = map[stopId] || []).push(m); };
     moments.filter(m => m.stop_id).forEach(m => add(m.stop_id, {
-      kind: "moment", id: m.id, date: m.moment_date, title: m.title, text: m.description, photo: m.photo_url
+      kind: "moment", id: m.id, date: m.moment_date, title: m.title, text: m.description, photos: m.photo_urls || []
     }));
     journalEntries.filter(e => e.stop_id).forEach(e => add(e.stop_id, {
-      kind: "entry", id: e.id, date: e.entry_date, title: null, text: e.content, photo: null
+      kind: "entry", id: e.id, date: e.entry_date, title: null, text: e.content, photos: []
     }));
     Object.values(map).forEach(list => list.sort((a, b) => (a.date > b.date ? 1 : -1)));
     return map;
@@ -208,7 +209,7 @@ export default function LifeConstellations({ onClose }) {
             <div className="space-y-3">
               {stopMemories.map(m => (
                 <div key={m.kind + m.id} className="rounded-card bg-surface1 p-3">
-                  {m.photo && <img src={m.photo} alt="" className="w-full h-40 object-cover rounded-sm mb-2" />}
+                  <PhotoCarousel urls={m.photos} className="h-40 mb-2" />
                   <div className="flex items-center gap-1.5 text-caption text-textMuted mb-0.5">
                     {m.kind === "entry" && <BookOpen size={12} strokeWidth={1.75} />}
                     {niceDay(m.date)}

@@ -544,6 +544,53 @@ unlimited AI.
 - [ ] `suggest-value-challenges` has no AI-consent check. That's fine, since
       it sends only a value's name, but worth knowing.
 
+## Memory photos: carousel + small storage (Oct 3)
+
+- [x] **Several photos per memory** (up to 10), shown as a swipeable
+      carousel (`ui/PhotoCarousel.jsx`: scroll-snap, dots, "2/5", arrows,
+      keyboard arrows; never moves on its own). Used in Chapters, The
+      Mirror and Life Constellations. Stop rows show the cover with a count;
+      My Story prints the cover large and the rest in a small grid.
+- [x] The memory form takes several photos at once, shows thumbnails,
+      **Cover** on the first (tap the star to make another the cover), and
+      ✕ to remove. Editing keeps, reorders or removes existing photos;
+      removed files are deleted from storage.
+- [x] **Converted on the device before upload** (`lib/imageCompress.js`),
+      whatever the source format: long edge at most 1600px, WebP at 0.8
+      (JPEG fallback where a browser can't write WebP), EXIF rotation
+      applied, metadata and **GPS location stripped**. Tested: a 5.7 MB
+      camera-sized JPEG became a 126 KB WebP, and a 3.9 MB PNG became 216 KB.
+      HEIC that a browser can't open gets a friendly message. The form shows
+      "X instead of Y" so the saving is visible.
+- [x] Data: `20261003100000_moment_photo_carousel.sql` adds
+      `life_moments.photo_paths` (ordered; `photo_path` stays as the cover
+      for single-photo views; existing photos backfilled) and limits the
+      `life-moments` bucket to WebP/JPEG at most 5 MB.
+- [ ] Existing memory photos stay as uploaded (not re-converted).
+- [x] Carousel tested end to end (Oct 3): 3 photos saved as ~33 KB WebP
+      each, cover choice kept, arrows and counter, removing a photo deletes
+      its file, deleting the memory deletes all its files, and the bucket
+      refuses an unconverted PNG. Test data removed.
+- [ ] Cassidy's three memories from Oct 3 still hold full-size originals
+      (about 12.6 MB together). Offer: re-convert them (about 0.5 MB).
+
+## Scan a journal page (Oct 3)
+
+- [x] Reflections has **Scan a page** beside Write. Pick photos of
+      handwritten pages (up to 6, camera or library). AI consent is asked
+      first, and "Not now" saves nothing. Then the pages are converted (1568px,
+      the size Claude reads at; WebP 0.85), one new entry is made, each page
+      is attached and transcribed in order, and the entry opens with the
+      text filled in and "It's a first draft: check the words, then save."
+      If a page can't be read (allowance, offline), the entry keeps its pages
+      to try again. The progress pop-up can be closed; the scan carries on.
+- [x] Every journal page photo (also "Add a photo" inside an entry) is
+      converted the same way: a 0.9 MB test page was stored as a 128 KB WebP.
+- [x] Fixed: deleting a journal entry left its page photos in storage.
+      They're removed now (tested; no leftover files in either bucket).
+- [ ] The AI read itself is untested: Cassidy hasn't turned on AI
+      reflections, and consent is never given on their behalf.
+
 ## Side menu (Oct 2)
 - [x] Kept clean: Home, YOUrney, Reflections, CommYOUnity, then a
       collapsed **Coming soon · 6** (Therapists, Events / Calendar, Shop,

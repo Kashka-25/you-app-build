@@ -135,6 +135,11 @@ export default function MyStory() {
                   {y.moments.map(m => (
                     <figure key={m.title + m.date} className="mb-5 book-keep">
                       {m.photo && <img src={m.photo} alt="" className="w-full max-h-[340px] object-cover rounded-sm mb-2" />}
+                      {m.morePhotos?.length > 0 && (
+                        <div className="grid grid-cols-3 gap-1.5 mb-2">
+                          {m.morePhotos.map(u => <img key={u} src={u} alt="" className="w-full aspect-square object-cover rounded-sm" />)}
+                        </div>
+                      )}
                       <figcaption>
                         <div className="text-[19px] font-semibold">{m.title}</div>
                         <div className="text-[14px] text-[#6A6A6A]" style={{ fontFamily: "DM Sans, sans-serif" }}>{niceDate(m.date)}{m.place ? ` · ${m.place}` : ""}</div>

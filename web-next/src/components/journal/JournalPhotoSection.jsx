@@ -110,7 +110,7 @@ export default function JournalPhotoSection({ entryId }) {
       await addJournalPhoto(entryId, file);
     } catch (err) {
       console.error("[JournalPhotoSection] upload failed:", err);
-      setError("Couldn't upload that photo — try again.");
+      setError(err?.friendly || "Couldn't upload that photo — try again.");
     }
     setUploading(false);
   }

@@ -6,6 +6,7 @@ import { localDateKey, addDaysKey } from "../../lib/week";
 import { isExact, stopEnd } from "../../lib/wandering";
 import { yearSummary } from "../../lib/years";
 import { BackRow, SectionTitle } from "../Primitives";
+import { PhotoCarousel } from "../ui/PhotoCarousel";
 import YearInPlaces from "../wandering/YearInPlaces";
 
 const niceDay = k => new Date(k + "T00:00:00").toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
@@ -105,7 +106,7 @@ export default function Mirror() {
             ))}
             {ago.moments.map(m => (
               <div key={m.id}>
-                {m.photo_url && <img src={m.photo_url} alt="" className="w-full h-36 object-cover rounded-sm mb-1.5" />}
+                <PhotoCarousel urls={m.photo_urls || []} className="h-36 mb-1.5" />
                 <div className="font-serif text-h3 text-textPrimary">{m.title}</div>
                 <div className="text-caption text-textMuted">{niceDay(m.moment_date)}</div>
                 {m.description && <div className="text-bodySm text-textSecondary">{m.description}</div>}

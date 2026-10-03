@@ -5,6 +5,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import AddMomentModal from "./AddMomentModal";
+import { PhotoCarousel } from "../ui/PhotoCarousel";
 import { PlaceTag } from "../wandering/PlacePicker";
 import SuggestChaptersPanel from "./SuggestChaptersPanel";
 import SeasonCard from "./SeasonCard";
@@ -18,20 +19,22 @@ function inRange(momentDate, start, end) {
   return d >= new Date(start + "T00:00:00").getTime() && d <= new Date(end + "T00:00:00").getTime();
 }
 
+// The photos swipe on their own; the rest of the card opens the editor.
 function MomentCard({ moment, onEdit }) {
+  const hasPhotos = (moment.photo_urls || []).length > 0;
   return (
-    <button onClick={() => onEdit(moment)} className="block w-full text-left rounded-card bg-surface1 shadow-card p-4 mb-3">
-      {moment.photo_url && (
-        <img src={moment.photo_url} alt="" className="w-full h-36 object-cover rounded-sm mb-3" />
-      )}
-      <div className="flex items-center justify-between mb-1.5 gap-3">
-        <div className="font-serif text-h3 text-textPrimary">{moment.title}</div>
-        <span className="text-caption text-textMuted flex-none">{niceMomentDate(moment.moment_date)}</span>
-      </div>
-      {moment.description && <div className="text-bodySm text-textSecondary">{moment.description}</div>}
-      <PlaceTag stopId={moment.stop_id} className="mt-1.5" />
-      {!moment.photo_url && <div className="text-caption text-textMuted mt-1.5">Tap to edit or add a photo</div>}
-    </button>
+    <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
+      {hasPhotos && <PhotoCarousel urls={moment.photo_urls} className="h-44 mb-3" />}
+      <button onClick={() => onEdit(moment)} className="block w-full text-left">
+        <div className="flex items-center justify-between mb-1.5 gap-3">
+          <div className="font-serif text-h3 text-textPrimary">{moment.title}</div>
+          <span className="text-caption text-textMuted flex-none">{niceMomentDate(moment.moment_date)}</span>
+        </div>
+        {moment.description && <div className="text-bodySm text-textSecondary">{moment.description}</div>}
+        <PlaceTag stopId={moment.stop_id} className="mt-1.5" />
+        {!hasPhotos && <div className="text-caption text-textMuted mt-1.5">Tap to edit or add photos</div>}
+      </button>
+    </div>
   );
 }
 

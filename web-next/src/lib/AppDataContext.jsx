@@ -8,10 +8,18 @@ import {
 } from "../constants/app.const";
 import { getValueEntry } from "../constants/valueLibrary";
 import { callCostUsd } from "./aiCost";
+import { compressImage, JOURNAL_PAGE } from "./imageCompress";
 import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
 
 // "Today" is always the Seeker's local date, never UTC.
 const todayKey = localDateKey;
+
+// Every photo of a memory, in carousel order (older rows only have the
+// single photo_path).
+export function momentPhotoPaths(m) {
+  if (m.photo_paths?.length) return m.photo_paths;
+  return m.photo_path ? [m.photo_path] : [];
+}
 
 const AppDataContext = createContext(null);
 
@@ -118,16 +126,21 @@ export function AppDataProvider({ children }) {
   // life_moments photos live in a private storage bucket, so a usable
   // <img> URL has to be signed per file rather than read straight off the
   // row. Signed URLs expire, so this always regenerates rather than
-  // trusting anything persisted.
+  // trusting anything persisted. Every row gets photo_items ({ path, url }
+  // for the edit form), photo_urls (the carousel, in order) and photo_url
+  // (the cover, i.e. the first).
   const attachSignedPhotoUrls = useCallback(async (rows) => {
-    const withPhotos = rows.filter(r => r.photo_path);
-    if (withPhotos.length === 0) return rows;
-    const signed = await Promise.all(
-      withPhotos.map(r => supabase.storage.from("life-moments").createSignedUrl(r.photo_path, 3600))
-    );
+    const paths = [...new Set(rows.flatMap(momentPhotoPaths))];
     const urlByPath = {};
-    withPhotos.forEach((r, i) => { urlByPath[r.photo_path] = signed[i]?.data?.signedUrl || null; });
-    return rows.map(r => ({ ...r, photo_url: r.photo_path ? urlByPath[r.photo_path] : null }));
+    if (paths.length) {
+      const { data } = await supabase.storage.from("life-moments").createSignedUrls(paths, 3600);
+      (data || []).forEach(d => { if (d.path) urlByPath[d.path] = d.signedUrl || null; });
+    }
+    return rows.map(r => {
+      const photo_items = momentPhotoPaths(r).map(path => ({ path, url: urlByPath[path] || null }));
+      const photo_urls = photo_items.map(p => p.url).filter(Boolean);
+      return { ...r, photo_items, photo_urls, photo_url: photo_urls[0] || null };
+    });
   }, []);
 
   const load = useCallback(async () => {
@@ -517,31 +530,42 @@ export function AppDataProvider({ children }) {
   }
 
   // Journey timeline: user-added life moments, distinct from the
-  // auto-generated `memory` XP log. photoFile is optional; when present it
-  // uploads to a private bucket under this user's own folder (matches the
-  // storage RLS policy: auth.uid() must equal the first path segment) and
-  // only the storage path is persisted — see attachSignedPhotoUrls for why.
+  // auto-generated `memory` XP log. Photos are optional and there can be
+  // several (a carousel). Each is converted on the device first (see
+  // lib/imageCompress.js) and uploaded to a private bucket under this
+  // user's own folder (matches the storage RLS policy: auth.uid() must
+  // equal the first path segment); only storage paths are persisted, see
+  // attachSignedPhotoUrls for why. photo_path mirrors the first photo, so
+  // single-photo views keep working.
   // stopId (optional): pin the memory to a Wandering stop. Only sent when
   // given, so nothing changes for memories made where there's no stop.
-  async function addMoment({ title, momentDate, description, photoFile, stopId }) {
-    let photoPath = null;
-    if (photoFile) {
-      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-      photoPath = `${userId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("life-moments").upload(photoPath, photoFile);
-      if (upErr) throw upErr;
+  async function uploadMomentPhotos(photos) {
+    const paths = [];
+    try {
+      for (const [i, ph] of photos.entries()) {
+        const path = `${userId}/${Date.now()}-${i}.${ph.ext}`;
+        const { error } = await supabase.storage.from("life-moments").upload(path, ph.blob, { contentType: ph.blob.type });
+        if (error) throw error;
+        paths.push(path);
+      }
+    } catch (e) {
+      // Don't leave half a carousel behind in storage.
+      if (paths.length) await supabase.storage.from("life-moments").remove(paths);
+      throw e;
     }
-    const row = { user_id: userId, title, description: description || "", moment_date: momentDate, photo_path: photoPath };
+    return paths;
+  }
+
+  async function addMoment({ title, momentDate, description, photos = [], stopId }) {
+    const paths = await uploadMomentPhotos(photos);
+    const row = { user_id: userId, title, description: description || "", moment_date: momentDate, photo_paths: paths, photo_path: paths[0] || null };
     if (stopId !== undefined) row.stop_id = stopId;
     const res = await supabase.from("life_moments").insert(row).select().single();
-    if (res.error) throw res.error;
-
-    let photo_url = null;
-    if (photoPath) {
-      const signed = await supabase.storage.from("life-moments").createSignedUrl(photoPath, 3600);
-      photo_url = signed.data?.signedUrl || null;
+    if (res.error) {
+      if (paths.length) await supabase.storage.from("life-moments").remove(paths);
+      throw res.error;
     }
-    const newMoment = { ...res.data, photo_url };
+    const [newMoment] = await attachSignedPhotoUrls([res.data]);
     setMoments(prev => [newMoment, ...prev].sort((a, b) => new Date(b.moment_date) - new Date(a.moment_date)));
     return newMoment;
   }
@@ -550,44 +574,39 @@ export function AppDataProvider({ children }) {
     const moment = moments.find(m => m.id === id);
     setMoments(prev => prev.filter(m => m.id !== id));
     await supabase.from("life_moments").delete().eq("id", id).eq("user_id", userId);
-    if (moment?.photo_path) await supabase.storage.from("life-moments").remove([moment.photo_path]);
+    const paths = moment ? momentPhotoPaths(moment) : [];
+    if (paths.length) await supabase.storage.from("life-moments").remove(paths);
   }
 
-  // Edits an existing moment in place — the point of this (vs. delete +
-  // re-add) is exactly the workflow that prompted it: type up a moment now
-  // from a laptop with no photo, come back later (from a phone, once
-  // deployed) and attach one without losing the original entry, its date,
-  // or its place in the timeline. photoFile replaces any existing photo
-  // (old file is removed from storage); removePhoto clears it with no
-  // replacement; passing neither leaves the existing photo untouched.
-  async function editMoment(id, { title, momentDate, description, photoFile, removePhoto, stopId }) {
+  // Edits an existing moment in place, so a memory typed up now can get
+  // its photos later without losing its date or place in the timeline.
+  // `photoOrder` is the carousel as the form left it: existing photos as
+  // { path } and new ones as { blob, ext }. Existing photos missing from
+  // it are removed from storage. Leaving photoOrder out keeps the photos.
+  async function editMoment(id, { title, momentDate, description, photoOrder, stopId }) {
     const moment = moments.find(m => m.id === id);
     if (!moment) return;
 
-    let photoPath = moment.photo_path;
-    if (photoFile) {
-      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-      const newPath = `${userId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("life-moments").upload(newPath, photoFile);
-      if (upErr) throw upErr;
-      if (moment.photo_path) await supabase.storage.from("life-moments").remove([moment.photo_path]);
-      photoPath = newPath;
-    } else if (removePhoto && moment.photo_path) {
-      await supabase.storage.from("life-moments").remove([moment.photo_path]);
-      photoPath = null;
+    const before = momentPhotoPaths(moment);
+    let paths = before;
+    let added = [];
+    if (photoOrder) {
+      added = await uploadMomentPhotos(photoOrder.filter(p => !p.path));
+      let n = 0;
+      paths = photoOrder.map(p => p.path || added[n++]);
     }
 
-    const updates = { title, description: description || "", moment_date: momentDate, photo_path: photoPath };
+    const updates = { title, description: description || "", moment_date: momentDate, photo_paths: paths, photo_path: paths[0] || null };
     if (stopId !== undefined) updates.stop_id = stopId;
     const res = await supabase.from("life_moments").update(updates).eq("id", id).eq("user_id", userId).select().single();
-    if (res.error) throw res.error;
-
-    let photo_url = null;
-    if (photoPath) {
-      const signed = await supabase.storage.from("life-moments").createSignedUrl(photoPath, 3600);
-      photo_url = signed.data?.signedUrl || null;
+    if (res.error) {
+      if (added.length) await supabase.storage.from("life-moments").remove(added);
+      throw res.error;
     }
-    const updatedMoment = { ...res.data, photo_url };
+    const removed = before.filter(p => !paths.includes(p));
+    if (removed.length) await supabase.storage.from("life-moments").remove(removed);
+
+    const [updatedMoment] = await attachSignedPhotoUrls([res.data]);
     setMoments(prev =>
       prev.map(m => (m.id === id ? updatedMoment : m)).sort((a, b) => new Date(b.moment_date) - new Date(a.moment_date))
     );
@@ -1088,7 +1107,12 @@ export function AppDataProvider({ children }) {
     setJournalEntries(prev => prev.filter(e => e.id !== id));
     setJournalInsights(prev => { const next = { ...prev }; delete next[id]; return next; });
     setJournalPhotos(prev => { const next = { ...prev }; delete next[id]; return next; });
+    // The photo rows go with the entry, but their files must be removed
+    // from storage too, or they're left behind using space.
+    const { data: pagePhotos } = await supabase.from("journal_photos").select("storage_path").eq("entry_id", id).eq("user_id", userId);
     await supabase.from("journal_entries").delete().eq("id", id).eq("user_id", userId);
+    const paths = (pagePhotos || []).map(p => p.storage_path).filter(Boolean);
+    if (paths.length) await supabase.storage.from("journal-photos").remove(paths);
   }
 
   // Journal photos (handwritten pages). Storage path is
@@ -1105,10 +1129,13 @@ export function AppDataProvider({ children }) {
     return withUrls;
   }
 
-  async function addJournalPhoto(entryId, photoFile) {
-    const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-    const storagePath = `${userId}/${entryId}/${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("journal-photos").upload(storagePath, photoFile);
+  // A page photo is converted on the device first (resized to the size
+  // Claude reads at, WebP, metadata stripped), then uploaded. Takes a File,
+  // or an already-converted { blob, ext } from compressImage.
+  async function addJournalPhoto(entryId, photo) {
+    const page = photo instanceof Blob ? await compressImage(photo, JOURNAL_PAGE) : photo;
+    const storagePath = `${userId}/${entryId}/${Date.now()}.${page.ext}`;
+    const { error: upErr } = await supabase.storage.from("journal-photos").upload(storagePath, page.blob, { contentType: page.blob.type });
     if (upErr) throw upErr;
     const res = await supabase
       .from("journal_photos")
@@ -1120,6 +1147,42 @@ export function AppDataProvider({ children }) {
     const withUrl = { ...res.data, photo_url: signed.data?.signedUrl || null };
     setJournalPhotos(prev => ({ ...prev, [entryId]: [...(prev[entryId] || []), withUrl] }));
     return withUrl;
+  }
+
+  // "Scan a journal page": photos of handwritten pages become one entry.
+  // Consent is asked before anything is saved; then the pages are
+  // converted, a new entry is made for them, each page is attached and
+  // transcribed in order, and the transcriptions become the entry's text
+  // for the Seeker to read and correct. If a transcription can't be done
+  // (no allowance left, offline), the entry keeps its pages so it can be
+  // tried again from the entry. onProgress({ step, page, pages }).
+  async function scanJournalPages(files, { onProgress } = {}) {
+    await withAiConsent();
+    const pages = files.length;
+    onProgress?.({ step: "preparing", page: 0, pages });
+    const converted = [];
+    for (const f of files) converted.push(await compressImage(f, JOURNAL_PAGE));
+
+    let entry = await addJournalEntry({ content: "", entryDate: todayKey() });
+    const texts = [];
+    let failure = null;
+    for (const [i, page] of converted.entries()) {
+      onProgress?.({ step: "reading", page: i + 1, pages });
+      const photo = await addJournalPhoto(entry.id, page);
+      if (failure) continue;
+      try {
+        const done = await transcribeJournalPhoto(entry.id, photo.id);
+        if (done?.transcription) texts.push(done.transcription.trim());
+      } catch (e) {
+        failure = e;
+      }
+    }
+    if (texts.length) {
+      entry = await editJournalEntry(entry.id, {
+        content: texts.join("\n\n"), mood: null, entryDate: entry.entry_date, tags: []
+      });
+    }
+    return { entry, transcribed: texts.length, pages, failure };
   }
 
   async function deleteJournalPhoto(entryId, photoId) {
@@ -1399,7 +1462,7 @@ export function AppDataProvider({ children }) {
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
-    loadJournalPhotos, addJournalPhoto, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
+    loadJournalPhotos, addJournalPhoto, scanJournalPages, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,
     loadWeeklyReflection, generateWeeklyReflection, loadRecentInsights,
     loadEraInsights, loadEraWeeklyReflections,

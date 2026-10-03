@@ -20,6 +20,7 @@ export default function StopMemories({ stop }) {
     date: kind === "moment" ? r.moment_date : r.entry_date,
     title: kind === "moment" ? r.title : r.content.slice(0, 80) + (r.content.length > 80 ? "…" : ""),
     photo: kind === "moment" ? r.photo_url : null,
+    photoCount: kind === "moment" ? (r.photo_urls || []).length : 0,
     raw: r
   });
   const all = [...moments.map(m => asMemory("moment", m)), ...journalEntries.map(e => asMemory("entry", e))];
@@ -47,7 +48,14 @@ export default function StopMemories({ stop }) {
   const Row = ({ m, action }) => (
     <div className="flex items-center gap-2.5 py-1.5">
       {m.photo
-        ? <img src={m.photo} alt="" className="w-9 h-9 rounded-sm object-cover flex-none" />
+        ? (
+          <span className="relative flex-none">
+            <img src={m.photo} alt="" className="w-9 h-9 rounded-sm object-cover" />
+            {m.photoCount > 1 && (
+              <span className="absolute -bottom-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-forestAccent text-surface2 text-[10px] leading-4 text-center">{m.photoCount}</span>
+            )}
+          </span>
+        )
         : (
           <span className="w-9 h-9 rounded-sm bg-surface3 flex items-center justify-center flex-none text-textMuted">
             {m.kind === "moment" ? <ImageIcon size={15} strokeWidth={1.75} /> : <BookOpen size={15} strokeWidth={1.75} />}

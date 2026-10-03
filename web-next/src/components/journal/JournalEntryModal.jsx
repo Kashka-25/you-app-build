@@ -19,7 +19,8 @@ const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 p
 // of just closing — Reflections.jsx uses this to reopen the same modal in
 // edit mode, since photos/AI reflection both need a real entry_id to attach
 // to and can't exist before the first save.
-export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
+// `notice` (optional) is shown at the top, e.g. "check the words" after a scan.
+export default function JournalEntryModal({ open, onClose, onSaved, entry, notice }) {
   const { addJournalEntry, editJournalEntry, deleteJournalEntry, wanderingStops } = useAppData();
   const isEdit = Boolean(entry);
 
@@ -90,6 +91,7 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
 
   return (
     <Modal open={open} title={isEdit ? "Edit entry" : "New journal entry"} onClose={onClose}>
+      {notice && <div className="text-bodySm text-textSecondary bg-surface3 rounded-sm p-3 mb-3">{notice}</div>}
       <label className={labelClass}>Date</label>
       <input
         type="date"

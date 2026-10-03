@@ -48,7 +48,7 @@ export function buildStory(data, include) {
       dreams: include.dreams ? summary.dreams.filter(d => !(places?.trips || []).some(t => t.wandering.title === d)) : [],
       moments: include.moments
         ? moments.filter(m => yearOf(m.moment_date) === year).sort((a, b) => (a.moment_date > b.moment_date ? 1 : -1))
-            .map(m => ({ title: m.title, date: m.moment_date, text: m.description, photo: m.photo_url, place: placeName(m.stop_id) }))
+            .map(m => ({ title: m.title, date: m.moment_date, text: m.description, photo: m.photo_url, morePhotos: (m.photo_urls || []).slice(1), place: placeName(m.stop_id) }))
         : [],
       harvests: include.harvests
         ? summary.harvests.filter(h => (h.note || "").trim()).sort((a, b) => (a.week_start > b.week_start ? 1 : -1)).map(h => ({ week: h.week_start, note: h.note.trim() }))
