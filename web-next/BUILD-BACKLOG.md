@@ -182,14 +182,20 @@ from real effort. It borrows Forest's *visible growth from effort*, but
         (3 XP, once).
       - **Mementos:** every completed hour of focus (counted across all
         sessions) grows a memento on the flower that crossed it: a short
-        line from the greats (`constants/mementos.js`, 32 to start). Public
+        line from the greats (`constants/mementos.js`: 100 from the greats,
+        including music, art and the mind, 50 messages from YOU, and 15 from
+        Cassidy Dugan's own songs, poems, spoken word and words, as of Oct 4:
+        165 hours before any repeat). Public
         domain only, always credited with author and work, no modern
         translations and no famous misattributions. Sealed until opened, on
         the end screen and from the flower in the garden; memento flowers
         carry a gold spark on the Tree. Each Seeker gets their own shuffled
-        order, no repeats until all are used. Also: 12 original lines
-        credited "A message directly from YOU", and a section for
-        **Cassidy Dugan's own works**, added as they're written (none yet).
+        order, no repeats until all are used. Original lines are credited
+        "A message directly from YOU", and there's a section for
+        **Cassidy Dugan's own works**, added as they're written.
+        Anything we write ourselves, inspired by anyone or not, is ours and
+        credited "A message directly from YOU" (our own wording, never a
+        close rewrite of someone's line).
         `mementos` column from
         `20261004110000_focus_mementos.sql` (applied Oct 4).
       - Rest early = a resting seed in the garden; the end screen keeps the
