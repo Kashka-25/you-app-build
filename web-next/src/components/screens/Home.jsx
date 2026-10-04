@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen, Sun, X, Sprout, Wheat } from "lucide-react";
+import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen, Sun, X, Sprout, Wheat, Timer } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLAR_COLORS } from "../../constants/app.const";
 import {
@@ -172,6 +172,12 @@ export default function Home() {
         <div className={hasIntentions ? "mt-2 pt-2 border-t border-borderC" : ""}>
           <QuickList showLabel={hasIntentions} />
         </div>
+
+        <Link to="/focus" className="flex items-center gap-2.5 text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
+          <Timer size={16} strokeWidth={1.75} />
+          <span className="flex-1">{hasIntentions ? "A focus session for something else" : "Start a focus session"}</span>
+          <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
+        </Link>
 
         {harvestDue(weekIntentions, weekHarvests) && (
           <Link to="/harvest" className="flex items-center gap-2.5 text-bodySm text-textPrimary mt-3 pt-3 border-t border-borderC">

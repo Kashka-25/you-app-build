@@ -10,6 +10,8 @@ import { getValueEntry } from "../constants/valueLibrary";
 import { callCostUsd } from "./aiCost";
 import { compressImage, JOURNAL_PAGE } from "./imageCompress";
 import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
+import { markerXp, DAILY_FOCUS_XP_CAP } from "./focus";
+import { mementoForHour } from "../constants/mementos";
 
 // "Today" is always the Seeker's local date, never UTC.
 const todayKey = localDateKey;
@@ -106,6 +108,7 @@ export function AppDataProvider({ children }) {
   const [wanderings, setWanderings] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [compassHistory, setCompassHistory] = useState([]);
+  const [focusSessions, setFocusSessions] = useState([]);
   const [wanderingStops, setWanderingStops] = useState([]);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
@@ -193,6 +196,7 @@ export function AppDataProvider({ children }) {
       loadWanderings();
       loadSeasons();
       loadCompass();
+      loadFocusSessions();
       loadAiConsent();
       loadReflections();
     } catch (e) {
@@ -996,6 +1000,64 @@ export function AppDataProvider({ children }) {
     return res.data;
   }
 
+  // ── Focus sessions ──
+  // Finished and rested sessions: the garden around the Tree and in Harvest.
+  async function loadFocusSessions() {
+    const res = await supabase.from("focus_sessions").select("*").eq("user_id", userId).order("ended_at", { ascending: false }).limit(500);
+    if (res.error) { console.error("[AppData] loadFocusSessions failed:", res.error); return; }
+    setFocusSessions(res.data || []);
+  }
+
+  // Saves a finished or rested session. Focus XP comes from the markers
+  // reached (capped per day) and goes to the Pillar's roots through memory,
+  // like every other XP. A session on a sown intention also counts as
+  // tending it today, once (same 3 XP as ticking it).
+  async function saveFocusSession({ active, minutes, outcome, note }) {
+    const today = localDateKey();
+    const earnedToday = memory
+      .filter(m => m.date_key === today && (m.tags || []).some(t => t.startsWith("focus:")))
+      .reduce((sum, m) => sum + (m.xp || 0), 0);
+    const xp = active.pillar ? Math.max(0, Math.min(markerXp(minutes), DAILY_FOCUS_XP_CAP - earnedToday)) : 0;
+    // Every completed hour of focus, across all sessions, grows a memento on
+    // the flower that crossed it.
+    const before = focusSessions.reduce((sum, f) => sum + (f.minutes || 0), 0);
+    const mementos = [];
+    for (let hour = Math.floor(before / 60) + 1; hour <= Math.floor((before + minutes) / 60); hour++) {
+      mementos.push({ id: mementoForHour(hour, userId), hour });
+    }
+
+    const res = await supabase.from("focus_sessions").insert({
+      user_id: userId, item_id: active.itemId || null, intention_id: active.intentionId || null,
+      label: active.label, pillar: active.pillar || null, value_name: active.valueName || null,
+      planned_minutes: active.plannedMinutes || null, minutes, outcome, note: (note || "").trim() || null, xp, mementos,
+      started_at: new Date(active.startedAt).toISOString(), ended_at: new Date().toISOString(), date_key: today
+    }).select().single();
+    if (res.error) throw res.error;
+    setFocusSessions(prev => [res.data, ...prev]);
+
+    if (xp > 0) {
+      const entry = {
+        name: `Focus: ${active.label}`, type: "focus", xp, date: niceDate(), date_key: today,
+        cat: active.pillar, tags: [`focus:${res.data.id}`]
+      };
+      setMemory(prev => [entry, ...prev]);
+      const mem = await supabase.from("memory").insert({ user_id: userId, ...entry }).select().single();
+      if (mem.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: mem.data.id } : m)));
+    }
+
+    const w = active.intentionId && weekIntentions.find(x => x.id === active.intentionId);
+    const tendedNow = !!w && !(w.tended_dates || []).includes(today);
+    if (tendedNow) await toggleTended(w.id);
+    return { session: res.data, xp, tendedNow };
+  }
+
+  async function saveFocusNote(id, note) {
+    const res = await supabase.from("focus_sessions").update({ note: (note || "").trim() || null })
+      .eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setFocusSessions(prev => prev.map(f => (f.id === id ? res.data : f)));
+  }
+
   // ── AI consent ──
   // Explicit and revocable. Nothing personal is sent to Claude until the
   // Seeker says yes; the Edge Functions check the same row server-side.
@@ -1492,6 +1554,7 @@ export function AppDataProvider({ children }) {
     weekHarvests, harvestWeek, releaseItem, restoreItem,
     seasons, currentSeason: seasons[0] || null, readSeason, aiUsageThisMonth,
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
+    focusSessions, saveFocusSession, saveFocusNote,
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,

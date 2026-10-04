@@ -7,12 +7,14 @@ import { VALUE_ICONS, getValueEntry } from "../../../constants/valueLibrary";
 import { useAppData } from "../../../lib/AppDataContext";
 import {
   INNER_PILLARS, OUTER_PILLARS, VALUE_COLORS, VALUE_PILLAR, VALUE_PILLAR2, TIERS,
-  getTier, getPrestigeStage, prestigeRequirement
+  getTier, getPrestigeStage, prestigeRequirement, PILLAR_COLORS
 } from "../../../constants/app.const";
 import { easeOut } from "../../ui/motion";
 import IdentityVisionModal from "../IdentityVisionModal";
 import StoryOfYou from "./StoryOfYou";
 import LifeConstellations from "./LifeConstellations";
+import GardenOfYou, { gardenLayout, MementoSpark } from "../../focus/GardenOfYou";
+import { GardenBloom, GardenSeed } from "../../focus/FocusFlower";
 
 // Tree of YOU v2 (Sep 28) — a cosmic tree:
 //   roots    = the 8 Pillars, underground. Inner roots (Body, Heart, Mind,
@@ -161,7 +163,23 @@ function PortalSwirl({ origin, direction = "in" }) {
 }
 
 export default function TreeOfStars() {
-  const { pillars, values, identityVisions, valueChallenges, reflections, level } = useAppData();
+  const { pillars, values, identityVisions, valueChallenges, reflections, level, focusSessions } = useAppData();
+  // The garden: focus sessions growing around the trunk. Tapping it zooms
+  // the view down into the soil, then opens the garden up close.
+  const garden = useMemo(
+    () => gardenLayout(focusSessions, { trunkX: TRUNK_X, groundY: GROUND_Y, width: SVG_W }),
+    [focusSessions]
+  );
+  const [gardenZoom, setGardenZoom] = useState(false);
+  const [gardenOpen, setGardenOpen] = useState(false);
+  // Opened on a timer rather than when the zoom animation reports it's done:
+  // a browser that pauses animation (a hidden tab) would otherwise leave
+  // the Tree stuck zoomed in.
+  function openGarden() {
+    if (gardenZoom) return;
+    setGardenZoom(true);
+    setTimeout(() => { setGardenOpen(true); setGardenZoom(false); }, 700);
+  }
   const [selected, setSelected] = useState(null); // { type: "value"|"pillar"|"star", key }
   const [addingVision, setAddingVision] = useState(false);
 
@@ -314,6 +332,11 @@ export default function TreeOfStars() {
         animate={{ scale: storyOpen ? 0.97 : 1, filter: storyOpen ? "blur(1.5px)" : "blur(0px)" }}
         transition={{ duration: 0.5, ease: easeOut }}
       >
+        <motion.div
+          style={{ transformOrigin: `50% ${(GROUND_Y / SVG_H) * 100}%` }}
+          animate={{ scale: gardenZoom ? 3.2 : 1, opacity: gardenZoom ? 0.6 : 1 }}
+          transition={{ duration: gardenZoom ? 0.75 : 0.5, ease: easeOut }}
+        >
         <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block w-full h-auto">
           <defs>
             <filter id="tosBlur" x="-100%" y="-100%" width="300%" height="300%">
@@ -451,6 +474,29 @@ export default function TreeOfStars() {
             );
           })}
 
+          {/* The garden: a bloom or resting seed for every focus session */}
+          {garden.length > 0 && (
+            <g
+              className="cursor-pointer"
+              role="button"
+              tabIndex={0}
+              aria-label={`Your garden: ${garden.length} focus ${garden.length === 1 ? "session" : "sessions"}. Open it.`}
+              onClick={openGarden}
+              onKeyDown={e => (e.key === "Enter" || e.key === " ") && openGarden()}
+              opacity={active ? 0.35 : 1}
+            >
+              <rect x={0} y={GROUND_Y - 60} width={SVG_W} height={80} fill="transparent" />
+              {garden.map(({ s, x, y, scale, opacity }) => (
+                <g key={s.id} opacity={opacity}>
+                  {s.outcome === "bloom"
+                    ? <GardenBloom x={x} y={y} color={PILLAR_COLORS[s.pillar] || "#C9A24D"} scale={scale} />
+                    : <GardenSeed x={x} y={y} scale={scale * 1.2} />}
+                  {(s.mementos || []).length > 0 && <MementoSpark x={x + 7 * scale} y={y - (s.outcome === "bloom" ? 30 : 10) * scale} scale={scale} />}
+                </g>
+              ))}
+            </g>
+          )}
+
           {/* Seed Being, at the base of the trunk */}
           <g opacity={active ? 0.4 : 1} className="transition-opacity duration-500">
             <circle cx={TRUNK_X} cy={GROUND_Y - 28} r={18} fill="#C9A24D" opacity={0.35} filter="url(#tosBlur)" />
@@ -529,7 +575,10 @@ export default function TreeOfStars() {
             </text>
           </motion.g>
         </svg>
+        </motion.div>
       </motion.div>
+
+      <GardenOfYou open={gardenOpen} sessions={focusSessions} onClose={() => setGardenOpen(false)} />
 
       <AnimatePresence>
         {sky && (
@@ -558,6 +607,7 @@ export default function TreeOfStars() {
         <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "var(--gold)" }} />Branches · Values</span>
         <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: FRUIT_COLORS[0] }} />Fruit · lived depth</span>
         <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block bg-cream" />Stars · visions</span>
+        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#F2EBDA", boxShadow: "inset 0 0 0 2px #7A9B76" }} />Flowers · focus sessions</span>
         <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#4a8fa0" }} />Constellations · memories over places</span>
       </div>
 

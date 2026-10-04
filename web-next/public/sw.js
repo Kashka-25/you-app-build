@@ -37,3 +37,17 @@ self.addEventListener("fetch", event => {
       .catch(() => caches.match(event.request))
   );
 });
+
+// "It bloomed" (a finished focus session): tapping it brings the app
+// forward on the Focus screen, reusing an open window when there is one.
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/";
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+      const open = list.find(c => new URL(c.url).origin === self.location.origin);
+      if (open) return open.focus().then(c => c.navigate(url));
+      return self.clients.openWindow(url);
+    })
+  );
+});

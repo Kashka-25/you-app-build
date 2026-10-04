@@ -163,9 +163,51 @@ from real effort. It borrows Forest's *visible growth from effort*, but
       week" one comes back tomorrow.
 - [x] **Rhythm, not streaks:** "Tended on N days this week". Counts what was
       done, never resets to zero, never shows what was missed.
-- [ ] **Focus session** ("Tend" timer, the gentle Forest part): a bud grows
-      while you work; stopping early leaves a *resting seed*, never a dead
-      tree. Design pass first.
+- [x] **Focus session** ("Tend" timer, the gentle Forest part), Oct 4.
+      Mockup: claude.ai/artifact/VqGYV3BzLTrcpZjyaKHJFs. `/focus`
+      (`components/focus/`, logic in `lib/focus.js`, table `focus_sessions`
+      from `20261004100000_focus_sessions.sql`, applied Oct 4).
+      - Entry: a timer button on each of Today's intentions, and "A focus
+        session for something else" on Home's Today card (any pursuit, or
+        name it and optionally pick a Pillar).
+      - 15 / 30 / 45 / 60 min or Open; "Hide the clock, just let it grow".
+      - A flower grows continuously and sways (motion is right here, by
+        Cassidy's call); stages seed → sprout → bud → bloom. Time is read
+        from the start, so leaving the app never hurts it. A pill shows the
+        session anywhere else in the app.
+      - **XP (Cassidy's scheme):** +1 per 10 minutes, plus +2 for 30 minutes
+        straight and +3 for an hour straight, in one session (an hour = 11).
+        Everything reached stays yours if you rest early. Focus XP capped at
+        20 a day. A session on a sown intention also counts as tending it
+        (3 XP, once).
+      - **Mementos:** every completed hour of focus (counted across all
+        sessions) grows a memento on the flower that crossed it: a short
+        line from the greats (`constants/mementos.js`, 32 to start). Public
+        domain only, always credited with author and work, no modern
+        translations and no famous misattributions. Sealed until opened, on
+        the end screen and from the flower in the garden; memento flowers
+        carry a gold spark on the Tree. Each Seeker gets their own shuffled
+        order, no repeats until all are used. Also: 12 original lines
+        credited "A message directly from YOU", and a section for
+        **Cassidy Dugan's own works**, added as they're written (none yet).
+        `mementos` column from
+        `20261004110000_focus_mementos.sql` (applied Oct 4).
+      - Rest early = a resting seed in the garden; the end screen keeps the
+        plant at the size it reached ("Resting as a bud"). Optional "What
+        grew?" note.
+      - **"It bloomed" notification** (local, from the device) when a timed
+        session finishes while the app isn't in view. Taps open `/focus`.
+      - **The garden**: blooms (Pillar-coloured centres) and resting seeds
+        grow around the Tree of YOU, oldest by the trunk, spreading outward.
+        Tap it: the view zooms into the soil and opens the garden up close,
+        month by month; tap a flower for its day, time and note. The week's
+        garden also shows in Harvest (even in a week with nothing sown).
+- [ ] Focus notifications when the phone has fully suspended the browser
+      need Web Push (a service-worker push subscription and a scheduled
+      sender). Today it notifies while the browser is running, and greets
+      the Seeker with the bloom when they return.
+- [ ] Threshold: offer a focus session there too (only Today's intentions
+      have the timer button today).
 - [ ] Decide: should tending also feed **Value** growth (branch thickness /
       tier)? Not done yet on purpose, because it would move tier gates.
       Today, tending feeds Pillar roots only.

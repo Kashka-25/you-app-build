@@ -6,6 +6,7 @@ import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
 import { harvestWeekStartKey, weekRangeLabel, addDaysKey, WEEKDAY_SHORT, goBack, isSunday } from "../../lib/week";
 import { stepProgress } from "../ui/StepList";
 import { Button } from "../ui/Button";
+import WeekGarden from "../focus/WeekGarden";
 
 const MAX_SOWN = 3;
 
@@ -40,10 +41,11 @@ export default function HarvestScreen() {
   const navigate = useNavigate();
   const {
     loaded, items, releasedItems, memory, weekIntentions, weekHarvests, harvestWeek,
-    journalEntries, weeklyReflections, loadWeeklyReflection, generateWeeklyReflection
+    journalEntries, weeklyReflections, loadWeeklyReflection, generateWeeklyReflection, focusSessions
   } = useAppData();
 
   const week = harvestWeekStartKey();
+  const hasGarden = focusSessions.some(s => s.date_key >= week && s.date_key <= addDaysKey(week, 6));
   // On Sunday Harvest closes the week now ending; any other day, last week.
   const which = isSunday() ? "this week" : "last week";
   const weekEnd = addDaysKey(week, 6);
@@ -178,7 +180,15 @@ export default function HarvestScreen() {
     return shell(
       <>
         <h1 className="font-serif text-hero text-textPrimary mb-2">Nothing was sown {which}.</h1>
-        <p className="text-body text-textSecondary mb-6">A fallow week is part of growing too. There's nothing to harvest.</p>
+        <p className="text-body text-textSecondary mb-6">
+          {hasGarden ? "But you tended in other ways." : "A fallow week is part of growing too. There's nothing to harvest."}
+        </p>
+        {hasGarden && (
+          <section className="mb-7">
+            <SectionLabel>Your garden</SectionLabel>
+            <WeekGarden sessions={focusSessions} weekStart={week} />
+          </section>
+        )}
         <Button className="w-full" icon={Sprout} onClick={() => navigate("/sow", { replace: true })}>Sow a week</Button>
       </>
     );
@@ -213,6 +223,13 @@ export default function HarvestScreen() {
           See your Tree
         </Link>
       </section>
+
+      {hasGarden && (
+        <section className="mb-7">
+          <SectionLabel>Your garden</SectionLabel>
+          <WeekGarden sessions={focusSessions} weekStart={week} />
+        </section>
+      )}
 
       {(noticed || hasJournalThisWeek) && (
         <section className="mb-7">

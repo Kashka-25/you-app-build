@@ -19,6 +19,8 @@ import Styleguide from "./components/screens/Styleguide";
 import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
 import SowScreen from "./components/sow/SowScreen";
 import HarvestScreen from "./components/sow/HarvestScreen";
+import FocusScreen from "./components/focus/FocusScreen";
+import FocusWatcher from "./components/focus/FocusWatcher";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
@@ -52,12 +54,15 @@ export default function App() {
   if (!userId) return <SignIn />;
 
   return (
+    <>
+    <FocusWatcher />
     <Routes>
       <Route path="/styleguide" element={<Styleguide />} />
       {/* Full-screen layers, outside the shell: no top bar, no nav. */}
       <Route path="/threshold" element={<Threshold />} />
       <Route path="/sow" element={<SowScreen />} />
       <Route path="/harvest" element={<HarvestScreen />} />
+      <Route path="/focus" element={<FocusScreen />} />
       <Route path="/my-story" element={<MyStory />} />
       <Route
         path="/wandering/:id"
@@ -95,5 +100,6 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
+    </>
   );
 }
