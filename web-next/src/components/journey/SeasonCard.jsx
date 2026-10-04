@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { GlowBubble } from "../ui/GlowBubble";
+import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
 
 function niceWeek(dateKey) {
   return new Date(dateKey + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" });
@@ -30,13 +31,12 @@ export default function SeasonCard() {
 
   const based = season?.based_on || {};
   return (
-    <div className="rounded-card bg-surface1 shadow-card p-4 mb-5 flex items-start gap-3">
-      <GlowBubble icon={Sparkles} size={40} />
-      <div className="flex-1 min-w-0">
-        <div className="text-label uppercase text-textMuted mb-1">Your season</div>
+    <AiCard className="mb-5">
+      <div className="min-w-0">
+        <div className="mb-1.5"><AiLabel>Your season</AiLabel></div>
         {season ? (
           <>
-            <div className="font-serif text-h3 text-gold">{season.name}</div>
+            <div className="font-serif text-h2 ai-gold-text">{season.name}</div>
             {season.blurb && <div className="text-bodySm text-textSecondary mt-1">{season.blurb}</div>}
             {season.signals?.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-2">
@@ -49,9 +49,7 @@ export default function SeasonCard() {
               Read from {based.harvests} {based.harvests === 1 ? "harvest" : "harvests"}
               {based.from && ` · ${niceWeek(based.from)} – ${niceWeek(based.to)}`}
               {" · "}
-              <button onClick={read} disabled={reading} className="underline underline-offset-2 disabled:opacity-60">
-                {reading ? "Reading…" : "Read it again"}
-              </button>
+              <AiLink onClick={read} disabled={reading}>{reading ? "Reading…" : "Read it again"}</AiLink>
             </div>
           </>
         ) : (
@@ -60,9 +58,9 @@ export default function SeasonCard() {
               Your season is read from your weekly Harvests: the notes you keep, and what you carry forward, rest or release.
             </div>
             {weekHarvests.length > 0 ? (
-              <button onClick={read} disabled={reading} className="mt-2 text-bodySm text-forestAccent font-medium disabled:opacity-60">
+              <AiButton size="sm" onClick={read} busy={reading} className="mt-3">
                 {reading ? "Reading your harvests…" : `Read my season (${weekHarvests.length} ${weekHarvests.length === 1 ? "harvest" : "harvests"})`}
-              </button>
+              </AiButton>
             ) : (
               <div className="text-caption text-textMuted mt-2">Gather your first weekly Harvest and your season can be read from it.</div>
             )}
@@ -71,6 +69,6 @@ export default function SeasonCard() {
         )}
         {message && <div className="text-caption text-textSecondary mt-2">{message}</div>}
       </div>
-    </div>
+    </AiCard>
   );
 }

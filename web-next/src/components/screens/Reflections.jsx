@@ -10,10 +10,13 @@ import JournalEntryModal from "../journal/JournalEntryModal";
 import { PlaceTag } from "../wandering/PlacePicker";
 import WeeklyReflectionView from "../journal/WeeklyReflectionView";
 import ExplorationsView from "../questionnaires/ExplorationsView";
+import HighlightsView from "../journal/HighlightsView";
 import { Modal } from "../ui/Modal";
+import { AiButton } from "../ui/Premium";
 
 const TABS = [
   { value: "entries", label: "Entries" },
+  { value: "highlights", label: "Highlights" },
   { value: "week", label: "This Week" },
   { value: "explorations", label: "Explorations" }
 ];
@@ -98,32 +101,39 @@ export default function Reflections() {
     setScanning(false);
   }
 
-  // After a first save, reopen the same entry in edit mode (instead of just
-  // closing) so photos and an AI reflection — which both need a real
-  // entry_id — are immediately available without a second trip to Reflections.
-  function handleSaved(saved) {
+  // Saving closes the page. Photos and a reflection live on the saved entry:
+  // tap it in the list to add them.
+  const [savedNote, setSavedNote] = useState("");
+  const savedTimer = useRef(null);
+  function handleSaved(saved, { wasNew } = {}) {
     setAddOpen(false);
+    setEditingEntry(null);
     setScanNote("");
-    setEditingEntry(saved);
+    setSavedNote(wasNew ? "Saved. Tap the entry any time to add photos or get a reflection." : "Saved.");
+    clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSavedNote(""), 5000);
   }
 
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <div className="flex justify-between items-start">
-        <SectionTitle>Reflections</SectionTitle>
+      <div className="flex justify-between items-center gap-3 mt-4">
+        <h1 className="font-serif text-h2 font-medium m-0">Reflections</h1>
         {tab === "entries" && (
-          <div className="flex gap-2 mt-5">
-            <Button size="sm" variant="secondary" icon={ScanText} onClick={() => scanInput.current?.click()} disabled={scanning}>
+          <div className="flex gap-2">
+            <AiButton size="sm" onClick={() => scanInput.current?.click()} busy={scanning}>
               {scanning ? "Scanning…" : "Scan a page"}
-            </Button>
+            </AiButton>
             <Button size="sm" icon={Plus} onClick={() => setAddOpen(true)}>Write</Button>
           </div>
         )}
       </div>
-      <div className="text-bodySm text-textSecondary -mt-2 mb-4">Your journal — just for you.</div>
+      <div className="text-bodySm text-textSecondary mt-2 mb-4">Your journal — just for you.</div>
 
       <input ref={scanInput} type="file" accept="image/*" multiple className="hidden" onChange={handleScan} />
+      {savedNote && (
+        <div role="status" className="text-bodySm text-textPrimary bg-surface1 border border-borderC rounded-sm p-3 mb-4">{savedNote}</div>
+      )}
       {scanNote && !editingEntry && (
         <div className="text-bodySm text-textSecondary bg-surface1 rounded-sm p-3 mb-4">{scanNote}</div>
       )}
@@ -132,7 +142,9 @@ export default function Reflections() {
         <SegmentedControl options={TABS} value={tab} onChange={setTab} />
       </div>
 
-      {tab === "week" ? (
+      {tab === "highlights" ? (
+        <HighlightsView onOpenEntry={setEditingEntry} />
+      ) : tab === "week" ? (
         <WeeklyReflectionView />
       ) : tab === "explorations" ? (
         <ExplorationsView />

@@ -109,6 +109,7 @@ export function AppDataProvider({ children }) {
   const [seasons, setSeasons] = useState([]);
   const [compassHistory, setCompassHistory] = useState([]);
   const [focusSessions, setFocusSessions] = useState([]);
+  const [highlights, setHighlights] = useState([]);
   const [wanderingStops, setWanderingStops] = useState([]);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
@@ -197,6 +198,7 @@ export function AppDataProvider({ children }) {
       loadSeasons();
       loadCompass();
       loadFocusSessions();
+      loadHighlights();
       loadAiConsent();
       loadReflections();
     } catch (e) {
@@ -1021,9 +1023,16 @@ export function AppDataProvider({ children }) {
     // Every completed hour of focus, across all sessions, grows a memento on
     // the flower that crossed it.
     const before = focusSessions.reduce((sum, f) => sum + (f.minutes || 0), 0);
+    // Every third hour, a highlight from the Seeker's own journal comes
+    // back instead (when they've kept any as mementos).
+    const personal = highlights.filter(h => h.as_memento).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     const mementos = [];
     for (let hour = Math.floor(before / 60) + 1; hour <= Math.floor((before + minutes) / 60); hour++) {
-      mementos.push({ id: mementoForHour(hour, userId), hour });
+      if (personal.length && hour % 3 === 0) {
+        mementos.push({ highlightId: personal[(hour / 3 - 1) % personal.length].id, hour });
+      } else {
+        mementos.push({ id: mementoForHour(hour, userId), hour });
+      }
     }
 
     const res = await supabase.from("focus_sessions").insert({
@@ -1056,6 +1065,37 @@ export function AppDataProvider({ children }) {
       .eq("id", id).eq("user_id", userId).select().single();
     if (res.error) throw res.error;
     setFocusSessions(prev => prev.map(f => (f.id === id ? res.data : f)));
+  }
+
+  // ── Journal highlights ──
+  // The Seeker's own words worth keeping: tagged, linked to a dream, and
+  // (if they like) returning as personal mementos.
+  async function loadHighlights() {
+    const res = await supabase.from("journal_highlights").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+    if (res.error) { console.error("[AppData] loadHighlights failed:", res.error); return; }
+    setHighlights(res.data || []);
+  }
+
+  async function addHighlight({ entryId, entryDate, text, tags = [], itemId = null, asMemento = true }) {
+    const res = await supabase.from("journal_highlights").insert({
+      user_id: userId, entry_id: entryId || null, entry_date: entryDate || null, text: text.trim(),
+      tags, item_id: itemId || null, as_memento: asMemento
+    }).select().single();
+    if (res.error) throw res.error;
+    setHighlights(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
+  async function updateHighlight(id, patch) {
+    const res = await supabase.from("journal_highlights").update(patch).eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setHighlights(prev => prev.map(h => (h.id === id ? res.data : h)));
+  }
+
+  async function deleteHighlight(id) {
+    const res = await supabase.from("journal_highlights").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setHighlights(prev => prev.filter(h => h.id !== id));
   }
 
   // ── AI consent ──
@@ -1555,6 +1595,7 @@ export function AppDataProvider({ children }) {
     seasons, currentSeason: seasons[0] || null, readSeason, aiUsageThisMonth,
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
     focusSessions, saveFocusSession, saveFocusNote,
+    highlights, addHighlight, updateHighlight, deleteHighlight,
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,

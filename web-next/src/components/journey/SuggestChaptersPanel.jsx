@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
+import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
 
 const MIN_MOMENTS = 3;
 
@@ -79,9 +80,9 @@ export default function SuggestChaptersPanel() {
 
   return (
     <div className="mb-5">
-      <Button variant="secondary" icon={Sparkles} onClick={runSuggest} disabled={loading}>
+      <AiButton onClick={runSuggest} busy={loading}>
         {loading ? "Reading your timeline…" : "Suggest chapters with AI"}
-      </Button>
+      </AiButton>
       {error && <div className="text-bodySm text-red-500 mt-2">{error}</div>}
     </div>
   );

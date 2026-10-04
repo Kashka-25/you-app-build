@@ -36,10 +36,13 @@ JSON shape:
     "life_areas": ["string"], "moments": ["string"], "chapters": ["string"], "related_entries": ["string, e.g. an entry date and why it connects"]
   },
   "reflection_question": "one thoughtful, open question",
-  "suggested_next_step": "one small, practical, optional suggestion, or empty string if none fits"
+  "suggested_next_step": "one small, practical, optional suggestion, or empty string if none fits",
+  "highlights": ["0 to 3 passages worth keeping, each copied EXACTLY, word for word, from the user's own writing"]
 }
 
-Keep "insights" to at most 8 items total across all categories — only include what is genuinely present, not an exhaustive checklist.`;
+Keep "insights" to at most 8 items total across all categories — only include what is genuinely present, not an exhaustive checklist.
+
+"highlights" are the user's own words worth keeping: a dream or idea they want to remember, a realisation, a line about who they are or want to be, something they'd want to read again. Copy each one exactly as written (one to three sentences, under 300 characters), never paraphrased, never fixed, never combined from separate places. Leave the list empty when nothing stands out; never pad it.`;
 
 Deno.serve(async req => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -126,11 +129,21 @@ ${COMPASS_GUIDANCE}` : SYSTEM_PROMPT,
       connections: Record<string, string[]>;
       reflection_question: string;
       suggested_next_step: string;
+      highlights?: string[];
     }>(raw);
 
     // Output moderation; `connections` only echoes the Seeker's own names.
-    const { value: parsed, stats } = moderate(unmoderated, ["connections"]);
+    const { value: parsed, stats } = moderate(unmoderated, ["connections", "highlights"]);
     if (stats.blocked) return json({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
+
+    // Highlights must be the user's own words: keep only passages that really
+    // appear in what they wrote (ignoring spacing and quote styles).
+    const squash = (t: string) => t.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, " ").trim().toLowerCase();
+    const source = squash([entry.content, ...transcriptions].join(" "));
+    const highlights = (Array.isArray(parsed.highlights) ? parsed.highlights : [])
+      .filter((h: unknown): h is string => typeof h === "string" && h.trim().length > 0 && h.length <= 600)
+      .filter(h => source.includes(squash(h)))
+      .slice(0, 3);
 
     const insightsWithIds = (parsed.insights || []).filter(item => item.text).map((item, i) => ({
       id: `${entryId}-${i}`,
@@ -150,6 +163,7 @@ ${COMPASS_GUIDANCE}` : SYSTEM_PROMPT,
           connections: parsed.connections || {},
           reflection_question: parsed.reflection_question || "",
           suggested_next_step: parsed.suggested_next_step || "",
+          highlights,
           model: "claude-sonnet-5",
           updated_at: new Date().toISOString()
         },

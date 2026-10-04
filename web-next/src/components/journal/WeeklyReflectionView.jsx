@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
+import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
 import { weekStartKey } from "../../lib/week";
 
 const SECTION_LABELS = [
@@ -111,11 +112,8 @@ export default function WeeklyReflectionView() {
       )}
 
       {reflection ? (
-        <div className="rounded-card bg-surface1 shadow-card p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <GlowBubble icon={Sparkles} size={36} />
-            <div className="text-label uppercase text-gold">Weekly reflection</div>
-          </div>
+        <AiCard>
+          <div className="mb-3"><AiLabel>Weekly reflection</AiLabel></div>
           {SECTION_LABELS.map(([key, label]) =>
             reflection.sections?.[key] ? (
               <div key={key} className="mb-3 last:mb-0">
@@ -124,15 +122,15 @@ export default function WeeklyReflectionView() {
               </div>
             ) : null
           )}
-          <button onClick={generate} disabled={loading} className="text-caption text-textMuted hover:text-textPrimary mt-2">
+          <AiLink onClick={generate} disabled={loading} className="mt-2">
             {loading ? "Regenerating…" : "Regenerate this week's reflection"}
-          </button>
-        </div>
+          </AiLink>
+        </AiCard>
       ) : (
         hasEntriesThisWeek && (
-          <Button variant="secondary" icon={Sparkles} onClick={generate} disabled={loading}>
+          <AiButton onClick={generate} busy={loading}>
             {loading ? "Reading your week…" : "Reflect on this week"}
-          </Button>
+          </AiButton>
         )
       )}
 

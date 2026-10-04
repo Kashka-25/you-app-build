@@ -104,6 +104,37 @@ sheet on tapping **+**, but the app currently jumps straight to the full
 
 ---
 
+## Journal highlights, premium AI look and fixes (Oct 4)
+
+- [x] **Saving an entry closes it**, with a short "Saved" note. Photos and
+      a reflection are added by tapping the saved entry.
+- [x] **"Scan a page" spacing**: the Reflections title and its buttons sit on
+      one line, with room before "Your journal — just for you."
+- [x] **Journal highlights** (`journal_highlights`,
+      `20261004120000_journal_highlights.sql`, applied Oct 4):
+      - Select any words in an entry → "Keep as a highlight": trim them,
+        tag them, link them to a dream (or any pursuit), and choose whether
+        they may come back as a memento. Works on new entries too (kept once
+        the entry saves).
+      - The journal reflection now also suggests up to 3 **moments worth
+        keeping**: the Seeker's exact words, checked server-side to really
+        be in the entry (`reflect-on-journal-entry`, deployed Oct 4).
+      - **Highlights tab** in Reflections: gathered under the dream each
+        feeds (dream ideas in one place), then the rest; filter by tag;
+        change the dream, toggle memento, remove. Highlights outlive a
+        deleted entry.
+      - **Personal mementos**: every third focus hour, a highlight kept as a
+        memento comes back instead of a library line, credited "From your
+        journal" with its date.
+- [x] **Premium AI look** (`components/ui/Premium.jsx`, `.ai-*` in
+      tokens.css): black-and-gold for every AI feature (journal and weekly
+      reflections, Season, chapter suggestions, value challenges, Harvest's
+      reflection, Scan a page, the AI settings card). Gold hairline border,
+      gold lettering and a soft sheen; the same in light and dark mode. Use
+      it for future premium features too.
+- [ ] Show a dream's highlights on the dream itself (Pursue card).
+- [ ] Highlights tab: more than tags and dreams? (search, by date)
+
 ## Sow · Tend · Harvest + the Threshold (Oct 1) — approved direction
 
 **The problem it answers:** "Why should I use this app, and how will it

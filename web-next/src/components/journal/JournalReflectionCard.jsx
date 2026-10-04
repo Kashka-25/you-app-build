@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Check, X, Pencil } from "lucide-react";
+import { Sparkles, Check, X, Pencil, Highlighter } from "lucide-react";
+import KeepHighlight from "./KeepHighlight";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
+import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
 
 const CATEGORY_LABELS = {
   theme: "Theme", emotion: "Emotion", value: "Value", dream: "Dream", goal: "Goal",
@@ -70,7 +72,10 @@ function InsightItem({ item, onEdit, onReject }) {
 // automatically, always the user's call (see reflect-on-journal-entry Edge
 // Function for the "mirror, not authority" system prompt this renders).
 export default function JournalReflectionCard({ entryId }) {
-  const { journalInsights, loadJournalInsight, generateJournalReflection, updateInsightItem } = useAppData();
+  const { journalInsights, loadJournalInsight, generateJournalReflection, updateInsightItem, journalEntries, highlights, addHighlight } = useAppData();
+  const [keeping, setKeeping] = useState(null);
+  const entry = journalEntries.find(e => e.id === entryId);
+  const isKept = text => highlights.some(h => h.entry_id === entryId && h.text.trim() === text.trim());
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
   const [error, setError] = useState("");
@@ -107,17 +112,12 @@ export default function JournalReflectionCard({ entryId }) {
   const hasConnections = Object.values(connections).some(v => Array.isArray(v) && v.length > 0);
 
   return (
-    <div className="rounded-card bg-surface1 shadow-card p-4 mt-4">
-      <div className="flex items-center gap-3 mb-2">
-        <GlowBubble icon={Sparkles} size={36} />
-        <div className="flex-1 flex items-center justify-between">
-          <div className="text-label uppercase text-gold">Reflection</div>
-          {insight && (
-            <button onClick={generate} disabled={loading} className="text-caption text-textMuted hover:text-textPrimary">
-              {loading ? "Regenerating…" : "Regenerate"}
-            </button>
-          )}
-        </div>
+    <AiCard className="mt-4">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <AiLabel>Reflection</AiLabel>
+        {insight && (
+          <AiLink onClick={generate} disabled={loading}>{loading ? "Regenerating…" : "Regenerate"}</AiLink>
+        )}
       </div>
 
       {!insight ? (
@@ -125,9 +125,9 @@ export default function JournalReflectionCard({ entryId }) {
           <div className="text-bodySm text-textMuted mb-3">
             YOU can offer a gentle, optional reflection on this entry — themes it noticed, a question to sit with. Always your call, and you can edit or remove anything it suggests.
           </div>
-          <Button variant="secondary" size="sm" onClick={generate} disabled={loading}>
+          <AiButton size="sm" onClick={generate} busy={loading}>
             {loading ? "Reflecting…" : "Get a reflection"}
-          </Button>
+          </AiButton>
         </>
       ) : (
         <>
@@ -167,6 +167,36 @@ export default function JournalReflectionCard({ entryId }) {
             </div>
           )}
 
+          {(insight.highlights || []).length > 0 && (
+            <div className="mb-3">
+              <div className="text-label uppercase text-textMuted mb-1.5">Moments worth keeping</div>
+              <div className="space-y-2">
+                {insight.highlights.map(text => (
+                  keeping === text ? (
+                    <KeepHighlight
+                      key={text}
+                      text={text}
+                      entryTags={entry?.tags || []}
+                      onKeep={async f => { await addHighlight({ ...f, entryId, entryDate: entry?.entry_date }); setKeeping(null); }}
+                      onCancel={() => setKeeping(null)}
+                    />
+                  ) : (
+                    <div key={text} className="flex items-start gap-2.5">
+                      <div className="flex-1 font-serif italic text-[16px] leading-snug text-textPrimary">“{text}”</div>
+                      {isKept(text) ? (
+                        <span className="flex-none text-caption text-[#E8C877] flex items-center gap-1 mt-1"><Check size={13} strokeWidth={2} /> Kept</span>
+                      ) : (
+                        <button type="button" onClick={() => setKeeping(text)} className="flex-none flex items-center gap-1 min-h-[36px] px-2.5 rounded-full border border-[#C9A24D]/60 text-caption text-[#F3DE9C]">
+                          <Highlighter size={13} strokeWidth={1.75} /> Keep
+                        </button>
+                      )}
+                    </div>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
+
           {insight.suggested_next_step && (
             <div>
               <div className="text-label uppercase text-textMuted mb-1">Possible next step</div>
@@ -176,7 +206,7 @@ export default function JournalReflectionCard({ entryId }) {
         </>
       )}
 
-      {error && <div className="text-bodySm text-red-500 mt-2">{error}</div>}
-    </div>
+      {error && <div className="text-bodySm text-[#F0A3A3] mt-2">{error}</div>}
+    </AiCard>
   );
 }

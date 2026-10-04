@@ -7,6 +7,7 @@ import { harvestWeekStartKey, weekRangeLabel, addDaysKey, WEEKDAY_SHORT, goBack,
 import { stepProgress } from "../ui/StepList";
 import { Button } from "../ui/Button";
 import WeekGarden from "../focus/WeekGarden";
+import { AiButton, AiCard } from "../ui/Premium";
 
 const MAX_SOWN = 3;
 
@@ -235,15 +236,15 @@ export default function HarvestScreen() {
         <section className="mb-7">
           <SectionLabel>Noticed</SectionLabel>
           {noticed ? (
-            <div className="rounded-card bg-surface1 shadow-card p-4">
+            <AiCard>
               <p className="font-serif text-h3 italic text-textPrimary whitespace-pre-wrap">{noticed}</p>
               <Link to="/reflections" className="inline-block mt-2 text-caption text-textMuted underline underline-offset-2">Read the full weekly reflection</Link>
-            </div>
+            </AiCard>
           ) : (
             <>
-              <Button variant="secondary" size="sm" icon={Sparkles} onClick={reflect} disabled={reflecting}>
+              <AiButton size="sm" onClick={reflect} busy={reflecting}>
                 {reflecting ? "Reading your week…" : `Reflect on ${which}`}
-              </Button>
+              </AiButton>
               <p className="text-caption text-textMuted mt-1.5">Uses your journal entries from that week. You'll be asked before anything is sent.</p>
             </>
           )}

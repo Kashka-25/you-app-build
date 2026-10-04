@@ -7,6 +7,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle, Placeholder } from "../Primitives";
 import { FloatingLabelField } from "../ui/Input";
 import { Button } from "../ui/Button";
+import { AiCard, AiLabel } from "../ui/Premium";
 
 // "My YOU" — the personal identity screen (MVP Feature 1). Account-level
 // bits (sign out) live here too since there's no separate Settings screen
@@ -132,11 +133,8 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
     : null;
 
   return (
-    <div className="mt-6 rounded-card bg-surface1 shadow-card p-4">
-      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
-        <Sparkles size={13} strokeWidth={1.75} />
-        AI reflections
-      </div>
+    <AiCard className="mt-6">
+      <div className="mb-2"><AiLabel>AI reflections</AiLabel></div>
       <div className="text-bodySm text-textSecondary mb-3">
         {on
           ? `On${since ? ` since ${since}` : ""}. When you ask for a reflection, the words you chose are sent to Claude (by Anthropic) only to write it.`
@@ -153,7 +151,7 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
             </span>
           </div>
           <div className="h-1.5 rounded-full bg-surface3 overflow-hidden">
-            <div className="h-full bg-forestAccent" style={{ width: `${Math.min(100, (usage.usd / AI_USER_MONTHLY_USD) * 100)}%` }} />
+            <div className="h-full bg-gradient-to-r from-[#8C6A24] via-[#C9A24D] to-[#F3DE9C]" style={{ width: `${Math.min(100, (usage.usd / AI_USER_MONTHLY_USD) * 100)}%` }} />
           </div>
           <div className="text-caption text-textMuted mt-1">Resets on the 1st. When it's used up, AI reflections rest; everything else keeps working.</div>
         </div>
@@ -162,7 +160,7 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
       <Button variant="secondary" size="sm" disabled={saving || aiConsent === null} onClick={toggle}>
         {saving ? "Saving…" : on ? "Turn off AI reflections" : "Turn on AI reflections"}
       </Button>
-    </div>
+    </AiCard>
   );
 }
 

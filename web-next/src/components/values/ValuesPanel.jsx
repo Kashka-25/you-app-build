@@ -15,6 +15,7 @@ import { GlowBubble } from "../ui/GlowBubble";
 import { Button } from "../ui/Button";
 import { DropdownSection } from "../Primitives";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
+import { AiButton, AiCard } from "../ui/Premium";
 import TrueNorthCard from "./TrueNorthCard";
 
 // One icon per authored PRESTIGE_LEVELS stage, same order -- a small growth
@@ -302,14 +303,9 @@ function ValueCard({
                   ))}
               </div>
 
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="w-full flex items-center justify-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-2 mt-3"
-              >
-                <Sparkles size={14} strokeWidth={1.75} />
+              <AiButton size="sm" full onClick={handleGenerate} busy={generating} className="mt-3">
                 {generating ? "Writing new challenges…" : "Generate more challenges"}
-              </button>
+              </AiButton>
               {genError && <div className="text-caption text-red-500 mt-1.5">{genError}</div>}
 
               <button
