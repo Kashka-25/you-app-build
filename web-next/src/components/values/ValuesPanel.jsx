@@ -15,6 +15,8 @@ import { GlowBubble } from "../ui/GlowBubble";
 import { Button } from "../ui/Button";
 import { DropdownSection } from "../Primitives";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
+import { AiButton, AiCard } from "../ui/Premium";
+import TrueNorthCard from "./TrueNorthCard";
 
 // One icon per authored PRESTIGE_LEVELS stage, same order -- a small growth
 // arc (point -> shoot -> tree -> blossom x2 -> tended green -> single spark
@@ -69,6 +71,7 @@ export default function ValuesPanel() {
 
   return (
     <div>
+      <TrueNorthCard />
       <div className="text-bodySm text-textSecondary mb-3">
         {activeValues.length} of {valueSlots} in focus
         <span className="text-textMuted"> · every value is always yours to choose</span>
@@ -171,7 +174,7 @@ function ValueCard({
       await onGenerate();
     } catch (e) {
       console.error("[ValuesPanel] generate failed:", e);
-      setGenError("Couldn't generate new challenges — check the Edge Function is deployed and try again.");
+      setGenError(e?.friendly || "Couldn't suggest new challenges right now. Try again in a little while.");
     }
     setGenerating(false);
   }
@@ -300,14 +303,9 @@ function ValueCard({
                   ))}
               </div>
 
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="w-full flex items-center justify-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-2 mt-3"
-              >
-                <Sparkles size={14} strokeWidth={1.75} />
+              <AiButton size="sm" full onClick={handleGenerate} busy={generating} className="mt-3">
                 {generating ? "Writing new challenges…" : "Generate more challenges"}
-              </button>
+              </AiButton>
               {genError && <div className="text-caption text-red-500 mt-1.5">{genError}</div>}
 
               <button

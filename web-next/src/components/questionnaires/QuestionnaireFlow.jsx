@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, ArrowLeft, LifeBuoy, Sprout, Archive, Wind } from "lucide-react";
+import { useEscape } from "../ui/useEscape";
 import { useAppData } from "../../lib/AppDataContext";
 import { fadeIn, sheetIn } from "../ui/motion";
 import { Button } from "../ui/Button";
@@ -102,6 +103,7 @@ export default function QuestionnaireFlow({ open, onClose, questionnaire, valueN
     setSaving(false);
   }
 
+  useEscape(open, () => close());
   async function close() {
     try {
       await saveCurrent();

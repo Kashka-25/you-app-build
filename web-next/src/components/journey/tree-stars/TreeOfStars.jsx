@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
 import { PILLAR_ICONS } from "../../../constants/pillarIcons";
@@ -7,11 +7,14 @@ import { VALUE_ICONS, getValueEntry } from "../../../constants/valueLibrary";
 import { useAppData } from "../../../lib/AppDataContext";
 import {
   INNER_PILLARS, OUTER_PILLARS, VALUE_COLORS, VALUE_PILLAR, VALUE_PILLAR2, TIERS,
-  getTier, getPrestigeStage, prestigeRequirement
+  getTier, getPrestigeStage, prestigeRequirement, PILLAR_COLORS
 } from "../../../constants/app.const";
 import { easeOut } from "../../ui/motion";
 import IdentityVisionModal from "../IdentityVisionModal";
 import StoryOfYou from "./StoryOfYou";
+import LifeConstellations from "./LifeConstellations";
+import GardenOfYou, { gardenLayout, MementoSpark } from "../../focus/GardenOfYou";
+import { GardenBloom, GardenSeed } from "../../focus/FocusFlower";
 
 // Tree of YOU v2 (Sep 28) — a cosmic tree:
 //   roots    = the 8 Pillars, underground. Inner roots (Body, Heart, Mind,
@@ -22,7 +25,8 @@ import StoryOfYou from "./StoryOfYou";
 //              (challenges completed + Light & Shadow explorations), coloured
 //              by prestige. Rested values are dormant branches: bare, never cut.
 //   sky      = the canopy reaches into the cosmos — visions as stars, and
-//              The Story of You above them.
+//              two doorways above them: The Story of You (Chapters) and
+//              Life Constellations (memories over the places they happened).
 // Nothing moves on its own: growth shows on open and on the Seeker's taps.
 
 const SVG_W = 800, SVG_H = 1120;
@@ -31,6 +35,7 @@ const GROUND_Y = 720;          // soil line
 const TRUNK_TOP_Y = 560;       // where branches leave the trunk
 const BRANCH_BASE_Y = 360, BRANCH_ARCH = 150, BRANCH_MARGIN_X = 80;
 const STORY_ORB = { x: TRUNK_X, y: 58 };
+const CONSTELLATION_ORB = { x: SVG_W - 92, y: 62 };
 const MAX_FRUIT = 8;
 
 // Spread n items across an arch, sampling the middle of each slot so a
@@ -158,7 +163,23 @@ function PortalSwirl({ origin, direction = "in" }) {
 }
 
 export default function TreeOfStars() {
-  const { pillars, values, identityVisions, valueChallenges, reflections, level } = useAppData();
+  const { pillars, values, identityVisions, valueChallenges, reflections, level, focusSessions } = useAppData();
+  // The garden: focus sessions growing around the trunk. Tapping it zooms
+  // the view down into the soil, then opens the garden up close.
+  const garden = useMemo(
+    () => gardenLayout(focusSessions, { trunkX: TRUNK_X, groundY: GROUND_Y, width: SVG_W }),
+    [focusSessions]
+  );
+  const [gardenZoom, setGardenZoom] = useState(false);
+  const [gardenOpen, setGardenOpen] = useState(false);
+  // Opened on a timer rather than when the zoom animation reports it's done:
+  // a browser that pauses animation (a hidden tab) would otherwise leave
+  // the Tree stuck zoomed in.
+  function openGarden() {
+    if (gardenZoom) return;
+    setGardenZoom(true);
+    setTimeout(() => { setGardenOpen(true); setGardenZoom(false); }, 700);
+  }
   const [selected, setSelected] = useState(null); // { type: "value"|"pillar"|"star", key }
   const [addingVision, setAddingVision] = useState(false);
 
@@ -209,8 +230,10 @@ export default function TreeOfStars() {
     const n = identityVisions.length;
     return identityVisions.map((v, i) => {
       const t = n <= 1 ? 0.25 : i / (n - 1);
-      let x = 70 + t * (SVG_W - 140);
-      if (Math.abs(x - TRUNK_X) < 70) x += x < TRUNK_X ? -70 : 70; // keep clear of The Story of You
+      // Spread across the sky, kept clear of The Story of You (centre) and
+      // the Life Constellations doorway (top right).
+      let x = 70 + t * (SVG_W - 250);
+      if (Math.abs(x - TRUNK_X) < 70) x += x < TRUNK_X ? -70 : 70;
       return { ...v, x, y: i % 2 ? 150 : 105 };
     });
   }, [identityVisions]);
@@ -247,7 +270,9 @@ export default function TreeOfStars() {
 
   const editingVision = selected?.type === "star" ? identityVisions.find(v => v.id === selected.key) : null;
   const [editOpen, setEditOpen] = useState(false);
-  const [storyOpen, setStoryOpen] = useState(false);
+  // Which full-screen sky is open through the portal: "story" | "constellations" | null.
+  const [sky, setSky] = useState(null);
+  const storyOpen = sky !== null;
   const [portalOrigin, setPortalOrigin] = useState(null);
   const [portalFx, setPortalFx] = useState(false);
   const [portalDir, setPortalDir] = useState("in");
@@ -262,13 +287,21 @@ export default function TreeOfStars() {
     return { x: rect.left + (svgX / SVG_W) * rect.width, y: rect.top + (svgY / SVG_H) * rect.height };
   }
 
-  function toggleStory(open) {
-    if (open) setPortalOrigin(svgPointToScreen(STORY_ORB.x, STORY_ORB.y));
-    setPortalDir(open ? "in" : "out");
+  function openSky(which) {
+    const orb = which === "constellations" ? CONSTELLATION_ORB : STORY_ORB;
+    if (which) setPortalOrigin(svgPointToScreen(orb.x, orb.y));
+    setPortalDir(which ? "in" : "out");
     setPortalFx(true);
     setTimeout(() => setPortalFx(false), 900);
-    setStoryOpen(open);
+    setSky(which);
   }
+
+  // Arriving with { open: "constellations" } (e.g. from a Wandering) opens
+  // that sky straight away — still a response to the Seeker's own tap.
+  const location = useLocation();
+  useEffect(() => {
+    if (location.state?.open === "constellations") openSky("constellations");
+  }, []);
 
   function portalClip(radiusPct) {
     const o = portalOrigin || { x: window.innerWidth / 2, y: 80 };
@@ -299,6 +332,11 @@ export default function TreeOfStars() {
         animate={{ scale: storyOpen ? 0.97 : 1, filter: storyOpen ? "blur(1.5px)" : "blur(0px)" }}
         transition={{ duration: 0.5, ease: easeOut }}
       >
+        <motion.div
+          style={{ transformOrigin: `50% ${(GROUND_Y / SVG_H) * 100}%` }}
+          animate={{ scale: gardenZoom ? 3.2 : 1, opacity: gardenZoom ? 0.6 : 1 }}
+          transition={{ duration: gardenZoom ? 0.75 : 0.5, ease: easeOut }}
+        >
         <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block w-full h-auto">
           <defs>
             <filter id="tosBlur" x="-100%" y="-100%" width="300%" height="300%">
@@ -436,6 +474,29 @@ export default function TreeOfStars() {
             );
           })}
 
+          {/* The garden: a bloom or resting seed for every focus session */}
+          {garden.length > 0 && (
+            <g
+              className="cursor-pointer"
+              role="button"
+              tabIndex={0}
+              aria-label={`Your garden: ${garden.length} focus ${garden.length === 1 ? "session" : "sessions"}. Open it.`}
+              onClick={openGarden}
+              onKeyDown={e => (e.key === "Enter" || e.key === " ") && openGarden()}
+              opacity={active ? 0.35 : 1}
+            >
+              <rect x={0} y={GROUND_Y - 60} width={SVG_W} height={80} fill="transparent" />
+              {garden.map(({ s, x, y, scale, opacity }) => (
+                <g key={s.id} opacity={opacity}>
+                  {s.outcome === "bloom"
+                    ? <GardenBloom x={x} y={y} color={PILLAR_COLORS[s.pillar] || "#C9A24D"} scale={scale} />
+                    : <GardenSeed x={x} y={y} scale={scale * 1.2} />}
+                  {(s.mementos || []).length > 0 && <MementoSpark x={x + 7 * scale} y={y - (s.outcome === "bloom" ? 30 : 10) * scale} scale={scale} />}
+                </g>
+              ))}
+            </g>
+          )}
+
           {/* Seed Being, at the base of the trunk */}
           <g opacity={active ? 0.4 : 1} className="transition-opacity duration-500">
             <circle cx={TRUNK_X} cy={GROUND_Y - 28} r={18} fill="#C9A24D" opacity={0.35} filter="url(#tosBlur)" />
@@ -471,7 +532,7 @@ export default function TreeOfStars() {
           {/* The Story of You — opens the cosmos of Chapters when tapped */}
           <motion.g
             className="cursor-pointer"
-            onClick={() => toggleStory(true)}
+            onClick={() => openSky("story")}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1.2, duration: 0.6, ease: easeOut }}
@@ -486,12 +547,43 @@ export default function TreeOfStars() {
               The Story of You
             </text>
           </motion.g>
+
+          {/* Life Constellations — memories over the places they happened */}
+          <motion.g
+            className="cursor-pointer"
+            role="button"
+            aria-label="Open Life Constellations"
+            onClick={() => openSky("constellations")}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.3, duration: 0.6, ease: easeOut }}
+          >
+            <circle cx={CONSTELLATION_ORB.x} cy={CONSTELLATION_ORB.y} r={34} fill="#4a8fa0" opacity={0.18} filter="url(#tosBlur)" />
+            <circle cx={CONSTELLATION_ORB.x} cy={CONSTELLATION_ORB.y} r={26} fill="none" stroke="#EDE6D6" strokeOpacity={0.25} strokeDasharray="1 5" />
+            <polyline
+              points={[[-12, 6], [-4, -6], [5, -2], [12, -10], [9, 8]].map(([dx, dy]) => `${CONSTELLATION_ORB.x + dx},${CONSTELLATION_ORB.y + dy}`).join(" ")}
+              fill="none" stroke="#EDE6D6" strokeOpacity={0.55} strokeWidth={0.9}
+            />
+            {[[-12, 6, 1.6], [-4, -6, 2.4], [5, -2, 1.5], [12, -10, 2.1], [9, 8, 1.4]].map(([dx, dy, r], i) => (
+              <circle key={i} cx={CONSTELLATION_ORB.x + dx} cy={CONSTELLATION_ORB.y + dy} r={r} fill={i === 1 ? "#C9A24D" : "#F7F1E1"} />
+            ))}
+            <text
+              x={CONSTELLATION_ORB.x} y={CONSTELLATION_ORB.y + 44} textAnchor="middle" fontSize="10.5" fill="#EDE6D6" opacity={0.85}
+              fontFamily="DM Sans, sans-serif" style={{ textTransform: "uppercase", letterSpacing: "0.08em" }}
+            >
+              Life Constellations
+            </text>
+          </motion.g>
         </svg>
+        </motion.div>
       </motion.div>
 
+      <GardenOfYou open={gardenOpen} sessions={focusSessions} onClose={() => setGardenOpen(false)} />
+
       <AnimatePresence>
-        {storyOpen && (
+        {sky && (
           <motion.div
+            key={sky}
             className="fixed inset-0 z-50 overflow-y-auto"
             style={{ background: "radial-gradient(120% 90% at 50% 10%, #171233 0%, #0b0a1c 45%, #050510 100%)" }}
             initial={{ clipPath: portalClip(1) }}
@@ -499,7 +591,9 @@ export default function TreeOfStars() {
             exit={{ clipPath: portalClip(1) }}
             transition={{ duration: 0.85, ease: easeOut }}
           >
-            <StoryOfYou onClose={() => toggleStory(false)} />
+            {sky === "story"
+              ? <StoryOfYou onClose={() => openSky(null)} />
+              : <LifeConstellations onClose={() => openSky(null)} />}
           </motion.div>
         )}
       </AnimatePresence>
@@ -513,6 +607,8 @@ export default function TreeOfStars() {
         <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "var(--gold)" }} />Branches · Values</span>
         <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: FRUIT_COLORS[0] }} />Fruit · lived depth</span>
         <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block bg-cream" />Stars · visions</span>
+        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#F2EBDA", boxShadow: "inset 0 0 0 2px #7A9B76" }} />Flowers · focus sessions</span>
+        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#4a8fa0" }} />Constellations · memories over places</span>
       </div>
 
       <AnimatePresence mode="wait">

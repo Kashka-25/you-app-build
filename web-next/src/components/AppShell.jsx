@@ -48,7 +48,7 @@ export default function AppShell() {
           </NavLink>
           <NavLink to="/journey" className={({ isActive }) => tabClass(isActive)}>
             <Compass size={20} strokeWidth={1.75} className="mx-auto mb-1" />
-            Journey
+            YOUrney
           </NavLink>
           <button onClick={() => setSheetOpen(true)} className="flex-1 text-center text-label text-textMuted pt-1.5">
             <div className="w-9 h-9 rounded-full bg-forestAccent mx-auto -mt-4 mb-1.5 flex items-center justify-center">

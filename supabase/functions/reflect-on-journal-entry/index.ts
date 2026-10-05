@@ -9,11 +9,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
 import { requireAiConsent } from "../_shared/consent.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
+import { checkDailyLimit } from "../_shared/limit.ts";
+import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
+import { loadCompass, COMPASS_GUIDANCE } from "../_shared/compass.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-const SYSTEM_PROMPT = `You are part of YOU, a personal life-journaling app. You are reflecting on a single journal entry the user just wrote.
+const SYSTEM_PROMPT = `You are part of YOU, a self-love and personal-growth app where people journal their lives. You are reflecting on a single journal entry the user just wrote.
 
 Your role is a mirror and reflective guide, never an authority. Follow these rules strictly:
 - Use tentative, invitational language: "I noticed...", "A possible pattern is...", "You mentioned...", "This may connect with...". Never state a psychological or emotional fact as certain.
@@ -33,10 +36,13 @@ JSON shape:
     "life_areas": ["string"], "moments": ["string"], "chapters": ["string"], "related_entries": ["string, e.g. an entry date and why it connects"]
   },
   "reflection_question": "one thoughtful, open question",
-  "suggested_next_step": "one small, practical, optional suggestion, or empty string if none fits"
+  "suggested_next_step": "one small, practical, optional suggestion, or empty string if none fits",
+  "highlights": ["0 to 3 passages worth keeping, each copied EXACTLY, word for word, from the user's own writing"]
 }
 
-Keep "insights" to at most 8 items total across all categories — only include what is genuinely present, not an exhaustive checklist.`;
+Keep "insights" to at most 8 items total across all categories — only include what is genuinely present, not an exhaustive checklist.
+
+"highlights" are the user's own words worth keeping: a dream or idea they want to remember, a realisation, a line about who they are or want to be, something they'd want to read again. Copy each one exactly as written (one to three sentences, under 300 characters), never paraphrased, never fixed, never combined from separate places. Leave the list empty when nothing stands out; never pad it.`;
 
 Deno.serve(async req => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -54,6 +60,8 @@ Deno.serve(async req => {
 
     const consent = await requireAiConsent(req, corsHeaders);
     if ("response" in consent) return consent.response;
+    const limited = await checkDailyLimit(req, corsHeaders);
+    if (limited) return limited;
 
     const { entryId } = await req.json();
     if (!entryId) return json({ error: "entryId is required" }, 400);
@@ -66,7 +74,7 @@ Deno.serve(async req => {
       .single();
     if (entryErr || !entry) return json({ error: "Entry not found" }, 404);
 
-    const [{ data: photos }, { data: values }, { data: items }, { data: chapters }, { data: recentInsights }] =
+    const [{ data: photos }, { data: values }, { data: items }, { data: chapters }, { data: recentInsights }, compass] =
       await Promise.all([
         supabase.from("journal_photos").select("transcription").eq("entry_id", entryId).not("transcription", "is", null),
         supabase.from("user_values").select("name, rating").eq("user_id", user.id),
@@ -78,13 +86,15 @@ Deno.serve(async req => {
           .eq("user_id", user.id)
           .neq("entry_id", entryId)
           .order("created_at", { ascending: false })
-          .limit(15)
+          .limit(15),
+        loadCompass(supabase, user.id)
       ]);
 
     const transcriptions = (photos || []).map(p => p.transcription).filter(Boolean);
 
     const contextDigest = {
       values: (values || []).map(v => `${v.name} (${v.rating || 0}/99)`),
+      compass,
       goals_and_dreams: (items || []).map(i => `${i.name} [${i.type}${i.done ? ", done" : ""}]`),
       life_chapters: (chapters || []).map(c => `${c.title} (${c.range_start} – ${c.range_end || "ongoing"})`),
       recent_entries: (recentInsights || []).map((r: { summary: string; journal_entries: { entry_date: string } }) => ({
@@ -107,19 +117,35 @@ USER CONTEXT (only use this to find genuine connections — do not restate it as
 ${JSON.stringify(contextDigest, null, 2)}`;
 
     const raw = await callClaude({
-      system: SYSTEM_PROMPT,
+      system: compass ? `${SYSTEM_PROMPT}
+
+${COMPASS_GUIDANCE}` : SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }], usage: { req, fn: "reflect-on-journal-entry" }
     });
 
-    const parsed = parseJsonResponse<{
+    const unmoderated = parseJsonResponse<{
       summary: string;
       insights: { category: string; text: string }[];
       connections: Record<string, string[]>;
       reflection_question: string;
       suggested_next_step: string;
+      highlights?: string[];
     }>(raw);
 
-    const insightsWithIds = (parsed.insights || []).map((item, i) => ({
+    // Output moderation; `connections` only echoes the Seeker's own names.
+    const { value: parsed, stats } = moderate(unmoderated, ["connections", "highlights"]);
+    if (stats.blocked) return json({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
+
+    // Highlights must be the user's own words: keep only passages that really
+    // appear in what they wrote (ignoring spacing and quote styles).
+    const squash = (t: string) => t.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, " ").trim().toLowerCase();
+    const source = squash([entry.content, ...transcriptions].join(" "));
+    const highlights = (Array.isArray(parsed.highlights) ? parsed.highlights : [])
+      .filter((h: unknown): h is string => typeof h === "string" && h.trim().length > 0 && h.length <= 600)
+      .filter(h => source.includes(squash(h)))
+      .slice(0, 3);
+
+    const insightsWithIds = (parsed.insights || []).filter(item => item.text).map((item, i) => ({
       id: `${entryId}-${i}`,
       category: item.category,
       text: item.text,
@@ -137,6 +163,7 @@ ${JSON.stringify(contextDigest, null, 2)}`;
           connections: parsed.connections || {},
           reflection_question: parsed.reflection_question || "",
           suggested_next_step: parsed.suggested_next_step || "",
+          highlights,
           model: "claude-sonnet-5",
           updated_at: new Date().toISOString()
         },

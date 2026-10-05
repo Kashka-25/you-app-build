@@ -27,12 +27,13 @@ export default function You() {
         <Placeholder label="avatar upgrade station">
           Sims/Fallout-style attribute-driven upgrades to your avatar, companion, and world — driven
           by Pillar/Value XP instead of just stat bars. Bigger design conversation before this gets
-          built; this is a placeholder, same as Legacy Mode below.
+          built; this is a placeholder for now.
         </Placeholder>
       </div>
 
       <div className="mt-2">
-        <ExploreLink to="/legacy" label="legacy mode" sub={'"My Story" export — future, design only'} />
+        <ExploreLink to="/mirror" label="the mirror" sub="this year so far, and this week one year ago" />
+        <ExploreLink to="/legacy" label="legacy" sub="your life, year by year" />
       </div>
     </div>
   );

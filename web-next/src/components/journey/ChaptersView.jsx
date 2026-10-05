@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Plus, Map, Sparkles } from "lucide-react";
+import { Plus, Map, Wheat } from "lucide-react";
 import { SectionTitle, ExploreLink } from "../Primitives";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import AddMomentModal from "./AddMomentModal";
+import { PhotoCarousel } from "../ui/PhotoCarousel";
+import { PlaceTag } from "../wandering/PlacePicker";
 import SuggestChaptersPanel from "./SuggestChaptersPanel";
+import SeasonCard from "./SeasonCard";
 
 function niceMomentDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -16,23 +19,33 @@ function inRange(momentDate, start, end) {
   return d >= new Date(start + "T00:00:00").getTime() && d <= new Date(end + "T00:00:00").getTime();
 }
 
+// The photos swipe on their own; the rest of the card opens the editor.
 function MomentCard({ moment, onEdit }) {
+  const hasPhotos = (moment.photo_urls || []).length > 0;
   return (
-    <button onClick={() => onEdit(moment)} className="block w-full text-left rounded-card bg-surface1 shadow-card p-4 mb-3">
-      {moment.photo_url && (
-        <img src={moment.photo_url} alt="" className="w-full h-36 object-cover rounded-sm mb-3" />
-      )}
-      <div className="flex items-center justify-between mb-1.5 gap-3">
-        <div className="font-serif text-h3 text-textPrimary">{moment.title}</div>
-        <span className="text-caption text-textMuted flex-none">{niceMomentDate(moment.moment_date)}</span>
-      </div>
-      {moment.description && <div className="text-bodySm text-textSecondary">{moment.description}</div>}
-      {!moment.photo_url && <div className="text-caption text-textMuted mt-1.5">Tap to edit or add a photo</div>}
-    </button>
+    <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
+      {hasPhotos && <PhotoCarousel urls={moment.photo_urls} className="h-44 mb-3" />}
+      <button onClick={() => onEdit(moment)} className="block w-full text-left">
+        <div className="flex items-center justify-between mb-1.5 gap-3">
+          <div className="font-serif text-h3 text-textPrimary">{moment.title}</div>
+          <span className="text-caption text-textMuted flex-none">{niceMomentDate(moment.moment_date)}</span>
+        </div>
+        {moment.description && <div className="text-bodySm text-textSecondary">{moment.description}</div>}
+        <PlaceTag stopId={moment.stop_id} className="mt-1.5" />
+        {!hasPhotos && <div className="text-caption text-textMuted mt-1.5">Tap to edit or add photos</div>}
+      </button>
+    </div>
   );
 }
 
-function ChapterGroup({ chapter, moments, onEditMoment }) {
+// Harvest notes kept during a chapter: what each week held, in your words.
+function chapterHarvests(harvests, chapter) {
+  return harvests
+    .filter(h => (h.note || "").trim() && h.week_start >= chapter.range_start && (!chapter.range_end || h.week_start <= chapter.range_end))
+    .sort((a, b) => (a.week_start > b.week_start ? 1 : -1));
+}
+
+function ChapterGroup({ chapter, moments, harvests, onEditMoment }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
@@ -46,12 +59,28 @@ function ChapterGroup({ chapter, moments, onEditMoment }) {
             </span>
           </div>
           <div className="text-bodySm text-textSecondary">{chapter.blurb}</div>
-          <div className="text-caption text-gold mt-1.5">{moments.length} {moments.length === 1 ? "moment" : "moments"} — {open ? "hide" : "show"}</div>
+          <div className="text-caption text-gold mt-1.5">
+            {moments.length} {moments.length === 1 ? "moment" : "moments"}
+            {harvests.length > 0 && ` · ${harvests.length} ${harvests.length === 1 ? "harvest" : "harvests"}`} — {open ? "hide" : "show"}
+          </div>
         </div>
       </button>
       {open && (
         <div className="mt-3 pt-3 border-t border-borderC">
           {moments.map(m => <MomentCard key={m.id} moment={m} onEdit={onEditMoment} />)}
+          {harvests.length > 0 && (
+            <div className="mt-1">
+              <div className="flex items-center gap-1.5 text-label uppercase text-textMuted mb-1.5">
+                <Wheat size={12} strokeWidth={1.75} /> From your harvests
+              </div>
+              {harvests.map(h => (
+                <div key={h.week_start} className="border-l-2 border-gold pl-2.5 mb-2">
+                  <div className="text-caption text-textMuted">Week of {niceMomentDate(h.week_start)}</div>
+                  <div className="text-bodySm text-textPrimary italic">{h.note}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -59,7 +88,7 @@ function ChapterGroup({ chapter, moments, onEditMoment }) {
 }
 
 export default function ChaptersView() {
-  const { moments, chapters: savedChapters } = useAppData();
+  const { moments, chapters: savedChapters, weekHarvests } = useAppData();
   const chapters = [...savedChapters].sort((a, b) => new Date(b.range_start) - new Date(a.range_start));
   const [addOpen, setAddOpen] = useState(false);
   const [editingMoment, setEditingMoment] = useState(null);
@@ -75,14 +104,7 @@ export default function ChaptersView() {
 
   return (
     <>
-      <div className="rounded-card bg-surface1 shadow-card p-4 mb-5 flex items-start gap-3">
-        <GlowBubble icon={Sparkles} size={40} />
-        <div>
-          <div className="text-label uppercase text-textMuted mb-1">Current Season</div>
-          <div className="font-serif text-h3 text-gold">Season of Letting Go</div>
-          <div className="text-bodySm text-textSecondary mt-1">Preview only — AI-inferred seasons aren't built yet.</div>
-        </div>
-      </div>
+      <SeasonCard />
 
       <SectionTitle>Your pursuits</SectionTitle>
       <ExploreLink to="/pursue" label="habits, goals & dreams" sub="full functional list — add, tag, complete" />
@@ -104,7 +126,7 @@ export default function ChaptersView() {
             <>
               <SectionTitle>Life chapters</SectionTitle>
               {grouped.map(({ chapter, moments: chapterMoments }) => (
-                <ChapterGroup key={chapter.id} chapter={chapter} moments={chapterMoments} onEditMoment={setEditingMoment} />
+                <ChapterGroup key={chapter.id} chapter={chapter} moments={chapterMoments} harvests={chapterHarvests(weekHarvests, chapter)} onEditMoment={setEditingMoment} />
               ))}
             </>
           )}

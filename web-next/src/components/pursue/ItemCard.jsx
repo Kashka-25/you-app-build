@@ -1,18 +1,17 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award, Star, Target, Sparkles, Pencil } from "lucide-react";
+import { Check, Flame, X, RotateCcw, ChevronDown, ChevronUp, Award, Star, Target, Sparkles, Pencil, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAppData } from "../../lib/AppDataContext";
 import { DAY_LABELS, TIERS, PILLAR_COLORS } from "../../constants/app.const";
 import { riseIn } from "../ui/motion";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
+import { StepList } from "../ui/StepList";
 import AddItemModal from "./AddItemModal";
+import { localDateKey as todayKey } from "../../lib/week";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
 
 // 8 small sparks radiating outward from the checkbox and fading — the one
 // moment (right when an item is confirmed complete) that gets an animated
@@ -38,9 +37,28 @@ function CompletionBurst() {
 
 export default function ItemCard({ item }) {
   const {
-    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone,
-    getPrestigeTier, prestigeItem
+    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
+    getPrestigeTier, prestigeItem, wanderings, wanderingStops, createWandering
   } = useAppData();
+  const navigate = useNavigate();
+  const [planning, setPlanning] = useState(false);
+  const [planError, setPlanError] = useState("");
+  // A dream's travel plan, if it has one (Wanderings live inside Dreams).
+  const wandering = item.type === "dream" ? wanderings.find(w => w.item_id === item.id) : null;
+  const wanderingStopCount = wandering ? wanderingStops.filter(s => s.wandering_id === wandering.id).length : 0;
+
+  async function planWandering() {
+    setPlanning(true);
+    setPlanError("");
+    try {
+      const w = await createWandering(item);
+      navigate(`/wandering/${w.id}`);
+    } catch (e) {
+      console.error("[ItemCard] createWandering failed:", e);
+      setPlanError("Couldn't start the wandering. Check your connection and try again.");
+      setPlanning(false);
+    }
+  }
   const [expanded, setExpanded] = useState(false);
   const [reflecting, setReflecting] = useState(false);
   const [reflection, setReflection] = useState("");
@@ -121,6 +139,16 @@ export default function ItemCard({ item }) {
             )}
           </div>
 
+          {wandering && (
+            <button
+              onClick={() => navigate(`/wandering/${wandering.id}`)}
+              className="mt-2 inline-flex items-center gap-1.5 text-caption text-forestAccent font-medium"
+            >
+              <MapPin size={13} strokeWidth={1.75} />
+              Wandering · {wanderingStopCount} {wanderingStopCount === 1 ? "stop" : "stops"}
+            </button>
+          )}
+
           {item.type === "habit" && !item.done && (
             <div className="flex gap-1.5 mt-2.5">
               {DAY_LABELS.map((d, i) => (
@@ -153,34 +181,39 @@ export default function ItemCard({ item }) {
               <div className="h-1.5 rounded-full bg-surface3 overflow-hidden">
                 <div className="h-full bg-forestAccent" style={{ width: `${msPct}%` }} />
               </div>
-              <div className="text-caption text-textMuted mt-1">{msDone}/{msTotal} milestones</div>
+              <div className="text-caption text-textMuted mt-1">{msDone} of {msTotal} {msTotal === 1 ? "step" : "steps"}</div>
             </div>
           )}
 
-          {(item.intention || item.note || msTotal > 0) && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-caption text-textSecondary mt-2"
-            >
-              {expanded ? "Collapse" : "Expand"}
-              {expanded ? <ChevronUp size={13} strokeWidth={1.75} /> : <ChevronDown size={13} strokeWidth={1.75} />}
-            </button>
-          )}
+          {/* Always offered, so any pursuit can be broken into smaller,
+              achievable steps right from its card. */}
+          <button
+            onClick={() => setExpanded(!expanded)}
+            aria-expanded={expanded}
+            className="flex items-center gap-1 text-caption text-textSecondary mt-2"
+          >
+            {expanded ? "Collapse" : msTotal > 0 || item.intention || item.note ? "Steps and notes" : "Break it into steps"}
+            {expanded ? <ChevronUp size={13} strokeWidth={1.75} /> : <ChevronDown size={13} strokeWidth={1.75} />}
+          </button>
           {expanded && (
-            <div className="mt-2 text-bodySm text-textSecondary space-y-1.5">
+            <div className="mt-2 text-bodySm text-textSecondary space-y-2">
               {item.intention && <div className="italic">{item.intention}</div>}
               {item.note && <div>{item.note}</div>}
-              {(item.milestones || []).map((m, mi) => (
-                <div key={mi} className="flex items-center gap-2">
-                  <button
-                    onClick={() => toggleMilestone(item.id, mi)}
-                    className={`w-4 h-4 flex-none rounded-full border text-[9px] ${m.done ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
-                  >
-                    {m.done ? "✓" : ""}
+              {item.type === "dream" && !wandering && !item.done && (
+                <div>
+                  <button onClick={planWandering} disabled={planning} className="inline-flex items-center gap-1.5 text-caption text-forestAccent font-medium disabled:opacity-60">
+                    <MapPin size={13} strokeWidth={1.75} />
+                    {planning ? "Unfolding the map…" : "Does this dream take you somewhere? Plan a wandering"}
                   </button>
-                  <span className={m.done ? "line-through decoration-wavy decoration-gold text-textMuted" : ""}>{m.text}</span>
+                  {planError && <div className="text-caption text-error mt-1">{planError}</div>}
                 </div>
-              ))}
+              )}
+              <StepList
+                steps={item.milestones || []}
+                onToggle={mi => toggleMilestone(item.id, mi)}
+                onAdd={item.done ? null : text => addMilestone(item.id, text)}
+                onRemove={item.done ? null : mi => removeMilestone(item.id, mi)}
+              />
             </div>
           )}
         </div>

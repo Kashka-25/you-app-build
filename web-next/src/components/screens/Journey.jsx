@@ -22,6 +22,9 @@ const TABS = [
 // is what makes this also work for a Link back into Journey from *inside*
 // Journey itself — the state-only useState initializer above only runs on
 // first mount, so without it a same-route Link's state was silently ignored.
+// Shown to the Seeker as "YOUrney" (renamed Oct 1: the whole life story is
+// the YOUrney). The route and code keep "journey" so old links still work.
+// Travel plans are a different thing: Wanderings, which live in Dreams.
 export default function Journey() {
   const location = useLocation();
   const [tab, setTab] = useState(location.state?.tab || "chapters");
@@ -32,7 +35,7 @@ export default function Journey() {
 
   return (
     <div className="pt-1 pb-24 px-5">
-      <SectionTitle>Journey</SectionTitle>
+      <SectionTitle>YOUrney</SectionTitle>
       <div className="mb-4">
         <SegmentedControl options={TABS} value={tab} onChange={setTab} />
       </div>

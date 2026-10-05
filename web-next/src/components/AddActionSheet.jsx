@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sprout, Sun, BookOpen, Repeat, Target, Star, Image, ArrowLeft, ChevronRight } from "lucide-react";
+import { Sprout, Sun, BookOpen, Repeat, Target, Star, Image, ArrowLeft, ChevronRight, X } from "lucide-react";
 import { fadeIn, sheetIn } from "./ui/motion";
 import { Button } from "./ui/Button";
+import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 
 // Three choices at the top level, never more (standing rule: max 2–3 at
@@ -94,6 +95,7 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
   }
 
   const journalKind = JOURNAL_KINDS.find(k => k.key === kind);
+  useEscape(open, handleClose);
 
   return (
     <AnimatePresence>
@@ -106,7 +108,12 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
           >
             {screen === "choices" && (
               <>
-                <div className="font-serif text-h2 mb-4">Add to your YOUniverse</div>
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div className="font-serif text-h2">Add to your YOUniverse</div>
+                  <button onClick={handleClose} aria-label="Close" className="text-textMuted hover:text-textPrimary mt-1">
+                    <X size={20} strokeWidth={1.75} />
+                  </button>
+                </div>
                 <ChoiceList options={TOP} onPick={goTo} />
               </>
             )}

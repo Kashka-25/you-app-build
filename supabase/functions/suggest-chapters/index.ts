@@ -1,7 +1,9 @@
 // Supabase Edge Function: suggest-chapters
 //
 // Takes a list of the signed-in user's life moments and asks Claude to
-// group them into named "chapters" (eras). Returns suggestions only —
+// group them into named "chapters" (eras). Weekly Harvest notes, when sent,
+// are context only: they can shape a chapter's name and blurb, but only
+// moments are grouped. Returns suggestions only —
 // nothing is saved here; the app persists what the user accepts.
 //
 // Deploy: supabase functions deploy suggest-chapters
@@ -13,6 +15,8 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { logUsage } from "../_shared/usage.ts";
 import { requireAiConsent } from "../_shared/consent.ts";
+import { checkDailyLimit } from "../_shared/limit.ts";
+import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 // Haiku is the cheap/fast tier — plenty for grouping + naming a timeline.
@@ -42,8 +46,10 @@ serve(async (req) => {
     // Memories are reflection text: signed-in Seekers who have consented only.
     const consent = await requireAiConsent(req, corsHeaders);
     if ("response" in consent) return consent.response;
+    const limited = await checkDailyLimit(req, corsHeaders);
+    if (limited) return limited;
 
-    const { moments } = await req.json();
+    const { moments, harvests } = await req.json();
     if (!Array.isArray(moments) || moments.length === 0) {
       return jsonResponse({ error: "No moments provided" }, 400);
     }
@@ -54,7 +60,13 @@ serve(async (req) => {
       .map(m => `${m.moment_date} — ${m.title}${m.description ? `: ${m.description}` : ""}`)
       .join("\n");
 
-    const prompt = `You are helping someone see their own life story reflected back to them inside a personal-growth app called YOU. Below is a chronological timeline of real moments from their life (title and optional description per line).
+    const harvestLines = (Array.isArray(harvests) ? harvests : [])
+      .filter(h => h && h.week_start && String(h.note || "").trim())
+      .sort((a, b) => (a.week_start > b.week_start ? 1 : -1))
+      .map(h => `week of ${h.week_start} — ${String(h.note).trim()}`)
+      .join("\n");
+
+    const prompt = `You are helping someone see their own life story reflected back to them inside a self-love and personal-growth app called YOU. Below is a chronological timeline of real moments from their life (title and optional description per line).
 
 Group these moments into 2-5 "chapters" — meaningful, contiguous eras of their life, ordered chronologically, based on real thematic and temporal shifts you notice in the content (not arbitrary equal-sized slices). Each chapter needs:
 - "title": a short, grounded, evocative name (2-5 words). Avoid clichés, avoid therapy-speak, avoid being twee. Ground it in what's actually in their moments, not generic life-stage labels.
@@ -66,7 +78,10 @@ Every moment must belong to exactly one chapter. Respond with ONLY a JSON array,
 [{"title": "...", "range_start": "YYYY-MM-DD", "range_end": "YYYY-MM-DD", "blurb": "...", "moment_titles": ["..."]}]
 
 Timeline:
-${timeline}`;
+${timeline}${harvestLines ? `
+
+Weekly harvest notes (things they chose to remember at the end of a week). Use these only as context for naming chapters and writing blurbs that reflect what each era really held; they are not moments, never list them in moment_titles, and don't invent moments from them:
+${harvestLines}` : ""}`;
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -104,7 +119,10 @@ ${timeline}`;
       return jsonResponse({ error: "AI response wasn't valid JSON", raw: text }, 502);
     }
 
-    return jsonResponse({ chapters });
+    // Output moderation; moment_titles are the Seeker's own words, echoed back.
+    const { value: safeChapters, stats } = moderate(chapters, ["moment_titles", "range_start", "range_end"]);
+    if (stats.blocked) return jsonResponse({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
+    return jsonResponse({ chapters: safeChapters });
   } catch (e) {
     console.error("suggest-chapters error:", e);
     return jsonResponse({ error: String(e) }, 500);

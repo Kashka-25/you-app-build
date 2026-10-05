@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, Highlighter } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { MoodSelector } from "../ui/Input";
 import JournalPhotoSection from "./JournalPhotoSection";
 import JournalReflectionCard from "./JournalReflectionCard";
+import { localDateKey as todayKey } from "../../lib/week";
+import { stopsCoveringDate } from "../../lib/wandering";
+import PlacePicker from "../wandering/PlacePicker";
+import KeepHighlight from "./KeepHighlight";
 
 const labelClass = "block text-label uppercase text-textMuted mb-1.5";
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
 
 // Add and edit share one form, same pattern as AddMomentModal — prefilled
 // and pointed at editJournalEntry when an `entry` is passed in. On a
@@ -20,8 +20,9 @@ function todayKey() {
 // of just closing — Reflections.jsx uses this to reopen the same modal in
 // edit mode, since photos/AI reflection both need a real entry_id to attach
 // to and can't exist before the first save.
-export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
-  const { addJournalEntry, editJournalEntry, deleteJournalEntry } = useAppData();
+// `notice` (optional) is shown at the top, e.g. "check the words" after a scan.
+export default function JournalEntryModal({ open, onClose, onSaved, entry, notice }) {
+  const { addJournalEntry, editJournalEntry, deleteJournalEntry, wanderingStops, highlights, addHighlight } = useAppData();
   const isEdit = Boolean(entry);
 
   const [content, setContent] = useState("");
@@ -32,6 +33,12 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [stopId, setStopId] = useState(null);
+  // Highlights: the selected words, the one being kept, and (for a new
+  // entry) those waiting for the entry to be saved first.
+  const [selection, setSelection] = useState("");
+  const [keeping, setKeeping] = useState(null);
+  const [pending, setPending] = useState([]);
 
   useEffect(() => {
     if (!open) return;
@@ -39,9 +46,27 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
     setMood(entry?.mood || null);
     setEntryDate(entry?.entry_date || todayKey());
     setTags(entry?.tags || []);
+    setStopId(entry?.stop_id || null);
     setTagInput("");
     setError("");
+    setSelection("");
+    setKeeping(null);
+    setPending([]);
   }, [open, entry]);
+
+  function onSelect(e) {
+    const { selectionStart: a, selectionEnd: b, value } = e.target;
+    setSelection(b - a >= 3 ? value.slice(a, b).trim() : "");
+  }
+
+  async function keepHighlight(fields) {
+    if (isEdit) await addHighlight({ ...fields, entryId: entry.id, entryDate });
+    else setPending(p => [...p, fields]);
+    setKeeping(null);
+    setSelection("");
+  }
+
+  const kept = isEdit ? highlights.filter(h => h.entry_id === entry.id) : pending;
 
   function addTag(e) {
     if (e.key && e.key !== "Enter") return;
@@ -58,13 +83,16 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
     }
     setSaving(true);
     setError("");
+    // Only send a place when one could be chosen (see AddMomentModal).
+    const place = stopId || stopsCoveringDate(wanderingStops, entryDate).length > 0 || entry?.stop_id ? stopId : undefined;
     try {
       if (isEdit) {
-        const saved = await editJournalEntry(entry.id, { content: content.trim(), mood, entryDate, tags });
+        const saved = await editJournalEntry(entry.id, { content: content.trim(), mood, entryDate, tags, stopId: place });
         onSaved ? onSaved(saved) : onClose();
       } else {
-        const saved = await addJournalEntry({ content: content.trim(), mood, entryDate, tags });
-        onSaved ? onSaved(saved) : onClose();
+        const saved = await addJournalEntry({ content: content.trim(), mood, entryDate, tags, stopId: place });
+        for (const h of pending) await addHighlight({ ...h, entryId: saved.id, entryDate });
+        onSaved ? onSaved(saved, { wasNew: true }) : onClose();
       }
     } catch (e) {
       console.error("[JournalEntryModal] save failed:", e);
@@ -87,6 +115,7 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
 
   return (
     <Modal open={open} title={isEdit ? "Edit entry" : "New journal entry"} onClose={onClose}>
+      {notice && <div className="text-bodySm text-textSecondary bg-surface3 rounded-sm p-3 mb-3">{notice}</div>}
       <label className={labelClass}>Date</label>
       <input
         type="date"
@@ -95,6 +124,8 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
         max={todayKey()}
         onChange={e => setEntryDate(e.target.value)}
       />
+
+      <PlacePicker dateKey={entryDate} value={stopId} onChange={setStopId} autoSelect={!isEdit} />
 
       <label className={labelClass}>How are you feeling? (optional)</label>
       <MoodSelector value={mood} onChange={setMood} className="mb-3" />
@@ -107,7 +138,38 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry }) {
         placeholder="Write whatever feels true right now…"
         value={content}
         onChange={e => setContent(e.target.value)}
+        onSelect={onSelect}
       />
+
+      {keeping ? (
+        <KeepHighlight text={keeping} entryTags={tags} onKeep={keepHighlight} onCancel={() => setKeeping(null)} />
+      ) : selection ? (
+        <button
+          type="button"
+          onClick={() => setKeeping(selection)}
+          className="w-full flex items-center gap-2 min-h-[44px] px-3 mb-3 rounded-sm border border-gold/60 bg-[color-mix(in_srgb,var(--gold)_10%,transparent)] text-bodySm text-textPrimary text-left"
+        >
+          <Highlighter size={16} strokeWidth={1.75} className="text-gold flex-none" />
+          <span className="min-w-0 truncate">Keep “{selection}” as a highlight</span>
+        </button>
+      ) : (
+        content.trim().length > 20 && (
+          <div className="text-caption text-textMuted -mt-1.5 mb-3">Select any words to keep them as a highlight.</div>
+        )
+      )}
+
+      {kept.length > 0 && (
+        <div className="mb-3">
+          <div className={labelClass}>Kept from this entry</div>
+          <div className="space-y-1.5">
+            {kept.map((h, i) => (
+              <div key={h.id || i} className="font-serif italic text-[16px] leading-snug text-textPrimary border-l-2 border-gold pl-2.5">
+                “{h.text}”
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <label className={labelClass}>Tags / themes (optional)</label>
       <div className="flex flex-wrap gap-1.5 mb-1.5">

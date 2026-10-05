@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen, Sun, X } from "lucide-react";
+import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen, Sun, X, Sprout, Wheat, Timer } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLAR_COLORS } from "../../constants/app.const";
 import {
@@ -9,16 +9,16 @@ import {
 import { HeroCard, ReflectionCard } from "../ui/Card";
 import { GlowBubble } from "../ui/GlowBubble";
 import { MOODS } from "../ui/Input";
+import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
+import QuickList from "../sow/QuickList";
+import { NorthStar } from "../values/Crossroads";
+import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
-}
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
 }
 
 function niceDate(dateStr) {
@@ -64,8 +64,9 @@ function NowRow({ icon: Icon, label, children, divider = true }) {
 export default function Home() {
   const {
     items, activeValues, chapters, journalEntries, recentInsights, profile, loaded, completeItem, loadRecentInsights,
-    todos, toggleTodo, deleteTodo
+    todos, weekIntentions, weekHarvests, compass
   } = useAppData();
+  const hasIntentions = !useTodayList().isEmpty;
   const firstName = profile?.name?.split(" ")[0] || "Seeker";
   const [insightsLoaded, setInsightsLoaded] = useState(false);
 
@@ -89,6 +90,9 @@ export default function Home() {
   const hasNowContent = direction || quest || relevantValues.length > 0;
   const hasInsight = patterns.length > 0 || question;
   const activeItems = items.filter(i => !i.done).slice(0, 6);
+  const tendedDays = tendedDaysThisWeek(weekIntentions);
+  const sownThisWeek = weekIntentions.some(w => w.week_start === weekStartKey());
+  const offerSow = needsSowing(weekIntentions);
   const todaysMood = latestEntry?.entry_date === todayKey() ? MOODS.find(m => m.key === latestEntry.mood) : null;
 
   return (
@@ -107,6 +111,22 @@ export default function Home() {
           </div>
         )}
       </HeroCard>
+
+      {compass && (
+        <Link to="/you" className="block mt-4 rounded-card bg-surface1 shadow-card p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <NorthStar size={15} filled color="#9A7A2E" strokeWidth={1.5} />
+            <span className="text-label uppercase text-[#7A6024] dark:text-gold">Your compass</span>
+          </div>
+          {compass.compass_line && (
+            <p className="font-serif italic text-[20px] leading-snug text-forest dark:text-cream m-0 mb-2">{compass.compass_line}</p>
+          )}
+          <div className="text-caption text-textSecondary">
+            True North · <span className="font-semibold text-textPrimary">{compass.ordering[0].join(" & ")}</span>
+            {compass.ordering.length > 1 && <> · then {compass.ordering.slice(1, 3).map(g => g.join(" = ")).join(", ")}</>}
+          </div>
+        </Link>
+      )}
 
       <Link to="/pursue" className="flex items-center justify-between mt-4 mb-1">
         <span className="font-serif text-h2 font-medium text-textPrimary">Your pursuits</span>
@@ -136,33 +156,47 @@ export default function Home() {
         </div>
       </Link>
 
-      {todos.length > 0 && (
-        <div className="rounded-card bg-surface1 shadow-card p-4 mb-4">
-          <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
+      <div className="rounded-card bg-surface1 shadow-card p-4 mb-4">
+        <div className="flex items-center justify-between mb-1">
+          <Link to="/threshold" className="flex items-center gap-2 text-label uppercase text-gold">
             <Sun size={13} strokeWidth={1.75} />
             Today
-          </div>
-          {todos.map(t => (
-            <div key={t.id} className="flex items-center gap-3 py-1.5">
-              <button
-                onClick={() => toggleTodo(t.id)}
-                role="checkbox"
-                aria-checked={t.done}
-                aria-label={t.done ? `Mark "${t.text}" not done` : `Mark "${t.text}" done`}
-                className={`w-6 h-6 flex-none rounded-full border flex items-center justify-center ${
-                  t.done ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-transparent hover:border-forestAccent"
-                }`}
-              >
-                <Check size={12} strokeWidth={2.5} />
-              </button>
-              <div className={`flex-1 min-w-0 text-body ${t.done ? "text-textMuted line-through" : "text-textPrimary"}`}>{t.text}</div>
-              <button onClick={() => deleteTodo(t.id)} aria-label={`Remove "${t.text}"`} className="text-textMuted flex-none">
-                <X size={15} strokeWidth={1.75} />
-              </button>
-            </div>
-          ))}
+          </Link>
+          {sownThisWeek && tendedDays > 0 && (
+            <span className="text-caption text-textSecondary">Tended on {tendedDays} {tendedDays === 1 ? "day" : "days"} this week</span>
+          )}
         </div>
-      )}
+
+        <TodayIntentions />
+
+        <div className={hasIntentions ? "mt-2 pt-2 border-t border-borderC" : ""}>
+          <QuickList showLabel={hasIntentions} />
+        </div>
+
+        <Link to="/focus" className="flex items-center gap-2.5 text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
+          <Timer size={16} strokeWidth={1.75} />
+          <span className="flex-1">{hasIntentions ? "A focus session for something else" : "Start a focus session"}</span>
+          <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
+        </Link>
+
+        {harvestDue(weekIntentions, weekHarvests) && (
+          <Link to="/harvest" className="flex items-center gap-2.5 text-bodySm text-textPrimary mt-3 pt-3 border-t border-borderC">
+            <Wheat size={16} strokeWidth={1.75} className="text-gold" />
+            <span className="flex-1">{isSunday() ? "Harvest this week" : "Harvest last week"}: see what grew</span>
+            <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
+          </Link>
+        )}
+
+        {offerSow ? (
+          <Link to="/sow" className="flex items-center gap-2.5 text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
+            <Sprout size={16} strokeWidth={1.75} />
+            <span className="flex-1">{isSunday() ? "Sow next week" : "Sow your week"}: what do you want to grow?</span>
+            <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
+          </Link>
+        ) : sownThisWeek && (
+          <Link to="/sow" className="block mt-2 text-caption text-textMuted">Change your sowing</Link>
+        )}
+      </div>
 
       {hasNowContent && (
         <div className="rounded-card bg-surface1 shadow-card p-4 mb-4">
@@ -225,7 +259,7 @@ export default function Home() {
         </div>
       )}
 
-      {!hasNowContent && !latestEntry && !hasInsight && todos.length === 0 && (
+      {!hasNowContent && !latestEntry && !hasInsight && todos.length === 0 && !hasIntentions && (
         <div className="rounded-card border border-dashed border-borderC bg-surface1 p-4 text-bodySm text-textMuted">
           Tap Add to plant a habit, goal, or dream, or write your first journal entry — Home will start filling in from there.
         </div>

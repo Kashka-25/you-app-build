@@ -61,3 +61,113 @@ body {
   color: var(--text-primary);
   transition: background 0.2s, color 0.2s;
 }
+
+/* Wandering map pins — numbered stops on the route. Plain CSS because
+   MapLibre markers are DOM elements created outside React. */
+.wandering-pin {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--forest-accent);
+  color: #fff;
+  border: 2px solid var(--surface-2);
+  font: 600 12px/1 "DM Sans", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+.wandering-pin.is-selected {
+  background: var(--gold);
+  transform: scale(1.18);
+}
+.maplibregl-ctrl-attrib { font-size: 10px; }
+
+/* Night map chrome ("Everywhere you've been"): attribution and zoom
+   buttons dimmed to sit in the night palette instead of glaring white. */
+.night-map .maplibregl-ctrl-attrib,
+.night-map .maplibregl-ctrl-attrib.maplibregl-compact {
+  background: rgba(7, 11, 20, 0.75);
+  color: #8B8E87;
+}
+.night-map .maplibregl-ctrl-attrib a { color: #B8B3A9; }
+.night-map .maplibregl-ctrl-group {
+  background: rgba(20, 24, 22, 0.9);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.night-map .maplibregl-ctrl-group button + button { border-top-color: rgba(255, 255, 255, 0.08); }
+.night-map .maplibregl-ctrl-group .maplibregl-ctrl-icon { filter: invert(0.85); }
+.night-map .maplibregl-ctrl-attrib-button { filter: invert(0.85); }
+.night-map .maplibregl-ctrl-top-right { top: 150px; }
+
+/* "My Story" printing: only the book, on white, one year per page. The
+   book uses its own print typography (fixed point sizes), separate from
+   the app's type scale. */
+@media print {
+  @page { margin: 18mm 16mm; }
+  .no-print { display: none !important; }
+  html, body, .my-story { background: #fff !important; }
+  .my-story .book { box-shadow: none !important; border-radius: 0 !important; max-width: none !important; padding: 0 !important; margin: 0 !important; }
+  .my-story .book-page { break-before: page; }
+  .my-story .book-cover { break-after: page; padding-top: 30vh; }
+  .my-story .book-keep { break-inside: avoid; }
+  .my-story img { max-height: 90mm !important; }
+}
+
+/* ── YOUnderstanding: the AI (and future premium) look ──
+   Black-and-gold, used only for AI features so they read as something
+   special: a gold hairline border, gold lettering and a soft sheen. The
+   same in light and dark mode, on purpose. */
+:root {
+  --ai-ink: #0E1611;
+  --ai-ink-2: #15201A;
+  --ai-gold-1: #F3DE9C;
+  --ai-gold-2: #C9A24D;
+  --ai-gold-3: #8C6A24;
+}
+.ai-gold-text {
+  background: linear-gradient(100deg, var(--ai-gold-3) 0%, var(--ai-gold-2) 28%, var(--ai-gold-1) 50%, var(--ai-gold-2) 72%, var(--ai-gold-3) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ai-frame {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--ai-ink), var(--ai-ink)) padding-box,
+    linear-gradient(120deg, var(--ai-gold-3), var(--ai-gold-1) 35%, var(--ai-gold-2) 60%, var(--ai-gold-3)) border-box;
+}
+.ai-card {
+  border: 1px solid transparent;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(201, 162, 77, 0.16) 0%, transparent 55%) padding-box,
+    linear-gradient(180deg, var(--ai-ink-2), var(--ai-ink)) padding-box,
+    linear-gradient(135deg, var(--ai-gold-1), var(--ai-gold-3) 40%, rgba(201, 162, 77, 0.25) 70%, var(--ai-gold-2)) border-box;
+  color: #EDE6D6;
+  box-shadow: 0 10px 30px -12px rgba(201, 162, 77, 0.35), 0 4px 14px rgba(0, 0, 0, 0.12);
+  /* Everything inside reads on the dark card, in either mode. */
+  --text-primary: #F7F5EF;
+  --text-secondary: #CFC9BC;
+  --text-muted: #A3A69E;
+  --border: rgba(255, 255, 255, 0.09);
+  --surface-1: #1A231D;
+  --surface-2: #1F2922;
+  --surface-3: #26312A;
+  --field-shadow: rgba(0, 0, 0, 0.3);
+}
+@keyframes ai-sheen { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.ai-sheen { position: relative; overflow: hidden; isolation: isolate; }
+.ai-sheen::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(243, 222, 156, 0.18) 50%, transparent 70%);
+  background-size: 200% 100%; background-position: 200% 0;
+  transition: opacity 0.2s; opacity: 0;
+}
+.ai-sheen:hover::after, .ai-sheen[data-busy="true"]::after { opacity: 1; animation: ai-sheen 1.8s linear infinite; }
+.ai-sheen[data-busy="true"] .ai-gold-text { animation: ai-sheen 2.4s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .ai-sheen::after, .ai-sheen[data-busy="true"] .ai-gold-text { animation: none; }
+}

@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect, lazy, Suspense } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./lib/AuthContext";
 import SignIn from "./components/SignIn";
 import AppShell from "./components/AppShell";
@@ -11,12 +12,37 @@ import Pursue from "./components/screens/Pursue";
 import Empatherapy from "./components/screens/Empatherapy";
 import Reflections from "./components/screens/Reflections";
 import Legacy from "./components/screens/Legacy";
+import Mirror from "./components/screens/Mirror";
+import MyStory from "./components/screens/MyStory";
 import Settings from "./components/screens/Settings";
 import Styleguide from "./components/screens/Styleguide";
+import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
+import SowScreen from "./components/sow/SowScreen";
+import HarvestScreen from "./components/sow/HarvestScreen";
+import FocusScreen from "./components/focus/FocusScreen";
+import FocusWatcher from "./components/focus/FocusWatcher";
+// Loaded on demand: the map library is large, and only a Wandering needs it.
+const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
+import { thresholdOnOpen } from "./lib/week";
+
+// Opening the app lands on the Threshold first — once per session, only
+// when arriving at Home (a deep link goes where it points), and only if
+// the Seeker hasn't switched it off in My YOU.
+function useThresholdOnOpen(ready) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  useEffect(() => {
+    if (!ready || location.pathname !== "/" || !thresholdOnOpen()) return;
+    let seen = false;
+    try { seen = sessionStorage.getItem(THRESHOLD_SEEN) === "1"; } catch { /* ignore */ }
+    if (!seen) navigate("/threshold", { replace: true });
+  }, [ready]);
+}
 
 export default function App() {
   const { userId, loading } = useAuth();
+  useThresholdOnOpen(!loading && Boolean(userId));
 
   if (loading) {
     return (
@@ -28,8 +54,24 @@ export default function App() {
   if (!userId) return <SignIn />;
 
   return (
+    <>
+    <FocusWatcher />
     <Routes>
       <Route path="/styleguide" element={<Styleguide />} />
+      {/* Full-screen layers, outside the shell: no top bar, no nav. */}
+      <Route path="/threshold" element={<Threshold />} />
+      <Route path="/sow" element={<SowScreen />} />
+      <Route path="/harvest" element={<HarvestScreen />} />
+      <Route path="/focus" element={<FocusScreen />} />
+      <Route path="/my-story" element={<MyStory />} />
+      <Route
+        path="/wandering/:id"
+        element={
+          <Suspense fallback={<div className="min-h-dvh bg-bg flex justify-center items-center font-sans"><LoadingScreen label="Unfolding the map" /></div>}>
+            <WanderingScreen />
+          </Suspense>
+        }
+      />
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
         <Route path="/bring-me-back" element={<BringMeBackToMyself />} />
@@ -54,8 +96,10 @@ export default function App() {
         <Route path="/empatherapy" element={<Empatherapy />} />
         <Route path="/reflections" element={<Reflections />} />
         <Route path="/legacy" element={<Legacy />} />
+        <Route path="/mirror" element={<Mirror />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
+    </>
   );
 }

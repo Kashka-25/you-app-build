@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import {
@@ -7,6 +7,21 @@ import {
   STREAK_BONUS_INTERVAL, STREAK_BONUS_XP, getLevel, getTier, applyPrestigeGain
 } from "../constants/app.const";
 import { getValueEntry } from "../constants/valueLibrary";
+import { callCostUsd } from "./aiCost";
+import { compressImage, JOURNAL_PAGE } from "./imageCompress";
+import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
+import { markerXp, DAILY_FOCUS_XP_CAP } from "./focus";
+import { mementoForHour } from "../constants/mementos";
+
+// "Today" is always the Seeker's local date, never UTC.
+const todayKey = localDateKey;
+
+// Every photo of a memory, in carousel order (older rows only have the
+// single photo_path).
+export function momentPhotoPaths(m) {
+  if (m.photo_paths?.length) return m.photo_paths;
+  return m.photo_path ? [m.photo_path] : [];
+}
 
 const AppDataContext = createContext(null);
 
@@ -15,9 +30,15 @@ const AppDataContext = createContext(null);
 // unreachable (e.g. a paused free-tier Supabase project).
 const LOAD_TIMEOUT_MS = 8000;
 
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
+// XP for tending a sown intention — same as a habit check-in.
+const TEND_XP = 3;
+
+// Travel is scored by what the trip gave you, not how many places you
+// ticked off: each memory or journal entry pinned to a Wandering's place
+// earns this, to the trip's Pillar. Unpinning or deleting takes it back.
+export const TRAVEL_MEMORY_XP = 10;
+const travelKey = (kind, id) => `travel:${kind}:${id}`;
+
 function niceDate() {
   return new Date().toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -34,7 +55,10 @@ function dbToItem(row) {
     tags: row.tags || [], intention: row.intention || "", milestones: row.milestones || [],
     done: row.done, streak: row.streak || 0,
     days: row.days || [false, false, false, false, false, false, false],
-    lastCheckin: row.last_checkin || null, created: row.created, createdDate: row.created_date
+    lastCheckin: row.last_checkin || null, created: row.created, createdDate: row.created_date,
+    // Deliberately not written back by itemToRow: release/restore set it with
+    // their own update, so ordinary saves never touch (or depend on) it.
+    releasedAt: row.released_at || null
   };
 }
 // user_values columns added by the values_system migration (status,
@@ -79,6 +103,14 @@ export function AppDataProvider({ children }) {
   const [journalEntries, setJournalEntries] = useState([]);
   const [identityVisions, setIdentityVisions] = useState([]);
   const [todos, setTodos] = useState([]);
+  const [weekIntentions, setWeekIntentions] = useState([]);
+  const [weekHarvests, setWeekHarvests] = useState([]);
+  const [wanderings, setWanderings] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+  const [compassHistory, setCompassHistory] = useState([]);
+  const [focusSessions, setFocusSessions] = useState([]);
+  const [highlights, setHighlights] = useState([]);
+  const [wanderingStops, setWanderingStops] = useState([]);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
   const [aiConsent, setAiConsent] = useState(null);
@@ -99,16 +131,21 @@ export function AppDataProvider({ children }) {
   // life_moments photos live in a private storage bucket, so a usable
   // <img> URL has to be signed per file rather than read straight off the
   // row. Signed URLs expire, so this always regenerates rather than
-  // trusting anything persisted.
+  // trusting anything persisted. Every row gets photo_items ({ path, url }
+  // for the edit form), photo_urls (the carousel, in order) and photo_url
+  // (the cover, i.e. the first).
   const attachSignedPhotoUrls = useCallback(async (rows) => {
-    const withPhotos = rows.filter(r => r.photo_path);
-    if (withPhotos.length === 0) return rows;
-    const signed = await Promise.all(
-      withPhotos.map(r => supabase.storage.from("life-moments").createSignedUrl(r.photo_path, 3600))
-    );
+    const paths = [...new Set(rows.flatMap(momentPhotoPaths))];
     const urlByPath = {};
-    withPhotos.forEach((r, i) => { urlByPath[r.photo_path] = signed[i]?.data?.signedUrl || null; });
-    return rows.map(r => ({ ...r, photo_url: r.photo_path ? urlByPath[r.photo_path] : null }));
+    if (paths.length) {
+      const { data } = await supabase.storage.from("life-moments").createSignedUrls(paths, 3600);
+      (data || []).forEach(d => { if (d.path) urlByPath[d.path] = d.signedUrl || null; });
+    }
+    return rows.map(r => {
+      const photo_items = momentPhotoPaths(r).map(path => ({ path, url: urlByPath[path] || null }));
+      const photo_urls = photo_items.map(p => p.url).filter(Boolean);
+      return { ...r, photo_items, photo_urls, photo_url: photo_urls[0] || null };
+    });
   }, []);
 
   const load = useCallback(async () => {
@@ -155,6 +192,13 @@ export function AppDataProvider({ children }) {
       setIdentityVisions((identityVisionsRes.data || []).map(v => ({ ...v, category: normalizePillar(v.category) })));
       setSync("synced");
       loadTodos();
+      loadWeekIntentions();
+      loadWeekHarvests();
+      loadWanderings();
+      loadSeasons();
+      loadCompass();
+      loadFocusSessions();
+      loadHighlights();
       loadAiConsent();
       loadReflections();
     } catch (e) {
@@ -166,6 +210,59 @@ export function AppDataProvider({ children }) {
 
   useEffect(() => { if (!authLoading) load(); }, [authLoading, load]);
 
+  // ── Travel XP ledger ──
+  // Keeps memory-XP rows (tagged travel:<kind>:<id>) matched to what's
+  // actually pinned, however a memory got pinned or unpinned (forms, a
+  // stop's "Pin here", deleting a memory or a stop). One reconcile instead
+  // of XP logic scattered through every save path.
+  const reconciling = useRef(false);
+  useEffect(() => {
+    if (!loaded || !userId || reconciling.current) return;
+    const stopById = Object.fromEntries(wanderingStops.map(st => [st.id, st]));
+    const pinned = [
+      ...moments.filter(m => m.stop_id && stopById[m.stop_id]).map(m => ({ key: travelKey("moment", m.id), stop: stopById[m.stop_id], date: m.moment_date })),
+      ...journalEntries.filter(e => e.stop_id && stopById[e.stop_id]).map(e => ({ key: travelKey("entry", e.id), stop: stopById[e.stop_id], date: e.entry_date }))
+    ];
+    const ledger = memory.filter(r => (r.tags || []).some(t => t.startsWith("travel:")));
+    const missing = pinned.filter(p => !ledger.some(r => r.tags.includes(p.key)));
+    const stale = ledger.filter(r => !pinned.some(p => r.tags.includes(p.key)));
+    if (!missing.length && !stale.length) return;
+
+    reconciling.current = true;
+    (async () => {
+      try {
+        if (stale.length) {
+          const ids = stale.map(r => r.id).filter(Boolean);
+          if (ids.length) await supabase.from("memory").delete().in("id", ids).eq("user_id", userId);
+        }
+        let added = [];
+        if (missing.length) {
+          const rows = missing.map(p => {
+            const w = wanderings.find(x => x.id === p.stop.wandering_id);
+            const dream = w && items.find(i => i.id === w.item_id);
+            return {
+              user_id: userId, name: `Remembered in ${p.stop.place_name}`, type: "travel", xp: TRAVEL_MEMORY_XP,
+              date: niceDateFrom(p.date), date_key: p.date, cat: dream?.cat || "Spirit", tags: [p.key]
+            };
+          });
+          const res = await supabase.from("memory").insert(rows).select();
+          if (res.error) throw res.error;
+          added = res.data || [];
+        }
+        setMemory(prev => [...added.map(r => ({ ...r, cat: normalizePillar(r.cat) })), ...prev.filter(r => !stale.includes(r))]);
+      } catch (e) {
+        console.error("[AppData] travel XP reconcile failed:", e);
+      } finally {
+        reconciling.current = false;
+      }
+    })();
+  }, [loaded, userId, moments, journalEntries, wanderingStops, wanderings, memory, items]);
+
+  // Released pursuits are archived: everything outside this provider sees
+  // only active ones as `items`, and the archive as `releasedItems`.
+  const activeItems = useMemo(() => items.filter(i => !i.releasedAt), [items]);
+  const releasedItems = useMemo(() => items.filter(i => i.releasedAt), [items]);
+
   const totalXP = useMemo(() => memory.reduce((s, m) => s + (m.xp || 0), 0), [memory]);
   const level = useMemo(() => getLevel(totalXP), [totalXP]);
 
@@ -174,7 +271,7 @@ export function AppDataProvider({ children }) {
     const counts = Object.fromEntries(PILLARS.map(p => [p, 0]));
     const streaks = Object.fromEntries(PILLARS.map(p => [p, 0]));
     memory.forEach(m => { if (m.cat && xp[m.cat] !== undefined) xp[m.cat] += (m.xp || 0); });
-    items.filter(i => !i.done).forEach(i => {
+    activeItems.filter(i => !i.done).forEach(i => {
       if (i.cat && counts[i.cat] !== undefined) {
         counts[i.cat]++;
         if (i.streak > streaks[i.cat]) streaks[i.cat] = i.streak;
@@ -185,7 +282,7 @@ export function AppDataProvider({ children }) {
       name: p, xp: xp[p], pct: Math.round((xp[p] / maxXp) * 100),
       active: counts[p], bestStreak: streaks[p], color: PILLAR_COLORS[p]
     }));
-  }, [memory, items]);
+  }, [memory, activeItems]);
 
   async function saveItemRow(item) {
     const row = itemToRow(item, userId);
@@ -349,6 +446,24 @@ export function AppDataProvider({ children }) {
     await saveItemRow(updated);
   }
 
+  // Steps (stored as `milestones`) can be added and removed straight from a
+  // pursuit's card, not only from the edit form.
+  async function addMilestone(itemId, text) {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    const updated = { ...item, milestones: [...(item.milestones || []), { text, done: false }] };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
+  }
+
+  async function removeMilestone(itemId, mi) {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    const updated = { ...item, milestones: (item.milestones || []).filter((_, i) => i !== mi) };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
+  }
+
   // Updates only the rows that actually changed (callers build newValues
   // with .map, so an untouched value keeps its object identity). Replaces
   // the old delete-all-then-reinsert, which dropped row ids and would have
@@ -423,28 +538,42 @@ export function AppDataProvider({ children }) {
   }
 
   // Journey timeline: user-added life moments, distinct from the
-  // auto-generated `memory` XP log. photoFile is optional; when present it
-  // uploads to a private bucket under this user's own folder (matches the
-  // storage RLS policy: auth.uid() must equal the first path segment) and
-  // only the storage path is persisted — see attachSignedPhotoUrls for why.
-  async function addMoment({ title, momentDate, description, photoFile }) {
-    let photoPath = null;
-    if (photoFile) {
-      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-      photoPath = `${userId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("life-moments").upload(photoPath, photoFile);
-      if (upErr) throw upErr;
+  // auto-generated `memory` XP log. Photos are optional and there can be
+  // several (a carousel). Each is converted on the device first (see
+  // lib/imageCompress.js) and uploaded to a private bucket under this
+  // user's own folder (matches the storage RLS policy: auth.uid() must
+  // equal the first path segment); only storage paths are persisted, see
+  // attachSignedPhotoUrls for why. photo_path mirrors the first photo, so
+  // single-photo views keep working.
+  // stopId (optional): pin the memory to a Wandering stop. Only sent when
+  // given, so nothing changes for memories made where there's no stop.
+  async function uploadMomentPhotos(photos) {
+    const paths = [];
+    try {
+      for (const [i, ph] of photos.entries()) {
+        const path = `${userId}/${Date.now()}-${i}.${ph.ext}`;
+        const { error } = await supabase.storage.from("life-moments").upload(path, ph.blob, { contentType: ph.blob.type });
+        if (error) throw error;
+        paths.push(path);
+      }
+    } catch (e) {
+      // Don't leave half a carousel behind in storage.
+      if (paths.length) await supabase.storage.from("life-moments").remove(paths);
+      throw e;
     }
-    const row = { user_id: userId, title, description: description || "", moment_date: momentDate, photo_path: photoPath };
-    const res = await supabase.from("life_moments").insert(row).select().single();
-    if (res.error) throw res.error;
+    return paths;
+  }
 
-    let photo_url = null;
-    if (photoPath) {
-      const signed = await supabase.storage.from("life-moments").createSignedUrl(photoPath, 3600);
-      photo_url = signed.data?.signedUrl || null;
+  async function addMoment({ title, momentDate, description, photos = [], stopId }) {
+    const paths = await uploadMomentPhotos(photos);
+    const row = { user_id: userId, title, description: description || "", moment_date: momentDate, photo_paths: paths, photo_path: paths[0] || null };
+    if (stopId !== undefined) row.stop_id = stopId;
+    const res = await supabase.from("life_moments").insert(row).select().single();
+    if (res.error) {
+      if (paths.length) await supabase.storage.from("life-moments").remove(paths);
+      throw res.error;
     }
-    const newMoment = { ...res.data, photo_url };
+    const [newMoment] = await attachSignedPhotoUrls([res.data]);
     setMoments(prev => [newMoment, ...prev].sort((a, b) => new Date(b.moment_date) - new Date(a.moment_date)));
     return newMoment;
   }
@@ -453,43 +582,39 @@ export function AppDataProvider({ children }) {
     const moment = moments.find(m => m.id === id);
     setMoments(prev => prev.filter(m => m.id !== id));
     await supabase.from("life_moments").delete().eq("id", id).eq("user_id", userId);
-    if (moment?.photo_path) await supabase.storage.from("life-moments").remove([moment.photo_path]);
+    const paths = moment ? momentPhotoPaths(moment) : [];
+    if (paths.length) await supabase.storage.from("life-moments").remove(paths);
   }
 
-  // Edits an existing moment in place — the point of this (vs. delete +
-  // re-add) is exactly the workflow that prompted it: type up a moment now
-  // from a laptop with no photo, come back later (from a phone, once
-  // deployed) and attach one without losing the original entry, its date,
-  // or its place in the timeline. photoFile replaces any existing photo
-  // (old file is removed from storage); removePhoto clears it with no
-  // replacement; passing neither leaves the existing photo untouched.
-  async function editMoment(id, { title, momentDate, description, photoFile, removePhoto }) {
+  // Edits an existing moment in place, so a memory typed up now can get
+  // its photos later without losing its date or place in the timeline.
+  // `photoOrder` is the carousel as the form left it: existing photos as
+  // { path } and new ones as { blob, ext }. Existing photos missing from
+  // it are removed from storage. Leaving photoOrder out keeps the photos.
+  async function editMoment(id, { title, momentDate, description, photoOrder, stopId }) {
     const moment = moments.find(m => m.id === id);
     if (!moment) return;
 
-    let photoPath = moment.photo_path;
-    if (photoFile) {
-      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-      const newPath = `${userId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("life-moments").upload(newPath, photoFile);
-      if (upErr) throw upErr;
-      if (moment.photo_path) await supabase.storage.from("life-moments").remove([moment.photo_path]);
-      photoPath = newPath;
-    } else if (removePhoto && moment.photo_path) {
-      await supabase.storage.from("life-moments").remove([moment.photo_path]);
-      photoPath = null;
+    const before = momentPhotoPaths(moment);
+    let paths = before;
+    let added = [];
+    if (photoOrder) {
+      added = await uploadMomentPhotos(photoOrder.filter(p => !p.path));
+      let n = 0;
+      paths = photoOrder.map(p => p.path || added[n++]);
     }
 
-    const updates = { title, description: description || "", moment_date: momentDate, photo_path: photoPath };
+    const updates = { title, description: description || "", moment_date: momentDate, photo_paths: paths, photo_path: paths[0] || null };
+    if (stopId !== undefined) updates.stop_id = stopId;
     const res = await supabase.from("life_moments").update(updates).eq("id", id).eq("user_id", userId).select().single();
-    if (res.error) throw res.error;
-
-    let photo_url = null;
-    if (photoPath) {
-      const signed = await supabase.storage.from("life-moments").createSignedUrl(photoPath, 3600);
-      photo_url = signed.data?.signedUrl || null;
+    if (res.error) {
+      if (added.length) await supabase.storage.from("life-moments").remove(added);
+      throw res.error;
     }
-    const updatedMoment = { ...res.data, photo_url };
+    const removed = before.filter(p => !paths.includes(p));
+    if (removed.length) await supabase.storage.from("life-moments").remove(removed);
+
+    const [updatedMoment] = await attachSignedPhotoUrls([res.data]);
     setMoments(prev =>
       prev.map(m => (m.id === id ? updatedMoment : m)).sort((a, b) => new Date(b.moment_date) - new Date(a.moment_date))
     );
@@ -539,6 +664,438 @@ export function AppDataProvider({ children }) {
     const res = await supabase.from("todos").select("*").eq("user_id", userId).eq("todo_date", todayKey()).order("inserted_at");
     if (res.error) { console.error("[AppData] loadTodos failed:", res.error); return; }
     setTodos(res.data || []);
+  }
+
+  // ── Sow · Tend · Harvest ──
+  // Loaded outside the main batch for the same reason as todos: a database
+  // that hasn't run the week_intentions migration yet shouldn't stop the
+  // rest of the app loading. Only the current week and the week Sow is
+  // planning for (they differ on Sundays).
+  async function loadWeekIntentions() {
+    const weeks = [...new Set([harvestWeekStartKey(), weekStartKey(), sowWeekStartKey()])];
+    const res = await supabase.from("week_intentions").select("*").eq("user_id", userId).in("week_start", weeks).order("inserted_at");
+    if (res.error) { console.error("[AppData] loadWeekIntentions failed:", res.error); return; }
+    setWeekIntentions(res.data || []);
+  }
+
+  // Replaces a week's sowing with `picks` ([{ itemId, days, valueName }]).
+  // Kept rows keep their tended/rested history; dropped rows are removed
+  // (any XP they already earned stays in memory — it really happened).
+  async function sowWeek(weekStart, picks) {
+    const existing = weekIntentions.filter(w => w.week_start === weekStart);
+    const keepIds = new Set(picks.map(p => p.itemId));
+    const dropped = existing.filter(w => !keepIds.has(w.item_id));
+    if (dropped.length) {
+      const del = await supabase.from("week_intentions").delete().in("id", dropped.map(w => w.id)).eq("user_id", userId);
+      if (del.error) throw del.error;
+    }
+    const rows = picks.map(p => ({
+      user_id: userId, item_id: p.itemId, week_start: weekStart,
+      days: [...p.days].sort(), value_name: p.valueName || null
+    }));
+    let saved = [];
+    if (rows.length) {
+      const res = await supabase.from("week_intentions").upsert(rows, { onConflict: "user_id,week_start,item_id" }).select();
+      if (res.error) throw res.error;
+      saved = res.data || [];
+    }
+    setWeekIntentions(prev => [...prev.filter(w => w.week_start !== weekStart), ...saved]);
+  }
+
+  async function loadWeekHarvests() {
+    const res = await supabase.from("week_harvests").select("*").eq("user_id", userId).order("week_start", { ascending: false }).limit(600);
+    if (res.error) { console.error("[AppData] loadWeekHarvests failed:", res.error); return; }
+    setWeekHarvests(res.data || []);
+  }
+
+  // Release = archive, never delete: the pursuit leaves Pursue, Sow and
+  // Home but keeps its history, steps and XP, and can be restored.
+  async function setReleased(itemId, releasedAt) {
+    const res = await supabase.from("items").update({ released_at: releasedAt }).eq("id", itemId).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setItems(prev => prev.map(i => (i.id === itemId ? { ...i, releasedAt } : i)));
+  }
+  const releaseItem = itemId => setReleased(itemId, new Date().toISOString());
+  const restoreItem = itemId => setReleased(itemId, null);
+
+  // Closes a sown week. decisions: { [intentionId]: "carried" | "rested" |
+  // "released" } (anything unchosen rests). Carried ones are sown into the
+  // following week with the same days and value, up to Sow's limit of 3.
+  async function harvestWeek(weekStart, decisions, note) {
+    const sown = weekIntentions.filter(w => w.week_start === weekStart);
+    const nextWeek = addDaysKey(weekStart, 7);
+    const nextExisting = weekIntentions.filter(w => w.week_start === nextWeek);
+    const room = Math.max(0, 3 - nextExisting.length);
+    const outcomes = Object.fromEntries(sown.map(w => [w.id, decisions[w.id] || "rested"]));
+    const carried = sown
+      .filter(w => outcomes[w.id] === "carried" && !nextExisting.some(n => n.item_id === w.item_id))
+      .slice(0, room);
+
+    for (const w of sown) {
+      const res = await supabase.from("week_intentions").update({ outcome: outcomes[w.id] }).eq("id", w.id).eq("user_id", userId);
+      if (res.error) throw res.error;
+    }
+
+    let carriedRows = [];
+    if (carried.length) {
+      const res = await supabase.from("week_intentions").upsert(
+        carried.map(w => ({ user_id: userId, item_id: w.item_id, week_start: nextWeek, days: w.days || [], value_name: w.value_name })),
+        { onConflict: "user_id,week_start,item_id" }
+      ).select();
+      if (res.error) throw res.error;
+      carriedRows = res.data || [];
+      markWeekRested(nextWeek, false);
+    }
+
+    for (const w of sown.filter(x => outcomes[x.id] === "released")) await releaseItem(w.item_id);
+
+    const res = await supabase.from("week_harvests").upsert(
+      { user_id: userId, week_start: weekStart, note: (note || "").trim() || null, updated_at: new Date().toISOString() },
+      { onConflict: "user_id,week_start" }
+    ).select().single();
+    if (res.error) throw res.error;
+
+    setWeekIntentions(prev => [
+      ...prev.map(w => (outcomes[w.id] ? { ...w, outcome: outcomes[w.id] } : w)).filter(w => !carriedRows.some(c => c.id === w.id)),
+      ...carriedRows
+    ]);
+    setWeekHarvests(prev => [res.data, ...prev.filter(h => h.week_start !== weekStart)]);
+    return { carried: carriedRows.length, skippedForRoom: sown.filter(w => outcomes[w.id] === "carried").length - carried.length };
+  }
+
+  async function updateWeekIntention(id, updates) {
+    setWeekIntentions(prev => prev.map(w => (w.id === id ? { ...w, ...updates } : w)));
+    const res = await supabase.from("week_intentions").update(updates).eq("id", id).eq("user_id", userId);
+    if (res.error) console.error("[AppData] updateWeekIntention failed:", res.error);
+  }
+
+  // Tending logs a small memory entry against the item's Pillar, which is
+  // what grows that root on the Tree. Untending removes it again, so
+  // toggling can never farm XP.
+  async function toggleTended(id) {
+    const w = weekIntentions.find(x => x.id === id);
+    const item = w && items.find(i => i.id === w.item_id);
+    if (!w || !item) return;
+    const today = localDateKey();
+    const name = `Tended: ${item.name}`;
+    const tended = w.tended_dates || [];
+
+    if (tended.includes(today)) {
+      await updateWeekIntention(id, { tended_dates: tended.filter(d => d !== today) });
+      const mem = memory.find(m => m.name === name && m.date_key === today);
+      setMemory(prev => prev.filter(m => m !== mem));
+      if (mem?.id) await supabase.from("memory").delete().eq("id", mem.id).eq("user_id", userId);
+      return;
+    }
+
+    await updateWeekIntention(id, { tended_dates: [...tended, today] });
+    const entry = { name, type: item.type, xp: TEND_XP, date: niceDate(), date_key: today, cat: item.cat, tags: item.tags || [] };
+    setMemory(prev => [entry, ...prev]);
+    const res = await supabase.from("memory").insert({
+      user_id: userId, name: entry.name, type: entry.type, xp: entry.xp,
+      date: entry.date, date_key: entry.date_key, cat: entry.cat || null, tags: entry.tags
+    }).select().single();
+    if (res.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: res.data.id } : m)));
+  }
+
+  async function restIntentionToday(id) {
+    const w = weekIntentions.find(x => x.id === id);
+    if (!w) return;
+    const today = localDateKey();
+    const rested = w.rested_dates || [];
+    await updateWeekIntention(id, {
+      rested_dates: rested.includes(today) ? rested.filter(d => d !== today) : [...rested, today]
+    });
+  }
+
+  // ── Wanderings ──
+  // Travel plans that live as part of a Dream (one per dream). Loaded
+  // outside the main batch so a database without the wanderings migration
+  // still loads everything else.
+  async function loadWanderings() {
+    const [y, st] = await Promise.all([
+      supabase.from("wanderings").select("*").eq("user_id", userId).order("created_at"),
+      supabase.from("wandering_stops").select("*").eq("user_id", userId).order("position")
+    ]);
+    if (y.error || st.error) { console.error("[AppData] loadWanderings failed:", y.error || st.error); return; }
+    setWanderings(y.data || []);
+    setWanderingStops(st.data || []);
+  }
+
+  async function createWandering(item) {
+    const existing = wanderings.find(y => y.item_id === item.id);
+    if (existing) return existing;
+    const res = await supabase.from("wanderings").insert({ user_id: userId, item_id: item.id, title: item.name }).select().single();
+    if (res.error) throw res.error;
+    setWanderings(prev => [...prev, res.data]);
+    return res.data;
+  }
+
+  async function renameWandering(id, title) {
+    const res = await supabase.from("wanderings").update({ title, updated_at: new Date().toISOString() }).eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setWanderings(prev => prev.map(y => (y.id === id ? { ...y, title } : y)));
+  }
+
+  async function addWanderingStop(wanderingId, place) {
+    const siblings = wanderingStops.filter(s => s.wandering_id === wanderingId);
+    const last = [...siblings].sort((a, b) => a.position - b.position).pop();
+    const res = await supabase.from("wandering_stops").insert({
+      user_id: userId, wandering_id: wanderingId, position: (last?.position ?? -1) + 1,
+      place_name: place.name, place_detail: place.detail || null, country_code: place.countryCode || null,
+      lat: place.lat, lng: place.lng,
+      // A new stop starts where the last one leaves, so dates flow on.
+      arrive: last?.depart || null
+    }).select().single();
+    if (res.error) throw res.error;
+    setWanderingStops(prev => [...prev, res.data]);
+    return res.data;
+  }
+
+  async function updateWanderingStop(id, updates) {
+    const before = wanderingStops;
+    setWanderingStops(prev => prev.map(s => (s.id === id ? { ...s, ...updates } : s)));
+    const res = await supabase.from("wandering_stops").update(updates).eq("id", id).eq("user_id", userId);
+    if (res.error) { setWanderingStops(before); throw res.error; }
+  }
+
+  async function removeWanderingStop(id) {
+    const before = wanderingStops;
+    setWanderingStops(prev => prev.filter(s => s.id !== id));
+    const res = await supabase.from("wandering_stops").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) { setWanderingStops(before); throw res.error; }
+    // The database unpins its memories (on delete set null); mirror that here.
+    setMoments(prev => prev.map(m => (m.stop_id === id ? { ...m, stop_id: null } : m)));
+    setJournalEntries(prev => prev.map(e => (e.stop_id === id ? { ...e, stop_id: null } : e)));
+  }
+
+  // A journey that isn't part of a Dream yet becomes one, already done: the
+  // dream is created (Spirit · Travel), the Wandering joins it, and the
+  // usual dream XP is logged on the journey's own date.
+  async function makeWanderingDream(wanderingId) {
+    const w = wanderings.find(x => x.id === wanderingId);
+    if (!w || w.item_id) return;
+    const starts = wanderingStops.filter(s => s.wandering_id === wanderingId).map(s => s.arrive).filter(Boolean).sort();
+    const dateKey = starts[0] || todayKey();
+    const itemRes = await supabase.from("items").insert({
+      user_id: userId, name: w.title, type: "dream", cat: "Spirit", subcat: "Travel", note: "", tags: [], intention: "",
+      milestones: [], done: true, streak: 0, days: [false, false, false, false, false, false, false],
+      created: niceDateFrom(dateKey), created_date: dateKey
+    }).select().single();
+    if (itemRes.error) throw itemRes.error;
+    const linkRes = await supabase.from("wanderings").update({ item_id: itemRes.data.id, updated_at: new Date().toISOString() }).eq("id", wanderingId).eq("user_id", userId);
+    if (linkRes.error) throw linkRes.error;
+    const memRes = await supabase.from("memory").insert({
+      user_id: userId, name: w.title, type: "dream", xp: XP_VALS.dream, date: niceDateFrom(dateKey), date_key: dateKey, cat: "Spirit", tags: []
+    });
+    if (memRes.error) throw memRes.error;
+    await load();
+  }
+
+  // Swap a stop with its neighbour (dir -1 = earlier, +1 = later).
+  async function moveWanderingStop(id, dir) {
+    const stop = wanderingStops.find(s => s.id === id);
+    if (!stop) return;
+    const ordered = wanderingStops.filter(s => s.wandering_id === stop.wandering_id).sort((a, b) => a.position - b.position);
+    const idx = ordered.findIndex(s => s.id === id);
+    const other = ordered[idx + dir];
+    if (!other) return;
+    await updateWanderingStop(stop.id, { position: other.position });
+    await updateWanderingStop(other.id, { position: stop.position });
+  }
+
+  // Pin (or unpin, with null) an existing memory from a stop's page.
+  // kind: "moment" (life_moments) or "entry" (journal_entries).
+  async function pinMemory(kind, id, stopId) {
+    const table = kind === "moment" ? "life_moments" : "journal_entries";
+    const res = await supabase.from(table).update({ stop_id: stopId }).eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    if (kind === "moment") setMoments(prev => prev.map(m => (m.id === id ? { ...m, stop_id: stopId } : m)));
+    else setJournalEntries(prev => prev.map(e => (e.id === id ? { ...e, stop_id: stopId } : e)));
+  }
+
+  async function setStopDayPlan(stopId, dateKey, steps) {
+    const stop = wanderingStops.find(s => s.id === stopId);
+    if (!stop) return;
+    await updateWanderingStop(stopId, { day_plans: { ...(stop.day_plans || {}), [dateKey]: steps } });
+  }
+
+  // This calendar month's AI spend for the signed-in Seeker (their own
+  // ai_usage rows; RLS allows reading only those), for the allowance shown
+  // in Settings. UTC month, to match the server's count.
+  async function aiUsageThisMonth() {
+    const now = new Date();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+    const res = await supabase.from("ai_usage").select("model, input_tokens, output_tokens").eq("user_id", userId).gte("created_at", monthStart);
+    if (res.error) throw res.error;
+    return { calls: res.data.length, usd: res.data.reduce((s, r) => s + callCostUsd(r.model, r.input_tokens, r.output_tokens), 0) };
+  }
+
+  // Every AI call goes through here, so the server's own explanation (a
+  // beta allowance reached, a reply withheld by moderation) reaches the
+  // Seeker as `e.friendly` instead of a generic failure.
+  async function invokeAi(name, body) {
+    const { data, error } = await supabase.functions.invoke(name, { body });
+    if (error) {
+      let detail = null;
+      try { detail = await error.context?.json?.(); } catch { /* not JSON */ }
+      const e = new Error(detail?.message || detail?.error || error.message);
+      e.code = detail?.error || "ai_failed";
+      if (detail?.message) e.friendly = detail.message;
+      throw e;
+    }
+    if (data?.error) {
+      const e = new Error(data.message || data.error);
+      e.code = data.error;
+      if (data.message) e.friendly = data.message;
+      throw e;
+    }
+    return data;
+  }
+
+  // ── Seasons ──
+  // Read by the infer-season Edge Function from recent Harvests, only when
+  // asked. Newest row = the current season; earlier readings are kept.
+  async function loadSeasons() {
+    const res = await supabase.from("seasons").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(20);
+    if (res.error) { console.error("[AppData] loadSeasons failed:", res.error); return; }
+    setSeasons(res.data || []);
+  }
+
+  async function readSeason() {
+    await withAiConsent();
+    const data = await invokeAi("infer-season", {});
+    if (data?.empty) return { empty: true, message: data.message };
+    setSeasons(prev => [data.season, ...prev]);
+    return { empty: false, season: data.season };
+  }
+
+  // ── The Compass ──
+  // One row per walk of the Crossroads; the newest is the current compass,
+  // earlier ones are kept so the Mirror can show how it has shifted.
+  async function loadCompass() {
+    const res = await supabase.from("value_compass").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(20);
+    if (res.error) { console.error("[AppData] loadCompass failed:", res.error); return; }
+    setCompassHistory(res.data || []);
+  }
+
+  async function saveCompass({ ordering, hardest, crossings, compassLine }) {
+    const res = await supabase.from("value_compass").insert({
+      user_id: userId, ordering, hardest: hardest || null, crossings: crossings || 0,
+      compass_line: (compassLine || "").trim() || null
+    }).select().single();
+    if (res.error) throw res.error;
+    setCompassHistory(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
+  // The line can be written (or rewritten) after the order is set; it
+  // belongs to the current compass rather than starting a new one.
+  async function saveCompassLine(text) {
+    const current = compassHistory[0];
+    if (!current) throw new Error("No compass yet");
+    const res = await supabase.from("value_compass")
+      .update({ compass_line: (text || "").trim() || null, updated_at: new Date().toISOString() })
+      .eq("id", current.id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setCompassHistory(prev => [res.data, ...prev.slice(1)]);
+    return res.data;
+  }
+
+  // ── Focus sessions ──
+  // Finished and rested sessions: the garden around the Tree and in Harvest.
+  async function loadFocusSessions() {
+    const res = await supabase.from("focus_sessions").select("*").eq("user_id", userId).order("ended_at", { ascending: false }).limit(500);
+    if (res.error) { console.error("[AppData] loadFocusSessions failed:", res.error); return; }
+    setFocusSessions(res.data || []);
+  }
+
+  // Saves a finished or rested session. Focus XP comes from the markers
+  // reached (capped per day) and goes to the Pillar's roots through memory,
+  // like every other XP. A session on a sown intention also counts as
+  // tending it today, once (same 3 XP as ticking it).
+  async function saveFocusSession({ active, minutes, outcome, note }) {
+    const today = localDateKey();
+    const earnedToday = memory
+      .filter(m => m.date_key === today && (m.tags || []).some(t => t.startsWith("focus:")))
+      .reduce((sum, m) => sum + (m.xp || 0), 0);
+    const xp = active.pillar ? Math.max(0, Math.min(markerXp(minutes), DAILY_FOCUS_XP_CAP - earnedToday)) : 0;
+    // Every completed hour of focus, across all sessions, grows a memento on
+    // the flower that crossed it.
+    const before = focusSessions.reduce((sum, f) => sum + (f.minutes || 0), 0);
+    // Every third hour, a highlight from the Seeker's own journal comes
+    // back instead (when they've kept any as mementos).
+    const personal = highlights.filter(h => h.as_memento).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    const mementos = [];
+    for (let hour = Math.floor(before / 60) + 1; hour <= Math.floor((before + minutes) / 60); hour++) {
+      if (personal.length && hour % 3 === 0) {
+        mementos.push({ highlightId: personal[(hour / 3 - 1) % personal.length].id, hour });
+      } else {
+        mementos.push({ id: mementoForHour(hour, userId), hour });
+      }
+    }
+
+    const res = await supabase.from("focus_sessions").insert({
+      user_id: userId, item_id: active.itemId || null, intention_id: active.intentionId || null,
+      label: active.label, pillar: active.pillar || null, value_name: active.valueName || null,
+      planned_minutes: active.plannedMinutes || null, minutes, outcome, note: (note || "").trim() || null, xp, mementos,
+      started_at: new Date(active.startedAt).toISOString(), ended_at: new Date().toISOString(), date_key: today
+    }).select().single();
+    if (res.error) throw res.error;
+    setFocusSessions(prev => [res.data, ...prev]);
+
+    if (xp > 0) {
+      const entry = {
+        name: `Focus: ${active.label}`, type: "focus", xp, date: niceDate(), date_key: today,
+        cat: active.pillar, tags: [`focus:${res.data.id}`]
+      };
+      setMemory(prev => [entry, ...prev]);
+      const mem = await supabase.from("memory").insert({ user_id: userId, ...entry }).select().single();
+      if (mem.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: mem.data.id } : m)));
+    }
+
+    const w = active.intentionId && weekIntentions.find(x => x.id === active.intentionId);
+    const tendedNow = !!w && !(w.tended_dates || []).includes(today);
+    if (tendedNow) await toggleTended(w.id);
+    return { session: res.data, xp, tendedNow };
+  }
+
+  async function saveFocusNote(id, note) {
+    const res = await supabase.from("focus_sessions").update({ note: (note || "").trim() || null })
+      .eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setFocusSessions(prev => prev.map(f => (f.id === id ? res.data : f)));
+  }
+
+  // ── Journal highlights ──
+  // The Seeker's own words worth keeping: tagged, linked to a dream, and
+  // (if they like) returning as personal mementos.
+  async function loadHighlights() {
+    const res = await supabase.from("journal_highlights").select("*").eq("user_id", userId).order("created_at", { ascending: false });
+    if (res.error) { console.error("[AppData] loadHighlights failed:", res.error); return; }
+    setHighlights(res.data || []);
+  }
+
+  async function addHighlight({ entryId, entryDate, text, tags = [], itemId = null, asMemento = true }) {
+    const res = await supabase.from("journal_highlights").insert({
+      user_id: userId, entry_id: entryId || null, entry_date: entryDate || null, text: text.trim(),
+      tags, item_id: itemId || null, as_memento: asMemento
+    }).select().single();
+    if (res.error) throw res.error;
+    setHighlights(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
+  async function updateHighlight(id, patch) {
+    const res = await supabase.from("journal_highlights").update(patch).eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setHighlights(prev => prev.map(h => (h.id === id ? res.data : h)));
+  }
+
+  async function deleteHighlight(id) {
+    const res = await supabase.from("journal_highlights").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setHighlights(prev => prev.filter(h => h.id !== id));
   }
 
   // ── AI consent ──
@@ -631,13 +1188,38 @@ export function AppDataProvider({ children }) {
     await supabase.from("todos").update({ done: !todo.done }).eq("id", id).eq("user_id", userId);
   }
 
+  // A to-do's own smaller steps (todos.steps). Like the to-do itself: no
+  // Pillar, no XP — just a way to make a big-feeling thing doable.
+  async function setTodoSteps(id, steps) {
+    const prevTodos = todos;
+    setTodos(prev => prev.map(t => (t.id === id ? { ...t, steps } : t)));
+    const res = await supabase.from("todos").update({ steps }).eq("id", id).eq("user_id", userId);
+    if (res.error) {
+      setTodos(prevTodos);
+      throw res.error;
+    }
+  }
+  async function addTodoStep(id, text) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) await setTodoSteps(id, [...(todo.steps || []), { text, done: false }]);
+  }
+  async function toggleTodoStep(id, si) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) await setTodoSteps(id, (todo.steps || []).map((s, i) => (i === si ? { ...s, done: !s.done } : s)));
+  }
+  async function removeTodoStep(id, si) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) await setTodoSteps(id, (todo.steps || []).filter((_, i) => i !== si));
+  }
+
   async function deleteTodo(id) {
     setTodos(prev => prev.filter(t => t.id !== id));
     await supabase.from("todos").delete().eq("id", id).eq("user_id", userId);
   }
 
-  async function addJournalEntry({ content, mood, entryDate, tags }) {
+  async function addJournalEntry({ content, mood, entryDate, tags, stopId }) {
     const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey(), tags: tags || [] };
+    if (stopId !== undefined) row.stop_id = stopId;
     const res = await supabase.from("journal_entries").insert(row).select().single();
     if (res.error) throw res.error;
     setJournalEntries(prev =>
@@ -646,8 +1228,9 @@ export function AppDataProvider({ children }) {
     return res.data;
   }
 
-  async function editJournalEntry(id, { content, mood, entryDate, tags }) {
+  async function editJournalEntry(id, { content, mood, entryDate, tags, stopId }) {
     const updates = { content, mood: mood || null, entry_date: entryDate, tags: tags || [], updated_at: new Date().toISOString() };
+    if (stopId !== undefined) updates.stop_id = stopId;
     const res = await supabase.from("journal_entries").update(updates).eq("id", id).eq("user_id", userId).select().single();
     if (res.error) throw res.error;
     setJournalEntries(prev =>
@@ -660,7 +1243,12 @@ export function AppDataProvider({ children }) {
     setJournalEntries(prev => prev.filter(e => e.id !== id));
     setJournalInsights(prev => { const next = { ...prev }; delete next[id]; return next; });
     setJournalPhotos(prev => { const next = { ...prev }; delete next[id]; return next; });
+    // The photo rows go with the entry, but their files must be removed
+    // from storage too, or they're left behind using space.
+    const { data: pagePhotos } = await supabase.from("journal_photos").select("storage_path").eq("entry_id", id).eq("user_id", userId);
     await supabase.from("journal_entries").delete().eq("id", id).eq("user_id", userId);
+    const paths = (pagePhotos || []).map(p => p.storage_path).filter(Boolean);
+    if (paths.length) await supabase.storage.from("journal-photos").remove(paths);
   }
 
   // Journal photos (handwritten pages). Storage path is
@@ -677,10 +1265,13 @@ export function AppDataProvider({ children }) {
     return withUrls;
   }
 
-  async function addJournalPhoto(entryId, photoFile) {
-    const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
-    const storagePath = `${userId}/${entryId}/${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("journal-photos").upload(storagePath, photoFile);
+  // A page photo is converted on the device first (resized to the size
+  // Claude reads at, WebP, metadata stripped), then uploaded. Takes a File,
+  // or an already-converted { blob, ext } from compressImage.
+  async function addJournalPhoto(entryId, photo) {
+    const page = photo instanceof Blob ? await compressImage(photo, JOURNAL_PAGE) : photo;
+    const storagePath = `${userId}/${entryId}/${Date.now()}.${page.ext}`;
+    const { error: upErr } = await supabase.storage.from("journal-photos").upload(storagePath, page.blob, { contentType: page.blob.type });
     if (upErr) throw upErr;
     const res = await supabase
       .from("journal_photos")
@@ -692,6 +1283,42 @@ export function AppDataProvider({ children }) {
     const withUrl = { ...res.data, photo_url: signed.data?.signedUrl || null };
     setJournalPhotos(prev => ({ ...prev, [entryId]: [...(prev[entryId] || []), withUrl] }));
     return withUrl;
+  }
+
+  // "Scan a journal page": photos of handwritten pages become one entry.
+  // Consent is asked before anything is saved; then the pages are
+  // converted, a new entry is made for them, each page is attached and
+  // transcribed in order, and the transcriptions become the entry's text
+  // for the Seeker to read and correct. If a transcription can't be done
+  // (no allowance left, offline), the entry keeps its pages so it can be
+  // tried again from the entry. onProgress({ step, page, pages }).
+  async function scanJournalPages(files, { onProgress } = {}) {
+    await withAiConsent();
+    const pages = files.length;
+    onProgress?.({ step: "preparing", page: 0, pages });
+    const converted = [];
+    for (const f of files) converted.push(await compressImage(f, JOURNAL_PAGE));
+
+    let entry = await addJournalEntry({ content: "", entryDate: todayKey() });
+    const texts = [];
+    let failure = null;
+    for (const [i, page] of converted.entries()) {
+      onProgress?.({ step: "reading", page: i + 1, pages });
+      const photo = await addJournalPhoto(entry.id, page);
+      if (failure) continue;
+      try {
+        const done = await transcribeJournalPhoto(entry.id, photo.id);
+        if (done?.transcription) texts.push(done.transcription.trim());
+      } catch (e) {
+        failure = e;
+      }
+    }
+    if (texts.length) {
+      entry = await editJournalEntry(entry.id, {
+        content: texts.join("\n\n"), mood: null, entryDate: entry.entry_date, tags: []
+      });
+    }
+    return { entry, transcribed: texts.length, pages, failure };
   }
 
   async function deleteJournalPhoto(entryId, photoId) {
@@ -706,9 +1333,7 @@ export function AppDataProvider({ children }) {
   // then edit in place via editJournalPhotoTranscription.
   async function transcribeJournalPhoto(entryId, photoId) {
     await withAiConsent();
-    const { data, error } = await supabase.functions.invoke("transcribe-journal-photo", { body: { photoId } });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    const data = await invokeAi("transcribe-journal-photo", { photoId });
     setJournalPhotos(prev => ({
       ...prev,
       [entryId]: (prev[entryId] || []).map(p => (p.id === photoId ? { ...p, ...data.photo } : p))
@@ -746,9 +1371,7 @@ export function AppDataProvider({ children }) {
 
   async function generateJournalReflection(entryId) {
     await withAiConsent();
-    const { data, error } = await supabase.functions.invoke("reflect-on-journal-entry", { body: { entryId } });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    const data = await invokeAi("reflect-on-journal-entry", { entryId });
     setJournalInsights(prev => ({ ...prev, [entryId]: data.insight }));
     return data.insight;
   }
@@ -803,9 +1426,7 @@ export function AppDataProvider({ children }) {
 
   async function generateWeeklyReflection(weekStart) {
     await withAiConsent();
-    const { data, error } = await supabase.functions.invoke("weekly-reflection", { body: { weekStart } });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    const data = await invokeAi("weekly-reflection", { weekStart });
     if (data.empty) {
       setWeeklyReflections(prev => ({ ...prev, [weekStart]: null }));
       return { empty: true, message: data.message };
@@ -852,9 +1473,11 @@ export function AppDataProvider({ children }) {
   async function suggestChapters() {
     await withAiConsent();
     const payload = moments.map(m => ({ title: m.title, moment_date: m.moment_date, description: m.description }));
-    const { data, error } = await supabase.functions.invoke("suggest-chapters", { body: { moments: payload } });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+    // Harvest notes go along as context, so chapters reflect what each era
+    // held, not only its milestones. (All of them, not just recent weeks.)
+    const harvestRes = await supabase.from("week_harvests").select("week_start, note").eq("user_id", userId).not("note", "is", null);
+    const harvests = (harvestRes.data || []).filter(h => (h.note || "").trim());
+    const data = await invokeAi("suggest-chapters", { moments: payload, harvests });
     return data.chapters || [];
   }
 
@@ -938,17 +1561,13 @@ export function AppDataProvider({ children }) {
       ...(lib?.challenges || []).map(c => c.text),
       ...valueChallenges.filter(c => c.value_name === valueName).map(c => c.text)
     ];
-    const { data, error } = await supabase.functions.invoke("suggest-value-challenges", {
-      body: {
+    const data = await invokeAi("suggest-value-challenges", {
         valueName,
         tagline: lib?.tagline || "",
         tierName: tier.name,
         existingTexts,
         sampleChallenges: (lib?.challenges || []).slice(0, 3)
-      }
-    });
-    if (error) throw error;
-    if (data?.error) throw new Error(data.error);
+      });
 
     const rows = (data.challenges || []).map(c => ({
       user_id: userId, value_name: valueName, text: c.text, pts: c.pts, diff: c.diff || "bold"
@@ -961,20 +1580,28 @@ export function AppDataProvider({ children }) {
   }
 
   const value = {
-    userId, loaded, sync, items, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
+    userId, loaded, sync, items: activeItems, releasedItems, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
     identityVisions, todos,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
-    addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone,
+    addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
     addIdentityVision, editIdentityVision, deleteIdentityVision,
-    addTodo, toggleTodo, deleteTodo,
+    addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
+    weekIntentions, sowWeek, toggleTended, restIntentionToday,
+    weekHarvests, harvestWeek, releaseItem, restoreItem,
+    seasons, currentSeason: seasons[0] || null, readSeason, aiUsageThisMonth,
+    compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
+    focusSessions, saveFocusSession, saveFocusNote,
+    highlights, addHighlight, updateHighlight, deleteHighlight,
+    wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
+    moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
-    loadJournalPhotos, addJournalPhoto, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
+    loadJournalPhotos, addJournalPhoto, scanJournalPages, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,
     loadWeeklyReflection, generateWeeklyReflection, loadRecentInsights,
     loadEraInsights, loadEraWeeklyReflections,

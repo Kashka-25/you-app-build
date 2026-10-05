@@ -1,8 +1,10 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { fadeIn, sheetIn } from "./motion";
+import { useEscape } from "./useEscape";
 
 export function Modal({ open, onClose, title, children }) {
+  useEscape(open, onClose);
   return (
     <AnimatePresence>
       {open && (
@@ -18,7 +20,7 @@ export function Modal({ open, onClose, title, children }) {
           >
             <div className="flex items-center justify-between mb-4">
               <div className="font-serif text-h2">{title}</div>
-              <button onClick={onClose} className="text-textMuted hover:text-textPrimary">
+              <button onClick={onClose} aria-label="Close" className="text-textMuted hover:text-textPrimary">
                 <X size={20} strokeWidth={1.75} />
               </button>
             </div>

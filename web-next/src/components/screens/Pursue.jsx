@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { Wind, RotateCcw } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS } from "../../constants/app.const";
 import { BackRow, SectionTitle, DropdownSection } from "../Primitives";
 import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
+import { SegmentedControl } from "../ui/SegmentedControl";
+import WanderingsList from "../wandering/WanderingsList";
+
+// Two views: the pursuits themselves, and the Wanderings that grow out of
+// Dreams. Open on Wanderings with router state { view: "wanderings" }.
+const VIEWS = [
+  { value: "pursuits", label: "Pursuits" },
+  { value: "wanderings", label: "Wanderings" }
+];
 
 const FILTERS = ["all", "habit", "goal", "dream", "done"];
 
@@ -49,8 +60,13 @@ function GroupNode({ items, depth }) {
 }
 
 export default function Pursue() {
-  const { items } = useAppData();
+  const { items, releasedItems, restoreItem } = useAppData();
   const [filter, setFilter] = useState("all");
+  const location = useLocation();
+  const [view, setView] = useState(location.state?.view || "pursuits");
+  useEffect(() => {
+    if (location.state?.view) setView(location.state.view);
+  }, [location.key]);
 
   const filtered = items.filter(i => {
     if (filter === "done") return i.done;
@@ -69,6 +85,12 @@ export default function Pursue() {
     <div className="pt-1 pb-24 px-5">
       <BackRow />
       <SectionTitle>Your pursuits</SectionTitle>
+      <div className="mb-4">
+        <SegmentedControl options={VIEWS} value={view} onChange={setView} />
+      </div>
+
+      {view === "wanderings" ? <WanderingsList /> : (
+      <>
       <div className="flex gap-2 mb-4 overflow-x-auto">
         {FILTERS.map(f => (
           <button
@@ -94,6 +116,59 @@ export default function Pursue() {
           </DropdownSection>
         ))
       )}
+
+      {releasedItems.length > 0 && (
+        <DropdownSection title={`Released (${releasedItems.length})`}>
+          <ReleasedList items={releasedItems} onRestore={restoreItem} />
+        </DropdownSection>
+      )}
+      </>
+      )}
+    </div>
+  );
+}
+
+// Pursuits let go at Harvest — archived, not deleted. Their history and XP
+// stay; bringing one back returns it to Pursue, Sow and Home as it was.
+function ReleasedList({ items, onRestore }) {
+  const [busy, setBusy] = useState(null);
+  const [error, setError] = useState("");
+
+  async function restore(id) {
+    setBusy(id);
+    setError("");
+    try {
+      await onRestore(id);
+    } catch (e) {
+      console.error("[Pursue] restore failed:", e);
+      setError("Couldn't bring that back. Check your connection and try again.");
+    }
+    setBusy(null);
+  }
+
+  return (
+    <div className="mb-4">
+      <p className="text-bodySm text-textSecondary mb-3">Let go with thanks. Bring any of them back whenever you like.</p>
+      {items.map(item => (
+        <div key={item.id} className="flex items-center gap-3 py-2 border-b border-borderC last:border-b-0">
+          <Wind size={15} strokeWidth={1.75} className="text-textMuted flex-none" />
+          <div className="flex-1 min-w-0">
+            <div className="text-body text-textPrimary">{item.name}</div>
+            <div className="text-caption text-textMuted capitalize">
+              {item.type} · {item.cat} · released {new Date(item.releasedAt).toLocaleDateString("en-AU", { day: "numeric", month: "short" })}
+            </div>
+          </div>
+          <button
+            onClick={() => restore(item.id)}
+            disabled={busy === item.id}
+            className="flex-none inline-flex items-center gap-1 text-caption text-forestAccent font-medium disabled:opacity-50"
+          >
+            <RotateCcw size={13} strokeWidth={1.75} />
+            {busy === item.id ? "Restoring…" : "Bring back"}
+          </button>
+        </div>
+      ))}
+      {error && <div className="text-caption text-error mt-2">{error}</div>}
     </div>
   );
 }

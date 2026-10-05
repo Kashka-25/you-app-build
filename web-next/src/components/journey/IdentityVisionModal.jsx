@@ -3,13 +3,10 @@ import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS } from "../../constants/app.const";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
+import { localDateKey as todayKey } from "../../lib/week";
 
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
 
 // Handles both "add a new vision" and "edit an existing one", same as
 // AddMomentModal — prefilled and pointed at editIdentityVision when a

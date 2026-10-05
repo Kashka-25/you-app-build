@@ -4,16 +4,13 @@ import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS } from "../../constants/app.const";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
+import { localDateKey as todayKey } from "../../lib/week";
 
 const INTENTION_PROMPTS = {
   habit: "What will this practice awaken in you?",
   goal: "What will this unlock in you?",
   dream: "What does this dream mean to your soul?"
 };
-
-function todayKey() {
-  return new Date().toISOString().split("T")[0];
-}
 
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
@@ -77,7 +74,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
     if (e.key && e.key !== "Enter") return;
     const v = msText.trim();
     if (!v) return;
-    setMilestones([...milestones, { text: v }]);
+    setMilestones([...milestones, { text: v, done: false }]);
     setMsText("");
   }
 
@@ -165,28 +162,24 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
         placeholder="Type a tag, press enter"
       />
 
-      {type !== "habit" && (
-        <>
-          <label className={labelClass}>Milestones</label>
-          <div className="mb-1.5">
-            {milestones.map((m, i) => (
-              <div key={i} className="text-bodySm text-textSecondary flex justify-between items-center py-1">
-                <span>{i + 1}. {m.text}</span>
-                <button onClick={() => setMilestones(milestones.filter((_, mi) => mi !== i))} aria-label="Remove milestone">
-                  <X size={13} strokeWidth={1.75} />
-                </button>
-              </div>
-            ))}
+      <label className={labelClass}>Steps (optional)</label>
+      <div className="mb-1.5">
+        {milestones.map((m, i) => (
+          <div key={i} className="text-bodySm text-textSecondary flex justify-between items-center py-1">
+            <span>{i + 1}. {m.text}</span>
+            <button onClick={() => setMilestones(milestones.filter((_, mi) => mi !== i))} aria-label="Remove step">
+              <X size={13} strokeWidth={1.75} />
+            </button>
           </div>
-          <input
-            className={fieldClass}
-            value={msText}
-            onChange={e => setMsText(e.target.value)}
-            onKeyDown={addMilestone}
-            placeholder="Add a milestone, press enter"
-          />
-        </>
-      )}
+        ))}
+      </div>
+      <input
+        className={fieldClass}
+        value={msText}
+        onChange={e => setMsText(e.target.value)}
+        onKeyDown={addMilestone}
+        placeholder="Break it down: add a smaller step, press enter"
+      />
 
       <label className={labelClass}>{INTENTION_PROMPTS[type]}</label>
       <textarea
