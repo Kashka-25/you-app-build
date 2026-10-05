@@ -12,6 +12,7 @@ import { compressImage, JOURNAL_PAGE } from "./imageCompress";
 import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
 import { markerXp, DAILY_FOCUS_XP_CAP } from "./focus";
 import { mementoForHour } from "../constants/mementos";
+import { arcanumForQuestionnaire } from "../constants/arcana";
 
 // "Today" is always the Seeker's local date, never UTC.
 const todayKey = localDateKey;
@@ -116,6 +117,8 @@ export function AppDataProvider({ children }) {
   const [aiConsent, setAiConsent] = useState(null);
   const [consentPrompt, setConsentPrompt] = useState(null); // { resolve } while asking
   const [reflections, setReflections] = useState([]);
+  const [heldArcana, setHeldArcana] = useState([]);
+  const [ownTools, setOwnTools] = useState([]);
   // Journal AI state is intentionally NOT part of the initial `load()`
   // batch — insights/photos/weekly reflections are fetched lazily, on
   // demand, so opening the app doesn't pull in every entry's AI output and
@@ -201,6 +204,7 @@ export function AppDataProvider({ children }) {
       loadHighlights();
       loadAiConsent();
       loadReflections();
+      loadArcana();
     } catch (e) {
       console.error("[AppDataContext] load failed — continuing with local/empty state:", e);
       setSync("offline");
@@ -1166,12 +1170,87 @@ export function AppDataProvider({ children }) {
         }).select().single();
     if (res.error) throw res.error;
     setReflections(prev => existing ? prev.map(r => (r.id === existing.id ? res.data : r)) : [...prev, res.data]);
+    // A sitting started from a value or a Pillar puts its Arcanum in the
+    // Library too, so everything used lives in one place.
+    const arcanum = arcanumForQuestionnaire(questionnaire);
+    if (arcanum?.free && !heldArcana.some(h => h.slug === arcanum.slug)) {
+      addArcanum(arcanum.slug).catch(e => console.error("[AppData] auto-add Arcanum failed:", e));
+    }
     return res.data;
   }
 
   async function deleteReflectionSession(sessionId) {
     setReflections(prev => prev.filter(r => r.session_id !== sessionId));
     await supabase.from("reflections").delete().eq("session_id", sessionId).eq("user_id", userId);
+  }
+
+  // ── YOUniversity: Arcana + own tools ──
+  // What the Seeker holds. Free Arcana they add themselves; anything bought
+  // is granted server-side only (see the arcana migration).
+  async function loadArcana() {
+    const [held, tools] = await Promise.all([
+      supabase.from("user_arcana").select("*").eq("user_id", userId).order("acquired_at"),
+      supabase.from("own_tools").select("*").eq("user_id", userId).order("created_at", { ascending: false })
+    ]);
+    if (held.error) console.error("[AppData] load user_arcana failed:", held.error);
+    else setHeldArcana(held.data || []);
+    if (tools.error) console.error("[AppData] load own_tools failed:", tools.error);
+    else setOwnTools(tools.data || []);
+  }
+
+  async function addArcanum(slug) {
+    const res = await supabase.from("user_arcana")
+      .upsert({ user_id: userId, slug, source: "free" }, { onConflict: "user_id,slug", ignoreDuplicates: true })
+      .select();
+    if (res.error) throw res.error;
+    const row = (res.data || [])[0] || { user_id: userId, slug, source: "free", acquired_at: new Date().toISOString() };
+    setHeldArcana(prev => (prev.some(h => h.slug === slug) ? prev : [...prev, row]));
+  }
+
+  async function removeArcanum(slug) {
+    const res = await supabase.from("user_arcana").delete().eq("user_id", userId).eq("slug", slug);
+    if (res.error) throw res.error;
+    setHeldArcana(prev => prev.filter(h => h.slug !== slug));
+  }
+
+  function cleanTool(t) {
+    const trim = v => (v || "").trim() || null;
+    return { name: (t.name || "").trim(), learned_from: trim(t.learned_from), purpose: trim(t.purpose), how: trim(t.how) };
+  }
+
+  async function addOwnTool(tool) {
+    const res = await supabase.from("own_tools").insert({ user_id: userId, ...cleanTool(tool) }).select().single();
+    if (res.error) throw res.error;
+    setOwnTools(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
+  async function editOwnTool(id, tool) {
+    const res = await supabase.from("own_tools").update({ ...cleanTool(tool), updated_at: new Date().toISOString() })
+      .eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setOwnTools(prev => prev.map(t => (t.id === id ? res.data : t)));
+  }
+
+  async function deleteOwnTool(id) {
+    const res = await supabase.from("own_tools").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setOwnTools(prev => prev.filter(t => t.id !== id));
+  }
+
+  // Once a day, on the device's own date: used today, or not.
+  async function toggleToolUsedToday(id) {
+    const tool = ownTools.find(t => t.id === id);
+    if (!tool) return;
+    const today = todayKey();
+    const dates = tool.used_dates || [];
+    const used_dates = dates.includes(today) ? dates.filter(d => d !== today) : [...dates, today];
+    setOwnTools(prev => prev.map(t => (t.id === id ? { ...t, used_dates } : t)));
+    const res = await supabase.from("own_tools").update({ used_dates }).eq("id", id).eq("user_id", userId);
+    if (res.error) {
+      setOwnTools(prev => prev.map(t => (t.id === id ? tool : t)));
+      throw res.error;
+    }
   }
 
   async function addTodo(text) {
@@ -1600,6 +1679,7 @@ export function AppDataProvider({ children }) {
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
+    heldArcana, addArcanum, removeArcanum, ownTools, addOwnTool, editOwnTool, deleteOwnTool, toggleToolUsedToday,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
     loadJournalPhotos, addJournalPhoto, scanJournalPages, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,

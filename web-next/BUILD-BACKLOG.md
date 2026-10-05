@@ -104,6 +104,30 @@ sheet on tapping **+**, but the app currently jumps straight to the full
 
 ---
 
+## YOUniversity · Arcana (Oct 5)
+
+Add-ons ("Arcana": Latin for secrets; to the alchemists, the hidden essence
+that heals or transforms) found in Explore and kept in the Library. Each
+opens in its own format and plugs into other parts of YOU. Content lives in
+`constants/arcana.js`; the database knows which exist, which are free, and
+who holds what (`20261005100000_arcana.sql`, applied Oct 5).
+
+- [x] YOUniversity in the side menu: **Library** and **Explore** tabs.
+- [x] First Arcana, both free: Light & Shadow, Freeing the Dream. Starting
+      either from a value/Pillar also adds it to the Library.
+- [x] Arcanum page: about, inside, where it lives in YOU, Begin a sitting,
+      past sittings (continue / let go), remove from Library (free only).
+- [x] Own tools: tools picked up along the way (name, where from, what it
+      helps with, how), "I used this today", a four-week use strip.
+- [x] Only free Arcana can be added from the app; paid ones only by the
+      service role (future payment webhook).
+- [ ] Payments (Stripe) for paid Arcana, granting `user_arcana` server-side.
+- [ ] More formats: course, tool. More ways to plug in: challenges, values,
+      progress over time.
+- [ ] Support line in questionnaires: when the Empatherapy directory exists,
+      offer both "Talk to someone now" (findahelpline) and "Find a
+      practitioner" (Empatherapy), not one instead of the other.
+
 ## Journal highlights, premium AI look and fixes (Oct 4)
 
 - [x] **Saving an entry closes it**, with a short "Saved" note. Photos and

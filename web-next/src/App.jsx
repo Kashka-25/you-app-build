@@ -21,6 +21,9 @@ import SowScreen from "./components/sow/SowScreen";
 import HarvestScreen from "./components/sow/HarvestScreen";
 import FocusScreen from "./components/focus/FocusScreen";
 import FocusWatcher from "./components/focus/FocusWatcher";
+import YOUniversity from "./components/youniversity/YOUniversity";
+import ArcanumScreen from "./components/youniversity/ArcanumScreen";
+import OwnToolScreen from "./components/youniversity/OwnToolScreen";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
@@ -78,6 +81,9 @@ export default function App() {
         <Route path="/journey" element={<Journey />} />
         <Route path="/you" element={<You />} />
         <Route path="/pursue" element={<Pursue />} />
+        <Route path="/youniversity" element={<YOUniversity />} />
+        <Route path="/youniversity/arcanum/:slug" element={<ArcanumScreen />} />
+        <Route path="/youniversity/tool/:id" element={<OwnToolScreen />} />
 
         {/* Real, working screens end here. Everything below is intentionally
             gated behind "coming soon" until it has a real backend/data

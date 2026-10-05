@@ -11,6 +11,7 @@ const SITEMAP = [
   { to: "/", label: "Home", end: true },
   { to: "/journey", label: "YOUrney" },
   { to: "/reflections", label: "Reflections" },
+  { to: "/youniversity", label: "YOUniversity" },
   { to: "/community", label: "CommYOUnity" }
 ];
 
