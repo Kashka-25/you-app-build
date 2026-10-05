@@ -58,7 +58,7 @@ export function CalendarGrid({ month, markedDates, selectedDate, todayDate, onSe
               onClick={() => onSelectDate(key)}
               className={`aspect-square flex flex-col items-center justify-center rounded-full text-bodySm ${
                 selected
-                  ? "bg-forestAccent text-surface2 font-medium"
+                  ? "bg-forestAccent text-onAccent font-medium"
                   : today
                   ? "border border-gold text-textPrimary"
                   : "text-textPrimary"

@@ -270,7 +270,7 @@ function ValueCard({
                   <button
                     key={d}
                     onClick={() => setDiff(d)}
-                    className={`text-caption px-2.5 py-1 rounded-full ${diff === d ? "bg-forestAccent text-surface2" : "bg-surface3 text-textMuted"}`}
+                    className={`text-caption px-2.5 py-1 rounded-full ${diff === d ? "bg-forestAccent text-onAccent" : "bg-surface3 text-textMuted"}`}
                   >
                     {d}
                   </button>
@@ -291,7 +291,7 @@ function ValueCard({
                         onClick={() => !c.done && onCompleteLib(c.idx)}
                         disabled={c.done}
                         aria-label={c.done ? "Done" : "Mark done"}
-                        className={`w-6 h-6 flex-none rounded-full border text-caption ${c.done ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
+                        className={`w-6 h-6 flex-none rounded-full border text-caption ${c.done ? "bg-sage border-sage text-onAccent" : "border-borderC"}`}
                       >
                         {c.done ? "✓" : ""}
                       </button>
@@ -308,7 +308,7 @@ function ValueCard({
                         onClick={() => !c.completed && onCompleteAi(c.id)}
                         disabled={c.completed}
                         aria-label={c.completed ? "Done" : "Mark done"}
-                        className={`w-6 h-6 flex-none rounded-full border text-caption ${c.completed ? "bg-sage border-sage text-surface2" : "border-borderC"}`}
+                        className={`w-6 h-6 flex-none rounded-full border text-caption ${c.completed ? "bg-sage border-sage text-onAccent" : "border-borderC"}`}
                       >
                         {c.completed ? "✓" : ""}
                       </button>
@@ -521,7 +521,7 @@ function AddValuePicker({ adding, setAdding, available, activeValues, onPick, on
             <button
               key={key}
               onClick={() => setView(key)}
-              className={`text-caption px-2.5 py-1 rounded-full ${view === key ? "bg-forestAccent text-surface2" : "bg-surface3 text-textMuted"}`}
+              className={`text-caption px-2.5 py-1 rounded-full ${view === key ? "bg-forestAccent text-onAccent" : "bg-surface3 text-textMuted"}`}
             >
               {label}
             </button>

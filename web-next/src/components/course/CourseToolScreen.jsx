@@ -60,10 +60,10 @@ function UseCard({ use, tool, onDelete }) {
 export default function CourseToolScreen() {
   const { slug, toolId } = useParams();
   const navigate = useNavigate();
-  const { arcanaLoaded: loaded, heldArcana, courseProgress, toolUses, deleteToolUse } = useAppData();
+  const { arcanaLoaded: loaded, heldArcana, courseProgress, toolUses, deleteToolUse, walkFor } = useAppData();
   const arcanum = getArcanum(slug);
   const course = useCourse(arcanum);
-  const state = useMemo(() => (course ? courseState(course, slug, courseProgress) : null), [course, slug, courseProgress]);
+  const state = useMemo(() => (course ? courseState(course, slug, courseProgress, walkFor(slug)) : null), [course, slug, courseProgress]); // eslint-disable-line react-hooks/exhaustive-deps
   const uses = toolUses.filter(u => u.slug === slug && u.tool_id === toolId);
   const tool = course?.tools[toolId];
   const stage = course?.stages.find(s => s.practice.tool === toolId);

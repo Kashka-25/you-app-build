@@ -155,6 +155,34 @@ who holds what (`20261005100000_arcana.sql`, applied Oct 5).
       offer both "Talk to someone now" (findahelpline) and "Find a
       practitioner" (Empatherapy), not one instead of the other.
 
+## The course in your day (Oct 5, later)
+
+- [x] Home's Today card and the Threshold show each course in progress:
+      a part ready, the challenge being carried, or a rest (Home only).
+- [x] Bring Me Back to Myself: "Tools to steady you" first, hard-moment
+      tools (`quick: true`) leading, then your own tools.
+- [x] Listen: read aloud in the course player (device voice, en-AU first).
+- [x] Welcome back: after 7+ days away, a recap on the course page (last
+      part, stages walked, tools kept, a line you wrote, what's next), and a
+      "Welcome back" on Home.
+- [x] Walk a course again, as often as you like (`arcanum_walks`,
+      `arcanum_progress.walk` + `summary`; `20261005180000_arcanum_walks.sql`,
+      applied). "Your words" per stage for any walk, "Read again"
+      (read-only replay), "Your walks" date log, "Walk it again".
+- [x] Course answers in AI reviews only with a separate yes
+      (`ai_consent.include_courses`): asked once on the course page when AI
+      reflections are on; changeable in Settings. `weekly-reflection`
+      deployed (v8) to include that week's course answers.
+- [x] Light text on green everywhere (`text-onAccent`, 28 spots in 21
+      files), so selected chips, ticks and the Add button read in dark mode.
+- [x] **AI is YOU Premium** (future subscription). One gate in the app
+      (`lib/premium.js`, `invokeAi`) and one on the server (the shared
+      guard in `_shared/limit.ts`, all 6 AI functions redeployed Oct 5).
+      Open to everyone in the beta. To make it subscription-only: set
+      `PREMIUM_OPEN_IN_BETA = false` and the secret `AI_REQUIRE_PREMIUM=true`;
+      `entitlements.is_premium` then decides (service role only).
+- [ ] Payments for YOU Premium (Stripe webhook writing `entitlements`).
+
 ## Values in your own words + the Codex at 100 (Oct 5)
 
 - [x] Course values question: choose several; "Choose from all values"

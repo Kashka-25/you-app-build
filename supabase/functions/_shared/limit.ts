@@ -9,6 +9,12 @@
 //   3. Per-Seeker daily call cap   (AI_DAILY_LIMIT, default 30 calls per
 //      rolling 24 hours), a backstop against runaway bugs.
 //
+// Every AI feature is part of YOU Premium (a future subscription). The
+// premium check runs here first, so all AI functions share it: while
+// AI_REQUIRE_PREMIUM isn't "true" (the beta) everyone may use AI within the
+// caps below; once it is, only Seekers whose entitlements.is_premium is true
+// can. entitlements is written only by the service role (a payment webhook).
+//
 // Change any of them with a Supabase secret; no code change needed.
 // If usage can't be read, the call is allowed rather than locking people
 // out. The hard backstop is the spend limit on the Anthropic API key itself.
@@ -19,6 +25,7 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const DAILY_LIMIT = Number(Deno.env.get("AI_DAILY_LIMIT") || 30);
 const USER_MONTHLY_USD = Number(Deno.env.get("AI_USER_MONTHLY_USD") || 1);
 const MONTHLY_BUDGET_USD = Number(Deno.env.get("AI_MONTHLY_BUDGET_USD") || 20);
+const REQUIRE_PREMIUM = Deno.env.get("AI_REQUIRE_PREMIUM") === "true";
 
 // US$ per million tokens [input, output]. Unknown models are priced
 // high on purpose, so a mistake errs toward caution.
@@ -62,6 +69,17 @@ export async function checkDailyLimit(
         status: 401,
         headers: { ...headers, "Content-Type": "application/json" }
       });
+    }
+
+    // YOU Premium: AI is a premium feature (free for everyone in the beta).
+    if (REQUIRE_PREMIUM) {
+      const { data: ent } = await admin.from("entitlements").select("is_premium").eq("user_id", userId).maybeSingle();
+      if (!ent?.is_premium) {
+        return new Response(JSON.stringify({
+          error: "premium_required",
+          message: "AI reflections are part of YOU Premium. Everything else in YOU keeps working, and anything you write is saved."
+        }), { status: 402, headers: { ...headers, "Content-Type": "application/json" } });
+      }
     }
 
     const now = new Date();

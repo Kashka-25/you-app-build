@@ -43,14 +43,14 @@ function Row({ to, icon, own, name, meta, sub }) {
 }
 
 function Library({ onAddOwn, onExplore }) {
-  const { heldArcana, ownTools, reflections, courseProgress, toolUses } = useAppData();
+  const { heldArcana, ownTools, reflections, courseProgress, toolUses, walkFor, courseWalks } = useAppData();
   const [filter, setFilter] = useState("all");
 
   const held = useMemo(() => heldArcana.map(h => ({ ...getArcanum(h.slug), source: h.source })).filter(a => a.slug), [heldArcana]);
   const courses = useCourses(held);
   const states = useMemo(
-    () => Object.fromEntries(Object.entries(courses).map(([slug, c]) => [slug, courseState(c, slug, courseProgress)])),
-    [courses, courseProgress]
+    () => Object.fromEntries(Object.entries(courses).map(([slug, c]) => [slug, courseState(c, slug, courseProgress, walkFor(slug))])),
+    [courses, courseProgress, courseWalks] // eslint-disable-line react-hooks/exhaustive-deps
   );
   // Tools a course has given: each stage's practice, once it's done.
   const tools = useMemo(() => held.flatMap(a => (states[a.slug]?.unlockedTools || []).map(id => {

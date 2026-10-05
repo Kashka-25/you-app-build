@@ -90,12 +90,12 @@ export default function HighlightsView({ onOpenEntry }) {
       {allTags.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-4">
           <button type="button" onClick={() => setTag(null)} aria-pressed={!tag}
-            className={`text-caption px-3 py-1.5 rounded-full border ${!tag ? "bg-forestAccent text-surface2 border-forestAccent" : "border-borderC text-textSecondary"}`}>
+            className={`text-caption px-3 py-1.5 rounded-full border ${!tag ? "bg-forestAccent text-onAccent border-forestAccent" : "border-borderC text-textSecondary"}`}>
             All
           </button>
           {allTags.map(t => (
             <button type="button" key={t} onClick={() => setTag(tag === t ? null : t)} aria-pressed={tag === t}
-              className={`text-caption px-3 py-1.5 rounded-full border ${tag === t ? "bg-forestAccent text-surface2 border-forestAccent" : "border-borderC text-textSecondary"}`}>
+              className={`text-caption px-3 py-1.5 rounded-full border ${tag === t ? "bg-forestAccent text-onAccent border-forestAccent" : "border-borderC text-textSecondary"}`}>
               #{t}
             </button>
           ))}

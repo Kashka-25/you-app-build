@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check, Library, Sprout } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { getArcanum } from "../../constants/arcana";
-import { useCourse, courseState, opensLine, partName, PART_LABEL } from "../../lib/course";
+import { useCourse, courseState, opensLine, partName, PART_LABEL, summarize } from "../../lib/course";
 import { LoadingScreen } from "../ui/LoadingScreen";
 import { GlowBubble } from "../ui/GlowBubble";
 import { riseIn } from "../ui/motion";
@@ -99,8 +99,11 @@ function keptFor(part, tool, result) {
 // (/learn/:slug/tool/:toolId).
 export default function CoursePlayer() {
   const { slug, partId, toolId } = useParams();
+  const [params] = useSearchParams();
+  const review = params.get("review") === "1";
+  const reviewWalk = Number(params.get("walk")) || null;
   const navigate = useNavigate();
-  const { arcanaLoaded: loaded, heldArcana, courseProgress, completeCoursePart, saveToolUse } = useAppData();
+  const { arcanaLoaded: loaded, heldArcana, courseProgress, completeCoursePart, saveToolUse, walkFor } = useAppData();
   const arcanum = getArcanum(slug);
   const course = useCourse(arcanum);
   const [result, setResult] = useState(null); // what was just finished
@@ -109,7 +112,8 @@ export default function CoursePlayer() {
   // Going on to the next part (or tool) starts it fresh.
   useEffect(() => { setResult(null); setRestOpen(false); }, [partId, toolId]);
 
-  const state = useMemo(() => (course ? courseState(course, slug, courseProgress) : null), [course, slug, courseProgress]);
+  const walk = walkFor(slug);
+  const state = useMemo(() => (course ? courseState(course, slug, courseProgress, walk) : null), [course, slug, courseProgress, walk]);
   const path = `/youniversity/arcanum/${slug}`;
   const held = heldArcana.some(h => h.slug === slug);
 
@@ -160,12 +164,31 @@ export default function CoursePlayer() {
   if (!entry) return <Navigate to={path} replace />;
   const { part } = entry;
 
+  // "Read again": a finished part, from any walk, read-only.
+  if (review) {
+    const w = reviewWalk || walk;
+    const row = courseProgress.find(r => r.slug === slug && r.part_id === part.id && (r.walk || 1) === w);
+    if (!row) return <Navigate to={path} replace />;
+    return (
+      <StepRunner
+        steps={part.steps}
+        eyebrow={part.kind === "checkin" ? part.title : `Stage ${part.stage.numeral} · ${part.stage.name}`}
+        title={`Reading again · walk ${w}, ${new Date(row.completed_on + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`}
+        readOnly
+        initialData={row.data}
+        finishLabel="Close"
+        onClose={() => navigate(path, { replace: true })}
+        onFinish={async () => navigate(path, { replace: true })}
+      />
+    );
+  }
+
   if (result) {
-    const after = courseState(course, slug, courseProgress);
+    const after = courseState(course, slug, courseProgress, walk);
     if (part.closing) {
       return (
         <Shell>
-          <CourseComplete arcanum={arcanum} course={course} state={after} rows={courseProgress.filter(r => r.slug === slug)} />
+          <CourseComplete arcanum={arcanum} course={course} state={after} rows={after.rows} />
           <div className="mt-8">
             <button className={primary} onClick={() => navigate(path, { replace: true })}>Back to the path</button>
             <button className={quiet} onClick={() => navigate("/youniversity", { replace: true })}>Open my Library</button>
@@ -221,13 +244,15 @@ export default function CoursePlayer() {
       steps={part.steps}
       eyebrow={eyebrow}
       title={title}
-      draftKey={`${slug}:${part.id}`}
+      draftKey={`${slug}:w${walk}:${part.id}`}
       finishLabel={part.kind === "practice" ? "Keep it" : part.kind === "challenge" ? "Mark it lived" : "Finish"}
       onClose={() => navigate(path, { replace: true })}
       onFinish={async data => {
         setPending(true);
         try {
-          const { grown } = await completeCoursePart({ slug, part, data });
+          const honoured = Array.isArray(data?.values) ? data.values.filter(Boolean) : [];
+          const summary = [...summarize(part.steps, data), ...(honoured.length ? [{ label: "Values honoured", lines: [honoured.join(", ")] }] : [])];
+          const { grown } = await completeCoursePart({ slug, part, data, summary });
           setResult({ grown });
         } finally {
           setPending(false);

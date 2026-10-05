@@ -94,7 +94,7 @@ export default function Challenges() {
                       key={h.value}
                       onClick={() => setRating(h.value)}
                       className={`flex-1 text-caption px-2 py-1.5 rounded-sm border ${
-                        rating === h.value ? "bg-forestAccent text-surface2 border-forestAccent" : "border-borderC text-textSecondary"
+                        rating === h.value ? "bg-forestAccent text-onAccent border-forestAccent" : "border-borderC text-textSecondary"
                       }`}
                     >
                       {h.label}

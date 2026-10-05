@@ -97,7 +97,7 @@ export default function Pursue() {
             key={f}
             onClick={() => setFilter(f)}
             className={`text-bodySm px-3.5 py-1.5 rounded-full flex-none capitalize transition-colors duration-150 ${
-              filter === f ? "bg-forestAccent text-surface2 font-medium" : "bg-surface3 text-textMuted"
+              filter === f ? "bg-forestAccent text-onAccent font-medium" : "bg-surface3 text-textMuted"
             }`}
           >
             {f}

@@ -85,7 +85,7 @@ export default function TodayIntentions() {
               aria-checked={tended}
               aria-label={tended ? `Mark "${item.name}" not tended` : `Mark "${item.name}" tended`}
               className={`w-6 h-6 mt-0.5 flex-none rounded-full border flex items-center justify-center transition-colors duration-200 ${
-                tended ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-transparent hover:border-forestAccent"
+                tended ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-transparent hover:border-forestAccent"
               }`}
             >
               <Check size={12} strokeWidth={2.5} />

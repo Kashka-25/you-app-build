@@ -20,6 +20,8 @@ const SYSTEM_PROMPT = `You are part of YOU, a self-love and personal-growth app 
 
 You are a mirror and reflective guide, never an authority. Use tentative language ("It looks like...", "A theme this week may have been...", "You mentioned..."). Never diagnose, never invent events or feelings that are not supported by what's provided, never claim certainty about emotional states. If the week's information is thin, say so plainly rather than padding with generic content.
 
+If "course_reflections" are provided, they are the user's own answers from a YOUniversity course they are walking (a lesson, a practice or a real-world challenge), included because they chose to include them. Weave them in only where they genuinely connect to the week; never quote them back at length, and never treat course prompts as facts about the user.
+
 Respond with JSON only, no prose outside the JSON, no markdown code fence, in this shape:
 {
   "your_week": "what happened — important events/experiences, grounded only in what was provided",
@@ -63,7 +65,11 @@ Deno.serve(async req => {
     const weekStart = toDateKey(weekStartDate);
     const weekEnd = toDateKey(weekEndDate);
 
-    const [{ data: entries }, { data: memoryEntries }, { data: values }, { data: items }, compass] = await Promise.all([
+    // Course answers join only with their own, separate yes.
+    const { data: consentRow } = await supabase.from("ai_consent").select("include_courses").eq("user_id", user.id).maybeSingle();
+    const includeCourses = Boolean(consentRow?.include_courses);
+
+    const [{ data: entries }, { data: memoryEntries }, { data: values }, { data: items }, compass, { data: courseRows }] = await Promise.all([
       supabase
         .from("journal_entries")
         .select("id, content, mood, entry_date, tags, journal_ai_insights(summary, insights)")
@@ -74,7 +80,11 @@ Deno.serve(async req => {
       supabase.from("memory").select("name, type, cat, date_key").eq("user_id", user.id).gte("date_key", weekStart).lte("date_key", weekEnd),
       supabase.from("user_values").select("name, rating").eq("user_id", user.id),
       supabase.from("items").select("name, type, cat, done").eq("user_id", user.id).in("type", ["goal", "dream"]).limit(30),
-      loadCompass(supabase, user.id)
+      loadCompass(supabase, user.id),
+      includeCourses
+        ? supabase.from("arcanum_progress").select("slug, part_id, summary, completed_on")
+            .eq("user_id", user.id).gte("completed_on", weekStart).lte("completed_on", weekEnd).order("completed_on")
+        : Promise.resolve({ data: [] })
     ]);
 
     if (!entries || entries.length === 0) {
@@ -100,7 +110,17 @@ Deno.serve(async req => {
       completed_this_week: (memoryEntries || []).map(m => `${m.name} [${m.type}/${m.cat}]`),
       values: (values || []).map(v => `${v.name} (${v.rating || 0}/99)`),
       compass,
-      goals_and_dreams: (items || []).map(i => `${i.name} [${i.type}${i.done ? ", done" : ""}]`)
+      goals_and_dreams: (items || []).map(i => `${i.name} [${i.type}${i.done ? ", done" : ""}]`),
+      ...(includeCourses && courseRows && courseRows.length ? {
+        course_reflections: courseRows
+          .filter(r => Array.isArray(r.summary) && r.summary.length)
+          .map(r => ({
+            date: r.completed_on,
+            course: r.slug.replace(/-/g, " "),
+            part: r.part_id.replace(".", " · "),
+            words: (r.summary as { label: string; lines: string[] }[]).map(w => `${w.label}: ${w.lines.join(" / ")}`)
+          }))
+      } : {})
     };
 
     const raw = await callClaude({

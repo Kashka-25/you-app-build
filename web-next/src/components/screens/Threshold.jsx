@@ -7,6 +7,7 @@ import { easeOut } from "../ui/motion";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
 import TravellingToday from "../wandering/TravellingToday";
+import { CourseNowCards } from "../course/CourseNow";
 import { tendedDaysThisWeek, isSunday, weekStartKey, sowWeekStartKey, isWeekRested, harvestDue } from "../../lib/week";
 
 export const THRESHOLD_SEEN = "you.threshold.seen";
@@ -131,6 +132,9 @@ export default function Threshold() {
                 <QuickList showLabel={false} />
               </div>
             </section>
+
+            {/* A course that needs you today: a part that's ready, a challenge carried. */}
+            <CourseNowCards />
 
             {/* Then the week: plant it, or see what's growing. */}
             <section>

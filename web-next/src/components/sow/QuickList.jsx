@@ -47,7 +47,7 @@ export default function QuickList({ showLabel = true }) {
                 aria-checked={t.done}
                 aria-label={t.done ? `Mark "${t.text}" not done` : `Mark "${t.text}" done`}
                 className={`w-6 h-6 flex-none rounded-full border flex items-center justify-center ${
-                  t.done ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-transparent hover:border-forestAccent"
+                  t.done ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-transparent hover:border-forestAccent"
                 }`}
               >
                 <Check size={12} strokeWidth={2.5} />

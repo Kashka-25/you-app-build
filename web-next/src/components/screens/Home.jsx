@@ -12,6 +12,7 @@ import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
 import { NorthStar } from "../values/Crossroads";
+import { CourseNowRows } from "../course/CourseNow";
 import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 
 function getGreeting() {
@@ -172,6 +173,9 @@ export default function Home() {
         <div className={hasIntentions ? "mt-2 pt-2 border-t border-borderC" : ""}>
           <QuickList showLabel={hasIntentions} />
         </div>
+
+        {/* Courses in progress: what's ready, the challenge being carried. */}
+        <CourseNowRows />
 
         <Link to="/focus" className="flex items-center gap-2.5 text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
           <Timer size={16} strokeWidth={1.75} />

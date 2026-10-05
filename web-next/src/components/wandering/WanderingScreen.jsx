@@ -82,7 +82,7 @@ function StopDetail({ stop, isFirst, isLast }) {
               aria-pressed={stop.kind === k.key}
               onClick={() => save({ kind: k.key })}
               className={`text-caption px-2.5 py-1 rounded-full border ${
-                stop.kind === k.key ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-textSecondary"
+                stop.kind === k.key ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-textSecondary"
               }`}
             >
               {k.label}
@@ -362,7 +362,7 @@ export default function WanderingScreen() {
               {i > 0 && <div className="ml-[13px] h-3 border-l-2 border-dashed border-borderC" aria-hidden="true" />}
               <div className={`rounded-card p-3.5 transition-colors duration-150 ${open ? "bg-surface1 shadow-card ring-1 ring-gold" : "bg-surface1"}`}>
                 <button type="button" onClick={() => setSelectedId(open ? null : s.id)} aria-expanded={open} className="w-full flex items-start gap-3 text-left">
-                  <span className={`w-[26px] h-[26px] flex-none rounded-full text-caption font-semibold flex items-center justify-center text-surface2 ${open ? "bg-gold" : "bg-forestAccent"}`}>
+                  <span className={`w-[26px] h-[26px] flex-none rounded-full text-caption font-semibold flex items-center justify-center text-onAccent ${open ? "bg-gold" : "bg-forestAccent"}`}>
                     {i + 1}
                   </span>
                   <span className="flex-1 min-w-0">

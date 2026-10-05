@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Star, Map, MessageCircle, Search, Compass as CompassIcon, Sparkles, Telescope } from "lucide-react";
+import { Star, Map, MessageCircle, Search, Compass as CompassIcon, Sparkles, Telescope, Wind } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { pickCurrentChapter, pickNoticedPatterns, pickNextStep } from "../../lib/compass";
 import { BackRow } from "../Primitives";
 import { riseIn } from "../ui/motion";
 import { GlowBubble } from "../ui/GlowBubble";
+import { ToolsToHand, useCourseNow } from "../course/CourseNow";
 
 function niceDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -34,6 +35,7 @@ function Beat({ icon: Icon, label, children }) {
 export default function BringMeBackToMyself() {
   const { values, items, chapters, journalEntries, recentInsights, identityVisions, loaded, loadRecentInsights } = useAppData();
   const [insightsLoaded, setInsightsLoaded] = useState(false);
+  const hasTools = useCourseNow().tools.length > 0;
 
   useEffect(() => {
     if (!loaded || insightsLoaded) return;
@@ -62,6 +64,14 @@ export default function BringMeBackToMyself() {
         <div className="text-label uppercase tracking-wide text-gold mb-2">Bring me back to myself</div>
         <div className="font-serif text-hero text-textPrimary max-w-[300px]">What am I trying to create with my life?</div>
       </div>
+
+      {/* When pulled off centre, the tools they carry come first. */}
+      {hasTools && (
+        <Beat icon={Wind} label="Tools to steady you">
+          <div className="text-bodySm text-textSecondary mb-2.5">If you need a moment first, one of these may help.</div>
+          <ToolsToHand />
+        </Beat>
+      )}
 
       <Beat icon={CompassIcon} label="Your values">
         {topValues.length > 0 ? (

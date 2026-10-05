@@ -172,7 +172,7 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
                           onClick={() => setKind(k.key)}
                           className={`px-3 py-1.5 rounded-full text-bodySm border ${
                             kind === k.key
-                              ? "bg-forestAccent text-surface2 border-forestAccent"
+                              ? "bg-forestAccent text-onAccent border-forestAccent"
                               : "bg-surface1 text-textSecondary border-borderC"
                           }`}
                         >
@@ -219,7 +219,7 @@ function ChoiceList({ options, onPick }) {
           onClick={() => onPick(opt.key)}
           className="w-full text-left bg-surface1 rounded-card p-3.5 flex items-center gap-3.5 hover:bg-surface3 transition-colors duration-150"
         >
-          <div className="w-10 h-10 rounded-full bg-forestAccent text-surface2 flex items-center justify-center flex-none">
+          <div className="w-10 h-10 rounded-full bg-forestAccent text-onAccent flex items-center justify-center flex-none">
             <opt.icon size={18} strokeWidth={1.75} />
           </div>
           <div className="flex-1 min-w-0">

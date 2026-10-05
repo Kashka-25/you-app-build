@@ -75,9 +75,34 @@ export function buildParts(course) {
 //   done · open · resting (opensOn, after) · locked
 // Rest is suggested, never enforced: a finished part whose rest the Seeker
 // chose to skip (rest_skipped_at) lets the next one open straight away.
-export function courseState(course, slug, rows) {
+// The walk a Seeker is on: the latest one started, or 1.
+export function currentWalk(slug, walks = [], rows = []) {
+  const nums = [
+    ...walks.filter(w => w.slug === slug).map(w => w.walk),
+    ...rows.filter(r => r.slug === slug).map(r => r.walk || 1)
+  ];
+  return nums.length ? Math.max(...nums) : 1;
+}
+
+// Every walk of a course, oldest first, with its dates.
+export function walkLog(slug, walks = [], rows = []) {
+  const n = currentWalk(slug, walks, rows);
+  return Array.from({ length: n }, (_, i) => {
+    const walk = i + 1;
+    const w = walks.find(x => x.slug === slug && x.walk === walk);
+    const mine = rows.filter(r => r.slug === slug && (r.walk || 1) === walk);
+    const firstAt = mine.reduce((m, r) => (!m || r.completed_at < m ? r.completed_at : m), null);
+    return { walk, startedAt: w?.started_at || firstAt, completedAt: w?.completed_at || null, parts: mine.length };
+  });
+}
+
+// `walk` picks which time through to read; tools kept on any walk stay kept.
+export function courseState(course, slug, allRows, walk = null) {
   const parts = buildParts(course);
-  const doneById = Object.fromEntries(rows.filter(r => r.slug === slug).map(r => [r.part_id, r]));
+  const mineAll = allRows.filter(r => r.slug === slug);
+  const w = walk || currentWalk(slug, [], mineAll);
+  const rows = mineAll.filter(r => (r.walk || 1) === w);
+  const doneById = Object.fromEntries(rows.map(r => [r.part_id, r]));
   const today = localDateKey();
   let blocked = false;
   const states = parts.map((part, i) => {
@@ -100,7 +125,10 @@ export function courseState(course, slug, rows) {
     percent: Math.round((done / parts.length) * 100),
     currentStage,
     completedOn: complete ? doneById[course.closing.id].completed_on : null,
-    unlockedTools: states.filter(s => s.status === "done" && s.part.kind === "practice").map(s => s.part.toolId)
+    walk: w,
+    rows,
+    lastAt: rows.reduce((m, r) => (!m || r.completed_at > m ? r.completed_at : m), null),
+    unlockedTools: [...new Set(parts.filter(p => p.kind === "practice" && mineAll.some(r => r.part_id === p.id)).map(p => p.toolId))]
   };
 }
 

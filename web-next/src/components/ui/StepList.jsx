@@ -39,7 +39,7 @@ export function StepList({ steps = [], onToggle, onAdd, onRemove, placeholder = 
             aria-checked={Boolean(s.done)}
             aria-label={s.done ? `Mark step "${s.text}" not done` : `Mark step "${s.text}" done`}
             className={`w-[18px] h-[18px] flex-none rounded-full border flex items-center justify-center ${
-              s.done ? "bg-sage border-sage text-surface2" : "border-borderC text-transparent hover:border-sage"
+              s.done ? "bg-sage border-sage text-onAccent" : "border-borderC text-transparent hover:border-sage"
             }`}
           >
             <Check size={10} strokeWidth={2.5} />

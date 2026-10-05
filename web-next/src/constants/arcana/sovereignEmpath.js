@@ -5,6 +5,8 @@
 // challenge), and a closing check-in. Every part is a list of steps the
 // course player knows how to show (see components/course/steps):
 //   read · reflect · choose · scenario · scale · breathe · list · value · challenge
+// A tool marked `quick` is one for hard moments; it's offered first in
+// Bring Me Back to Myself.
 // `rest` is how many days to rest after finishing a part before the next
 // one opens (at least 1; deeper work gets 2). Answers are kept by `key`.
 //
@@ -54,6 +56,7 @@ export const TOOLS = {
   "emotional-mirror": {
     name: "Emotional Mirror",
     icon: Eye,
+    quick: true,
     about: "Five questions to see what you're actually feeling, and what's yours to tend.",
     steps: [
       { type: "read", title: "Take a breath", body: "Bring to mind something that's stirred you, today or recently. Small is fine. Go slowly." },
@@ -82,6 +85,7 @@ export const TOOLS = {
   "is-this-mine": {
     name: "Is This Mine?",
     icon: HandHeart,
+    quick: true,
     about: "When someone's struggle pulls at you: sort what's yours from what's theirs, and support without taking over.",
     steps: [
       { type: "read", title: "Someone you care about", body: "Bring to mind someone whose struggle is pulling at you right now." },
@@ -144,6 +148,7 @@ export const TOOLS = {
   "ninety-second-centre": {
     name: "The 90-Second Centre",
     icon: Wind,
+    quick: true, // for hard moments: offered first in Bring Me Back to Myself
     about: "A short way back to yourself when you're pulled off centre: stop, breathe, orient, notice, name, discern, choose.",
     steps: [
       { type: "read", title: "Stop.", body: "Whatever you're doing, pause. You don't have to respond yet." },

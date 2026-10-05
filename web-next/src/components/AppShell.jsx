@@ -52,7 +52,7 @@ export default function AppShell() {
           </NavLink>
           <button onClick={() => setSheetOpen(true)} className="flex-1 text-center text-label text-textMuted pt-1.5">
             <div className="w-9 h-9 rounded-full bg-forestAccent mx-auto -mt-4 mb-1.5 flex items-center justify-center">
-              <Plus size={18} strokeWidth={2} className="text-surface2" />
+              <Plus size={18} strokeWidth={2} className="text-onAccent" />
             </div>
             Add
           </button>

@@ -43,7 +43,7 @@ export default function PlacePicker({ dateKey, value, onChange, autoSelect = fal
             aria-checked={value === s.id}
             onClick={() => choose(s.id)}
             className={`inline-flex items-center gap-1 text-caption px-2.5 py-1 rounded-full border ${
-              value === s.id ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-textSecondary"
+              value === s.id ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-textSecondary"
             }`}
           >
             <MapPin size={12} strokeWidth={1.75} />
@@ -57,7 +57,7 @@ export default function PlacePicker({ dateKey, value, onChange, autoSelect = fal
           aria-checked={!value}
           onClick={() => choose(null)}
           className={`text-caption px-2.5 py-1 rounded-full border ${
-            !value ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-textSecondary"
+            !value ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-textSecondary"
           }`}
         >
           Not pinned
