@@ -8,10 +8,12 @@
 //
 //   format     — which layout opens it (see FORMATS)
 //   free       — must match arcana.is_free in the database
+//   comingSoon — paid, but not on sale yet (no payments); held only as a gift
+//   load       — for a course, its content, loaded only when needed
 //   beginWith  — what the Seeker picks before a sitting: "value" | "pillar"
 //   questionnaire — for the questionnaire format, which flow it runs
 //   addsTo     — the parts of YOU it plugs into, in plain words
-import { SunMoon, Feather } from "lucide-react";
+import { SunMoon, Feather, Sprout } from "lucide-react";
 
 export const FORMATS = {
   questionnaire: "Questionnaire",
@@ -53,6 +55,31 @@ export const ARCANA = [
       { area: "Pillars", line: "Free a dream from any Pillar in the YOU tab." },
       { area: "Pursue", line: "A planted dream goes straight into your dreams." },
       { area: "Reflections", line: "Every sitting is kept in Explorations, just for you." }
+    ]
+  },
+  {
+    slug: "the-sovereign-empath",
+    name: "The Sovereign Empath",
+    tagline: "Feel deeply. Stand firmly.",
+    lead: "Seven stages for staying open-hearted without leaving yourself.",
+    icon: Sprout,
+    format: "course",
+    free: false,
+    comingSoon: true,
+    load: () => import("./arcana/sovereignEmpath.js"),
+    about:
+      "For people who feel others deeply. Over seven stages, learn to tell your feelings from theirs, set kind boundaries, support without rescuing, meet the parts you've put away, say an honest no, find your way back to centre, and write your own Sovereignty Code.\n\nHere, \"empath\" simply means someone who feels others deeply. No claims about energy: just grounded, practical ways to stay yourself while you care.",
+    inside: [
+      "7 stages, each a short lesson, a practice and a real-world challenge",
+      "Paced gently, with rest between parts to live what you learn",
+      "7 tools that stay in your Library to use again",
+      "A check-in at the start and the end, to see what changed",
+      "Nothing is sent to an AI"
+    ],
+    addsTo: [
+      { area: "Library", line: "Each stage's practice becomes a tool you keep and can use any time." },
+      { area: "Values", line: "Each challenge can honour your values, from your own or the whole Codex, and living it grows the ones you hold." },
+      { area: "Progress", line: "Your path, your check-ins, and every time you use a tool." }
     ]
   }
 ];

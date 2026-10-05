@@ -24,6 +24,9 @@ import FocusWatcher from "./components/focus/FocusWatcher";
 import YOUniversity from "./components/youniversity/YOUniversity";
 import ArcanumScreen from "./components/youniversity/ArcanumScreen";
 import OwnToolScreen from "./components/youniversity/OwnToolScreen";
+import CoursePlayer from "./components/course/CoursePlayer";
+import CourseToolScreen from "./components/course/CourseToolScreen";
+import CodexRequests from "./components/screens/CodexRequests";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
@@ -67,6 +70,8 @@ export default function App() {
       <Route path="/harvest" element={<HarvestScreen />} />
       <Route path="/focus" element={<FocusScreen />} />
       <Route path="/my-story" element={<MyStory />} />
+      <Route path="/learn/:slug/tool/:toolId" element={<CoursePlayer />} />
+      <Route path="/learn/:slug/:partId" element={<CoursePlayer />} />
       <Route
         path="/wandering/:id"
         element={
@@ -84,6 +89,7 @@ export default function App() {
         <Route path="/youniversity" element={<YOUniversity />} />
         <Route path="/youniversity/arcanum/:slug" element={<ArcanumScreen />} />
         <Route path="/youniversity/tool/:id" element={<OwnToolScreen />} />
+        <Route path="/youniversity/arcanum/:slug/tool/:toolId" element={<CourseToolScreen />} />
 
         {/* Real, working screens end here. Everything below is intentionally
             gated behind "coming soon" until it has a real backend/data
@@ -104,6 +110,7 @@ export default function App() {
         <Route path="/legacy" element={<Legacy />} />
         <Route path="/mirror" element={<Mirror />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/codex-requests" element={<CodexRequests />} />
       </Route>
     </Routes>
     </>

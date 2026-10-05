@@ -8,7 +8,7 @@ pillars: [Spirit]
 balancing_kin: [honesty]
 nourishing_kin: [presence, wonder]
 synonyms: [thankfulness, appreciation]
-sub_values: [appreciation, contentment, generosity]
+sub_values: [appreciation, contentment, savouring]
 status: draft   # draft | edited | final
 ---
 

@@ -11,6 +11,7 @@ export default {
         surface3: "var(--surface-3)",
         forest: "var(--forest)",
         forestAccent: "var(--forest-accent)",
+        onAccent: "var(--on-accent)",
         sage: "var(--sage)",
         gold: "var(--gold)",
         cream: "var(--cream)",

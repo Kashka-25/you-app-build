@@ -55,7 +55,7 @@ export function SegmentedControl({ options, value, onChange }) {
               aria-selected={active}
               onClick={() => onChange(opt.value)}
               className={`flex-1 shrink-0 whitespace-nowrap text-bodySm px-3.5 py-1.5 rounded-full transition-colors duration-200 ${
-                active ? "bg-forestAccent text-surface2 font-medium" : "text-textSecondary"
+                active ? "bg-forestAccent text-onAccent font-medium" : "text-textSecondary"
               }`}
             >
               {opt.label}

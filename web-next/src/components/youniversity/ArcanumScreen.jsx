@@ -13,6 +13,7 @@ import { Modal } from "../ui/Modal";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import ExplorationsView from "../questionnaires/ExplorationsView";
 import { ArcanumIcon } from "./YOUniversity";
+import CourseArcanum from "../course/CourseArcanum";
 
 function Section({ label, children }) {
   return (
@@ -80,6 +81,8 @@ export default function ArcanumScreen() {
       </div>
     );
   }
+
+  if (arcanum.format === "course") return <CourseArcanum arcanum={arcanum} />;
 
   const heldRow = heldArcana.find(h => h.slug === arcanum.slug);
   const p = arcanumProgress(arcanum, reflections);

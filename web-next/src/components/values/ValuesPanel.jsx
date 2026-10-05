@@ -17,6 +17,7 @@ import { DropdownSection } from "../Primitives";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { AiButton, AiCard } from "../ui/Premium";
 import TrueNorthCard from "./TrueNorthCard";
+import { findInCodex, closestValues, displayWord, validWord } from "../../lib/valueWords";
 
 // One icon per authored PRESTIGE_LEVELS stage, same order -- a small growth
 // arc (point -> shoot -> tree -> blossom x2 -> tended green -> single spark
@@ -39,7 +40,7 @@ function cycleView(v) {
 
 export default function ValuesPanel() {
   const {
-    values, activeValues, valueSlots, addValue, setValueStatus, saveValueDefinition,
+    values, activeValues, valueSlots, addValue, addOwnValue, setValueStatus, saveValueDefinition,
     completeChallenge, valueChallenges, completeValueChallenge, generateValueChallenges
   } = useAppData();
   const [openName, setOpenName] = useState(null);
@@ -54,6 +55,12 @@ export default function ValuesPanel() {
 
   async function handleAddValue(name) {
     await addValue(name);
+    setOpenName(name);
+    setAdding(false);
+  }
+
+  async function handleAddOwn(text) {
+    const name = await addOwnValue(text);
     setOpenName(name);
     setAdding(false);
   }
@@ -106,6 +113,8 @@ export default function ValuesPanel() {
           available={available}
           activeValues={activeValues}
           onPick={handleAddValue}
+          onPickOwn={handleAddOwn}
+          held={values}
         />
       ) : (
         <div className="text-bodySm text-textMuted border border-dashed border-borderC rounded-sm px-3.5 py-3">
@@ -163,9 +172,13 @@ function ValueCard({
   const stage = getPrestigeStage(prestige);
   const StageIcon = PRESTIGE_ICONS[stage.index];
   const stageColor = TIERS[prestige % TIERS.length].color;
-  const color = VALUE_COLORS[v.name];
-  const Icon = VALUE_ICONS[v.name];
+  // A value in the Seeker's own words has no Codex entry: it gets gold,
+  // a spark, and no fixed challenges (it can still generate its own).
+  const color = VALUE_COLORS[v.name] || "#C9A24D";
+  const Icon = VALUE_ICONS[v.name] || Sparkles;
   const lib = getValueEntry(v.name);
+  const own = !lib;
+  const fixedChallenges = lib?.challenges || [];
 
   async function handleGenerate() {
     setGenerating(true);
@@ -210,7 +223,7 @@ function ValueCard({
           </div>
           <div className="text-caption text-textMuted mt-1">
             <span style={{ color: tier.color }}>{tier.name}</span> · {v.rating}/{requirement}
-            {VALUE_ELEMENT[v.name] && <> · {VALUE_ELEMENT[v.name]}</>}
+            {VALUE_ELEMENT[v.name] ? <> · {VALUE_ELEMENT[v.name]}</> : own ? <> · your own</> : null}
           </div>
         </div>
         <ChevronDown
@@ -228,7 +241,7 @@ function ValueCard({
       )}
 
       <AnimatePresence initial={false}>
-        {open && lib && (
+        {open && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -238,6 +251,11 @@ function ValueCard({
           >
             <div className="pt-3">
               <Definition v={v} entry={lib} onSave={onSaveDefinition} />
+              {own && (
+                <div className="text-caption text-textMuted mt-2">
+                  A value in your own words. It isn't in the Codex yet, so YOU's perspective will come once it's written.
+                </div>
+              )}
 
               <button
                 onClick={() => setExploring(true)}
@@ -258,13 +276,13 @@ function ValueCard({
                   </button>
                 ))}
               </div>
-              {lib.challenges.length === 0 && valueChallenges.length === 0 && (
+              {fixedChallenges.length === 0 && valueChallenges.length === 0 && (
                 <div className="text-bodySm text-textMuted mb-2">
                   No challenges written for {v.name} yet. Generate a few below to begin.
                 </div>
               )}
               <div className="space-y-2">
-                {lib.challenges
+                {fixedChallenges
                   .map((c, idx) => ({ ...c, idx, done: (v.completed || []).includes(idx) }))
                   .filter(c => diff === "all" || c.diff === diff)
                   .map(c => (
@@ -392,12 +410,85 @@ function Definition({ v, entry, onSave }) {
         </button>
       )}
 
-      {showPerspective && <Perspective entry={entry} />}
+      {showPerspective && entry && <Perspective entry={entry} />}
     </div>
   );
 }
 
-function AddValuePicker({ adding, setAdding, available, activeValues, onPick }) {
+// Naming a value in your own words. If the word already lives in the Codex
+// (as a value, a synonym or a sub-value) that's offered first; the Seeker
+// can still keep their own word.
+function NameYourOwn({ held, available, onPick, onPickOwn }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const word = displayWord(text);
+  const home = text.trim() ? findInCodex(text) : null;
+  const close = text.trim() && !home ? closestValues(text).filter(v => available.some(a => a.name === v.name)) : [];
+  const already = held.some(v => v.name.toLowerCase() === word.toLowerCase());
+  const homeHeld = home && held.some(v => v.name === home.value.name);
+
+  async function run(fn) {
+    setBusy(true);
+    setError("");
+    try { await fn(); setText(""); } catch (e) {
+      console.error("[ValuesPanel] add own value failed:", e);
+      setError(e?.message === "You already hold this value" ? "You already hold this value." : "Couldn't add it just now. Try again.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="mb-4 pb-4 border-b border-borderC">
+      <div className="text-label uppercase text-textMuted mb-1.5">Name your own</div>
+      <input
+        value={text}
+        onChange={e => setText(e.target.value)}
+        maxLength={30}
+        placeholder="A value in your own words…"
+        className={fieldClass}
+      />
+      {text.trim() && (
+        <div className="mt-2.5 space-y-2">
+          {home && !homeHeld && (
+            <div className="text-bodySm text-textPrimary">
+              {home.via === "name" ? `${home.value.name} is in the Codex.` : `"${word}" lives in the Codex as ${home.via === "synonym" ? "another word for" : "part of"} ${home.value.name}.`}{" "}
+              <button disabled={busy} onClick={() => run(() => onPick(home.value.name))} className="text-forestAccent font-medium underline underline-offset-2">
+                Add {home.value.name}
+              </button>
+            </div>
+          )}
+          {home && homeHeld && <div className="text-bodySm text-textMuted">"{word}" lives in the Codex as {home.value.name}, which is already yours.</div>}
+          {close.length > 0 && (
+            <div className="text-bodySm text-textSecondary">
+              Close in the Codex:{" "}
+              {close.map((v, i) => (
+                <span key={v.name}>
+                  {i > 0 && ", "}
+                  <button disabled={busy} onClick={() => run(() => onPick(v.name))} className="text-forestAccent underline underline-offset-2">{v.name}</button>
+                </span>
+              ))}
+            </div>
+          )}
+          {home?.via !== "name" && (
+            already ? (
+              <div className="text-caption text-textMuted">You already hold {word}.</div>
+            ) : validWord(text) ? (
+              <Button variant="secondary" size="sm" className="w-full" disabled={busy} onClick={() => run(() => onPickOwn(text))}>
+                {busy ? "Adding…" : `Keep "${word}" as my own value`}
+              </Button>
+            ) : (
+              <div className="text-caption text-textMuted">A value can be 2 to 30 letters, with spaces or hyphens.</div>
+            )
+          )}
+          {error && <div className="text-caption text-red-500">{error}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AddValuePicker({ adding, setAdding, available, activeValues, onPick, onPickOwn, held }) {
   const [view, setView] = useState("element"); // "element" | "az"
 
   if (!adding) {
@@ -438,6 +529,8 @@ function AddValuePicker({ adding, setAdding, available, activeValues, onPick }) 
         </div>
         <button onClick={() => setAdding(false)} className="text-caption text-textSecondary">Close</button>
       </div>
+
+      <NameYourOwn held={held} available={available} onPick={onPick} onPickOwn={onPickOwn} />
 
       {missing.length > 0 && missing.length < ELEMENTS.length && (
         <div className="text-caption text-textMuted mb-3">
