@@ -26,19 +26,19 @@ export default function TrueNorthCard() {
 
   return (
     <>
-      <div className="rounded-card p-5 mb-4 flex flex-col gap-3 text-[#F7F5EF] shadow-cardDark" style={{ background: "#0F1A14" }}>
+      <div className="rounded-card p-5 mb-4 flex flex-col gap-3 text-[#F7F5EF] shadow-cardDark" style={{ background: "#0B0B1F" }}>
         {!compass ? (
           <>
             <div className="flex items-center gap-2.5">
               <NorthStar size={28} strokeWidth={1.5} />
               <div className="font-serif text-[22px] font-semibold">Find your True North</div>
             </div>
-            <p className="text-body text-[#D9D4C8] m-0">
+            <p className="text-body text-[#D6D3EA] m-0">
               {names.length} values, no order yet. A compass needs a north. Walk the crossroads to find which way you lean when they pull against each other.
             </p>
             <button
               onClick={() => setWalking("walk")}
-              className="self-start min-h-[44px] px-[18px] rounded-sm bg-[#C9A24D] text-[#0F1A14] font-semibold text-body"
+              className="self-start min-h-[44px] px-[18px] rounded-sm bg-[#C9A24D] text-[#0B0B1F] font-semibold text-body"
             >
               Walk the crossroads
             </button>
@@ -58,12 +58,12 @@ export default function TrueNorthCard() {
               </button>
             )}
             {compass.ordering.length > 1 && (
-              <div className="text-bodySm text-[#B8B3A9]">
+              <div className="text-bodySm text-[#B8B5D6]">
                 then {compass.ordering.slice(1).map(g => g.join(" = ")).join(" · ")}
               </div>
             )}
             {stale && (
-              <div className="text-bodySm text-[#D9D4C8] border border-dashed border-[#C9A24D]/40 rounded-sm px-3 py-2.5">
+              <div className="text-bodySm text-[#D6D3EA] border border-dashed border-[#C9A24D]/40 rounded-sm px-3 py-2.5">
                 Your values in focus have changed since you set this. Walk the crossroads again when you’re ready.
               </div>
             )}
@@ -74,11 +74,11 @@ export default function TrueNorthCard() {
                 </button>
               )}
               {compass.compass_line && (
-                <button onClick={() => setWalking("line")} className="min-h-[44px] px-4 rounded-sm text-body text-[#B8B3A9]">
+                <button onClick={() => setWalking("line")} className="min-h-[44px] px-4 rounded-sm text-body text-[#B8B5D6]">
                   Rewrite the line
                 </button>
               )}
-              <span className="text-caption text-[#8B8E87] ml-auto">Set {niceDay(compass.created_at)}</span>
+              <span className="text-caption text-[#8A88AE] ml-auto">Set {niceDay(compass.created_at)}</span>
             </div>
           </>
         )}

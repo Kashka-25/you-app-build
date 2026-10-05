@@ -28,9 +28,9 @@ export default function AppShell() {
     // nav bar designed for 4-5 items) but never boxes the app in a
     // phone-shaped mockup — no fixed device width/height, no border, no
     // rounded "bezel", no black backdrop.
-    <div className="h-dvh bg-bg flex justify-center font-sans">
-      <div className="w-full max-w-[640px] h-dvh bg-bg relative flex flex-col overflow-hidden">
-        <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="flex-none bg-surface2">
+    <div className="h-dvh you-sky flex justify-center font-sans">
+      <div className="w-full max-w-[640px] h-dvh relative flex flex-col overflow-hidden">
+        <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="flex-none bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md">
           <TopBar onMenuClick={() => setMenuOpen(true)} />
         </div>
 
@@ -40,7 +40,7 @@ export default function AppShell() {
 
         <div
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-          className="absolute bottom-0 left-0 right-0 min-h-[76px] bg-surface2 border-t border-borderC flex items-center"
+          className="absolute bottom-0 left-0 right-0 min-h-[76px] bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md border-t border-borderC flex items-center"
         >
           <NavLink to="/" end className={({ isActive }) => tabClass(isActive)}>
             <HomeIcon size={20} strokeWidth={1.75} className="mx-auto mb-1" />

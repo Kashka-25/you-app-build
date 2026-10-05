@@ -5,7 +5,7 @@ import { useAppData } from "../lib/AppDataContext";
 export default function TopBar({ onMenuClick }) {
   const { codexNew } = useAppData();
   return (
-    <div className="h-16 flex-none flex items-center justify-between px-4 border-b border-borderC bg-surface2">
+    <div className="h-16 flex-none flex items-center justify-between px-4 border-b border-borderC">
       <button onClick={onMenuClick} className="relative text-textPrimary p-1 -ml-1" aria-label={codexNew ? `Open menu, ${codexNew} new Codex request${codexNew === 1 ? "" : "s"}` : "Open menu"}>
         <Menu size={20} strokeWidth={1.75} />
         {/* Creator only: new Codex requests are waiting in the menu. */}

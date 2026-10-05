@@ -3,64 +3,92 @@
 @tailwind utilities;
 
 :root {
-  --bg: #FCFBF8;
-  --surface-1: #F6F2EA;
-  --surface-2: #FFFDF9;
-  --surface-3: #EFE8DB;
-  --forest: #294D3A;
-  --forest-accent: #456A54;
-  --sage: #7A9B76;
-  --gold: #C9A24D;
-  --cream: #EFE8DB;
-  --text-primary: #2B2B2B;
-  --text-secondary: #6A6A6A;
-  --text-muted: #8f8f88;
-  --border: rgba(0, 0, 0, 0.08);
+  /* ── Yin & Yang (design alternative, branch design/yin-yang) ──
+     Drawn from the "O" in the YOU logo: a yin-yang of ocean and cosmos,
+     held in a gold ring. Light mode is the OCEAN side (sea foam, sea glass,
+     deep-ocean teal); dark mode is the COSMOS side (midnight indigo, nebula
+     violet, starlight). As in a yin-yang, each carries a seed of the other:
+     --seed is the cosmos indigo in light mode, the sea teal in dark mode.
+     Token names (forest, sage…) are kept so every screen follows. */
+  --bg: #F6FAF9;            /* sea foam */
+  --surface-1: #EDF5F3;     /* mist over water */
+  --surface-2: #FCFEFD;     /* foam crest */
+  --surface-3: #DCEAE7;     /* sea glass */
+  --forest: #0E4A57;        /* deep ocean */
+  --forest-accent: #176A76; /* wave teal: buttons, selected */
+  --sage: #6AA5A3;          /* shallows */
+  --gold: #B88F3E;          /* the ring, deepened to read on light */
+  --cream: #F2EADB;
+  --text-primary: #122E37;  /* ink of deep water */
+  --text-secondary: #4C666E;
+  --text-muted: #7C9297;
+  --border: rgba(14, 74, 87, 0.10);
   --error: #C75B5B;
   --accent-blue: #8FB8D8;
   --ember: #c4783a;
-  /* Text on the forest accent (buttons, selected tabs): light in both modes. */
-  --on-accent: #FFFDF9;
+  --seed: #3D3B7A;          /* a dot of the cosmos */
+  /* Text on the accent (buttons, selected tabs): light in both modes. */
+  --on-accent: #FFFFFF;
   /* Card highlight — a thin inset line along a card's top edge that reads
      as light catching a slightly domed surface. Paired with the existing
      drop shadow in tailwind.config.js's `card` shadow, and with
      --field-shadow below (a recessed inset for inputs), the two give the
      UI a raised/sunken rhythm instead of everything sitting flush. */
-  --card-highlight: rgba(255, 255, 255, 0.4);
-  --field-shadow: rgba(0, 0, 0, 0.05);
+  --card-highlight: rgba(255, 255, 255, 0.7);
+  --field-shadow: rgba(14, 74, 87, 0.06);
+  /* The sky behind everything: light from above, the sea below. */
+  --sky:
+    radial-gradient(1100px 520px at 50% -8%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(900px 480px at 10% 108%, rgba(23, 106, 118, 0.10) 0%, rgba(23, 106, 118, 0) 65%),
+    radial-gradient(700px 420px at 95% 100%, rgba(61, 59, 122, 0.06) 0%, rgba(61, 59, 122, 0) 60%),
+    linear-gradient(180deg, #F8FCFB 0%, #EEF6F4 100%);
 }
 
 [data-mode="dark"] {
-  /* Revised in Phase 1 against the "botanical garden at dusk" reference set
-     (dark-mode swatch: Deep Forest/Charcoal/Sage/Soft Gold/Warm Cream/Stone
-     Gray/Deep Slate) — deliberately moves the base background off near-black
-     toward a forest-tinted dark, per "no pure black" direction. Supersedes
-     the original Chapter-1-derived dark hex table. */
-  --bg: #0F1A14;
-  --surface-1: #141816;
-  --surface-2: #1A1F1D;
-  --surface-3: #2A2F2C;
-  --forest: #1E2D22;
-  --forest-accent: #365C47;
-  --sage: #5F7F5B;
-  --gold: #C9A24D;
-  --cream: #EDE6D6;
-  --text-primary: #F7F5EF;
-  --text-secondary: #B8B3A9;
-  --text-muted: #8B8E87;
-  --border: rgba(255, 255, 255, 0.05);
-  /* --ember kept alive as a secondary warm accent from the original
-     bark/earth palette — used sparingly for streak flames, breakthrough
-     moments, and warmth accents, never as a primary surface or button
-     color. This is the one deliberate carry-over from Chapter 1. */
+  /* The cosmos side: deep night, never pure black. */
+  --bg: #0B0B1F;            /* midnight */
+  --surface-1: #131331;     /* night sky */
+  --surface-2: #19193D;     /* deeper night */
+  --surface-3: #25244E;     /* nebula shadow */
+  --forest: #1B1A48;        /* deep cosmos */
+  --forest-accent: #1F7A82; /* the sea's seed: buttons, selected */
+  --sage: #6C68B6;          /* nebula violet */
+  --gold: #E0B865;          /* starlight */
+  --cream: #F0E8D8;
+  --text-primary: #F2F1FA;
+  --text-secondary: #B8B5D6;
+  --text-muted: #8A88AE;
+  --border: rgba(255, 255, 255, 0.07);
   --ember: #C4783A;
-  --on-accent: #F7F5EF;
-  --card-highlight: rgba(255, 255, 255, 0.06);
-  --field-shadow: rgba(0, 0, 0, 0.25);
+  --seed: #4FB3B5;          /* a dot of the ocean */
+  --on-accent: #F4F6FB;
+  --card-highlight: rgba(255, 255, 255, 0.05);
+  --field-shadow: rgba(0, 0, 0, 0.35);
+  /* Starlight and nebula over the night. */
+  --sky:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.8) 50%, transparent 51%),
+    radial-gradient(1px 1px at 34% 62%, rgba(255, 255, 255, 0.55) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 28%, rgba(255, 244, 214, 0.85) 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 74%, rgba(255, 255, 255, 0.5) 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 12%, rgba(255, 255, 255, 0.7) 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 88%, rgba(255, 255, 255, 0.45) 50%, transparent 51%),
+    radial-gradient(900px 520px at 85% -5%, rgba(108, 104, 182, 0.22) 0%, rgba(108, 104, 182, 0) 62%),
+    radial-gradient(800px 480px at 5% 105%, rgba(31, 122, 130, 0.16) 0%, rgba(31, 122, 130, 0) 60%),
+    linear-gradient(180deg, #0D0D25 0%, #0A0A1C 100%);
 }
 
+/* The sky: the page itself, and the app shell, show it behind the cards. */
+.you-sky {
+  background-color: var(--bg);
+  background-image: var(--sky);
+  background-attachment: fixed;
+  background-size: 360px 360px, 420px 420px, 380px 380px, 460px 460px, 400px 400px, 440px 440px, auto, auto, auto;
+}
+:root:not([data-mode="dark"]) .you-sky { background-size: auto; }
+
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: var(--sky);
   color: var(--text-primary);
   transition: background 0.2s, color 0.2s;
 }
@@ -124,8 +152,9 @@ body {
    special: a gold hairline border, gold lettering and a soft sheen. The
    same in light and dark mode, on purpose. */
 :root {
-  --ai-ink: #0E1611;
-  --ai-ink-2: #15201A;
+  /* Yin & Yang: premium ink is the deep cosmos, so AI reads as starlight. */
+  --ai-ink: #0B0A1E;
+  --ai-ink-2: #15143A;
   --ai-gold-1: #F3DE9C;
   --ai-gold-2: #C9A24D;
   --ai-gold-3: #8C6A24;
@@ -153,12 +182,12 @@ body {
   box-shadow: 0 10px 30px -12px rgba(201, 162, 77, 0.35), 0 4px 14px rgba(0, 0, 0, 0.12);
   /* Everything inside reads on the dark card, in either mode. */
   --text-primary: #F7F5EF;
-  --text-secondary: #CFC9BC;
-  --text-muted: #A3A69E;
+  --text-secondary: #CBC8E2;
+  --text-muted: #A09DC2;
   --border: rgba(255, 255, 255, 0.09);
-  --surface-1: #1A231D;
-  --surface-2: #1F2922;
-  --surface-3: #26312A;
+  --surface-1: #1A1940;
+  --surface-2: #1F1E4A;
+  --surface-3: #2A2858;
   --field-shadow: rgba(0, 0, 0, 0.3);
 }
 @keyframes ai-sheen { from { background-position: 200% 0; } to { background-position: -200% 0; } }
@@ -174,3 +203,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .ai-sheen::after, .ai-sheen[data-busy="true"] .ai-gold-text { animation: none; }
 }
+
+/* Cosmos side: teal used as text (links, "ready" labels) takes the brighter
+   sea seed so it reads on the night; teal fills (buttons) stay as they are. */
+[data-mode="dark"] .text-forestAccent { color: var(--seed); }

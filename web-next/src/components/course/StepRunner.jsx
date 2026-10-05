@@ -126,7 +126,7 @@ export default function StepRunner({ steps, eyebrow, title, draftKey, onFinish, 
     : { initial: { opacity: 0, x: 28 * dir }, animate: { opacity: 1, x: 0 } };
 
   return (
-    <div className="fixed inset-0 z-40 bg-bg flex flex-col font-sans">
+    <div className="fixed inset-0 z-40 you-sky flex flex-col font-sans">
       {/* Top: where you are, how far, and a way out that keeps your words. */}
       <div className="flex-none px-5 pt-[max(14px,env(safe-area-inset-top))] pb-3">
         <div className="max-w-[560px] mx-auto">
@@ -188,7 +188,7 @@ export default function StepRunner({ steps, eyebrow, title, draftKey, onFinish, 
 
       {/* Bottom: back and on. A challenge brings its own buttons. */}
       {(step.type !== "challenge" || readOnly) && (
-        <div className="flex-none border-t border-borderC bg-bg px-5 pt-3 pb-[max(14px,env(safe-area-inset-bottom))]">
+        <div className="flex-none border-t border-borderC bg-[color-mix(in_srgb,var(--surface-2)_70%,transparent)] backdrop-blur-md px-5 pt-3 pb-[max(14px,env(safe-area-inset-bottom))]">
           <div className="max-w-[560px] mx-auto">
             {error && <div role="alert" className="text-bodySm text-red-500 mb-2">{error}</div>}
             <div className="flex gap-2.5">

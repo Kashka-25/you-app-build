@@ -16,8 +16,8 @@ import Memento from "./Memento";
 // seed. Nothing dies, wilts or resets: stopping early still counts, and
 // every marker reached stays yours.
 
-const primaryBtn = "w-full min-h-[52px] rounded-sm bg-[#C9A24D] text-[#0F1A14] font-semibold text-body disabled:opacity-50";
-const quietBtn = "w-full min-h-[44px] rounded-sm text-body text-[#B8B3A9]";
+const primaryBtn = "w-full min-h-[52px] rounded-sm bg-[#C9A24D] text-[#0B0B1F] font-semibold text-body disabled:opacity-50";
+const quietBtn = "w-full min-h-[44px] rounded-sm text-body text-[#B8B5D6]";
 
 function newId() {
   return (crypto.randomUUID && crypto.randomUUID()) || String(Date.now());
@@ -115,7 +115,7 @@ export default function FocusScreen() {
   }
 
   return (
-    <div className="fixed inset-0 z-40 overflow-y-auto text-[#F7F5EF] font-sans" style={{ background: "radial-gradient(circle at 50% 40%, #1E2D22 0%, #0F1A14 65%)" }}>
+    <div className="fixed inset-0 z-40 overflow-y-auto text-[#F7F5EF] font-sans" style={{ background: "radial-gradient(circle at 50% 40%, #1B1A48 0%, #0B0B1F 65%)" }}>
       <div className="min-h-full max-w-[440px] mx-auto px-6 pt-6 pb-8 flex flex-col">
         {ended ? (
           <Ended ended={ended} onNote={note => saveFocusNote(ended.session.id, note)} onDone={leave} onAnother={() => { setEnded(null); finishing.current = false; }} />
@@ -144,7 +144,7 @@ function Thread({ label, valueName, pillar }) {
     <div className="flex flex-col items-center gap-1 text-center">
       <div className="text-label uppercase tracking-[0.1em] text-[#C9A24D]">Tending</div>
       <div className="font-serif text-[26px] font-semibold leading-tight">{label}</div>
-      {(valueName || pillar) && <div className="text-bodySm text-[#B8B3A9]">{[valueName, pillar].filter(Boolean).join(" · ")}</div>}
+      {(valueName || pillar) && <div className="text-bodySm text-[#B8B5D6]">{[valueName, pillar].filter(Boolean).join(" · ")}</div>}
     </div>
   );
 }
@@ -158,7 +158,7 @@ function Setup({
   return (
     <div className="flex-1 flex flex-col gap-6">
       <button onClick={onLeave} aria-label="Back" className="w-11 h-11 -ml-2.5 flex items-center">
-        <ArrowLeft size={22} strokeWidth={1.75} className="text-[#B8B3A9]" />
+        <ArrowLeft size={22} strokeWidth={1.75} className="text-[#B8B5D6]" />
       </button>
 
       {item ? (
@@ -173,14 +173,14 @@ function Setup({
         <div className="flex flex-col gap-2">
           {pursuits.length > 0 && (
             <>
-              <div className="text-bodySm text-[#D9D4C8]">One of your pursuits</div>
+              <div className="text-bodySm text-[#D6D3EA]">One of your pursuits</div>
               <div className="flex flex-wrap gap-2">
                 {pursuits.slice(0, 12).map(p => (
                   <button
                     key={p.id}
                     onClick={() => { setPickedItemId(pickedItemId === p.id ? null : p.id); setFreeLabel(""); }}
                     aria-pressed={pickedItemId === p.id}
-                    className={`min-h-[40px] px-3 rounded-full text-bodySm border ${pickedItemId === p.id ? "bg-[#C9A24D] text-[#0F1A14] border-[#C9A24D]" : "border-white/15 text-[#D9D4C8]"}`}
+                    className={`min-h-[40px] px-3 rounded-full text-bodySm border ${pickedItemId === p.id ? "bg-[#C9A24D] text-[#0B0B1F] border-[#C9A24D]" : "border-white/15 text-[#D6D3EA]"}`}
                   >
                     {p.name}
                   </button>
@@ -188,21 +188,21 @@ function Setup({
               </div>
             </>
           )}
-          <label htmlFor="free" className="text-bodySm text-[#D9D4C8] mt-2">Or name it</label>
+          <label htmlFor="free" className="text-bodySm text-[#D6D3EA] mt-2">Or name it</label>
           <input
             id="free" value={freeLabel} maxLength={80}
             onChange={e => { setFreeLabel(e.target.value); if (e.target.value) setPickedItemId(null); }}
             placeholder="Reading, a letter, tidying…"
-            className="min-h-[48px] bg-[#1A1F1D] border border-white/15 rounded-sm px-3.5 text-body text-[#F7F5EF] outline-none focus:border-[#C9A24D] placeholder:text-[#8B8E87]"
+            className="min-h-[48px] bg-[#19193D] border border-white/15 rounded-sm px-3.5 text-body text-[#F7F5EF] outline-none focus:border-[#C9A24D] placeholder:text-[#8A88AE]"
           />
           {freeLabel.trim() && (
             <div className="flex flex-col gap-1.5 mt-1">
-              <div className="text-caption text-[#B8B3A9]">Which roots does it feed? (optional)</div>
+              <div className="text-caption text-[#B8B5D6]">Which roots does it feed? (optional)</div>
               <div className="flex flex-wrap gap-1.5">
                 {PILLARS.map(p => (
                   <button
                     key={p} onClick={() => setFreePillar(freePillar === p ? null : p)} aria-pressed={freePillar === p}
-                    className={`min-h-[36px] px-3 rounded-full text-caption border ${freePillar === p ? "text-[#0F1A14] border-transparent" : "border-white/15 text-[#D9D4C8]"}`}
+                    className={`min-h-[36px] px-3 rounded-full text-caption border ${freePillar === p ? "text-[#0B0B1F] border-transparent" : "border-white/15 text-[#D6D3EA]"}`}
                     style={freePillar === p ? { background: PILLAR_COLORS[p] } : undefined}
                   >
                     {p}
@@ -215,21 +215,21 @@ function Setup({
       )}
 
       <div className="flex flex-col gap-2.5">
-        <div className="text-bodySm text-[#D9D4C8]">How long would you like to tend it?</div>
+        <div className="text-bodySm text-[#D6D3EA]">How long would you like to tend it?</div>
         <div className="grid grid-cols-5 gap-2">
           {[...DURATIONS, null].map(d => (
             <button
               key={d ?? "open"} onClick={() => setPlanned(d)} aria-pressed={planned === d}
-              className={`min-h-[48px] rounded-sm text-bodySm ${planned === d ? "bg-[#C9A24D] text-[#0F1A14] font-semibold" : "bg-[#1A1F1D] text-[#EDE6D6] border border-white/10"}`}
+              className={`min-h-[48px] rounded-sm text-bodySm ${planned === d ? "bg-[#C9A24D] text-[#0B0B1F] font-semibold" : "bg-[#19193D] text-[#EDE6D6] border border-white/10"}`}
             >
               {d ? `${d} min` : "Open"}
             </button>
           ))}
         </div>
-        {planned === null && <div className="text-caption text-[#B8B3A9]">No end: it grows until you’re done.</div>}
+        {planned === null && <div className="text-caption text-[#B8B5D6]">No end: it grows until you’re done.</div>}
       </div>
 
-      <label className="flex items-center gap-3 min-h-[44px] text-body text-[#D9D4C8]">
+      <label className="flex items-center gap-3 min-h-[44px] text-body text-[#D6D3EA]">
         <input type="checkbox" checked={hideClock} onChange={e => setHideClock(e.target.checked)} className="w-5 h-5 accent-[#C9A24D]" />
         Hide the clock, just let it grow
       </label>
@@ -250,7 +250,7 @@ function Growing({ active, elapsed, minutes, growth, confirmRest, setConfirmRest
   return (
     <div className="flex-1 flex flex-col gap-5 text-center">
       <div className="flex items-center justify-between">
-        <button onClick={onLeave} className="min-h-[44px] -ml-1 flex items-center gap-1.5 text-bodySm text-[#B8B3A9]">
+        <button onClick={onLeave} className="min-h-[44px] -ml-1 flex items-center gap-1.5 text-bodySm text-[#B8B5D6]">
           <X size={18} strokeWidth={1.75} /> Leave it growing
         </button>
       </div>
@@ -261,11 +261,11 @@ function Growing({ active, elapsed, minutes, growth, confirmRest, setConfirmRest
         {!active.hideClock && (
           <div className="font-serif text-[44px] font-medium leading-none" aria-live="off">{clock(elapsed)}</div>
         )}
-        <div className="text-bodySm text-[#B8B3A9]">
+        <div className="text-bodySm text-[#B8B5D6]">
           {active.hideClock ? stageLine(growth) : isOpen ? `${stageLine(growth)} · open session` : `of ${active.plannedMinutes} minutes · ${stageLine(growth).toLowerCase()}`}
         </div>
         {!isOpen && !active.hideClock && (
-          <div className="w-[220px] h-[3px] rounded-full bg-[#2A2F2C]">
+          <div className="w-[220px] h-[3px] rounded-full bg-[#25244E]">
             <div className="h-full rounded-full bg-[#7A9B76] transition-[width] duration-1000 ease-linear" style={{ width: `${growth * 100}%` }} />
           </div>
         )}
@@ -273,23 +273,23 @@ function Growing({ active, elapsed, minutes, growth, confirmRest, setConfirmRest
           {markers.map(m => {
             const got = reached.includes(m);
             return (
-              <span key={m.minutes} className={`text-caption px-2.5 py-1 rounded-full border ${got ? "border-[#C9A24D] text-[#C9A24D]" : "border-white/10 text-[#8B8E87]"}`}>
+              <span key={m.minutes} className={`text-caption px-2.5 py-1 rounded-full border ${got ? "border-[#C9A24D] text-[#C9A24D]" : "border-white/10 text-[#8A88AE]"}`}>
                 {m.minutes} min straight · +{m.xp}{got ? " ✓" : ""}
               </span>
             );
           })}
         </div>
-        <div className="text-caption text-[#8B8E87]">
+        <div className="text-caption text-[#8A88AE]">
           +1 for every 10 minutes
           {markerXp(minutes) > 0 && <span className="text-[#C9A24D]"> · +{markerXp(minutes)} so far</span>}
         </div>
       </div>
 
-      <p className="text-caption text-[#8B8E87] m-0">You can leave the app. It keeps growing while you work.</p>
+      <p className="text-caption text-[#8A88AE] m-0">You can leave the app. It keeps growing while you work.</p>
       {error && <div className="text-bodySm text-[#E9A0A0]">{error}</div>}
 
       {confirmRest ? (
-        <div className="flex flex-col gap-2.5 p-4 rounded-card bg-[#1A1F1D] border border-white/10">
+        <div className="flex flex-col gap-2.5 p-4 rounded-card bg-[#19193D] border border-white/10">
           <div className="text-body text-[#EDE6D6]">
             {isOpen ? "Finish here?" : "Rest here?"} {markerXp(minutes) > 0 ? "What you’ve grown stays yours." : "It still counts as time tended."}
           </div>
@@ -342,16 +342,16 @@ function Ended({ ended, onNote, onDone, onAnother }) {
               ? `You tended ${session.label} for ${minutesLabel(session.minutes)}. That still counts.`
               : `You showed up for ${session.label}. That still counts.`}
         </p>
-        {rewards && <div className="text-bodySm text-[#B8B3A9]">{rewards.charAt(0).toUpperCase() + rewards.slice(1)}</div>}
+        {rewards && <div className="text-bodySm text-[#B8B5D6]">{rewards.charAt(0).toUpperCase() + rewards.slice(1)}</div>}
       </div>
       {(session.mementos || []).map(m => <Memento key={m.hour} memento={m} />)}
       <div className="flex flex-col gap-2 text-left">
-        <label htmlFor="grew" className="text-bodySm text-[#D9D4C8]">
-          {bloom ? "What grew?" : "Anything you want to remember?"} <span className="text-[#8B8E87]">(optional)</span>
+        <label htmlFor="grew" className="text-bodySm text-[#D6D3EA]">
+          {bloom ? "What grew?" : "Anything you want to remember?"} <span className="text-[#8A88AE]">(optional)</span>
         </label>
         <input
           id="grew" value={note} onChange={e => setNote(e.target.value)} maxLength={200}
-          className="min-h-[48px] bg-[#1A1F1D] border border-white/15 rounded-sm px-3.5 text-body text-[#F7F5EF] outline-none focus:border-[#C9A24D]"
+          className="min-h-[48px] bg-[#19193D] border border-white/15 rounded-sm px-3.5 text-body text-[#F7F5EF] outline-none focus:border-[#C9A24D]"
         />
       </div>
       <button onClick={keep} disabled={saving} className={primaryBtn}>Keep it in my garden</button>

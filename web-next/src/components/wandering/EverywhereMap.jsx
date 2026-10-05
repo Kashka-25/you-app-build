@@ -127,7 +127,7 @@ export default function EverywhereMap({ onClose, year = null }) {
       map.addLayer({
         id: "places-label", type: "symbol", source: "places", minzoom: 2.5,
         layout: { "text-field": ["get", "name"], "text-size": 11, "text-offset": [0, 1.3], "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
-        paint: { "text-color": "#EDE6D6", "text-halo-color": "#070b14", "text-halo-width": 1.2 }
+        paint: { "text-color": "#EDE6D6", "text-halo-color": "#07071A", "text-halo-width": 1.2 }
       });
       // A tap that lands on several places at once (Lisbon, Sintra and
       // Porto at world zoom) zooms in to separate them, rather than guessing.
@@ -166,7 +166,7 @@ export default function EverywhereMap({ onClose, year = null }) {
   const { places, countries, placeCount, wanderingCount } = data;
 
   return (
-    <div className="fixed inset-0 z-[70] font-sans" style={{ background: "#070b14" }}>
+    <div className="fixed inset-0 z-[70] font-sans" style={{ background: "#07071A" }}>
       {/* MapLibre sets position: relative on its container, so the map
           fills a full-screen wrapper rather than being positioned itself. */}
       <div className="absolute inset-0 night-map">
@@ -175,22 +175,22 @@ export default function EverywhereMap({ onClose, year = null }) {
 
       {/* Header floats over the map; only its controls take touches. */}
       <div className="absolute top-0 left-0 right-0 px-5 pt-6 pb-8 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(7,11,20,0.92) 40%, rgba(7,11,20,0))" }}>
-        <button onClick={onClose} className="pointer-events-auto flex items-center gap-1.5 text-caption uppercase tracking-wide mb-3" style={{ color: "#8B8E87" }}>
+        <button onClick={onClose} className="pointer-events-auto flex items-center gap-1.5 text-caption uppercase tracking-wide mb-3" style={{ color: "#8A88AE" }}>
           <X size={14} strokeWidth={1.75} /> Back
         </button>
         <div className="text-caption uppercase tracking-wide text-gold mb-0.5">Your world</div>
         <div className="font-serif text-h2 font-medium text-cream">{year ? `Where you went in ${year}` : "Everywhere you've been"}</div>
         {places.length > 0 ? (
           <>
-            <div className="text-bodySm mt-0.5" style={{ color: "#B8B3A9" }}>
+            <div className="text-bodySm mt-0.5" style={{ color: "#B8B5D6" }}>
               {placeCount} {placeCount === 1 ? "place" : "places"} · {countries.length} {countries.length === 1 ? "country" : "countries"} · {wanderingCount} {wanderingCount === 1 ? "wandering" : "wanderings"}
             </div>
             {countries.length > 0 && (
-              <div className="text-caption mt-1" style={{ color: "#8B8E87" }}>{countries.join(" · ")}</div>
+              <div className="text-caption mt-1" style={{ color: "#8A88AE" }}>{countries.join(" · ")}</div>
             )}
           </>
         ) : (
-          <div className="pointer-events-auto text-bodySm mt-2 max-w-[38ch]" style={{ color: "#B8B3A9" }}>
+          <div className="pointer-events-auto text-bodySm mt-2 max-w-[38ch]" style={{ color: "#B8B5D6" }}>
             No places yet. When a wandering's first day arrives, its places start to glow here.{" "}
             <Link to="/pursue" className="underline" style={{ color: "var(--gold)" }}>Plan one from a Dream →</Link>
           </div>
@@ -201,18 +201,18 @@ export default function EverywhereMap({ onClose, year = null }) {
       </div>
 
       {selected && (
-        <div className="absolute left-3 right-3 bottom-10 rounded-card p-4 shadow-cardDark" style={{ background: "#141816", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="absolute left-3 right-3 bottom-10 rounded-card p-4 shadow-cardDark" style={{ background: "#131331", border: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="flex items-start gap-2.5">
             <MapPin size={18} strokeWidth={1.75} className="flex-none mt-0.5" style={{ color: selected.color }} />
             <div className="flex-1 min-w-0">
               <div className="font-serif text-h3 text-cream">{selected.stop.place_name}</div>
-              {selected.stop.place_detail && <div className="text-caption" style={{ color: "#8B8E87" }}>{selected.stop.place_detail}</div>}
-              <div className="text-bodySm mt-1" style={{ color: "#B8B3A9" }}>
+              {selected.stop.place_detail && <div className="text-caption" style={{ color: "#8A88AE" }}>{selected.stop.place_detail}</div>}
+              <div className="text-bodySm mt-1" style={{ color: "#B8B5D6" }}>
                 {selected.wandering.title}
                 {selected.stop.arrive && isExact(selected.stop) && ` · ${new Date(selected.stop.arrive + "T00:00:00").toLocaleDateString("en-AU", { month: "long", year: "numeric" })}`}
               </div>
-              {selected.stop.arrive && <div className="text-caption" style={{ color: "#8B8E87" }}>{stopDateLabel(selected.stop)}</div>}
-              <div className="text-caption mt-0.5" style={{ color: "#8B8E87" }}>
+              {selected.stop.arrive && <div className="text-caption" style={{ color: "#8A88AE" }}>{stopDateLabel(selected.stop)}</div>}
+              <div className="text-caption mt-0.5" style={{ color: "#8A88AE" }}>
                 {selected.memories > 0
                   ? `${selected.memories} ${selected.memories === 1 ? "memory" : "memories"} from here`
                   : "Nothing pinned here yet"}
@@ -221,7 +221,7 @@ export default function EverywhereMap({ onClose, year = null }) {
                 Open the wandering →
               </Link>
             </div>
-            <button onClick={() => setSelected(null)} aria-label="Close" style={{ color: "#8B8E87" }}>
+            <button onClick={() => setSelected(null)} aria-label="Close" style={{ color: "#8A88AE" }}>
               <X size={16} strokeWidth={1.75} />
             </button>
           </div>

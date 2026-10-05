@@ -94,7 +94,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                   <span className="flex items-center justify-between gap-2">
                     Codex requests
                     {codexNew > 0 && (
-                      <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-gold text-[#1A1F1D] text-caption font-semibold flex items-center justify-center" aria-label={`${codexNew} new`}>
+                      <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-gold text-[#19193D] text-caption font-semibold flex items-center justify-center" aria-label={`${codexNew} new`}>
                         {codexNew}
                       </span>
                     )}
@@ -122,7 +122,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                   onClick={onToggleMode}
                   className="text-caption text-textSecondary border border-borderC rounded-full px-3 py-1.5"
                 >
-                  {mode === "light" ? "Switch to dark mode" : "Switch to light mode"}
+                  {mode === "light" ? "Switch to Cosmos (dark)" : "Switch to Ocean (light)"}
                 </button>
               </div>
             </div>

@@ -12,6 +12,7 @@ export default {
         forest: "var(--forest)",
         forestAccent: "var(--forest-accent)",
         onAccent: "var(--on-accent)",
+        seed: "var(--seed)",
         sage: "var(--sage)",
         gold: "var(--gold)",
         cream: "var(--cream)",

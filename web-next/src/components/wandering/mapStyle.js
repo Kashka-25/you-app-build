@@ -12,14 +12,14 @@ const PALETTE = {
     ice: "#F3EEE4", labelHalo: "#EFE8DB", roadCasing: "#E2D9C8"
   },
   dark: {
-    background: "#1A1F1D", water: "#142229", waterway: "#1B2D35", park: "#1E2D22", wood: "#1C2A20",
-    residential: "#202624", building: "#242B28", road: "#2A2F2C", boundary: "#4A524D", label: "#B8B3A9",
-    ice: "#232A27", labelHalo: "#1A1F1D", roadCasing: "#202523"
+    background: "#19193D", water: "#142229", waterway: "#1B2D35", park: "#1B1A48", wood: "#1C2A20",
+    residential: "#202624", building: "#242B28", road: "#25244E", boundary: "#4A524D", label: "#B8B5D6",
+    ice: "#232A27", labelHalo: "#19193D", roadCasing: "#202523"
   },
   night: {
-    background: "#111a1f", water: "#070b14", waterway: "#0b1220", park: "#13201f", wood: "#122019",
-    residential: "#152026", building: "#18232a", road: "#1c2830", boundary: "#3b4b55", label: "#8B8E87",
-    ice: "#1a252b", labelHalo: "#070b14", roadCasing: "#16212a"
+    background: "#111a1f", water: "#07071A", waterway: "#0b1220", park: "#13201f", wood: "#122019",
+    residential: "#152026", building: "#18232a", road: "#1c2830", boundary: "#3b4b55", label: "#8A88AE",
+    ice: "#1a252b", labelHalo: "#07071A", roadCasing: "#16212a"
   }
 };
 

@@ -96,7 +96,7 @@ export default function Threshold() {
   const dateLabel = new Date().toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <div className="min-h-dvh bg-bg flex justify-center font-sans overflow-hidden">
+    <div className="min-h-dvh you-sky flex justify-center font-sans overflow-hidden">
       <motion.div
         animate={entering ? { opacity: 0, scale: 1.04 } : { opacity: 1, scale: 1 }}
         transition={{ duration: 0.42, ease: easeOut }}

@@ -168,7 +168,7 @@ function StageMap({ course, state, selected, onSelect }) {
             <div className="flex items-center justify-between">
               <span className="text-caption font-semibold text-gold">{two(i)}</span>
               {done ? (
-                <span className="w-5 h-5 rounded-full bg-gold text-[#1A1F1D] flex items-center justify-center" aria-label="Done"><Check size={12} strokeWidth={3} /></span>
+                <span className="w-5 h-5 rounded-full bg-gold text-[#19193D] flex items-center justify-center" aria-label="Done"><Check size={12} strokeWidth={3} /></span>
               ) : current ? (
                 <span className="text-[10px] uppercase tracking-wide text-forestAccent font-semibold">Now</span>
               ) : null}
@@ -258,7 +258,7 @@ function StagePanel({ course, state, index, slug, viewRows, viewWalk }) {
 function Gained({ arcanum, course, state }) {
   const { toolUses } = useAppData();
   return (
-    <div className="rounded-card p-5 -mx-1" style={{ background: "#22332B" }}>
+    <div className="rounded-card p-5 -mx-1" style={{ background: "linear-gradient(160deg, var(--forest) 0%, color-mix(in srgb, var(--forest) 70%, var(--seed)) 100%)" }}>
       <SectionHead dark eyebrow="Your Library" title="What you've gained" sub="These tools stay with you after the course ends. Return to them whenever you need them." />
       <div className="grid grid-cols-2 gap-2.5">
         {course.stages.map(stage => {
@@ -315,7 +315,7 @@ function AskIncludeCourses({ state }) {
         Would you like YOU's weekly reflection to draw on what you write in your courses? Only that week's words are sent to Claude, and only to write it. You can change your mind in Settings.
       </div>
       <div className="flex gap-2.5">
-        <button disabled={busy} onClick={() => choose(true)} className="flex-1 min-h-[44px] rounded-full bg-gold text-[#1A1F1D] font-medium text-bodySm disabled:opacity-50">Yes, include them</button>
+        <button disabled={busy} onClick={() => choose(true)} className="flex-1 min-h-[44px] rounded-full bg-gold text-[#19193D] font-medium text-bodySm disabled:opacity-50">Yes, include them</button>
         <button disabled={busy} onClick={() => choose(false)} className="flex-1 min-h-[44px] rounded-full border border-[color-mix(in_srgb,var(--gold)_45%,transparent)] text-bodySm text-[#F3DE9C] disabled:opacity-50">No, keep them out</button>
       </div>
     </AiCard>
@@ -397,7 +397,7 @@ export function WalkLog({ arcanum, state }) {
       <ol className="m-0 p-0 list-none space-y-2 mb-4">
         {log.map(w => (
           <li key={w.walk} className="flex items-center gap-3">
-            <span className={`w-7 h-7 flex-none rounded-full flex items-center justify-center text-caption font-semibold ${w.completedAt ? "bg-gold text-[#1A1F1D]" : "border border-borderC text-textMuted"}`}>{w.walk}</span>
+            <span className={`w-7 h-7 flex-none rounded-full flex items-center justify-center text-caption font-semibold ${w.completedAt ? "bg-gold text-[#19193D]" : "border border-borderC text-textMuted"}`}>{w.walk}</span>
             <span className="text-bodySm text-textPrimary">
               {w.startedAt ? niceDate(w.startedAt) : "Not begun"}
               {w.completedAt ? ` – ${niceDate(w.completedAt)}` : w.walk === state.walk ? " · walking now" : ""}

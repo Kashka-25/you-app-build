@@ -47,7 +47,7 @@ export default function Memento({ memento, startOpen = false }) {
             className="m-0 overflow-hidden"
           >
             <blockquote className="m-0 mt-2 font-serif italic text-[19px] leading-snug text-[#F7F5EF]">“{m.text}”</blockquote>
-            <figcaption className="text-caption text-[#B8B3A9] mt-1.5 mb-1">
+            <figcaption className="text-caption text-[#B8B5D6] mt-1.5 mb-1">
               {author}{source && <>, <span className="italic">{source}</span></>}
             </figcaption>
           </motion.figure>

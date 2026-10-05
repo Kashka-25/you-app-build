@@ -14,7 +14,7 @@ import RestPrompt from "./RestPrompt";
 
 function Shell({ children }) {
   return (
-    <div className="fixed inset-0 z-40 bg-bg overflow-y-auto font-sans">
+    <div className="fixed inset-0 z-40 you-sky overflow-y-auto font-sans">
       {/* my-auto centres short screens; long ones scroll from the top. */}
       <div className="min-h-full max-w-[560px] mx-auto px-5 py-10 flex flex-col">
         <div className="my-auto">{children}</div>

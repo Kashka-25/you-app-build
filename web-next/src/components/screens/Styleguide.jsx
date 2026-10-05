@@ -140,8 +140,8 @@ export default function Styleguide() {
             eyebrow="Good Morning"
             title="Your Daily YOU"
             subtitle="Small steps. Big shifts."
-            imageLight="/images/home-light.jpg"
-            imageDark="/images/home-dark.jpg"
+            imageLight="/images/ocean-light.svg"
+            imageDark="/images/cosmos-dark.svg"
           />
         </Row>
         <Row label="Journey">

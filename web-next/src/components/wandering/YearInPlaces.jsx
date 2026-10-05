@@ -46,7 +46,7 @@ export default function YearInPlaces({ year, heading = true }) {
         </>
       )}
       {mapOpen && (
-        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#070b14" }} />}>
+        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#07071A" }} />}>
           <EverywhereMap year={year} onClose={() => setMapOpen(false)} />
         </Suspense>
       )}

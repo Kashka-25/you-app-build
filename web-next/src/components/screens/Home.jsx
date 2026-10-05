@@ -102,8 +102,8 @@ export default function Home() {
         eyebrow={`${getGreeting()}, ${firstName}`}
         title={chapter ? chapter.title : "What matters to you right now?"}
         subtitle={chapter ? chapter.blurb : "Let's find out together."}
-        imageLight="/images/home-light.jpg"
-        imageDark="/images/home-dark.jpg"
+        imageLight="/images/ocean-light.svg"
+        imageDark="/images/cosmos-dark.svg"
       >
         {todaysMood && (
           <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-black/25 border border-white/10">

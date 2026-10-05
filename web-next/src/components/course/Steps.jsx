@@ -356,12 +356,12 @@ function ValueChip({ name, on, onClick, note }) {
       aria-checked={on}
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 text-body px-4 py-2.5 rounded-full border transition-colors duration-150 ${
-        on ? "bg-gold border-gold text-[#1A1F1D] font-medium" : "bg-surface1 border-borderC text-textPrimary hover:border-gold"
+        on ? "bg-gold border-gold text-[#19193D] font-medium" : "bg-surface1 border-borderC text-textPrimary hover:border-gold"
       }`}
     >
       {on ? <Check size={15} strokeWidth={2.25} /> : Icon ? <Icon size={15} strokeWidth={1.75} className="text-textMuted" /> : null}
       {name}
-      {note && <span className={`text-caption ${on ? "text-[#1A1F1D]/70" : "text-textMuted"}`}>{note}</span>}
+      {note && <span className={`text-caption ${on ? "text-[#19193D]/70" : "text-textMuted"}`}>{note}</span>}
     </button>
   );
 }
@@ -445,7 +445,7 @@ function Glossary({ open, onClose, picked, onToggle }) {
                   onClick={() => onToggle(v.name)}
                   className={`w-full flex items-start gap-3 text-left rounded-sm px-3 py-2.5 mb-1 border transition-colors duration-150 ${on ? "border-gold bg-surface1" : "border-transparent hover:bg-surface1"}`}
                 >
-                  <span className={`w-8 h-8 flex-none rounded-full flex items-center justify-center ${on ? "bg-gold text-[#1A1F1D]" : "bg-surface3 text-textSecondary"}`}>
+                  <span className={`w-8 h-8 flex-none rounded-full flex items-center justify-center ${on ? "bg-gold text-[#19193D]" : "bg-surface3 text-textSecondary"}`}>
                     {on ? <Check size={15} strokeWidth={2.5} /> : Icon ? <Icon size={15} strokeWidth={1.75} /> : null}
                   </span>
                   <span className="flex-1 min-w-0">
