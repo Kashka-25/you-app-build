@@ -9,7 +9,8 @@ import SidebarMenu from "./SidebarMenu";
 import AiConsentModal from "./AiConsentModal";
 
 export default function AppShell() {
-  const [mode, setMode] = useState("light");
+  // Remembered on this device; index.html applies it before the first paint.
+  const [mode, setMode] = useState(() => (document.documentElement.getAttribute("data-mode") === "dark" ? "dark" : "light"));
   const [addOpen, setAddOpen] = useState(false);
   const [addType, setAddType] = useState("habit");
   const [momentOpen, setMomentOpen] = useState(false);
@@ -20,6 +21,8 @@ export default function AppShell() {
     const next = mode === "light" ? "dark" : "light";
     setMode(next);
     document.documentElement.setAttribute("data-mode", next);
+    try { localStorage.setItem("you.mode", next); } catch { /* private mode: just this visit */ }
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0B0B1F" : "#0E4A57");
   }
 
   return (
