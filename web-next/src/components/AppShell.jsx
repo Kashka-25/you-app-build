@@ -86,5 +86,5 @@ export default function AppShell() {
 }
 
 function tabClass(isActive) {
-  return `flex-1 text-center text-label pt-1.5 ${isActive ? "text-gold" : "text-textMuted"}`;
+  return `flex-1 text-center text-label pt-1.5 ${isActive ? "text-element" : "text-textMuted"}`;
 }

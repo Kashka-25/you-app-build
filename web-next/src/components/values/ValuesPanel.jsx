@@ -17,6 +17,7 @@ import { DropdownSection } from "../Primitives";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { AiButton, AiCard } from "../ui/Premium";
 import TrueNorthCard from "./TrueNorthCard";
+import { elementColor } from "../../lib/elements";
 import { findInCodex, closestValues, displayWord, validWord } from "../../lib/valueWords";
 
 // One icon per authored PRESTIGE_LEVELS stage, same order -- a small growth
@@ -174,7 +175,8 @@ function ValueCard({
   const stageColor = TIERS[prestige % TIERS.length].color;
   // A value in the Seeker's own words has no Codex entry: it gets gold,
   // a spark, and no fixed challenges (it can still generate its own).
-  const color = VALUE_COLORS[v.name] || "#C9A24D";
+  // Each value wears its own Element (design/yin-yang); own values keep gold.
+  const color = VALUE_ELEMENT[v.name] ? elementColor(VALUE_ELEMENT[v.name]) : (VALUE_COLORS[v.name] || "#C9A24D");
   const Icon = VALUE_ICONS[v.name] || Sparkles;
   const lib = getValueEntry(v.name);
   const own = !lib;

@@ -207,3 +207,33 @@ body {
 /* Cosmos side: teal used as text (links, "ready" labels) takes the brighter
    sea seed so it reads on the night; teal fills (buttons) stay as they are. */
 [data-mode="dark"] .text-forestAccent { color: var(--seed); }
+
+/* ── The five Elements as section accents (see lib/elements.js) ──
+   Tuned per side: deeper on the Ocean so they read on light, softer and
+   brighter in the Cosmos so they read on the night. --element is the
+   current section's; Home and anywhere unmapped keep the gold ring. */
+:root {
+  --el-water: #2E7FA6;
+  --el-fire: #C2603A;
+  --el-earth: #6E7F3F;
+  --el-air: #5F74B8;
+  --el-ether: #7D5BB5;
+  --element: var(--gold);
+  --element-line: transparent;
+}
+[data-mode="dark"] {
+  --el-water: #5FB8D6;
+  --el-fire: #F0926A;
+  --el-earth: #A9BD72;
+  --el-air: #A3B4F0;
+  --el-ether: #C2A6F2;
+}
+[data-element="water"] { --element: var(--el-water); }
+[data-element="fire"]  { --element: var(--el-fire); }
+[data-element="earth"] { --element: var(--el-earth); }
+[data-element="air"]   { --element: var(--el-air); }
+[data-element="ether"] { --element: var(--el-ether); }
+[data-element] { --element-line: color-mix(in srgb, var(--element) 70%, transparent); }
+
+/* Section labels (the small gold capitals) take the section's Element. */
+[data-element] .text-label.text-gold { color: var(--element); }

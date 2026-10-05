@@ -31,6 +31,7 @@ import CodexRequests from "./components/screens/CodexRequests";
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
 import { thresholdOnOpen } from "./lib/week";
+import { useSectionElement } from "./lib/elements";
 
 // Opening the app lands on the Threshold first — once per session, only
 // when arriving at Home (a deep link goes where it points), and only if
@@ -49,6 +50,7 @@ function useThresholdOnOpen(ready) {
 export default function App() {
   const { userId, loading } = useAuth();
   useThresholdOnOpen(!loading && Boolean(userId));
+  useSectionElement();
 
   if (loading) {
     return (
