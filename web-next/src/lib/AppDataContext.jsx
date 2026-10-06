@@ -1400,6 +1400,19 @@ export function AppDataProvider({ children }) {
     setHeldArcana(prev => (prev.some(h => h.slug === slug) ? prev : [...prev, row]));
   }
 
+  // A gift code unlocks a paid Arcanum for free; checked and granted only on
+  // the server (redeem_arcanum_code). Returns the Arcanum's slug.
+  async function redeemArcanumCode(code) {
+    const res = await supabase.rpc("redeem_arcanum_code", { p_code: code });
+    if (res.error) {
+      const e = new Error(res.error.message || "That code couldn't be used.");
+      e.friendly = res.error.message;
+      throw e;
+    }
+    await loadArcana();
+    return res.data;
+  }
+
   async function removeArcanum(slug) {
     const res = await supabase.from("user_arcana").delete().eq("user_id", userId).eq("slug", slug);
     if (res.error) throw res.error;
@@ -1873,7 +1886,7 @@ export function AppDataProvider({ children }) {
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     isAdmin, adminChecked, entitlement, aiAllowed: canUseAi(entitlement), codexNew, recordValueWords, addOwnValue, loadCodexRequests, setCodexWordStatus,
-    heldArcana, arcanaLoaded, addArcanum, removeArcanum, courseProgress, toolUses, completeCoursePart, skipCourseRest, saveToolUse, courseWalks, walkFor, startNewWalk, setIncludeCourses, deleteToolUse,
+    heldArcana, arcanaLoaded, addArcanum, redeemArcanumCode, removeArcanum, courseProgress, toolUses, completeCoursePart, skipCourseRest, saveToolUse, courseWalks, walkFor, startNewWalk, setIncludeCourses, deleteToolUse,
     ownTools, addOwnTool, editOwnTool, deleteOwnTool, toggleToolUsedToday,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
     loadJournalPhotos, addJournalPhoto, scanJournalPages, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,

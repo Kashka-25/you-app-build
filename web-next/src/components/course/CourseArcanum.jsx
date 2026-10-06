@@ -6,6 +6,7 @@ import { useCourse } from "../../lib/course";
 import { BackRow } from "../Primitives";
 import CourseHero from "./CourseHero";
 import CoursePath from "./CoursePath";
+import GiftCode from "../youniversity/GiftCode";
 
 function Section({ label, children }) {
   return (
@@ -123,6 +124,7 @@ export default function CourseArcanum({ arcanum }) {
             {arcanum.comingSoon ? <><Clock size={17} strokeWidth={1.75} /> Coming soon</> : <><Lock size={16} strokeWidth={1.75} /> Not in your Library</>}
           </button>
           {arcanum.comingSoon && <div className="text-caption text-textMuted text-center mt-2">This Arcanum isn't available to buy yet. It's being made ready.</div>}
+          <div className="mt-4 flex justify-center"><GiftCode /></div>
         </CourseHero>
       </div>
       <About arcanum={arcanum} course={course} />

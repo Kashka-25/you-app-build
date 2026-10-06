@@ -148,6 +148,13 @@ who holds what (`20261005100000_arcana.sql`, applied Oct 5).
 - [ ] Paid content currently ships in the app bundle (lazy-loaded). Before
       selling, serve it only to holders (e.g. from Storage behind RLS).
 - [ ] Show the Sovereignty Code on My YOU (optional, private).
+- [x] **Gift codes** for paid Arcana (`20261006100000_arcanum_gift_codes.sql`,
+      applied Oct 6): `arcanum_codes` (uses, end date; unreadable from the
+      app), `redeem_arcanum_code()` grants `user_arcana` as a gift, once
+      per person. "Have a gift code?" on the course page and in Explore.
+      First code: `EMPATH-F25F6F`, The Sovereign Empath, 3 uses, until
+      31 Dec 2026, for beta testers. New codes: insert a row in
+      `arcanum_codes` (ask Claude).
 - [ ] Payments (Stripe) for paid Arcana, granting `user_arcana` server-side.
 - [ ] More formats: course, tool. More ways to plug in: challenges, values,
       progress over time.
