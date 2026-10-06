@@ -155,6 +155,48 @@ who holds what (`20261005100000_arcana.sql`, applied Oct 5).
       offer both "Talk to someone now" (findahelpline) and "Find a
       practitioner" (Empatherapy), not one instead of the other.
 
+## Yin & Yang design (Oct 5–6)
+
+Drawn from the "O" in the YOU logo: a yin-yang of ocean and cosmos held
+in a gold ring. Built on `design/yin-yang`, merged into `mvp` Oct 6. The
+previous forest-green design is tagged **`forest-design`** (the `main`
+commit live before this), to compare or restore.
+
+- **Light mode is the Ocean side:** sea foam `--bg #F6FAF9`, sea glass
+  surfaces, deep-ocean teal `--forest-accent #176A76` for buttons and
+  selected things, gold `#B88F3E`, ink `#122E37`. Light from above, the
+  sea below (`--sky`).
+- **Dark mode is the Cosmos side:** midnight `--bg #0B0B1F`, night-sky
+  surfaces, nebula violet `--sage #6C68B6`, starlight gold `#E0B865`, a
+  faint starfield and nebula glow (`--sky`).
+- **Each carries a seed of the other** (`--seed`): cosmos indigo
+  `#3D3B7A` in the Ocean, sea teal `#4FB3B5` in the Cosmos. Buttons in the
+  Cosmos glow sea-teal; teal text brightens to the seed.
+- Token names (forest, sage…) were kept so every screen follows; all
+  colours live in `src/styles/tokens.css`. Text on accents uses
+  `--on-accent`.
+- Home's hero: `public/images/ocean-light.svg` (dawn over waves, a small
+  moon) and `cosmos-dark.svg` (nebula, golden sun-star, crescent). Top and
+  bottom bars are glass over the sky.
+- Night scenes (Focus, Tree of Stars, Constellations, Crossroads, maps)
+  and the AI premium ink moved from forest night to cosmos night; plants
+  and soil stay green.
+- The chosen mode is remembered per device (`localStorage you.mode`,
+  applied in `index.html` before first paint). Menu: "Switch to Cosmos
+  (dark)" / "Switch to Ocean (light)".
+- **The five Elements as section accents** (`lib/elements.js`,
+  `--el-*` in tokens.css, deeper on the Ocean, softer in the Cosmos):
+  Water → Reflections · Fire → Pursue, Focus · Earth → Threshold, Sow,
+  Harvest, Wanderings · Air → YOUniversity and courses · Ether → YOUrney,
+  Mirror, Legacy, My Story · Home and the YOU tab keep the gold ring.
+  Shown only in section labels, the bottom-nav marker, a thin line on
+  cards (`shadow-card`) and a mark under the chosen tab. Buttons never
+  change. Value cards wear their own Element.
+- [ ] Other screens with their own photos or art (season images, the
+      Styleguide) may still carry the forest feel; not yet reviewed.
+- [ ] Home & Earth, Pillar colours and VALUE_COLORS elsewhere (Tree of
+      Stars) are unchanged; decide whether they follow the Elements too.
+
 ## The course in your day (Oct 5, later)
 
 - [x] Home's Today card and the Threshold show each course in progress:
