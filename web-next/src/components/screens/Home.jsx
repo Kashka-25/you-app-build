@@ -12,6 +12,7 @@ import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
 import { NorthStar } from "../values/Crossroads";
+import { CourseNowRows } from "../course/CourseNow";
 import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 
 function getGreeting() {
@@ -101,8 +102,8 @@ export default function Home() {
         eyebrow={`${getGreeting()}, ${firstName}`}
         title={chapter ? chapter.title : "What matters to you right now?"}
         subtitle={chapter ? chapter.blurb : "Let's find out together."}
-        imageLight="/images/home-light.jpg"
-        imageDark="/images/home-dark.jpg"
+        imageLight="/images/ocean-light.svg"
+        imageDark="/images/cosmos-dark.svg"
       >
         {todaysMood && (
           <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-black/25 border border-white/10">
@@ -172,6 +173,9 @@ export default function Home() {
         <div className={hasIntentions ? "mt-2 pt-2 border-t border-borderC" : ""}>
           <QuickList showLabel={hasIntentions} />
         </div>
+
+        {/* Courses in progress: what's ready, the challenge being carried. */}
+        <CourseNowRows />
 
         <Link to="/focus" className="flex items-center gap-2.5 text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
           <Timer size={16} strokeWidth={1.75} />

@@ -6,7 +6,7 @@ const SIZES = {
 };
 
 const VARIANTS = {
-  primary: "bg-forestAccent text-surface2 shadow-card hover:bg-forest",
+  primary: "bg-forestAccent text-onAccent shadow-card hover:bg-forest",
   secondary: "border border-borderC bg-surface1 text-textPrimary hover:bg-surface3",
   ghost: "text-textSecondary hover:bg-surface1 hover:text-textPrimary"
 };
@@ -29,7 +29,7 @@ export function FloatingButton({ icon: Icon, className = "", ...props }) {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.92 }}
       transition={{ duration: 0.15 }}
-      className={`w-14 h-14 rounded-full bg-forestAccent text-surface2 shadow-card flex items-center justify-center hover:bg-forest transition-colors duration-150 ${className}`}
+      className={`w-14 h-14 rounded-full bg-forestAccent text-onAccent shadow-card flex items-center justify-center hover:bg-forest transition-colors duration-150 ${className}`}
       {...props}
     >
       <Icon size={22} strokeWidth={2} />

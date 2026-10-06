@@ -19,7 +19,7 @@ export function Pill({ children, muted }) {
   return (
     <span
       className={`inline-block text-label px-2.5 py-1 rounded-full mb-2 ${
-        muted ? "bg-surface3 text-textMuted" : "bg-forestAccent text-surface2"
+        muted ? "bg-surface3 text-textMuted" : "bg-forestAccent text-onAccent"
       }`}
     >
       {children}

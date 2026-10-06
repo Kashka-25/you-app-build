@@ -170,7 +170,7 @@ export default function StoryOfYou({ onClose }) {
               <text x={x} y={y + r + 20} textAnchor="middle" fontSize="13" fontFamily="Cormorant Garamond, Georgia, serif" fill="#EDE6D6">
                 {e.title}
               </text>
-              <text x={x} y={y + r + 34} textAnchor="middle" fontSize="9.5" fill="#8B8E87">
+              <text x={x} y={y + r + 34} textAnchor="middle" fontSize="9.5" fill="#8A88AE">
                 {monthYear(e.range_start)}{e.range_end ? " – " + monthYear(e.range_end) : " – now"}
               </text>
             </g>
@@ -190,7 +190,7 @@ export default function StoryOfYou({ onClose }) {
         <button
           onClick={onClose}
           className="flex items-center gap-1.5 text-caption uppercase tracking-wide mb-5 flex-none pointer-events-auto"
-          style={{ color: "#8B8E87" }}
+          style={{ color: "#8A88AE" }}
         >
           <X size={14} strokeWidth={1.75} /> Back to the tree
         </button>
@@ -198,7 +198,7 @@ export default function StoryOfYou({ onClose }) {
         <div className="text-center mb-3 flex-none">
           <div className="text-caption uppercase tracking-wide text-gold mb-1">Beyond the cosmos</div>
           <div className="font-serif text-h2 font-medium text-cream">The Story of You</div>
-          <p className="text-bodySm text-[#B8B3A9] max-w-[42ch] mx-auto mt-1">
+          <p className="text-bodySm text-[#B8B5D6] max-w-[42ch] mx-auto mt-1">
             Drift out past every star, until your whole life becomes a single thread of light.
             Choose an era. Open the door. Step back inside it.
           </p>
@@ -215,7 +215,7 @@ export default function StoryOfYou({ onClose }) {
         {eras.length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-8 pointer-events-auto">
             <div className="font-serif text-h3 text-cream mb-1.5">Your story has no eras yet</div>
-            <p className="text-bodySm text-[#B8B3A9] mb-3 max-w-[36ch]">
+            <p className="text-bodySm text-[#B8B5D6] mb-3 max-w-[36ch]">
               Eras come from your Chapters — add some memories and let YOU suggest the shape of your story so far.
             </p>
             <Link to="/journey" state={{ tab: "chapters" }} className="text-bodySm underline" style={{ color: "var(--gold)" }}>
@@ -226,7 +226,7 @@ export default function StoryOfYou({ onClose }) {
       </div>
 
       {worldOpen && (
-        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#070b14" }} />}>
+        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#07071A" }} />}>
           <EverywhereMap onClose={() => setWorldOpen(false)} />
         </Suspense>
       )}

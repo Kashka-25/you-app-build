@@ -87,7 +87,7 @@ function Constellation({ wandering, points, counts, total, onStar }) {
       </svg>
       <div className="text-center mt-1">
         <div className="font-serif text-h3 text-cream">{wandering.title}</div>
-        <div className="text-caption" style={{ color: "#8B8E87" }}>
+        <div className="text-caption" style={{ color: "#8A88AE" }}>
           {rangeLabel(points.map(p => p.stop))}{rangeLabel(points.map(p => p.stop)) ? " · " : ""}
           {total} {total === 1 ? "memory" : "memories"}
         </div>
@@ -155,14 +155,14 @@ export default function LifeConstellations({ onClose }) {
 
       <style>{TWINKLE_CSS}</style>
       <div className="relative px-5 pt-6 pb-16 max-w-[640px] mx-auto">
-        <button onClick={onClose} className="flex items-center gap-1.5 text-caption uppercase tracking-wide mb-5" style={{ color: "#8B8E87" }}>
+        <button onClick={onClose} className="flex items-center gap-1.5 text-caption uppercase tracking-wide mb-5" style={{ color: "#8A88AE" }}>
           <X size={14} strokeWidth={1.75} /> Back to the tree
         </button>
 
         <div className="text-center mb-8">
           <div className="text-caption uppercase tracking-wide text-gold mb-1">Memories over places</div>
           <div className="font-serif text-h2 font-medium text-cream">Life Constellations</div>
-          <p className="text-bodySm max-w-[42ch] mx-auto mt-1" style={{ color: "#B8B3A9" }}>
+          <p className="text-bodySm max-w-[42ch] mx-auto mt-1" style={{ color: "#B8B5D6" }}>
             Every wandering you remember becomes a constellation, drawn in the true shape of the way you went.
             The brighter the star, the more you carried home from there.
           </p>
@@ -179,7 +179,7 @@ export default function LifeConstellations({ onClose }) {
         {constellations.length === 0 ? (
           <div className="text-center px-6 mt-16">
             <div className="font-serif text-h3 text-cream mb-1.5">No constellations yet</div>
-            <p className="text-bodySm mb-3 max-w-[36ch] mx-auto" style={{ color: "#B8B3A9" }}>
+            <p className="text-bodySm mb-3 max-w-[36ch] mx-auto" style={{ color: "#B8B5D6" }}>
               Plan a wandering from one of your Dreams, then pin memories to its stops. Each place you remember becomes a star here.
             </p>
             <Link to="/pursue" className="text-bodySm underline" style={{ color: "var(--gold)" }}>Go to your Dreams →</Link>
@@ -194,7 +194,7 @@ export default function LifeConstellations({ onClose }) {
       </div>
 
       {worldOpen && (
-        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#070b14" }} />}>
+        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#07071A" }} />}>
           <EverywhereMap onClose={() => setWorldOpen(false)} />
         </Suspense>
       )}

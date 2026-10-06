@@ -46,10 +46,10 @@ export default function FocusWatcher() {
     <Link
       to="/focus"
       className="fixed left-1/2 -translate-x-1/2 bottom-24 z-30 flex items-center gap-2 pl-1.5 pr-4 py-1.5 rounded-full shadow-cardDark text-bodySm text-[#F7F5EF]"
-      style={{ background: "#0F1A14", border: "1px solid rgba(201,162,77,0.4)" }}
+      style={{ background: "#0B0B1F", border: "1px solid rgba(201,162,77,0.4)" }}
       aria-label={done ? `${active.label} has bloomed. Open it.` : `Focus session on ${active.label} is growing. Open it.`}
     >
-      <span className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center bg-[#1A1F1D]">
+      <span className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center bg-[#19193D]">
         <FocusFlower growth={growthOf(elapsed, active.plannedMinutes)} size={40} glow={false} />
       </span>
       <span className="max-w-[160px] truncate">{active.label}</span>

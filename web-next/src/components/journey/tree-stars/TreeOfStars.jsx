@@ -328,7 +328,7 @@ export default function TreeOfStars() {
 
       <motion.div
         className="relative rounded-card overflow-hidden border border-borderC"
-        style={{ background: "linear-gradient(180deg, #060b08 0%, #0c1611 36%, #101a14 62%, #1a120b 64%, #0d0906 100%)", boxShadow: "inset 0 0 60px -10px rgba(0,0,0,0.6)" }}
+        style={{ background: "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%)", boxShadow: "inset 0 0 60px -10px rgba(0,0,0,0.6)" }}
         animate={{ scale: storyOpen ? 0.97 : 1, filter: storyOpen ? "blur(1.5px)" : "blur(0px)" }}
         transition={{ duration: 0.5, ease: easeOut }}
       >
@@ -617,10 +617,10 @@ export default function TreeOfStars() {
           initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.25 }}
           className="rounded-card p-4 mt-4 min-h-[92px]"
-          style={{ background: "#141816", border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ background: "#131331", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           {!selected && (
-            <div className="text-bodySm text-[#8B8E87]">
+            <div className="text-bodySm text-[#8A88AE]">
               Tap a root, a branch, or a star to trace what feeds it.
             </div>
           )}
@@ -636,14 +636,14 @@ export default function TreeOfStars() {
                   Value · branch{b.resting ? " · resting" : ""}
                 </div>
                 <div className="font-serif text-h3 text-cream mb-1">{b.name}</div>
-                {entry?.essence && <div className="text-bodySm text-[#B8B3A9] italic mb-1.5">{entry.essence}</div>}
-                <div className="text-bodySm text-[#B8B3A9]">
+                {entry?.essence && <div className="text-bodySm text-[#B8B5D6] italic mb-1.5">{entry.essence}</div>}
+                <div className="text-bodySm text-[#B8B5D6]">
                   {b.resting
                     ? "Resting — bare for now, never cut. Its growth is kept."
                     : `${stage.name} · ${TIERS[b.tierIndex].name} · ${b.fruit} fruit of lived depth`}
                 </div>
                 {b.pillars.length > 0 && (
-                  <div className="text-bodySm text-[#8B8E87] mt-1">Draws from {b.pillars.join(" and ")}</div>
+                  <div className="text-bodySm text-[#8A88AE] mt-1">Draws from {b.pillars.join(" and ")}</div>
                 )}
                 <Link to="/you" className="inline-block mt-2 text-bodySm underline" style={{ color: "var(--gold)" }}>Open in Values →</Link>
               </>
@@ -659,7 +659,7 @@ export default function TreeOfStars() {
                   Pillar · {r.inner ? "inner root, grows deep" : "outer root, spreads wide"}
                 </div>
                 <div className="font-serif text-h3 text-cream mb-1">{r.name}</div>
-                <div className="text-bodySm text-[#B8B3A9]">
+                <div className="text-bodySm text-[#B8B5D6]">
                   {r.xp} XP · {fed.length ? `feeds ${fed.map(b => b.name).join(", ")}` : "feeds none of your values yet"}
                 </div>
                 <Link to="/you" className="inline-block mt-2 text-bodySm underline" style={{ color: "var(--gold)" }}>Open in Pillars →</Link>
@@ -671,8 +671,8 @@ export default function TreeOfStars() {
             <>
               <div className="text-caption uppercase tracking-wide mb-1 text-cream/70">{editingVision.category} · vision</div>
               <div className="font-serif text-h3 text-cream mb-1">{editingVision.title}</div>
-              <div className="text-bodySm text-[#B8B3A9] italic mb-1.5">"{editingVision.statement}"</div>
-              {editingVision.reflection && <div className="text-bodySm text-[#8B8E87] mb-1.5">{editingVision.reflection}</div>}
+              <div className="text-bodySm text-[#B8B5D6] italic mb-1.5">"{editingVision.statement}"</div>
+              {editingVision.reflection && <div className="text-bodySm text-[#8A88AE] mb-1.5">{editingVision.reflection}</div>}
               <button onClick={() => setEditOpen(true)} className="text-bodySm underline" style={{ color: "var(--gold)" }}>Edit this vision →</button>
             </>
           )}

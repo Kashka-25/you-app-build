@@ -155,7 +155,7 @@ export default function WanderingsList() {
       })}
 
       {worldOpen && (
-        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#070b14" }} />}>
+        <Suspense fallback={<div className="fixed inset-0 z-[70]" style={{ background: "#07071A" }} />}>
           <EverywhereMap onClose={() => setWorldOpen(false)} />
         </Suspense>
       )}

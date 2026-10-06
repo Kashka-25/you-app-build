@@ -8,7 +8,7 @@ pillars: [Home & Earth]
 balancing_kin: [acceptance]
 nourishing_kin: [responsibility, gratitude]
 synonyms: [guardianship, care of place]
-sub_values: [security, tending-home, care-for-nature]
+sub_values: [safekeeping, tending-home, care-for-nature]
 status: draft   # draft | edited | final
 ---
 

@@ -52,7 +52,7 @@ export default function StopMemories({ stop }) {
           <span className="relative flex-none">
             <img src={m.photo} alt="" className="w-9 h-9 rounded-sm object-cover" />
             {m.photoCount > 1 && (
-              <span className="absolute -bottom-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-forestAccent text-surface2 text-[10px] leading-4 text-center">{m.photoCount}</span>
+              <span className="absolute -bottom-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-forestAccent text-onAccent text-[10px] leading-4 text-center">{m.photoCount}</span>
             )}
           </span>
         )

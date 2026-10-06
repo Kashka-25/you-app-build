@@ -7,6 +7,7 @@ import { easeOut } from "../ui/motion";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
 import TravellingToday from "../wandering/TravellingToday";
+import { CourseNowCards } from "../course/CourseNow";
 import { tendedDaysThisWeek, isSunday, weekStartKey, sowWeekStartKey, isWeekRested, harvestDue } from "../../lib/week";
 
 export const THRESHOLD_SEEN = "you.threshold.seen";
@@ -95,7 +96,7 @@ export default function Threshold() {
   const dateLabel = new Date().toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" });
 
   return (
-    <div className="min-h-dvh bg-bg flex justify-center font-sans overflow-hidden">
+    <div className="min-h-dvh you-sky flex justify-center font-sans overflow-hidden">
       <motion.div
         animate={entering ? { opacity: 0, scale: 1.04 } : { opacity: 1, scale: 1 }}
         transition={{ duration: 0.42, ease: easeOut }}
@@ -131,6 +132,9 @@ export default function Threshold() {
                 <QuickList showLabel={false} />
               </div>
             </section>
+
+            {/* A course that needs you today: a part that's ready, a challenge carried. */}
+            <CourseNowCards />
 
             {/* Then the week: plant it, or see what's growing. */}
             <section>

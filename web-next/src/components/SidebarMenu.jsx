@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown, ChevronRight, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
+import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
 
 // Journey-before-CommYOUnity is deliberate: the app is about the individual
@@ -11,6 +12,7 @@ const SITEMAP = [
   { to: "/", label: "Home", end: true },
   { to: "/journey", label: "YOUrney" },
   { to: "/reflections", label: "Reflections" },
+  { to: "/youniversity", label: "YOUniversity" },
   { to: "/community", label: "CommYOUnity" }
 ];
 
@@ -32,6 +34,7 @@ const linkClass = ({ isActive }) =>
 
 export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
   const location = useLocation();
+  const { isAdmin, codexNew } = useAppData();
   const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
   const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
   useEscape(open, onClose);
@@ -84,6 +87,22 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
               ))}
             </div>
 
+            {isAdmin && (
+              <div className="border-t border-borderC pt-2 pb-1">
+                <div className="px-5 pb-1 text-label uppercase text-textMuted">For you as creator</div>
+                <NavLink to="/codex-requests" onClick={onClose} className={linkClass}>
+                  <span className="flex items-center justify-between gap-2">
+                    Codex requests
+                    {codexNew > 0 && (
+                      <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-gold text-[#19193D] text-caption font-semibold flex items-center justify-center" aria-label={`${codexNew} new`}>
+                        {codexNew}
+                      </span>
+                    )}
+                  </span>
+                </NavLink>
+              </div>
+            )}
+
             <div className="border-t border-borderC pt-3">
               <NavLink
                 to="/settings"
@@ -103,7 +122,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                   onClick={onToggleMode}
                   className="text-caption text-textSecondary border border-borderC rounded-full px-3 py-1.5"
                 >
-                  {mode === "light" ? "Switch to dark mode" : "Switch to light mode"}
+                  {mode === "light" ? "Switch to Cosmos (dark)" : "Switch to Ocean (light)"}
                 </button>
               </div>
             </div>

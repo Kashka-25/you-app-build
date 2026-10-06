@@ -12,6 +12,10 @@ import { compressImage, JOURNAL_PAGE } from "./imageCompress";
 import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
 import { markerXp, DAILY_FOCUS_XP_CAP } from "./focus";
 import { mementoForHour } from "../constants/mementos";
+import { arcanumForQuestionnaire } from "../constants/arcana";
+import { currentWalk } from "./course";
+import { canUseAi, PREMIUM_REQUIRED_MESSAGE } from "./premium";
+import { normalizeWord, displayWord, isCodexValue } from "./valueWords";
 
 // "Today" is always the Seeker's local date, never UTC.
 const todayKey = localDateKey;
@@ -116,6 +120,16 @@ export function AppDataProvider({ children }) {
   const [aiConsent, setAiConsent] = useState(null);
   const [consentPrompt, setConsentPrompt] = useState(null); // { resolve } while asking
   const [reflections, setReflections] = useState([]);
+  const [heldArcana, setHeldArcana] = useState([]);
+  const [arcanaLoaded, setArcanaLoaded] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [entitlement, setEntitlement] = useState(null); // { is_premium }
+  const [adminChecked, setAdminChecked] = useState(false);
+  const [codexNew, setCodexNew] = useState(0); // admin: words waiting for a look
+  const [ownTools, setOwnTools] = useState([]);
+  const [courseProgress, setCourseProgress] = useState([]);
+  const [toolUses, setToolUses] = useState([]);
+  const [courseWalks, setCourseWalks] = useState([]);
   // Journal AI state is intentionally NOT part of the initial `load()`
   // batch — insights/photos/weekly reflections are fetched lazily, on
   // demand, so opening the app doesn't pull in every entry's AI output and
@@ -201,6 +215,9 @@ export function AppDataProvider({ children }) {
       loadHighlights();
       loadAiConsent();
       loadReflections();
+      loadArcana();
+      loadAdmin();
+      loadEntitlement();
     } catch (e) {
       console.error("[AppDataContext] load failed — continuing with local/empty state:", e);
       setSync("offline");
@@ -934,7 +951,15 @@ export function AppDataProvider({ children }) {
   // Every AI call goes through here, so the server's own explanation (a
   // beta allowance reached, a reply withheld by moderation) reaches the
   // Seeker as `e.friendly` instead of a generic failure.
+  // Every AI call goes through here, so YOU Premium is checked in one place
+  // (and again on the server).
   async function invokeAi(name, body) {
+    if (!canUseAi(entitlement)) {
+      const e = new Error(PREMIUM_REQUIRED_MESSAGE);
+      e.code = "premium_required";
+      e.friendly = PREMIUM_REQUIRED_MESSAGE;
+      throw e;
+    }
     const { data, error } = await supabase.functions.invoke(name, { body });
     if (error) {
       let detail = null;
@@ -1166,12 +1191,259 @@ export function AppDataProvider({ children }) {
         }).select().single();
     if (res.error) throw res.error;
     setReflections(prev => existing ? prev.map(r => (r.id === existing.id ? res.data : r)) : [...prev, res.data]);
+    // A sitting started from a value or a Pillar puts its Arcanum in the
+    // Library too, so everything used lives in one place.
+    const arcanum = arcanumForQuestionnaire(questionnaire);
+    if (arcanum?.free && !heldArcana.some(h => h.slug === arcanum.slug)) {
+      addArcanum(arcanum.slug).catch(e => console.error("[AppData] auto-add Arcanum failed:", e));
+    }
     return res.data;
   }
 
   async function deleteReflectionSession(sessionId) {
     setReflections(prev => prev.filter(r => r.session_id !== sessionId));
     await supabase.from("reflections").delete().eq("session_id", sessionId).eq("user_id", userId);
+  }
+
+  // ── YOUniversity: Arcana + own tools ──
+  // What the Seeker holds. Free Arcana they add themselves; anything bought
+  // is granted server-side only (see the arcana migration).
+  async function loadArcana() {
+    const [held, tools, progress, uses, walks] = await Promise.all([
+      supabase.from("user_arcana").select("*").eq("user_id", userId).order("acquired_at"),
+      supabase.from("own_tools").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("arcanum_progress").select("*").eq("user_id", userId).order("completed_at"),
+      supabase.from("tool_uses").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(1000),
+      supabase.from("arcanum_walks").select("*").eq("user_id", userId).order("walk")
+    ]);
+    if (walks.error) console.error("[AppData] load arcanum_walks failed:", walks.error);
+    else setCourseWalks(walks.data || []);
+    if (held.error) console.error("[AppData] load user_arcana failed:", held.error);
+    else setHeldArcana(held.data || []);
+    if (tools.error) console.error("[AppData] load own_tools failed:", tools.error);
+    else setOwnTools(tools.data || []);
+    if (progress.error) console.error("[AppData] load arcanum_progress failed:", progress.error);
+    else setCourseProgress(progress.data || []);
+    if (uses.error) console.error("[AppData] load tool_uses failed:", uses.error);
+    else setToolUses(uses.data || []);
+    setArcanaLoaded(true);
+  }
+
+  // A finished part of a course Arcanum, with its answers. A practice is
+  // also the first use of the tool it gives. A challenge lived for some of
+  // the Seeker's values grows them: its points are shared between the values
+  // chosen, so naming more doesn't count for more. A value they don't hold
+  // is kept with the challenge, but nothing is added to their values.
+  // The walk a Seeker is on for a course (they can walk it many times).
+  function walkFor(slug) {
+    return currentWalk(slug, courseWalks, courseProgress);
+  }
+
+  async function ensureWalk(slug, walk) {
+    if (courseWalks.some(w => w.slug === slug && w.walk === walk)) return;
+    const res = await supabase.from("arcanum_walks")
+      .upsert({ user_id: userId, slug, walk }, { onConflict: "user_id,slug,walk", ignoreDuplicates: true }).select();
+    if (res.error) { console.error("[AppData] ensureWalk failed:", res.error); return; }
+    const row = (res.data || [])[0] || { user_id: userId, slug, walk, started_at: new Date().toISOString(), completed_at: null };
+    setCourseWalks(prev => (prev.some(w => w.slug === slug && w.walk === walk) ? prev : [...prev, row]));
+  }
+
+  // Begin the course again. Earlier walks, and everything written in them,
+  // are kept; tools stay in the Library.
+  async function startNewWalk(slug) {
+    const walk = walkFor(slug) + 1;
+    const res = await supabase.from("arcanum_walks").insert({ user_id: userId, slug, walk }).select().single();
+    if (res.error) throw res.error;
+    setCourseWalks(prev => [...prev, res.data]);
+    return walk;
+  }
+
+  async function completeCoursePart({ slug, part, data, summary }) {
+    const chosen = Array.isArray(data?.values) ? data.values : data?.value ? [data.value] : [];
+    const walk = walkFor(slug);
+    await ensureWalk(slug, walk);
+    const res = await supabase.from("arcanum_progress").upsert({
+      user_id: userId, slug, walk, part_id: part.id, data: data || {}, summary: summary || null, value_name: chosen[0] || null,
+      completed_on: todayKey(), completed_at: new Date().toISOString()
+    }, { onConflict: "user_id,slug,walk,part_id" }).select().single();
+    if (res.error) throw res.error;
+    setCourseProgress(prev => [...prev.filter(r => !(r.slug === slug && r.part_id === part.id && (r.walk || 1) === walk)), res.data]);
+    if (part.closing) {
+      const at = new Date().toISOString();
+      const done = await supabase.from("arcanum_walks").update({ completed_at: at })
+        .eq("user_id", userId).eq("slug", slug).eq("walk", walk).select().single();
+      if (!done.error && done.data) setCourseWalks(prev => prev.map(w => (w.slug === slug && w.walk === walk ? done.data : w)));
+    }
+    if (part.kind === "practice") await saveToolUse({ slug, toolId: part.toolId, data });
+    if (chosen.length) recordValueWords(chosen, "course");
+    let grown = null;
+    if (part.kind === "challenge" && chosen.length && part.pts) {
+      const heldNames = chosen.filter(n => values.some(v => v.name === n));
+      const notHeld = chosen.filter(n => !heldNames.includes(n));
+      const share = heldNames.length ? Math.max(1, Math.round(part.pts / heldNames.length)) : 0;
+      let current = values;
+      const results = [];
+      for (const name of heldNames) {
+        const r = await honourValue(name, share, `${part.title} (${name})`, current);
+        if (r) { results.push(r); current = r.values; }
+      }
+      grown = { values: results.map(({ values: _v, ...rest }) => rest), notHeld };
+    }
+    return { row: res.data, grown };
+  }
+
+  // ── Values in the Seeker's own words ──
+  // Any value word that isn't in the Codex is noted (privately, one row per
+  // word) so Cassidy can see which values people reach for. Never blocks.
+  async function recordValueWords(words, source) {
+    const own = [...new Set(words.map(displayWord).filter(w => w && !isCodexValue(w)))];
+    if (!own.length) return;
+    const now = new Date().toISOString();
+    const rows = own.map(w => ({ user_id: userId, word: w, normalized: normalizeWord(w), source, last_used_at: now }));
+    const res = await supabase.from("value_words").upsert(rows, { onConflict: "user_id,normalized" });
+    if (res.error) console.error("[AppData] recordValueWords failed:", res.error);
+  }
+
+  // A value named in the Seeker's own words, added to their focus.
+  async function addOwnValue(text) {
+    const name = displayWord(text);
+    if (values.some(v => v.name.toLowerCase() === name.toLowerCase())) throw new Error("You already hold this value");
+    await addValue(name);
+    await recordValueWords([name], "values");
+    return name;
+  }
+
+  // YOU Premium: who may use AI (open to all in the beta; see lib/premium.js).
+  async function loadEntitlement() {
+    const res = await supabase.from("entitlements").select("is_premium").eq("user_id", userId).maybeSingle();
+    if (res.error) console.error("[AppData] load entitlements failed:", res.error);
+    setEntitlement(res.data || { is_premium: false });
+  }
+
+  async function loadAdmin() {
+    const res = await supabase.from("admins").select("user_id").eq("user_id", userId).maybeSingle();
+    const admin = !res.error && Boolean(res.data);
+    setIsAdmin(admin);
+    setAdminChecked(true);
+    if (admin) loadCodexRequests().catch(e => console.error("[AppData] codex requests failed:", e));
+  }
+
+  // Admin only: each word people used that isn't in the Codex, with how many
+  // people used it (never who). Also refreshes the menu's "new" count.
+  async function loadCodexRequests() {
+    const res = await supabase.rpc("codex_word_requests");
+    if (res.error) throw res.error;
+    const rows = res.data || [];
+    setCodexNew(rows.filter(r => r.status === "new").length);
+    return rows;
+  }
+
+  async function setCodexWordStatus(normalized, status) {
+    const res = await supabase.rpc("set_codex_word_status", { p_normalized: normalized, p_status: status });
+    if (res.error) throw res.error;
+  }
+
+  // Rest is suggested, not enforced: the Seeker chose to go on now. Marked
+  // on the part just finished, so the next opens on every device.
+  async function skipCourseRest(slug, afterPartId) {
+    const walk = walkFor(slug);
+    const res = await supabase.from("arcanum_progress").update({ rest_skipped_at: new Date().toISOString() })
+      .eq("user_id", userId).eq("slug", slug).eq("walk", walk).eq("part_id", afterPartId).select().single();
+    if (res.error) throw res.error;
+    setCourseProgress(prev => prev.map(r => (r.slug === slug && r.part_id === afterPartId && (r.walk || 1) === walk ? res.data : r)));
+  }
+
+  // Course answers in AI reviews: a separate yes, asked once, changeable in
+  // Settings. Never on unless chosen.
+  async function setIncludeCourses(include) {
+    const now = new Date().toISOString();
+    const res = await supabase.from("ai_consent")
+      .upsert({ user_id: userId, granted: Boolean(aiConsent?.granted), include_courses: include, courses_asked_at: now, updated_at: now })
+      .select().single();
+    if (res.error) throw res.error;
+    setAiConsent(res.data);
+  }
+
+  async function saveToolUse({ slug, toolId, data }) {
+    const res = await supabase.from("tool_uses").insert({
+      user_id: userId, slug, tool_id: toolId, data: data || {}, used_on: todayKey()
+    }).select().single();
+    if (res.error) throw res.error;
+    setToolUses(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
+  async function deleteToolUse(id) {
+    const res = await supabase.from("tool_uses").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setToolUses(prev => prev.filter(u => u.id !== id));
+  }
+
+  // Grows one of the Seeker's values by pts, like a value challenge does.
+  // `base` lets several be grown in a row without losing the earlier ones.
+  async function honourValue(valueName, pts, label, base = values) {
+    const v = base.find(x => x.name === valueName);
+    if (!v) return null;
+    const { updated, prestiged, crossedInto } = gainValue(v, pts);
+    const next = base.map(x => (x.name === valueName ? updated : x));
+    await persistValues(next);
+    await awardValuePillarXP(valueName, pts, label);
+    return { valueName, pts, prestiged, crossedInto, values: next };
+  }
+
+  async function addArcanum(slug) {
+    const res = await supabase.from("user_arcana")
+      .upsert({ user_id: userId, slug, source: "free" }, { onConflict: "user_id,slug", ignoreDuplicates: true })
+      .select();
+    if (res.error) throw res.error;
+    const row = (res.data || [])[0] || { user_id: userId, slug, source: "free", acquired_at: new Date().toISOString() };
+    setHeldArcana(prev => (prev.some(h => h.slug === slug) ? prev : [...prev, row]));
+  }
+
+  async function removeArcanum(slug) {
+    const res = await supabase.from("user_arcana").delete().eq("user_id", userId).eq("slug", slug);
+    if (res.error) throw res.error;
+    setHeldArcana(prev => prev.filter(h => h.slug !== slug));
+  }
+
+  function cleanTool(t) {
+    const trim = v => (v || "").trim() || null;
+    return { name: (t.name || "").trim(), learned_from: trim(t.learned_from), purpose: trim(t.purpose), how: trim(t.how) };
+  }
+
+  async function addOwnTool(tool) {
+    const res = await supabase.from("own_tools").insert({ user_id: userId, ...cleanTool(tool) }).select().single();
+    if (res.error) throw res.error;
+    setOwnTools(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
+  async function editOwnTool(id, tool) {
+    const res = await supabase.from("own_tools").update({ ...cleanTool(tool), updated_at: new Date().toISOString() })
+      .eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    setOwnTools(prev => prev.map(t => (t.id === id ? res.data : t)));
+  }
+
+  async function deleteOwnTool(id) {
+    const res = await supabase.from("own_tools").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setOwnTools(prev => prev.filter(t => t.id !== id));
+  }
+
+  // Once a day, on the device's own date: used today, or not.
+  async function toggleToolUsedToday(id) {
+    const tool = ownTools.find(t => t.id === id);
+    if (!tool) return;
+    const today = todayKey();
+    const dates = tool.used_dates || [];
+    const used_dates = dates.includes(today) ? dates.filter(d => d !== today) : [...dates, today];
+    setOwnTools(prev => prev.map(t => (t.id === id ? { ...t, used_dates } : t)));
+    const res = await supabase.from("own_tools").update({ used_dates }).eq("id", id).eq("user_id", userId);
+    if (res.error) {
+      setOwnTools(prev => prev.map(t => (t.id === id ? tool : t)));
+      throw res.error;
+    }
   }
 
   async function addTodo(text) {
@@ -1600,6 +1872,9 @@ export function AppDataProvider({ children }) {
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
+    isAdmin, adminChecked, entitlement, aiAllowed: canUseAi(entitlement), codexNew, recordValueWords, addOwnValue, loadCodexRequests, setCodexWordStatus,
+    heldArcana, arcanaLoaded, addArcanum, removeArcanum, courseProgress, toolUses, completeCoursePart, skipCourseRest, saveToolUse, courseWalks, walkFor, startNewWalk, setIncludeCourses, deleteToolUse,
+    ownTools, addOwnTool, editOwnTool, deleteOwnTool, toggleToolUsedToday,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
     loadJournalPhotos, addJournalPhoto, scanJournalPages, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,
     loadJournalInsight, generateJournalReflection, updateInsightItem,

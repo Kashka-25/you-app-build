@@ -1,11 +1,15 @@
 import { Menu, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAppData } from "../lib/AppDataContext";
 
 export default function TopBar({ onMenuClick }) {
+  const { codexNew } = useAppData();
   return (
-    <div className="h-16 flex-none flex items-center justify-between px-4 border-b border-borderC bg-surface2">
-      <button onClick={onMenuClick} className="text-textPrimary p-1 -ml-1" aria-label="Open menu">
+    <div className="h-16 flex-none flex items-center justify-between px-4 border-b border-borderC">
+      <button onClick={onMenuClick} className="relative text-textPrimary p-1 -ml-1" aria-label={codexNew ? `Open menu, ${codexNew} new Codex request${codexNew === 1 ? "" : "s"}` : "Open menu"}>
         <Menu size={20} strokeWidth={1.75} />
+        {/* Creator only: new Codex requests are waiting in the menu. */}
+        {codexNew > 0 && <span className="absolute top-0 right-0 w-[8px] h-[8px] rounded-full bg-gold border border-surface2" />}
       </button>
 
       <div className="text-center">

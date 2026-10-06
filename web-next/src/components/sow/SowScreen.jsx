@@ -35,7 +35,7 @@ function Chip({ on, onClick, children, label }) {
       aria-pressed={on}
       aria-label={label}
       className={`text-caption px-2.5 py-1 rounded-full border transition-colors duration-150 ${
-        on ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-textSecondary hover:border-forestAccent"
+        on ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-textSecondary hover:border-forestAccent"
       }`}
     >
       {children}

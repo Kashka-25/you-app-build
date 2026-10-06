@@ -9,7 +9,8 @@ import SidebarMenu from "./SidebarMenu";
 import AiConsentModal from "./AiConsentModal";
 
 export default function AppShell() {
-  const [mode, setMode] = useState("light");
+  // Remembered on this device; index.html applies it before the first paint.
+  const [mode, setMode] = useState(() => (document.documentElement.getAttribute("data-mode") === "dark" ? "dark" : "light"));
   const [addOpen, setAddOpen] = useState(false);
   const [addType, setAddType] = useState("habit");
   const [momentOpen, setMomentOpen] = useState(false);
@@ -20,6 +21,8 @@ export default function AppShell() {
     const next = mode === "light" ? "dark" : "light";
     setMode(next);
     document.documentElement.setAttribute("data-mode", next);
+    try { localStorage.setItem("you.mode", next); } catch { /* private mode: just this visit */ }
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0B0B1F" : "#0E4A57");
   }
 
   return (
@@ -28,9 +31,9 @@ export default function AppShell() {
     // nav bar designed for 4-5 items) but never boxes the app in a
     // phone-shaped mockup — no fixed device width/height, no border, no
     // rounded "bezel", no black backdrop.
-    <div className="h-dvh bg-bg flex justify-center font-sans">
-      <div className="w-full max-w-[640px] h-dvh bg-bg relative flex flex-col overflow-hidden">
-        <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="flex-none bg-surface2">
+    <div className="h-dvh you-sky flex justify-center font-sans">
+      <div className="w-full max-w-[640px] h-dvh relative flex flex-col overflow-hidden">
+        <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="flex-none bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md">
           <TopBar onMenuClick={() => setMenuOpen(true)} />
         </div>
 
@@ -40,7 +43,7 @@ export default function AppShell() {
 
         <div
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-          className="absolute bottom-0 left-0 right-0 min-h-[76px] bg-surface2 border-t border-borderC flex items-center"
+          className="absolute bottom-0 left-0 right-0 min-h-[76px] bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md border-t border-borderC flex items-center"
         >
           <NavLink to="/" end className={({ isActive }) => tabClass(isActive)}>
             <HomeIcon size={20} strokeWidth={1.75} className="mx-auto mb-1" />
@@ -52,7 +55,7 @@ export default function AppShell() {
           </NavLink>
           <button onClick={() => setSheetOpen(true)} className="flex-1 text-center text-label text-textMuted pt-1.5">
             <div className="w-9 h-9 rounded-full bg-forestAccent mx-auto -mt-4 mb-1.5 flex items-center justify-center">
-              <Plus size={18} strokeWidth={2} className="text-surface2" />
+              <Plus size={18} strokeWidth={2} className="text-onAccent" />
             </div>
             Add
           </button>
@@ -83,5 +86,5 @@ export default function AppShell() {
 }
 
 function tabClass(isActive) {
-  return `flex-1 text-center text-label pt-1.5 ${isActive ? "text-gold" : "text-textMuted"}`;
+  return `flex-1 text-center text-label pt-1.5 ${isActive ? "text-element" : "text-textMuted"}`;
 }

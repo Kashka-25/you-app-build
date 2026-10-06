@@ -67,7 +67,7 @@ export default function SignIn() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full bg-forestAccent text-surface2 rounded-sm py-3 font-medium disabled:opacity-40"
+            className="w-full bg-forestAccent text-onAccent rounded-sm py-3 font-medium disabled:opacity-40"
           >
             {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
           </button>

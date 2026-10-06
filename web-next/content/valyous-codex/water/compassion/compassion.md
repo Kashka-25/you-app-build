@@ -8,7 +8,7 @@ pillars: [Heart, Connection]
 balancing_kin: [boundaries]
 nourishing_kin: [empathy, forgiveness]
 synonyms: [warmth, mercy]
-sub_values: [kindness, self-compassion, care]
+sub_values: [consoling, self-compassion, care]
 status: draft   # draft | edited | final
 ---
 

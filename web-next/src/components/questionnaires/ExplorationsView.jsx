@@ -13,8 +13,9 @@ function niceDate(iso) {
 }
 
 // Every questionnaire sitting, newest first. Just for the Seeker: readable,
-// resumable, and theirs to let go of entirely.
-export default function ExplorationsView() {
+// resumable, and theirs to let go of entirely. `questionnaire` narrows it to
+// one (an Arcanum's own page); `empty` replaces the empty state.
+export default function ExplorationsView({ questionnaire = null, empty = null }) {
   const { reflections, deleteReflectionSession } = useAppData();
   const [openId, setOpenId] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
@@ -22,7 +23,7 @@ export default function ExplorationsView() {
 
   const sessions = useMemo(() => {
     const bySession = {};
-    reflections.filter(r => r.session_id).forEach(r => {
+    reflections.filter(r => r.session_id && (!questionnaire || r.questionnaire === questionnaire)).forEach(r => {
       (bySession[r.session_id] ||= []).push(r);
     });
     return Object.entries(bySession).map(([id, rows]) => {
@@ -41,14 +42,15 @@ export default function ExplorationsView() {
         at: rows.reduce((m, r) => (r.updated_at > m ? r.updated_at : m), first.inserted_at)
       };
     }).sort((a, b) => (b.at > a.at ? 1 : -1));
-  }, [reflections]);
+  }, [reflections, questionnaire]);
 
   if (sessions.length === 0) {
+    if (empty) return empty;
     return (
       <EmptyState
         icon={SunMoon}
         title="No explorations yet"
-        description="Open a value in the YOU tab to explore its light and shadow, or a Pillar to free a dream. What you write stays here, just for you."
+        description="Open Light & Shadow or Freeing the Dream from your Library in YOUniversity, or from a value or Pillar in the YOU tab. What you write stays here, just for you."
       />
     );
   }

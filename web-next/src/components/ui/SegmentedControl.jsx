@@ -54,11 +54,13 @@ export function SegmentedControl({ options, value, onChange }) {
               role="tab"
               aria-selected={active}
               onClick={() => onChange(opt.value)}
-              className={`flex-1 shrink-0 whitespace-nowrap text-bodySm px-3.5 py-1.5 rounded-full transition-colors duration-200 ${
-                active ? "bg-forestAccent text-surface2 font-medium" : "text-textSecondary"
+              className={`relative flex-1 shrink-0 whitespace-nowrap text-bodySm px-3.5 py-1.5 rounded-full transition-colors duration-200 ${
+                active ? "bg-forestAccent text-onAccent font-medium" : "text-textSecondary"
               }`}
             >
               {opt.label}
+              {/* The section's Element, as a small mark under the chosen tab. */}
+              {active && <span aria-hidden="true" className="absolute left-1/2 -translate-x-1/2 bottom-[3px] w-4 h-[2px] rounded-full bg-element" />}
             </button>
           );
         })}

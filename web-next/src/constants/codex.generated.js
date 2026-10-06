@@ -146,6 +146,78 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Comfort",
+    "slug": "comfort",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Home & Earth",
+      "Heart"
+    ],
+    "balancingKin": [
+      "courage"
+    ],
+    "nourishingKin": [
+      "rest",
+      "compassion"
+    ],
+    "synonyms": [
+      "solace",
+      "ease"
+    ],
+    "subValues": [
+      "cosiness",
+      "soothing",
+      "safe-haven"
+    ],
+    "essence": "Being a soft place to land, for others and yourself.",
+    "light": "Comfort is a warm blanket on a cold night, a cup of tea held in both hands. It's the feeling of safety and ease, and the gift of offering that to others. Comfort in practice is a cosy corner, a hug that lasts, a friend who sits with you without trying to fix anything.",
+    "shadow": "Too much, and comfort can keep you small. The comfort zone becomes a cage, and anything new or uncertain starts to feel like a threat. Comfort can also slide into numbing: soothing yourself so constantly that you never feel what needs feeling.",
+    "void": "Without comfort, life feels exposed and cold. You may struggle to soothe yourself when you're upset, or feel you have to be strong all the time. Comforting yourself is a skill, and it's never too late to learn it.",
+    "whole": "Courage keeps comfort generous. Comfort gives you a safe base; courage lets you leave it and come back. A good home is somewhere you can both rest and set out from.",
+    "questionnaireNotes": [
+      "What are you avoiding by staying comfortable?",
+      "When you're upset, how do you comfort yourself, and does it truly help?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Make one corner of your home a little cosier",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Offer comfort to someone who's having a hard day",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down what genuinely soothes you, to keep for harder days",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give yourself a comforting evening ritual, just for tonight",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Sit with someone's pain without trying to fix it",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Step outside your comfort zone once this week, then rest and reflect",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let someone comfort you when you'd usually say you're fine",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Compassion",
     "slug": "compassion",
     "element": "Water",
@@ -166,7 +238,7 @@ export const CODEX = [
       "mercy"
     ],
     "subValues": [
-      "kindness",
+      "consoling",
       "self-compassion",
       "care"
     ],
@@ -325,6 +397,366 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Generosity",
+    "slug": "generosity",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Heart"
+    ],
+    "balancingKin": [
+      "boundaries"
+    ],
+    "nourishingKin": [
+      "gratitude",
+      "compassion"
+    ],
+    "synonyms": [
+      "giving",
+      "open-handedness"
+    ],
+    "subValues": [
+      "sharing",
+      "giving-time",
+      "gift-giving"
+    ],
+    "essence": "Giving freely, from fullness.",
+    "light": "Generosity is a spring that keeps flowing because it isn't hoarded. It's sharing your time, attention, resources and warmth without keeping score. True generosity comes from fullness rather than obligation, and it often gives as much to the giver as to the one receiving.",
+    "shadow": "Too much, and generosity can empty you out. Giving becomes a way to be liked, to avoid conflict, or to feel worthy, until there's nothing left for you. Giving that leaves you resentful has often crossed into self-abandonment.",
+    "void": "Without generosity, life can feel tight and guarded. You might hold on to what you have in case there won't be enough, or find it hard to give without expecting something back. Scarcity often grows from times when there truly wasn't enough.",
+    "whole": "Boundaries keep generosity a gift. Knowing what you can truly give lets you give it gladly. A full cup can overflow; an empty one can only crack.",
+    "questionnaireNotes": [
+      "Do you give from fullness, or to be needed?",
+      "What do you hold on to tightly, in case there won't be enough?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Give a genuine compliment to someone today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share something you have plenty of: food, time or a skill",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give someone your full attention for a whole conversation",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Do one kind thing anonymously",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give something meaningful without expecting anything back",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Say no to one request so you can give more fully elsewhere",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Be generous with someone you find it hard to be generous with",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Gentleness",
+    "slug": "gentleness",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Heart",
+      "Connection"
+    ],
+    "balancingKin": [
+      "honesty"
+    ],
+    "nourishingKin": [
+      "patience",
+      "compassion"
+    ],
+    "synonyms": [
+      "softness",
+      "mildness"
+    ],
+    "subValues": [
+      "soft-strength",
+      "gentle-speech",
+      "light-touch"
+    ],
+    "essence": "Strength that doesn't need to be hard.",
+    "light": "Gentleness is a river smoothing stone: soft, unhurried, and still changing everything it touches. It's a calm voice in a tense moment, a careful hand, words chosen so they can be heard. Gentleness isn't weakness; it takes real strength to stay soft when it would be easier to harden.",
+    "shadow": "Too much, and gentleness can become avoidance. You might soften every truth until it disappears, or let others walk over you rather than risk seeming harsh. Not every moment needs a soft touch; some need a firm one.",
+    "void": "Without gentleness, life gets sharp-edged. You may be hard on yourself in ways you'd never be with a friend, or brace against the world as if softness would cost you. Harshness often began as protection.",
+    "whole": "Honesty gives gentleness its spine. A truth told gently is still a truth, and often the one most able to land. Together they make a kindness that can be trusted.",
+    "questionnaireNotes": [
+      "What truth have you softened until it no longer says anything?",
+      "Where are you harder on yourself than you'd ever be on someone you love?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Speak to yourself today the way you'd speak to a good friend",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Slow down one ordinary task and do it with care",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Lower your voice, rather than raise it, in one tense moment",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Catch one harsh thought about yourself and rewrite it kindly",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give someone honest feedback, gently and clearly",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Stay gentle with someone who's hard to be gentle with",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Gently forgive yourself for something you still punish yourself for",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Healing",
+    "slug": "healing",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Heart",
+      "Body"
+    ],
+    "balancingKin": [
+      "joy"
+    ],
+    "nourishingKin": [
+      "rest",
+      "compassion"
+    ],
+    "synonyms": [
+      "mending",
+      "convalescence"
+    ],
+    "subValues": [
+      "self-healing",
+      "inner-work",
+      "recovering-trust"
+    ],
+    "essence": "Tending old wounds so they can close.",
+    "light": "Healing is a wound knitting closed, slowly, from the inside out. It's giving pain the care and time it needs, rather than pretending it isn't there. Healing can look like therapy, rest, a long walk, a good cry, or finally being kind to the part of you that got hurt.",
+    "shadow": "Too much, and healing can become an identity. Life turns into one long project of fixing yourself, as if you can't live fully until every wound is gone. Sometimes the healing you need is permission to live well alongside a scar.",
+    "void": "Without healing, old hurts keep speaking through new moments. You may react strongly to small things, or steer around anything that reminds you of the past. Unhealed pain isn't a failing; it's something that hasn't yet had what it needed.",
+    "whole": "Joy keeps healing alive. You don't have to finish healing before you're allowed to be glad. The two grow together, each making room for the other.",
+    "questionnaireNotes": [
+      "Have you made healing a reason to put off living?",
+      "What part of you is still waiting to be cared for?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Place a hand on your heart and say one kind thing to yourself",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice what you need today, in body and heart, and give yourself one of them",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write about an old hurt, just to let it be seen",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Do one thing that soothes your body: a bath, a stretch, a slow meal",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Reach out to someone who can support your healing: a friend, a counsellor or a group",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Step back from one thing that keeps reopening an old wound",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Do something joyful you've been putting off until you're \"better\"",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Hope",
+    "slug": "hope",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Heart",
+      "Spirit"
+    ],
+    "balancingKin": [
+      "acceptance"
+    ],
+    "nourishingKin": [
+      "trust",
+      "courage"
+    ],
+    "synonyms": [
+      "optimism",
+      "expectancy"
+    ],
+    "subValues": [
+      "looking-forward",
+      "possibility",
+      "renewal"
+    ],
+    "essence": "Leaning toward what could still be good.",
+    "light": "Hope is a seed in winter ground: nothing to see yet, but something alive. It's the quiet belief that things can change, and that you have a part in changing them. Hope in practice is small and stubborn: making a plan, planting something, getting up and trying again.",
+    "shadow": "Too much, and hope can float free of what's real. It can keep you waiting for someone to change, or for things to fix themselves, while life passes by. Hope without action can become a gentle way of not deciding.",
+    "void": "Without hope, the future flattens. Effort can feel pointless, and you may stop reaching for anything in case it doesn't come. Hopelessness is often deep exhaustion speaking. It deserves care, and sometimes the support of others.",
+    "whole": "Acceptance roots hope in what's true. Seeing clearly what is, and still believing in what could be, is hope with its feet on the ground.",
+    "questionnaireNotes": [
+      "What are you hoping will change without you having to choose anything?",
+      "When did you stop letting yourself hope for something, and why?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down one thing you're looking forward to",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Plant something, even a single seed in a pot",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Remember a time things got better when you didn't think they would",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write a short letter to yourself one year from now",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Take one small, real step toward something you've been hoping for",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Offer hope to someone who's struggling: a kind word or a practical hand",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Say a hope out loud to someone you trust, even though it might not happen",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Intimacy",
+    "slug": "intimacy",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Heart"
+    ],
+    "balancingKin": [
+      "boundaries"
+    ],
+    "nourishingKin": [
+      "vulnerability",
+      "trust"
+    ],
+    "synonyms": [
+      "closeness",
+      "nearness"
+    ],
+    "subValues": [
+      "emotional-closeness",
+      "physical-closeness",
+      "being-known"
+    ],
+    "essence": "Letting someone truly close.",
+    "light": "Intimacy is two candles leaning close, each flame brighter for the other. It's being known, and knowing someone, beneath the surface: the fears, the hopes, the odd little habits. Intimacy lives in honest conversations, comfortable silences, touch that feels safe, and the slow trust of being loved as you are.",
+    "shadow": "Too much, and intimacy can blur into merging, where you lose track of where you end and the other begins. It can become dependence, or the expectation that one person meet every need. Closeness without breathing room starts to suffocate.",
+    "void": "Without intimacy, even a full life can feel lonely. You might keep people at a polite distance, share facts but not feelings, or feel unseen in your closest relationships. Often the walls went up for good reasons; they can come down slowly.",
+    "whole": "Boundaries make intimacy safe. Knowing where you end is what lets you come close without disappearing. Two whole people choosing nearness is intimacy at its deepest.",
+    "questionnaireNotes": [
+      "Where have you lost yourself in someone else?",
+      "What do you keep hidden, even from the people closest to you?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Ask someone you love a question you've never asked them",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Put your phone away for a whole conversation",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share one small, true feeling with someone close",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend unhurried time with someone, with no plan",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tell someone what they really mean to you",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Share a fear or a hope you usually keep to yourself",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let someone see a part of you you've felt ashamed of",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Intuition",
     "slug": "intuition",
     "element": "Water",
@@ -397,6 +829,294 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Joy",
+    "slug": "joy",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Heart",
+      "Play"
+    ],
+    "balancingKin": [
+      "acceptance"
+    ],
+    "nourishingKin": [
+      "gratitude",
+      "presence"
+    ],
+    "synonyms": [
+      "happiness",
+      "elation"
+    ],
+    "subValues": [
+      "delight",
+      "simple-pleasures",
+      "gladness"
+    ],
+    "essence": "Letting gladness in, without waiting for a reason.",
+    "light": "Joy is sunlight on water: it doesn't ask permission, it just arrives and shimmers. It's the lift of a good song, a friend's laugh, the first warm day of spring. Joy isn't the same as being happy all the time. In practice, it's letting yourself fully feel the good when it comes, instead of bracing for what might go wrong next.",
+    "shadow": "Too much, and joy can become a performance: always bright, always fine, with no room for the harder feelings. Chasing the next high can leave you skimming the surface of your own life, or quietly telling others their sadness isn't welcome.",
+    "void": "Without joy, days go grey and dutiful. You may notice yourself holding back from delight, as if happiness has to be earned or will be taken away. Sometimes the absence of joy is grief or exhaustion, asking to be tended first.",
+    "whole": "Acceptance keeps joy honest. Joy that can sit beside sorrow runs deeper than joy that has to push it away. Together they let you feel all of it, the sunlight and the weather.",
+    "questionnaireNotes": [
+      "When do you put on a brightness you don't really feel?",
+      "Where do you hold back from gladness, in case it doesn't last?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice three small good things today, and pause on each for a breath",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Play a song that makes you happy and really listen to it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tell someone about something that delighted you this week",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend twenty minutes doing something purely because you enjoy it",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Let yourself laugh fully, out loud, the next time something is funny",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Plan a small joy for tomorrow and keep the appointment",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Share your joy in something you love, even if it feels like too much",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Kindness",
+    "slug": "kindness",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Heart"
+    ],
+    "balancingKin": [
+      "honesty"
+    ],
+    "nourishingKin": [
+      "compassion",
+      "empathy"
+    ],
+    "synonyms": [
+      "goodness",
+      "considerateness"
+    ],
+    "subValues": [
+      "thoughtfulness",
+      "courtesy",
+      "small-acts"
+    ],
+    "essence": "Small, everyday warmth.",
+    "light": "Kindness is a lamp left on in the window for someone coming home late. It's the small, everyday acts that make life gentler: holding a door, remembering a name, a kind word at the right moment. Kindness asks nothing in return. It simply makes the world a little warmer, one moment at a time.",
+    "shadow": "Too much, and kindness can turn into niceness: smiling through things that need saying, saying yes when you mean no. Kindness that avoids every hard truth can leave people without what they really need to hear.",
+    "void": "Without kindness, the world feels colder and more transactional. You might notice yourself becoming impatient, harsh, or simply too busy to see others. Unkindness often grows where kindness has been missing for a long time, including toward yourself.",
+    "whole": "Honesty keeps kindness true. Sometimes the kindest thing is a clear, caring truth. Together they make a warmth you can rely on.",
+    "questionnaireNotes": [
+      "Where is your kindness really a fear of disappointing someone?",
+      "When were you last kind to yourself on a hard day?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Hold a door, let someone in, or offer your seat today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Message someone just to say you're thinking of them",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Thank someone who usually goes unthanked",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Be kind to yourself after a mistake, on purpose",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Do an act of kindness for a stranger",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Stay kind with someone who's been unkind, without letting it slide",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Tell someone a kind truth they need to hear",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Nurturing",
+    "slug": "nurturing",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Heart"
+    ],
+    "balancingKin": [
+      "freedom"
+    ],
+    "nourishingKin": [
+      "compassion",
+      "patience"
+    ],
+    "synonyms": [
+      "fostering",
+      "cherishing"
+    ],
+    "subValues": [
+      "caregiving",
+      "encouragement",
+      "tending-growth"
+    ],
+    "essence": "Helping someone, or something, grow.",
+    "light": "Nurturing is a gardener's hands in the soil: patient, attentive, and glad when green appears. It's feeding, encouraging and sheltering what's young or fragile, whether that's a child, a friend, a project, or a part of yourself. Good nurture gives what's needed, then steps back to let growth happen.",
+    "shadow": "Too much, and nurturing turns into smothering. Care becomes control, help becomes hovering, and others never get the chance to grow strong on their own. Sometimes over-nurturing is a quiet way of feeling needed.",
+    "void": "Without nurture, things wither, in others and in you. You might give endlessly to others while leaving yourself unfed, or find it hard to receive care at all. Many of the greatest nurturers were never nurtured enough themselves.",
+    "whole": "Freedom keeps nurture healthy. The best care grows independence, not dependence. Nurture gives roots; freedom gives room to rise.",
+    "questionnaireNotes": [
+      "Who or what are you holding so closely that it can't grow on its own?",
+      "How easily do you let yourself be cared for?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Water a plant, and notice how it's growing",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Encourage someone's effort, not just their result",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make yourself a nourishing meal, the way you would for someone you love",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend focused time helping someone learn something",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Let someone you care for solve a problem without stepping in",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Ask for care when you need it, and let yourself receive it",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Nurture a part of yourself you've neglected: a dream, a talent, or your younger self",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Peace",
+    "slug": "peace",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Heart",
+      "Spirit"
+    ],
+    "balancingKin": [
+      "courage"
+    ],
+    "nourishingKin": [
+      "acceptance",
+      "presence"
+    ],
+    "synonyms": [
+      "serenity",
+      "tranquillity"
+    ],
+    "subValues": [
+      "inner-calm",
+      "peacemaking",
+      "quiet-mind"
+    ],
+    "essence": "A settled heart, even when life is loud.",
+    "light": "Peace is the still water deep in a lake while wind ruffles the surface. It isn't the absence of trouble; it's a steadiness underneath it. In everyday life, peace looks like responding instead of reacting, choosing calm where you can, and helping the people around you feel safe enough to settle too.",
+    "shadow": "Too much, and peace becomes peace at any price. Keeping things calm can mean swallowing what needs saying, avoiding a conflict that would lead somewhere better, or numbing out rather than feeling. A quiet room isn't always a peaceful one.",
+    "void": "Without peace, the mind rarely rests. Everything feels urgent and small things land like big ones. You may find yourself bracing even in safe moments, a sign your body learned long ago that calm couldn't be trusted.",
+    "whole": "Courage keeps peace real. Sometimes the road to lasting peace runs straight through a hard conversation. Peace gives courage its steadiness; courage stops peace from becoming silence.",
+    "questionnaireNotes": [
+      "What are you keeping quiet about, to keep the peace?",
+      "Where in your body do you feel unsettled most often, and what might it need?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Take five slow breaths before you check your phone in the morning",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Sit somewhere quiet for ten minutes with nothing to do",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one moment of calm today and name it to yourself",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Switch off one source of noise for an evening: news, notifications or background TV",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "When you feel a reaction rising, pause and respond a minute later",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Let go of one small argument you don't need to win",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Have the honest conversation you've been avoiding to keep the peace",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Rest",
     "slug": "rest",
     "element": "Water",
@@ -433,6 +1153,149 @@ export const CODEX = [
     "starterChallenges": []
   },
   {
+    "name": "Sensitivity",
+    "slug": "sensitivity",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Heart"
+    ],
+    "balancingKin": [
+      "boundaries"
+    ],
+    "nourishingKin": [
+      "rest",
+      "empathy"
+    ],
+    "synonyms": [
+      "responsiveness",
+      "perceptiveness"
+    ],
+    "subValues": [
+      "deep-feeling",
+      "sensory-awareness",
+      "emotional-depth"
+    ],
+    "essence": "Feeling deeply, and honouring it as a strength.",
+    "light": "Sensitivity is a finely tuned instrument: it catches notes others miss. It's noticing the shift in a room, the beauty in small things, what's left unsaid. At its best, sensitivity makes you a gentle friend, a careful maker, and a wise reader of people and moments.",
+    "shadow": "Too much, and sensitivity can leave you overwhelmed: taking everything personally, or carrying feelings that aren't yours. Without care, the instrument goes out of tune, until every sound is too loud and every mood feels like your responsibility.",
+    "void": "When sensitivity is pushed down, perhaps after being called \"too sensitive\" too often, you may grow a hard shell. You might feel less, notice less, or feel quietly cut off from your own depth. That shell was protection; it doesn't have to be permanent.",
+    "whole": "Boundaries let sensitivity stay open safely. They're the case that protects the instrument between songs. Feel everything, and choose what you carry.",
+    "questionnaireNotes": [
+      "What do you pick up from others that isn't yours to carry?",
+      "Who taught you that feeling deeply was too much?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one beautiful thing today that others might walk past",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "When a room feels heavy, ask yourself: is this mine?",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give yourself ten quiet minutes after a busy social time",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write about a time your sensitivity helped someone",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tell someone you feel things deeply, without apologising for it",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Leave a situation early when it's too much, kindly and without guilt",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Gently push back the next time someone calls you \"too sensitive\"",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Sensuality",
+    "slug": "sensuality",
+    "element": "Water",
+    "status": "draft",
+    "pillars": [
+      "Body",
+      "Heart"
+    ],
+    "balancingKin": [
+      "discipline"
+    ],
+    "nourishingKin": [
+      "presence",
+      "health"
+    ],
+    "synonyms": [
+      "earthiness",
+      "sensory pleasure"
+    ],
+    "subValues": [
+      "pleasure",
+      "body-wisdom",
+      "sensory-delight"
+    ],
+    "essence": "Living fully through the senses.",
+    "light": "Sensuality is the first bite of ripe fruit, sun on bare skin, the smell of rain after heat. It's being at home in your body and letting it enjoy the world: taste, touch, scent, sound and sight. Sensuality brings you out of your head and into the living moment, where pleasure is simple and honest.",
+    "shadow": "Too much, and sensuality can tip into chasing sensation: always needing more, richer, stronger, until ordinary moments stop being enough. Pleasure can also become a way of avoiding what's harder to feel.",
+    "void": "Without sensuality, life can feel lived from the neck up. You might rush meals, ignore your body until it hurts, or feel guilty about simple pleasures. Many of us were taught that enjoying our bodies was something to be wary of.",
+    "whole": "Discipline keeps sensuality sweet. Rhythm and a few limits make pleasure more vivid, not less. Together they let you savour life rather than consume it.",
+    "questionnaireNotes": [
+      "Where does seeking pleasure keep you from feeling something else?",
+      "What simple pleasure do you deny yourself, and who taught you to?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Eat one meal slowly, noticing each taste",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Step outside and notice five things through your senses",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Wear the clothes that feel best on your skin today",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Take a long bath or shower and let it be a pleasure, not a task",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Dance alone to a song you love, just for how it feels",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Let go of the guilt around one simple pleasure",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Spend a day choosing what feels good in your body over how it looks to others",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Vulnerability",
     "slug": "vulnerability",
     "element": "Water",
@@ -466,6 +1329,77 @@ export const CODEX = [
       "What would you let someone see, if you trusted they would stay?"
     ],
     "starterChallenges": []
+  },
+  {
+    "name": "Achievement",
+    "slug": "achievement",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Purpose"
+    ],
+    "balancingKin": [
+      "rest"
+    ],
+    "nourishingKin": [
+      "discipline",
+      "determination"
+    ],
+    "synonyms": [
+      "accomplishment",
+      "attainment"
+    ],
+    "subValues": [
+      "goal-reaching",
+      "mastery",
+      "milestones"
+    ],
+    "essence": "The quiet pride of a thing done well.",
+    "light": "Achievement is reaching the summit and looking back at the path you climbed. It's setting a goal, working toward it, and letting yourself feel the satisfaction of reaching it. Achievement builds trust in yourself: proof that what you set out to do, you can do.",
+    "shadow": "Too much, and achievement becomes a treadmill. Every goal reached just raises the next bar, and your worth starts to depend on what you produce. Achievement without rest or meaning can leave you accomplished and empty.",
+    "void": "Without achievement, effort may feel scattered or unrewarded. You might downplay what you do, or stop setting goals in case you fail. Sometimes the missing piece is simply noticing how much you already achieve.",
+    "whole": "Rest keeps achievement sustainable. Stopping to celebrate and recover makes the next climb possible. Together they let you strive without losing yourself.",
+    "questionnaireNotes": [
+      "Is your worth riding on what you achieve?",
+      "What have you achieved that you've never let yourself feel proud of?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down three things you achieved this week, however small",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Set one clear, small goal for today and complete it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tell someone about something you're proud of",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Track your progress on one goal for a week",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Set a goal that stretches you, with a date",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Take a full rest day after a big push, without guilt",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Finish something meaningful and celebrate it properly",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
   },
   {
     "name": "Ambition",
@@ -534,6 +1468,294 @@ export const CODEX = [
       {
         "text": "Define what \"enough\" means to you, and let yourself rest there for a day",
         "pts": 8,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Assertiveness",
+    "slug": "assertiveness",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "empathy"
+    ],
+    "nourishingKin": [
+      "boundaries",
+      "honesty"
+    ],
+    "synonyms": [
+      "directness",
+      "self-advocacy"
+    ],
+    "subValues": [
+      "asking-for-needs",
+      "standing-ground",
+      "firm-kindness"
+    ],
+    "essence": "Asking clearly for what you need.",
+    "light": "Assertiveness is a clear bell: it rings true without shouting. It's stating your needs, views and limits directly and respectfully, trusting they matter as much as anyone's. Assertiveness lets people know where they stand with you, which makes trust easier.",
+    "shadow": "Too much, and assertiveness slides into aggression or bulldozing. You may push your needs over others', or confuse winning with being heard. Clear isn't the same as forceful.",
+    "void": "Without assertiveness, needs go unspoken and resentment quietly builds. You might hint instead of ask, agree instead of say what you think, or hope others will just know. Many sensitive people were taught that asking was selfish. It isn't.",
+    "whole": "Empathy keeps assertiveness warm. You can hold your ground and still understand the other person's. Together they make honesty that brings people closer.",
+    "questionnaireNotes": [
+      "When does standing your ground turn into needing to win?",
+      "What need have you been hinting at instead of asking for?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one need you have today, and name it to yourself",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Use one clear \"I\" sentence: \"I'd like…\" or \"I need…\"",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Order or ask for exactly what you want, without apologising",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down a request you've been avoiding, in one sentence",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make that request to the person, kindly and directly",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Disagree respectfully in a conversation",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Hold your ground on something important when someone pushes back",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Boldness",
+    "slug": "boldness",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Play"
+    ],
+    "balancingKin": [
+      "wisdom"
+    ],
+    "nourishingKin": [
+      "courage",
+      "confidence"
+    ],
+    "synonyms": [
+      "audacity",
+      "fearlessness"
+    ],
+    "subValues": [
+      "taking-space",
+      "big-dreams",
+      "standing-out"
+    ],
+    "essence": "Taking up the room you need.",
+    "light": "Boldness is a bright flag in the wind, unashamed of being seen. It's dreaming big, speaking up, wearing the colour, asking for more. Bold people give others permission to be fully themselves too.",
+    "shadow": "Too much, and boldness can become recklessness or showing off. You may take risks that hurt you or others, or fill every room so no one else has space. Boldness without care can trample.",
+    "void": "Without boldness, you might play small to stay safe, dimming yourself so you don't draw attention. Many of us learned to shrink to fit in. Taking up space can be relearned.",
+    "whole": "Wisdom gives boldness good aim. Knowing which risks are worth taking makes boldness powerful. Together they let you shine without burning.",
+    "questionnaireNotes": [
+      "When does your boldness leave no room for anyone else?",
+      "Where are you making yourself smaller than you are?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Wear something that makes you feel bold",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down a big dream without editing it down",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask for something you'd usually go without",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Take up space: sit or stand fully, speak at your full volume",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say yes to an opportunity that scares you a little",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Share your work or idea publicly",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Do the bold thing you've talked yourself out of",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Celebration",
+    "slug": "celebration",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Play",
+      "Connection"
+    ],
+    "balancingKin": [
+      "rest"
+    ],
+    "nourishingKin": [
+      "joy",
+      "gratitude"
+    ],
+    "synonyms": [
+      "festivity",
+      "rejoicing"
+    ],
+    "subValues": [
+      "marking-moments",
+      "gathering",
+      "toasting-wins"
+    ],
+    "essence": "Marking the good moments on purpose.",
+    "light": "Celebration is lanterns strung across a summer night. It's pausing to mark what matters: wins, milestones, love, survival. Celebration turns ordinary days into memories, and reminds us that life is worth gathering for.",
+    "shadow": "Too much, and celebration can become constant distraction, a party that never ends so nothing ever has to be felt. It can also turn into excess that leaves you depleted rather than lifted.",
+    "void": "Without celebration, achievements slip by unnoticed and life starts to feel like one long to-do list. You might feel uncomfortable being celebrated, or wait for a big enough reason that never comes.",
+    "whole": "Rest gives celebration its meaning. The pause after the party is where the joy settles in. Together they create a rhythm of effort, celebration and renewal.",
+    "questionnaireNotes": [
+      "What feeling might celebrating be helping you avoid?",
+      "What good thing have you let pass without marking it?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Celebrate one small win today, even with a cup of tea",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Congratulate someone on something they've achieved",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Put on music and celebrate the end of the week",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Mark a personal milestone in a way that feels meaningful",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Gather people to celebrate something or someone",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Let others celebrate you, without brushing it off",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Celebrate something you've survived, not just achieved",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Confidence",
+    "slug": "confidence",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "openness"
+    ],
+    "nourishingKin": [
+      "courage",
+      "resilience"
+    ],
+    "synonyms": [
+      "self-assurance",
+      "poise"
+    ],
+    "subValues": [
+      "self-belief",
+      "inner-authority",
+      "steady-presence"
+    ],
+    "essence": "Trusting you can meet what comes.",
+    "light": "Confidence is a lantern held steady in a dark lane: it doesn't light the whole road, just enough for the next step. It's trusting your own ability to learn, try and recover. Confident people aren't sure of everything; they're simply willing to show up without needing a guarantee.",
+    "shadow": "Too much, and confidence hardens into certainty. You may stop listening, brush past other views, or mistake loudness for strength. Overconfidence can also be armour, covering doubts that never get a chance to be heard.",
+    "void": "Without confidence, you might second-guess every choice, wait for permission, or shrink in rooms where you belong. Low confidence is rarely about ability. More often it's an old voice that once told you that you weren't enough.",
+    "whole": "Openness keeps confidence humble. Trusting yourself while staying willing to be wrong is the kind of confidence others can trust too.",
+    "questionnaireNotes": [
+      "Where has your confidence stopped you from listening?",
+      "Whose voice do you hear when you doubt yourself?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down three things you've done well this month",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Stand tall and take three slow breaths before something that makes you nervous",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Accept a compliment today with a simple thank you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make one decision quickly and trust it",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share your opinion in a conversation where you'd usually stay quiet",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Try something new in public, knowing you might not be good at it yet",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Go for something you've told yourself you're not ready for",
+        "pts": 7,
         "diff": "brave"
       }
     ]
@@ -609,6 +1831,149 @@ export const CODEX = [
       "When does creating stop feeling like play for you?"
     ],
     "starterChallenges": []
+  },
+  {
+    "name": "Desire",
+    "slug": "desire",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Heart",
+      "Play"
+    ],
+    "balancingKin": [
+      "discipline"
+    ],
+    "nourishingKin": [
+      "passion",
+      "authenticity"
+    ],
+    "synonyms": [
+      "longing",
+      "wanting"
+    ],
+    "subValues": [
+      "wanting-freely",
+      "yearning",
+      "appetite"
+    ],
+    "essence": "Knowing what you want, and letting yourself want it.",
+    "light": "Desire is the pull of the moon on the tide, a quiet force that moves you. It's knowing what you long for, in love, work, pleasure and life, and allowing that wanting without shame. Desire points toward what makes you feel alive.",
+    "shadow": "Too much, and desire can drive you rather than guide you. Wanting can become grasping, or a chase that's never satisfied. Desire can also lead you toward what feels good now but costs you later.",
+    "void": "Without desire, life can feel flat and directionless. You might not know what you want, or feel you're not allowed to want much at all. For many people, desire was something to hide. Rediscovering it is a homecoming.",
+    "whole": "Discipline gives desire a channel. Knowing what you want and choosing how to pursue it lets wanting become living. Together they turn longing into life.",
+    "questionnaireNotes": [
+      "What do you chase that never quite satisfies?",
+      "What do you want that you haven't let yourself admit?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Finish this sentence ten times: \"I want…\"",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Choose something today based purely on what you desire",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one longing you usually push away",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make a list of what makes you feel most alive",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tell someone close what you really want",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Take one real step toward a desire you've been ignoring",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let yourself want something big, out loud, without shrinking it",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Determination",
+    "slug": "determination",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Purpose"
+    ],
+    "balancingKin": [
+      "adaptability"
+    ],
+    "nourishingKin": [
+      "discipline",
+      "hope"
+    ],
+    "synonyms": [
+      "resolve",
+      "grit"
+    ],
+    "subValues": [
+      "persistence",
+      "single-mindedness",
+      "finishing-strong"
+    ],
+    "essence": "Keeping going when it's hard.",
+    "light": "Determination is water wearing a path through rock: not forceful, just unwilling to stop. It's the quiet decision to keep going after the excitement fades and the obstacles arrive. Determination turns hopes into results, one stubborn day at a time.",
+    "shadow": "Too much, and determination becomes rigidity. You may push on long after something stopped serving you, ignore the body's warnings, or treat quitting as failure even when it's wisdom. Not every wall is meant to be broken through.",
+    "void": "Without determination, plans fade at the first setback. You might start many things and finish few, or give up just before the turning point. Sometimes the missing piece isn't willpower but a reason that matters enough.",
+    "whole": "Adaptability keeps determination wise. Hold the goal firmly and the path loosely. Together they let you keep going, without going blindly.",
+    "questionnaireNotes": [
+      "What are you pushing through that it might be wiser to let go?",
+      "What would you finish if you trusted yourself to keep going?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Choose one unfinished task and do ten minutes of it",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down why a current goal matters to you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "When you want to stop today, do five more minutes",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Break a big goal into three small next steps",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Return to something you gave up on and take one step",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Keep a small promise to yourself every day for a week",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Finish something difficult you've been circling for months",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
   },
   {
     "name": "Discipline",
@@ -714,6 +2079,149 @@ export const CODEX = [
       },
       {
         "text": "Choose one commitment you're keeping at arm's length and give it your whole yes",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Initiative",
+    "slug": "initiative",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Purpose"
+    ],
+    "balancingKin": [
+      "patience"
+    ],
+    "nourishingKin": [
+      "courage",
+      "curiosity"
+    ],
+    "synonyms": [
+      "enterprise",
+      "proactivity"
+    ],
+    "subValues": [
+      "first-steps",
+      "self-starting",
+      "resourcefulness"
+    ],
+    "essence": "Starting, without waiting to be asked.",
+    "light": "Initiative is the first spark that catches the kindling. It's noticing what needs doing and doing it, beginning before everything is perfect. People with initiative make things happen, solve small problems early, and open doors others walk past.",
+    "shadow": "Too much, and initiative can rush ahead of others. You may start more than you can finish, act before thinking, or take over things that weren't yours to begin. Not every gap needs filling by you.",
+    "void": "Without initiative, life can become a waiting room. You might hold off until asked, until ready, until certain. Waiting for the perfect moment often means the moment never comes.",
+    "whole": "Patience gives initiative good timing. Knowing when to begin is as important as beginning. Together they turn sparks into steady fires.",
+    "questionnaireNotes": [
+      "What have you started just to avoid sitting still?",
+      "What are you waiting for permission to begin?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Do one helpful thing today before anyone asks",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Start a task you've been putting off, even for five minutes",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Fix one small thing that's been bothering you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down an idea and take the very first step",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Suggest a plan to others and offer to start it",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Begin a project before you feel ready",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Start something you've dreamed of for years, today",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Leadership",
+    "slug": "leadership",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Purpose",
+      "Connection"
+    ],
+    "balancingKin": [
+      "service"
+    ],
+    "nourishingKin": [
+      "integrity",
+      "courage"
+    ],
+    "synonyms": [
+      "guidance",
+      "captaincy"
+    ],
+    "subValues": [
+      "vision-holding",
+      "taking-charge",
+      "empowering-others"
+    ],
+    "essence": "Going first, so others can follow.",
+    "light": "Leadership is the first bird at the point of the flock, taking the wind so others can fly easier. It's seeing where things could go and helping people get there together. Good leaders listen, decide, and carry responsibility when it's heavy.",
+    "shadow": "Too much, and leadership becomes the need to be in charge. You may take over when no one asked, struggle to follow, or carry everything yourself because you don't trust others to. A leader who can't let go grows followers, not leaders.",
+    "void": "Without leadership, groups drift and good ideas go nowhere. You might hold back from stepping up, waiting for someone more qualified. Often the person who sees what's needed is exactly the one who's meant to begin.",
+    "whole": "Service keeps leadership honest. The best leaders lead for the sake of others. Together they make a lead worth following.",
+    "questionnaireNotes": [
+      "Where do you take charge because you don't trust others to?",
+      "Where are you waiting for someone else to step up?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice someone who leads well, and what they do",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Offer an idea in a group, and help it take shape",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask someone on your team or in your family what they need from you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Organise a small gathering or project",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Step up to lead something no one else is taking on",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Hand over a task and trust someone else to lead it",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Lead with a decision that's right but unpopular, and explain it kindly",
         "pts": 7,
         "diff": "brave"
       }
@@ -863,6 +2371,78 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Power",
+    "slug": "power",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "compassion"
+    ],
+    "nourishingKin": [
+      "confidence",
+      "integrity"
+    ],
+    "synonyms": [
+      "agency",
+      "capability"
+    ],
+    "subValues": [
+      "personal-power",
+      "influence",
+      "self-determination"
+    ],
+    "essence": "Owning your capacity to shape your life.",
+    "light": "Power is the current in a river: it moves things. It's knowing you have a say in your life and using it, making choices, taking up space, influencing what happens around you. Healthy power is power with others, not over them.",
+    "shadow": "Too much, and power turns into control. It can push others down, demand to be right, or use people as stepping stones. Power without care quickly becomes something people fear rather than trust.",
+    "void": "Without power, you may feel that life just happens to you. You might wait for others to decide, or believe your wants don't count. Feeling powerless is often learned, and it can be unlearned, one choice at a time.",
+    "whole": "Compassion keeps power kind. Power held with care lifts others as it rises. Together they make leadership people want to follow.",
+    "questionnaireNotes": [
+      "Where are you holding on to control that isn't yours to hold?",
+      "Where in your life have you given your power away?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one choice you make today that shapes your life",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down one area where you feel powerless, and one small thing you could influence",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make a decision you've been leaving to someone else",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Use your voice to help one person be heard",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say what you want clearly, without shrinking it",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Share power: let someone else lead something you'd usually control",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Take back power from a situation you've let run your life",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Resilience",
     "slug": "resilience",
     "element": "Fire",
@@ -929,6 +2509,149 @@ export const CODEX = [
       },
       {
         "text": "Let someone see you struggling instead of saying you're fine",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Strength",
+    "slug": "strength",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Body",
+      "Spirit"
+    ],
+    "balancingKin": [
+      "gentleness"
+    ],
+    "nourishingKin": [
+      "health",
+      "resilience"
+    ],
+    "synonyms": [
+      "fortitude",
+      "sturdiness"
+    ],
+    "subValues": [
+      "physical-strength",
+      "inner-strength",
+      "holding-steady"
+    ],
+    "essence": "Power you can lean on, in body and in will.",
+    "light": "Strength is an old tree in a storm: it bends, it creaks, it stays. It's the capacity to carry what needs carrying, in your muscles and in your spirit. Strength shows up in lifting, in enduring, and in standing firm for yourself and others when it counts.",
+    "shadow": "Too much, and strength can become hardness. You may refuse help, hide pain, or believe you always have to be the strong one. Strength that never rests eventually cracks.",
+    "void": "Without strength, life can feel like too much to hold. You might feel fragile, easily knocked over, or dependent on others to carry you. Strength grows back in small, steady ways, through rest, movement and support.",
+    "whole": "Gentleness keeps strength humane. The strongest hands are often the gentlest. Together they let you hold firm without holding hard.",
+    "questionnaireNotes": [
+      "Where do you have to be the strong one, and what does it cost you?",
+      "What would help you feel steadier in your body and spirit?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Do a short strengthening movement: a plank, squats, or carrying something heavy",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Remember a hard time you got through, and what helped",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Stand firm, kindly, on one small thing today",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Go for a walk up a hill or some stairs and notice your strength",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask for help with something you'd usually carry alone",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Build a strength habit and keep it for a week",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Show someone a vulnerable side, trusting it doesn't make you weak",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Transformation",
+    "slug": "transformation",
+    "element": "Fire",
+    "status": "draft",
+    "pillars": [
+      "Spirit"
+    ],
+    "balancingKin": [
+      "acceptance"
+    ],
+    "nourishingKin": [
+      "courage",
+      "alchemy"
+    ],
+    "synonyms": [
+      "metamorphosis",
+      "reinvention"
+    ],
+    "subValues": [
+      "becoming",
+      "shedding-skins",
+      "rebirth"
+    ],
+    "essence": "Becoming more of who you are.",
+    "light": "Transformation is the caterpillar in the chrysalis: everything dissolves so something new can form. It's real, deep change, letting old patterns end and new ways of being grow. Transformation often begins with a crack, a loss, or a longing that won't go away.",
+    "shadow": "Too much, and transformation becomes constant reinvention, never settling long enough to grow roots. You may keep changing to escape, rather than to become. Not everything needs to be transformed; some things need to be kept.",
+    "void": "Without transformation, you might feel stuck in a version of yourself you've outgrown. Life repeats itself, and the same patterns play out again and again. Change can feel frightening, especially if it once cost you a lot.",
+    "whole": "Acceptance grounds transformation. Change grows best from seeing clearly where you are now. Together they let you become, without rejecting who you've been.",
+    "questionnaireNotes": [
+      "Are you changing to grow, or to escape?",
+      "What version of yourself have you outgrown, but still live as?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down one way you've changed in the past year",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one pattern you'd like to transform",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Clear out something you no longer need",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write a letter from the person you're becoming",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Change one daily habit that keeps you stuck",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "End something that no longer fits who you are",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Take a real step into the life of who you're becoming",
         "pts": 7,
         "diff": "brave"
       }
@@ -1042,6 +2765,148 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Community",
+    "slug": "community",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Connection"
+    ],
+    "balancingKin": [
+      "freedom"
+    ],
+    "nourishingKin": [
+      "kindness",
+      "service"
+    ],
+    "synonyms": [
+      "fellowship",
+      "togetherness"
+    ],
+    "subValues": [
+      "neighbourliness",
+      "mutual-aid",
+      "shared-purpose"
+    ],
+    "essence": "Being part of something together.",
+    "light": "Community is a village where everyone knows your name and someone always has a spare cup of sugar. It's belonging to a group that shares life: neighbours, friends, teams, circles. Community means giving and receiving support, celebrating together, and never having to do everything alone.",
+    "shadow": "Too much, and community can pressure people to conform, or close itself off from outsiders. You may lose your own voice to fit the group, or feel you can never step away.",
+    "void": "Without community, life can feel isolated. You may carry everything alone, struggle to find support in hard times, or feel invisible. Many people long for community but don't know where to begin.",
+    "whole": "Freedom keeps community healthy. A good community lets you be fully yourself. Together they make belonging that doesn't cost you your self.",
+    "questionnaireNotes": [
+      "Where are you fitting in at the cost of being yourself?",
+      "Who could you turn to if you needed help this week?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Say hello to a neighbour or someone you usually pass by",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Support a local business or community event",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Reach out to someone who might be lonely",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Join a group, class or online space that interests you",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Offer practical help to someone in your community",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Organise a small gathering for people who don't know each other well",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Ask your community for help when you need it",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Diligence",
+    "slug": "diligence",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Purpose"
+    ],
+    "balancingKin": [
+      "rest"
+    ],
+    "nourishingKin": [
+      "discipline",
+      "patience"
+    ],
+    "synonyms": [
+      "conscientiousness",
+      "industriousness"
+    ],
+    "subValues": [
+      "hard-work",
+      "attention-to-detail",
+      "thoroughness"
+    ],
+    "essence": "Careful, steady effort.",
+    "light": "Diligence is a stonemason fitting each stone with care, knowing the wall depends on it. It's doing your work thoroughly and well, even when no one is watching. Diligence builds quality, trust and quiet pride.",
+    "shadow": "Too much, and diligence becomes perfectionism or overwork. You may struggle to finish because nothing is good enough, or work long past what's healthy. Diligence can turn into a way of earning worth.",
+    "void": "Without diligence, work can feel rushed, careless or half-done. You might cut corners, then feel uneasy about the results. Sometimes a lack of diligence is exhaustion, or work that has lost its meaning.",
+    "whole": "Rest keeps diligence sustainable. Careful work needs a rested worker. Together they let you do good work for the long haul.",
+    "questionnaireNotes": [
+      "When does doing it well turn into never finishing?",
+      "Where are you cutting corners, and what is that telling you?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Do one task today with full care and attention",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Double-check one piece of work before you hand it in",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Tidy and organise one workspace properly",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Finish a task completely before starting another",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Return to something you did carelessly and do it well",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Work steadily on one project for a set time each day this week",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Hand in work that's good enough, not perfect, and let it go",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Family",
     "slug": "family",
     "element": "Earth",
@@ -1076,6 +2941,78 @@ export const CODEX = [
       "Who is your family now, by any definition that feels true?"
     ],
     "starterChallenges": []
+  },
+  {
+    "name": "Groundedness",
+    "slug": "groundedness",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Body",
+      "Spirit"
+    ],
+    "balancingKin": [
+      "wonder"
+    ],
+    "nourishingKin": [
+      "presence",
+      "health"
+    ],
+    "synonyms": [
+      "rootedness",
+      "centredness"
+    ],
+    "subValues": [
+      "earthing",
+      "steady-feet",
+      "body-anchoring"
+    ],
+    "essence": "Feet on the earth, here and now.",
+    "light": "Groundedness is roots reaching deep into the soil, holding steady whatever the weather. It's being in your body and in the present, connected to what's real. Grounded people can stay calm in a storm, think clearly under pressure, and help others steady too.",
+    "shadow": "Too much, and groundedness can become heaviness. You may dismiss dreams as unrealistic, resist imagination, or become so practical that wonder can't get in.",
+    "void": "Without groundedness, you may feel scattered, anxious or carried away by every thought and feeling. Life can feel like it's happening in your head. The body is always here, ready to bring you back.",
+    "whole": "Wonder keeps groundedness open. Feet on the ground, eyes on the stars. Together they let you dream without floating away.",
+    "questionnaireNotes": [
+      "Has being practical left any room for wonder?",
+      "What pulls you out of your body most often?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Stand barefoot on grass, sand or earth for a few minutes",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Name five things you can see, four you can hear, three you can touch",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Eat one meal without screens",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend time in nature with nothing to achieve",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "When anxious, pause and feel your feet before you respond",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Build a daily grounding practice and keep it for a week",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Stay grounded in a situation that usually sweeps you away",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
   },
   {
     "name": "Health",
@@ -1143,6 +3080,78 @@ export const CODEX = [
       },
       {
         "text": "Notice where caring for your health has turned into control, and soften one rule",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Hospitality",
+    "slug": "hospitality",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Home & Earth"
+    ],
+    "balancingKin": [
+      "boundaries"
+    ],
+    "nourishingKin": [
+      "generosity",
+      "comfort"
+    ],
+    "synonyms": [
+      "welcome",
+      "warm-heartedness"
+    ],
+    "subValues": [
+      "hosting",
+      "open-door",
+      "making-room"
+    ],
+    "essence": "Making others feel welcome.",
+    "light": "Hospitality is a kettle on and the door left open. It's welcoming people into your home, your table, your life, and helping them feel at ease. Hospitality turns strangers into friends and houses into homes.",
+    "shadow": "Too much, and hospitality can leave you drained, always hosting and never resting. You may feel responsible for everyone's comfort, or struggle to close the door when you need space.",
+    "void": "Without hospitality, life can feel closed off. You might hesitate to invite people over, feeling your home or yourself isn't good enough. Welcome doesn't need perfection, just warmth.",
+    "whole": "Boundaries make hospitality sustainable. An open door works best when you can also close it. Together they make welcome you can keep offering.",
+    "questionnaireNotes": [
+      "When does hosting leave you with nothing left for yourself?",
+      "What stops you from inviting people in?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Make a cup of tea for someone",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Welcome someone new: at work, in a group, or next door",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Prepare a simple space where a guest would feel at ease",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Invite someone over for a simple meal",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Host a gathering, however small and imperfect",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Include someone who's often left out",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Open your home to someone who needs a place to land",
         "pts": 7,
         "diff": "brave"
       }
@@ -1256,6 +3265,149 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Prosperity",
+    "slug": "prosperity",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Home & Earth",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "generosity"
+    ],
+    "nourishingKin": [
+      "diligence",
+      "stewardship"
+    ],
+    "synonyms": [
+      "wealth",
+      "thriving"
+    ],
+    "subValues": [
+      "financial-wellbeing",
+      "saving",
+      "provision"
+    ],
+    "essence": "Enough, and the means to share it.",
+    "light": "Prosperity is a harvest barn filled before winter. It's having the resources you need to live well, care for those you love, and give to others. Healthy prosperity means security, freedom and the ability to choose, not just accumulation.",
+    "shadow": "Too much, and prosperity can become greed or endless accumulation. Money can turn into a measure of worth, and enough is never enough. Wealth without purpose can isolate.",
+    "void": "Without prosperity, life can feel constrained and anxious. Money worries may shape every decision. Many people carry beliefs about money from childhood that quietly keep them in lack.",
+    "whole": "Generosity keeps prosperity healthy. Wealth that flows outward stays meaningful. Together they let prosperity be a blessing rather than a burden.",
+    "questionnaireNotes": [
+      "How much is enough, and how will you know when you're there?",
+      "What did you learn about money growing up that still shapes you?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down what prosperity would honestly look like for you",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Track your spending for one day without judgement",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Put a small amount aside for your future",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Learn one new thing about managing money",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask for fair pay, a raise, or a better price for your work",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Make a simple monthly budget and use it",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Face a money worry you've been avoiding, with a plan",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Respect",
+    "slug": "respect",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Connection"
+    ],
+    "balancingKin": [
+      "assertiveness"
+    ],
+    "nourishingKin": [
+      "fairness",
+      "kindness"
+    ],
+    "synonyms": [
+      "regard",
+      "esteem"
+    ],
+    "subValues": [
+      "mutual-respect",
+      "honouring-difference",
+      "regard-for-elders"
+    ],
+    "essence": "Treating people, and yourself, as worthy.",
+    "light": "Respect is giving a tree room to grow its own shape. It's treating others as whole people with their own minds, choices and dignity, and expecting the same for yourself. Respect shows in listening, keeping your word, honouring differences, and not taking people for granted.",
+    "shadow": "Too much, and respect can turn into deference: putting others on pedestals, never questioning authority, or swallowing your view out of politeness. Respect for others shouldn't cost you respect for yourself.",
+    "void": "Without respect, relationships wear thin. You may feel dismissed or overlooked, or notice yourself dismissing others. A lack of self-respect often shows up as accepting less than you deserve.",
+    "whole": "Assertiveness balances respect. Honouring others while standing up for yourself makes respect mutual. Together they create relationships of equals.",
+    "questionnaireNotes": [
+      "Where does your respect for others cost you your own voice?",
+      "Where do you accept less respect than you deserve?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Listen to someone without interrupting, all the way through",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Thank someone whose work usually goes unnoticed",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask someone's opinion and really consider it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Treat yourself with the respect you'd show a valued friend",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Respectfully disagree with someone you look up to",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Have a respectful conversation with someone very different from you",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Ask for the respect you deserve from someone who's been withholding it",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Responsibility",
     "slug": "responsibility",
     "element": "Earth",
@@ -1328,6 +3480,293 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Security",
+    "slug": "security",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Home & Earth"
+    ],
+    "balancingKin": [
+      "courage"
+    ],
+    "nourishingKin": [
+      "stability",
+      "responsibility"
+    ],
+    "synonyms": [
+      "safety",
+      "protection"
+    ],
+    "subValues": [
+      "financial-security",
+      "emotional-safety",
+      "safe-home"
+    ],
+    "essence": "Safe footing for you and yours.",
+    "light": "Security is a well-built home with a strong roof before the rains. It's knowing you and the people you love are safe: physically, financially and emotionally. Security lets the nervous system rest, and gives you the confidence to take healthy risks.",
+    "shadow": "Too much, and security can become fear-driven control. You may never take risks, hoard resources, or stay in situations that feel safe but limit you. Life can't be made entirely safe, and trying can shrink it.",
+    "void": "Without security, life feels precarious. You may live in survival mode, always bracing for the next crisis. Feeling unsafe for a long time can shape how you see everything.",
+    "whole": "Courage keeps security from closing in. Feeling safe gives you the ground to be brave. Together they let you build a secure life that is still a full one.",
+    "questionnaireNotes": [
+      "What risk are you avoiding in the name of staying safe?",
+      "What would help you feel safer, in your body and in your life?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one place or person that makes you feel safe",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down what security means to you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Take care of one small practical safety task at home",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Start or add to an emergency fund, however small",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make a plan for something you worry about",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Have an honest conversation about safety in a relationship",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Take a healthy risk from a place of security, not fear",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Self-care",
+    "slug": "self-care",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Body",
+      "Heart"
+    ],
+    "balancingKin": [
+      "service"
+    ],
+    "nourishingKin": [
+      "rest",
+      "health"
+    ],
+    "synonyms": [
+      "self-nurture",
+      "self-tending"
+    ],
+    "subValues": [
+      "daily-care",
+      "check-ins",
+      "replenishment"
+    ],
+    "essence": "Tending yourself as you'd tend someone you love.",
+    "light": "Self-care is watering your own garden, not just your neighbours'. It's paying attention to what you need, physically, emotionally and mentally, and meeting those needs with kindness. Real self-care is often simple: sleep, food, movement, boundaries, rest, and time that's just yours.",
+    "shadow": "Too much, and self-care can become self-indulgence or avoidance. Bubble baths can't fix what needs a hard conversation. Self-care can also become another task on the list, done perfectly and without joy.",
+    "void": "Without self-care, you run on empty. You may notice exhaustion, irritability, illness or numbness. Many caregivers put themselves last for so long they forget they matter too.",
+    "whole": "Service keeps self-care generous. Caring for yourself makes you better able to care for others. Together they make a full cup that overflows.",
+    "questionnaireNotes": [
+      "What are you calling self-care that is really avoidance?",
+      "When did you last ask yourself what you need, and listen?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Drink a full glass of water and eat a proper meal today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask yourself three times today: what do I need right now?",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Take a break before you're exhausted, not after",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Do one thing just because it makes you feel good",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say no to something that would drain you",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Book a health check you've been putting off",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Make a lasting change to protect your wellbeing",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Service",
+    "slug": "service",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "self-care"
+    ],
+    "nourishingKin": [
+      "kindness",
+      "community"
+    ],
+    "synonyms": [
+      "helpfulness",
+      "volunteering"
+    ],
+    "subValues": [
+      "helping-hands",
+      "being-useful",
+      "giving-back"
+    ],
+    "essence": "Useful, humble help.",
+    "light": "Service is a bridge built for others to cross. It's using your skills, time and energy to make life better for others, without needing the spotlight. Service can be a career, a volunteer shift, or simply being the person who shows up when help is needed.",
+    "shadow": "Too much, and service becomes self-sacrifice. You may give until you're empty, feel guilty saying no, or tie your worth to how useful you are. Service that ignores your own needs eventually runs dry.",
+    "void": "Without service, life can feel self-focused and less meaningful. You may feel disconnected from something bigger than yourself. Helping others is one of the surest paths back to purpose.",
+    "whole": "Self-care keeps service sustainable. You can only pour from a cup that's refilled. Together they make help that lasts.",
+    "questionnaireNotes": [
+      "Is your helping ever a way of feeling worthy?",
+      "Where could your gifts be useful to someone else?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Do one helpful thing for someone today without being asked",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Offer your skills to help a friend with something",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down three ways you already serve others",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Donate something useful to people who need it",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Volunteer for a local cause",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Say no to one request so your service stays wholehearted",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Commit to regular service for something you care about",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Stability",
+    "slug": "stability",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Home & Earth",
+      "Body"
+    ],
+    "balancingKin": [
+      "adaptability"
+    ],
+    "nourishingKin": [
+      "discipline",
+      "security"
+    ],
+    "synonyms": [
+      "constancy",
+      "firm footing"
+    ],
+    "subValues": [
+      "routine",
+      "solid-ground",
+      "settledness"
+    ],
+    "essence": "Steady ground to build a life on.",
+    "light": "Stability is bedrock beneath the soil: unseen, unshaken, holding everything up. It's having routines, relationships and foundations you can rely on. Stability gives you a steady base from which to grow, explore and recover.",
+    "shadow": "Too much, and stability turns into rigidity. You may resist all change, cling to routines that no longer serve you, or stay somewhere long after it's time to go. Stable can become stuck.",
+    "void": "Without stability, life feels shaky and unpredictable. You might move from crisis to crisis, struggle to rest, or feel unable to plan ahead. Building stability often starts small: one steady habit, one reliable person.",
+    "whole": "Adaptability keeps stability alive. Firm roots with flexible branches let a tree survive the wind. Together they make a life that is both steady and growing.",
+    "questionnaireNotes": [
+      "Where has staying stable become staying stuck?",
+      "What would help you feel more settled right now?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Keep one simple morning routine today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down three things in your life you can rely on",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Go to bed at the same time for three nights",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Sort out one small thing that keeps causing chaos",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Create a weekly rhythm and follow it for a week",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Build a small financial or practical safety net",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Make a change you've been avoiding to protect a false stability",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Stewardship",
     "slug": "stewardship",
     "element": "Earth",
@@ -1347,7 +3786,7 @@ export const CODEX = [
       "care of place"
     ],
     "subValues": [
-      "security",
+      "safekeeping",
       "tending-home",
       "care-for-nature"
     ],
@@ -1393,6 +3832,221 @@ export const CODEX = [
       },
       {
         "text": "Let go of one worry about the whole world, and tend one small patch well instead",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Sustainability",
+    "slug": "sustainability",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Home & Earth"
+    ],
+    "balancingKin": [
+      "prosperity"
+    ],
+    "nourishingKin": [
+      "stewardship",
+      "responsibility"
+    ],
+    "synonyms": [
+      "conservation",
+      "eco-living"
+    ],
+    "subValues": [
+      "living-lightly",
+      "reuse",
+      "future-thinking"
+    ],
+    "essence": "Living so the earth can keep giving.",
+    "light": "Sustainability is planting trees whose shade you may never sit in. It's living in a way the earth, and the people who come after us, can keep living with. Sustainability shows in choices about what we buy, waste, eat, travel and protect.",
+    "shadow": "Too much, and sustainability can become eco-guilt or judgement: feeling that nothing is ever enough, or looking down on others' choices. Burnout helps no one, including the planet.",
+    "void": "Without sustainability, the future feels far away and consumption easy. You may feel helpless about the scale of the problem, so nothing changes. Small actions matter, especially when shared.",
+    "whole": "Prosperity balances sustainability. Thriving now and caring for the future can go hand in hand. Together they build a world worth inheriting.",
+    "questionnaireNotes": [
+      "Where does guilt about the planet stop you from acting at all?",
+      "What small change would actually fit your life?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Take a reusable bag, bottle or cup with you today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Repair something instead of replacing it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Eat a plant-based meal",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice how much you throw away in a day",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Change one regular habit to a more sustainable one",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Join or support a local environmental effort",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Make a bigger change: in how you travel, shop or power your home",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Tradition",
+    "slug": "tradition",
+    "element": "Earth",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Home & Earth"
+    ],
+    "balancingKin": [
+      "openness"
+    ],
+    "nourishingKin": [
+      "family",
+      "gratitude"
+    ],
+    "synonyms": [
+      "heritage",
+      "custom"
+    ],
+    "subValues": [
+      "ancestry",
+      "cultural-roots",
+      "passing-down"
+    ],
+    "essence": "Carrying forward what deserves to last.",
+    "light": "Tradition is a recipe passed down through generations, each hand adding a little something. It's the customs, stories and practices that connect you to those who came before. Tradition gives belonging, meaning and a sense of being part of something larger than yourself.",
+    "shadow": "Too much, and tradition becomes \"we've always done it this way\". It can resist needed change, exclude those who don't fit, or carry old harms forward unquestioned.",
+    "void": "Without tradition, life can feel rootless and unanchored. Holidays may pass unmarked; family stories go untold. Sometimes traditions were lost through migration, conflict or pain, and new ones can be created.",
+    "whole": "Openness keeps tradition alive. Honouring the old while welcoming the new lets traditions grow. Together they keep roots deep and branches open.",
+    "questionnaireNotes": [
+      "Which tradition are you keeping out of obligation, rather than meaning?",
+      "What tradition do you miss, or wish you had?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Ask an elder about a tradition from their childhood",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Cook a family or cultural recipe",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down a tradition that matters to you, and why",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share a family story with someone younger",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Revive a tradition that has faded",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Start a new tradition with people you love",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let go of a tradition that causes harm, and replace it with something kinder",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Advocacy",
+    "slug": "advocacy",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "empathy"
+    ],
+    "nourishingKin": [
+      "courage",
+      "fairness"
+    ],
+    "synonyms": [
+      "championing",
+      "standing up"
+    ],
+    "subValues": [
+      "speaking-for-others",
+      "activism",
+      "allyship"
+    ],
+    "essence": "Speaking up for what, and who, matters.",
+    "light": "Advocacy is a voice raised for someone who can't be heard. It's standing up for people, causes and values that matter, using your voice, skills and influence to make things fairer. Advocates turn caring into change.",
+    "shadow": "Too much, and advocacy can become self-righteousness, or speaking over the very people you mean to help. You may burn out fighting every battle, or see the world only through causes.",
+    "void": "Without advocacy, injustice goes unchallenged. You may stay silent when something is wrong, afraid of conflict or unsure your voice matters. Every voice adds up.",
+    "whole": "Empathy keeps advocacy true. Listen first to those you speak for. Together they make change that truly serves.",
+    "questionnaireNotes": [
+      "Are you speaking for others, or speaking over them?",
+      "Where have you stayed silent when something mattered?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Learn more about a cause you care about",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share a voice or story that deserves to be heard",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Sign or support a petition for something that matters to you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask someone affected by an issue what support they'd want",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Speak up for someone being treated unfairly",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Write to someone with the power to make a change",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Stand up publicly for a cause, even if it costs you something",
         "pts": 7,
         "diff": "brave"
       }
@@ -1543,6 +4197,149 @@ export const CODEX = [
     "starterChallenges": []
   },
   {
+    "name": "Diplomacy",
+    "slug": "diplomacy",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Connection"
+    ],
+    "balancingKin": [
+      "honesty"
+    ],
+    "nourishingKin": [
+      "empathy",
+      "patience"
+    ],
+    "synonyms": [
+      "tact",
+      "mediation"
+    ],
+    "subValues": [
+      "bridge-building",
+      "negotiation",
+      "common-ground"
+    ],
+    "essence": "Bridging differences with tact.",
+    "light": "Diplomacy is a bridge across a river, built from both banks. It's handling differences with care, finding common ground, and helping people who disagree move forward together. Diplomats keep relationships whole while solving hard problems.",
+    "shadow": "Too much, and diplomacy can become people-pleasing or avoidance: smoothing everything over so no one is uncomfortable, even when something needs to be faced. Tact can turn into evasion.",
+    "void": "Without diplomacy, disagreements become battles and relationships fracture. You may say things bluntly and wonder why they land badly, or avoid conflict altogether because you don't know how to handle it.",
+    "whole": "Honesty gives diplomacy integrity. Tact carries the truth; it doesn't replace it. Together they make peace that lasts.",
+    "questionnaireNotes": [
+      "When does keeping the peace mean leaving something important unsaid?",
+      "Which relationship needs a bridge built?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Find one thing you agree on with someone you often disagree with",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Rephrase a criticism so it can be heard",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Listen to both sides of a disagreement before you take one",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Help two people understand each other better",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Address a tension diplomatically instead of avoiding it",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Negotiate something important with care and clarity",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Mediate a conflict between people you care about",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Discovery",
+    "slug": "discovery",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Mind",
+      "Play"
+    ],
+    "balancingKin": [
+      "patience"
+    ],
+    "nourishingKin": [
+      "curiosity",
+      "wonder"
+    ],
+    "synonyms": [
+      "finding out",
+      "revelation"
+    ],
+    "subValues": [
+      "adventure",
+      "uncovering",
+      "first-encounters"
+    ],
+    "essence": "The thrill of finding something new.",
+    "light": "Discovery is turning a corner and finding a hidden garden. It's the joy of learning something you didn't know, about the world, about others, about yourself. Discovery keeps life fresh, and every day a little unknown.",
+    "shadow": "Too much, and discovery can become restlessness, always chasing the next new thing and never going deep. You may struggle to stay with anything once the newness wears off.",
+    "void": "Without discovery, life can feel predictable and small. You may stick to the same routes, foods, people and ideas. A single new experience can reopen the world.",
+    "whole": "Patience lets discovery go deep. Some treasures are only found by staying. Together they make exploration that enriches.",
+    "questionnaireNotes": [
+      "What do you leave as soon as the newness wears off?",
+      "When did you last discover something that surprised you?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Take a different route somewhere you go often",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Try a food you've never eaten",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Learn one surprising fact and share it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Visit a place nearby you've never been",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend a day saying yes to something new",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Explore a subject deeply for a week",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Travel, alone or with others, somewhere unfamiliar",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Fairness",
     "slug": "fairness",
     "element": "Air",
@@ -1609,6 +4406,78 @@ export const CODEX = [
       },
       {
         "text": "Notice where you're keeping score, and let one tally go",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Foresight",
+    "slug": "foresight",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Mind",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "presence"
+    ],
+    "nourishingKin": [
+      "wisdom",
+      "clarity"
+    ],
+    "synonyms": [
+      "forethought",
+      "prudence"
+    ],
+    "subValues": [
+      "planning",
+      "anticipation",
+      "long-view"
+    ],
+    "essence": "Looking ahead with care.",
+    "light": "Foresight is a sailor reading the sky before the storm. It's thinking ahead, imagining consequences, and preparing for what might come. Foresight helps you build a future you'll be glad of, and avoid avoidable trouble.",
+    "shadow": "Too much, and foresight becomes worry: living so far ahead that you miss the present, or planning for every disaster until life feels heavy. Not every future needs rehearsing.",
+    "void": "Without foresight, life can feel like one surprise after another. You may make choices you later regret, or scramble when things go wrong. A little thinking ahead goes a long way.",
+    "whole": "Presence keeps foresight light. Plan for tomorrow, then come back to today. Together they let you prepare without missing your life.",
+    "questionnaireNotes": [
+      "Where has planning ahead turned into worrying ahead?",
+      "What future choice would your older self thank you for?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Plan tomorrow tonight, in five minutes",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Imagine one decision a year from now: what would you be glad you did?",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Prepare for one thing before it becomes urgent",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down a goal for the next five years",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make a decision with the long view in mind, not the short one",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Create a simple plan for a future worry, then set it down",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Make a hard choice now that protects your future self",
         "pts": 7,
         "diff": "brave"
       }
@@ -1759,6 +4628,221 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Inclusion",
+    "slug": "inclusion",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Connection"
+    ],
+    "balancingKin": [
+      "wisdom"
+    ],
+    "nourishingKin": [
+      "fairness",
+      "empathy"
+    ],
+    "synonyms": [
+      "inclusiveness",
+      "welcoming"
+    ],
+    "subValues": [
+      "welcoming-difference",
+      "accessibility",
+      "every-voice"
+    ],
+    "essence": "Making room for everyone at the table.",
+    "light": "Inclusion is a table with extra chairs, always ready for one more. It's making sure people of every background, ability, identity and story feel they belong. Inclusion means noticing who's missing and widening the circle.",
+    "shadow": "Too much, and inclusion can lose discernment, welcoming every voice equally, even the ones that cause harm. It can also become performative: saying the right words without making real change.",
+    "void": "Without inclusion, some people are left outside, unheard and unseen. You may not notice who's missing, or feel left out yourself. Being excluded hurts; being included can heal.",
+    "whole": "Wisdom guides inclusion. Knowing how to keep a space safe lets more people truly belong in it. Together they make a circle that is wide and kind.",
+    "questionnaireNotes": [
+      "Where are your welcoming words not yet matched by action?",
+      "Who is missing from the circles you're part of?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice who's left out in a group you're part of",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Invite a quieter person into a conversation",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Learn about a culture or experience different from your own",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Use someone's name and pronouns correctly",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make a space you're part of more accessible",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Speak up when someone is being excluded",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Change something in your own habits that unintentionally excludes others",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Innovation",
+    "slug": "innovation",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Mind",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "tradition"
+    ],
+    "nourishingKin": [
+      "creativity",
+      "curiosity"
+    ],
+    "synonyms": [
+      "invention",
+      "ingenuity"
+    ],
+    "subValues": [
+      "problem-solving",
+      "experimentation",
+      "fresh-ideas"
+    ],
+    "essence": "New ways of seeing and doing.",
+    "light": "Innovation is a new path cut through a familiar forest. It's finding better ways to do things, solving problems creatively, and daring to try what hasn't been tried. Innovators see possibility where others see the usual way.",
+    "shadow": "Too much, and innovation can chase novelty for its own sake, abandoning what works. You may get bored easily, leave things unfinished, or dismiss old wisdom too quickly.",
+    "void": "Without innovation, things stay stuck in old ways even when they no longer work. You might feel you're not a creative or inventive person. Everyone innovates when they solve a problem in a new way.",
+    "whole": "Tradition grounds innovation. Knowing what to keep makes it clearer what to change. Together they build on the past toward the future.",
+    "questionnaireNotes": [
+      "Are you chasing new things to avoid finishing old ones?",
+      "What problem in your life needs a fresh approach?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Do one routine task a completely different way",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down ten possible solutions to one problem, even silly ones",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask \"what if?\" about something you've always done the same way",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Learn how something you use every day was invented",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Try a new idea at work or home, and see what happens",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Share an unusual idea with others",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Build or test something new, knowing it might fail",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Inspiration",
+    "slug": "inspiration",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Play"
+    ],
+    "balancingKin": [
+      "discipline"
+    ],
+    "nourishingKin": [
+      "wonder",
+      "creativity"
+    ],
+    "synonyms": [
+      "spark",
+      "muse"
+    ],
+    "subValues": [
+      "being-moved",
+      "inspiring-others",
+      "creative-spark"
+    ],
+    "essence": "Breathing life into ideas.",
+    "light": "Inspiration is a gust of wind filling a sail. It's the sudden spark of an idea, the lift of being moved by something beautiful, and the energy to create. Inspired people inspire others: enthusiasm is contagious.",
+    "shadow": "Too much, and inspiration can become waiting for the muse: only acting when you feel inspired, so many ideas never become real. Inspiration without action is a beautiful daydream.",
+    "void": "Without inspiration, life can feel flat and uncreative. You may feel stuck or uninspired, waiting for something to move you. Inspiration often finds us when we're already moving.",
+    "whole": "Discipline turns inspiration into creation. Show up, and inspiration has somewhere to land. Together they make ideas real.",
+    "questionnaireNotes": [
+      "What are you waiting to feel inspired about before you begin?",
+      "What moves you most, and when did you last make time for it?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Spend ten minutes with art, music or nature that moves you",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Keep a note of every idea that sparks today",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share something that inspired you with someone else",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Visit a place that lifts your spirit",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Act on one inspired idea within 24 hours",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Create something every day this week, inspired or not",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Share your own creation in the hope it inspires someone",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Learning",
     "slug": "learning",
     "element": "Air",
@@ -1824,6 +4908,78 @@ export const CODEX = [
       },
       {
         "text": "Stop preparing and begin the thing you've been \"learning about\" for too long",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Mentorship",
+    "slug": "mentorship",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Connection",
+      "Mind"
+    ],
+    "balancingKin": [
+      "openness"
+    ],
+    "nourishingKin": [
+      "learning",
+      "patience"
+    ],
+    "synonyms": [
+      "guiding",
+      "coaching"
+    ],
+    "subValues": [
+      "teaching",
+      "passing-on",
+      "being-mentored"
+    ],
+    "essence": "Passing on what you've learned.",
+    "light": "Mentorship is an older tree sheltering saplings until they're strong. It's sharing your knowledge, experience and encouragement to help someone else grow, and being humble enough to learn from those ahead of you too. Mentors help others find their own path.",
+    "shadow": "Too much, and mentorship can become control or ego: needing to be the expert, or shaping someone in your image instead of helping them become themselves.",
+    "void": "Without mentorship, people learn everything the hard way. You may feel you have nothing to teach, or have no one to learn from. Everyone knows something someone else needs.",
+    "whole": "Openness keeps mentorship two-way. The best mentors keep learning from those they guide. Together they grow both people.",
+    "questionnaireNotes": [
+      "Are you helping someone become themselves, or more like you?",
+      "Who could you learn from, or who could learn from you?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Share one useful thing you've learned with someone",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Thank someone who mentored you, in words or in writing",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask someone you admire one question about their path",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down what you wish someone had taught you earlier",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Offer to mentor someone who's starting out",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Ask someone to mentor you",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Commit to a regular mentoring relationship",
         "pts": 7,
         "diff": "brave"
       }
@@ -1902,6 +5058,437 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Reason",
+    "slug": "reason",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Mind"
+    ],
+    "balancingKin": [
+      "intuition"
+    ],
+    "nourishingKin": [
+      "clarity",
+      "learning"
+    ],
+    "synonyms": [
+      "logic",
+      "rationality"
+    ],
+    "subValues": [
+      "critical-thinking",
+      "sound-judgement",
+      "weighing-evidence"
+    ],
+    "essence": "Thinking things through.",
+    "light": "Reason is a well-drawn map: it shows the terrain clearly so you can choose your path. It's weighing evidence, thinking critically, and reaching conclusions you can explain. Reason helps you make good decisions, see through manipulation, and solve problems.",
+    "shadow": "Too much, and reason can dismiss feelings, intuition and the things that can't be measured. You may overthink, argue to win, or use logic to avoid what you feel. Not everything that matters can be proven.",
+    "void": "Without reason, decisions can feel impulsive or swayed by whoever is loudest. You may struggle to think clearly when emotions run high. Reason is a skill, and it strengthens with practice.",
+    "whole": "Intuition keeps reason humble. The head and the gut are wiser together. Together they make decisions you can trust and feel good about.",
+    "questionnaireNotes": [
+      "What feeling are you using logic to avoid?",
+      "Which decision would benefit from slowing down and thinking it through?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Before a decision, write the pros and cons",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Check one fact before you share it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice when emotion is driving a decision, and pause",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Read a well-argued piece from a view you disagree with",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Change your mind publicly when the evidence points elsewhere",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Work through a problem step by step on paper",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Make a reasoned decision that goes against what's easy or expected",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Self-awareness",
+    "slug": "self-awareness",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Mind",
+      "Spirit"
+    ],
+    "balancingKin": [
+      "compassion"
+    ],
+    "nourishingKin": [
+      "honesty",
+      "presence"
+    ],
+    "synonyms": [
+      "self-insight",
+      "introspection"
+    ],
+    "subValues": [
+      "noticing-patterns",
+      "knowing-triggers",
+      "inner-observer"
+    ],
+    "essence": "Seeing yourself clearly, and kindly.",
+    "light": "Self-awareness is a clear mirror in good light. It's knowing your patterns, triggers, strengths and blind spots, and noticing what's happening inside you as it happens. Self-awareness gives you choice: you can't change what you can't see.",
+    "shadow": "Too much, and self-awareness can become self-absorption or endless analysis. You may overthink every feeling, or know your patterns perfectly but never change them. Insight without action can become a comfortable loop.",
+    "void": "Without self-awareness, life can feel like it keeps happening to you. The same conflicts repeat and reactions feel automatic. Often others see what we can't, if we're willing to ask.",
+    "whole": "Compassion keeps self-awareness kind. Seeing your flaws clearly is easier with a gentle eye. Together they make growth that heals instead of harms.",
+    "questionnaireNotes": [
+      "Where have you understood a pattern for years without changing it?",
+      "What do others see in you that you find hard to see?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Pause three times today and name what you're feeling",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one pattern in how you react to stress",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write about a moment you reacted strongly, and what was underneath it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down your top three strengths and one growing edge",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask someone you trust for honest feedback",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Catch a familiar pattern in the moment and choose differently",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Own a blind spot out loud to someone it affected",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Storytelling",
+    "slug": "storytelling",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Play",
+      "Connection"
+    ],
+    "balancingKin": [
+      "truth"
+    ],
+    "nourishingKin": [
+      "creativity",
+      "communication"
+    ],
+    "synonyms": [
+      "narrative",
+      "yarn-spinning"
+    ],
+    "subValues": [
+      "sharing-stories",
+      "myth-making",
+      "family-stories"
+    ],
+    "essence": "Making meaning through the stories we share.",
+    "light": "Storytelling is a fire in the dark with faces gathered round. It's how we make sense of life, pass on wisdom, and feel less alone. Telling your story, and listening to others', builds understanding, connection and meaning.",
+    "shadow": "Too much, and storytelling can bend the truth, polishing your own story until it hides what really happened. You may get so caught in a narrative that you can't see it any other way.",
+    "void": "Without storytelling, experiences stay unspoken and meaning stays hidden. You may feel your story doesn't matter, or keep it to yourself. Every life is a story worth telling.",
+    "whole": "Truth keeps storytelling honest. The best stories are true in their heart, even when they're told with flair. Together they make tales that heal and connect.",
+    "questionnaireNotes": [
+      "What story do you tell about yourself that may not be the whole truth?",
+      "Which part of your story have you never told?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Tell someone a story from your childhood",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask an older person to tell you a story from their life",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down a moment that changed you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Read or listen to a story from a life very different to yours",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share a meaningful story with a group",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Write a short story about a turning point in your life",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Tell a story you've never shared, to someone you trust",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Truth",
+    "slug": "truth",
+    "element": "Air",
+    "status": "draft",
+    "pillars": [
+      "Mind",
+      "Spirit"
+    ],
+    "balancingKin": [
+      "compassion"
+    ],
+    "nourishingKin": [
+      "honesty",
+      "courage"
+    ],
+    "synonyms": [
+      "veracity",
+      "reality"
+    ],
+    "subValues": [
+      "truth-seeking",
+      "facing-facts",
+      "speaking-truth"
+    ],
+    "essence": "Seeking what's real, even when it's hard.",
+    "light": "Truth is the morning light after a long night of shadows. It's wanting to know what's really so, about the world, others and yourself, and being willing to face it. Truth sets things on solid ground, even when it's uncomfortable.",
+    "shadow": "Too much, and truth can become a weapon: harsh honesty that wounds, or certainty that leaves no room for other views. Truth without care can push people away instead of bringing clarity.",
+    "void": "Without truth, life gets built on stories that don't hold. You may avoid hard facts, believe what's comforting, or feel unsure what's real. Living with untruth often costs more than the truth would.",
+    "whole": "Compassion carries truth gently. A truth spoken with care is more likely to be heard. Together they make clarity that heals.",
+    "questionnaireNotes": [
+      "When has your truth been used as a weapon?",
+      "What truth have you been avoiding looking at?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one small untruth you tell, and choose honesty instead",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Look up the evidence on something you've always assumed",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down one truth about your life you've been avoiding",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Ask a question you're afraid to hear the answer to",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Speak a truth in a conversation where it matters",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Admit you were wrong about something important",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Face a hard truth and take one step because of it",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Abundance",
+    "slug": "abundance",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Home & Earth"
+    ],
+    "balancingKin": [
+      "stewardship"
+    ],
+    "nourishingKin": [
+      "gratitude",
+      "generosity"
+    ],
+    "synonyms": [
+      "plenty",
+      "enoughness"
+    ],
+    "subValues": [
+      "enough-mindset",
+      "overflow",
+      "receiving"
+    ],
+    "essence": "Living from enough, not from lack.",
+    "light": "Abundance is a fruit tree heavy with more than it can hold. It's seeing what's present rather than only what's missing, and trusting there's enough love, opportunity and goodness to go around. Abundance opens the heart to give and receive freely.",
+    "shadow": "Too much, and abundance thinking can ignore real need and inequality. It can turn into blame (\"you just didn't manifest enough\"), or into careless spending and consumption.",
+    "void": "Without abundance, life feels tight, competitive and scarce. You may fear there's never enough, of money, time, love or recognition. Scarcity often comes from real hardship, and deserves compassion.",
+    "whole": "Stewardship keeps abundance responsible. Plenty cared for stays plenty. Together they let you enjoy and share without waste.",
+    "questionnaireNotes": [
+      "Where might \"abundance\" be ignoring someone's real need?",
+      "What in your life feels scarce, and is it really?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "List ten things you have plenty of",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice one scarcity thought, and gently question it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Receive a gift or compliment fully",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share something you've been holding on to",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Celebrate someone else's success without comparing",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Spend a day acting from enough rather than from lack",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Give generously in an area where you usually feel scarce",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Alchemy",
+    "slug": "alchemy",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Purpose"
+    ],
+    "balancingKin": [
+      "acceptance"
+    ],
+    "nourishingKin": [
+      "transformation",
+      "resilience"
+    ],
+    "synonyms": [
+      "transmutation",
+      "inner alchemy"
+    ],
+    "subValues": [
+      "turning-lead-to-gold",
+      "meaning-making",
+      "shadow-work"
+    ],
+    "essence": "Turning what life gives you into gold.",
+    "light": "Alchemy is the old art of turning lead into gold, made personal. It's taking hardship, heartbreak and ordinary days and transforming them into wisdom, art, strength and meaning. An alchemist doesn't wait for a perfect life; they keep turning the life they have into the dream they want to be living.",
+    "shadow": "Too much, and alchemy can push to make everything meaningful, rushing past pain to find the lesson. Some things are simply hard, and need grieving before they're transformed.",
+    "void": "Without alchemy, hardship stays heavy and unused. You may feel your struggles were wasted, or that your life is something that just happened to you. Every experience can become material for growth.",
+    "whole": "Acceptance gives alchemy time. Lead must be fully known before it becomes gold. Together they let pain become wisdom, in its own season.",
+    "questionnaireNotes": [
+      "Are you rushing to find the lesson before you've let yourself feel the loss?",
+      "What hardship in your life is waiting to be turned into something meaningful?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down one difficulty and one thing it taught you",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Turn a frustrating moment into a story, a poem or a sketch",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Find one small gift hidden in an ordinary day",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Reflect on how a past hardship shaped your strengths",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Use a painful experience to help someone going through something similar",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Create something meaningful out of a loss",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Turn one long-held wound into a step toward the life you dream of",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Authenticity",
     "slug": "authenticity",
     "element": "Ether",
@@ -1974,6 +5561,222 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Beauty",
+    "slug": "beauty",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Play"
+    ],
+    "balancingKin": [
+      "acceptance"
+    ],
+    "nourishingKin": [
+      "wonder",
+      "creativity"
+    ],
+    "synonyms": [
+      "loveliness",
+      "aesthetics"
+    ],
+    "subValues": [
+      "art",
+      "natural-beauty",
+      "making-beautiful"
+    ],
+    "essence": "Noticing, and making, what moves you.",
+    "light": "Beauty is morning light through a dewy web. It's noticing what's lovely, in nature, art, people and small details, and bringing beauty into the world through how you live and create. Beauty feeds the spirit.",
+    "shadow": "Too much, and beauty can become surface: judging by appearances, chasing perfection, or feeling worthless when you don't match an ideal. Beauty becomes a burden when it's about being seen as beautiful.",
+    "void": "Without beauty, life can feel grey and functional. You may rush past what's lovely, or stop making space for art and nature. Beauty is often there, waiting to be noticed.",
+    "whole": "Acceptance keeps beauty kind. The imperfect, aged and unusual are beautiful too. Together they let you see beauty everywhere, including in yourself.",
+    "questionnaireNotes": [
+      "Where has beauty become a standard you can't meet?",
+      "When did something beautiful last stop you in your tracks?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice and photograph one beautiful thing today",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Put fresh flowers or something lovely where you'll see it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend time with a piece of art that moves you",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make something beautiful, however simple",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Find beauty in something you usually consider plain",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Look in the mirror and name something beautiful about yourself",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Create something beautiful and give it away",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Contribution",
+    "slug": "contribution",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Purpose",
+      "Connection"
+    ],
+    "balancingKin": [
+      "rest"
+    ],
+    "nourishingKin": [
+      "service",
+      "meaning"
+    ],
+    "synonyms": [
+      "making a difference",
+      "impact"
+    ],
+    "subValues": [
+      "leaving-a-mark",
+      "collective-good",
+      "purposeful-work"
+    ],
+    "essence": "Leaving things better than you found them.",
+    "light": "Contribution is adding your stone to a cairn that guides travellers home. It's knowing your life adds something to others, to your community and to the world. Contribution can be big or small: a kind act, a good piece of work, raising a child, planting a tree.",
+    "shadow": "Too much, and contribution can become a measure of worth: never feeling you've done enough, always needing to prove your impact. You may forget that simply being is also a gift.",
+    "void": "Without contribution, life can feel purposeless or self-centred. You may wonder whether your life matters. It does, and small contributions often matter most.",
+    "whole": "Rest keeps contribution sustainable. You don't have to change the world every day. Together they let you give for a lifetime.",
+    "questionnaireNotes": [
+      "Do you feel you have to contribute to deserve your place?",
+      "What would you like your life to leave behind?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Write down three ways you've made a difference this year",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Leave a place better than you found it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Share a skill or resource with someone who needs it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Contribute to a cause you care about, in time or money",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Start a small project that benefits others",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Contribute your ideas in a space where you usually stay quiet",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Commit to a long-term contribution that reflects your values",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Grace",
+    "slug": "grace",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Heart"
+    ],
+    "balancingKin": [
+      "integrity"
+    ],
+    "nourishingKin": [
+      "forgiveness",
+      "gratitude"
+    ],
+    "synonyms": [
+      "graciousness",
+      "elegance"
+    ],
+    "subValues": [
+      "receiving-grace",
+      "gracefulness",
+      "second-chances"
+    ],
+    "essence": "Ease and mercy, given and received.",
+    "light": "Grace is rain that falls on every garden, deserving or not. It's mercy you didn't earn, kindness given freely, and the ease of moving through life with dignity. Grace forgives, softens, and lets people begin again.",
+    "shadow": "Too much, and grace can excuse what shouldn't be excused. Offering endless second chances can let harm continue, or leave you carrying others' responsibilities.",
+    "void": "Without grace, life becomes strict and unforgiving. You may hold yourself and others to impossible standards, with no room for mistakes. Learning to receive grace is often harder than giving it.",
+    "whole": "Integrity keeps grace honest. Mercy that still names what's wrong is grace with a backbone. Together they make forgiveness that also protects.",
+    "questionnaireNotes": [
+      "Where are you offering second chances that only allow harm to continue?",
+      "Where do you refuse yourself the grace you'd offer others?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Let one small mistake, yours or someone else's, go gracefully",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Move through one ordinary task slowly and gracefully",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Accept a kindness without needing to pay it back",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write about a time someone showed you grace",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Give someone a second chance they don't expect",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Respond to rudeness with grace and a clear boundary",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Offer yourself grace for something you've never forgiven",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Gratitude",
     "slug": "gratitude",
     "element": "Ether",
@@ -1995,7 +5798,7 @@ export const CODEX = [
     "subValues": [
       "appreciation",
       "contentment",
-      "generosity"
+      "savouring"
     ],
     "essence": "Finding the sacred in the ordinary.",
     "light": "Gratitude is sunlight noticed through the leaves on an ordinary afternoon. It sees what is already given: warmth, a kind word, a body that carried you through the day. Plainly: recognising and appreciating the good in your life, big or small. It doesn't deny difficulty; it widens the view so difficulty isn't all there is.",
@@ -2007,6 +5810,78 @@ export const CODEX = [
       "What small thing held you today that you almost didn't notice?"
     ],
     "starterChallenges": []
+  },
+  {
+    "name": "Harmony",
+    "slug": "harmony",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Connection"
+    ],
+    "balancingKin": [
+      "honesty"
+    ],
+    "nourishingKin": [
+      "peace",
+      "fairness"
+    ],
+    "synonyms": [
+      "concord",
+      "balance"
+    ],
+    "subValues": [
+      "inner-harmony",
+      "cooperation",
+      "rhythm"
+    ],
+    "essence": "Things fitting together as they should.",
+    "light": "Harmony is many instruments playing one song. It's balance within yourself, ease between people, and a sense that the parts of life fit together. Harmony doesn't mean everyone is the same; it means differences work together beautifully.",
+    "shadow": "Too much, and harmony can become conflict-avoidance: keeping everything smooth at the cost of truth. Every note forced into line can lose the music.",
+    "void": "Without harmony, life can feel jarring and disjointed, at home, at work, or inside yourself. You might feel constantly pulled in different directions. Small adjustments can restore a lot of harmony.",
+    "whole": "Honesty keeps harmony real. True harmony includes the notes that clash before they resolve. Together they create music that is honest and beautiful.",
+    "questionnaireNotes": [
+      "What discord are you hiding to keep things smooth?",
+      "Where in your life feels out of tune right now?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one area of life that feels in harmony, and enjoy it",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Bring one small part of your space into order and beauty",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Listen to music and notice how the parts work together",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Balance your day: work, rest, play, connection",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Address one small clash in a relationship to restore harmony",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Cooperate on something with someone very different from you",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Name a discord honestly, trusting it can lead to deeper harmony",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
   },
   {
     "name": "Love",
@@ -2153,6 +6028,78 @@ export const CODEX = [
     ]
   },
   {
+    "name": "Mystery",
+    "slug": "mystery",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Mind"
+    ],
+    "balancingKin": [
+      "clarity"
+    ],
+    "nourishingKin": [
+      "wonder",
+      "curiosity"
+    ],
+    "synonyms": [
+      "the unknown",
+      "enigma"
+    ],
+    "subValues": [
+      "not-knowing",
+      "uncertainty",
+      "the-unseen"
+    ],
+    "essence": "Making peace with not knowing.",
+    "light": "Mystery is a path disappearing into mist. It's being at ease with what can't be explained, predicted or controlled. Mystery keeps life alive with possibility, and humbles the mind with how much is still unknown.",
+    "shadow": "Too much, and mystery can become vagueness or avoidance, using \"who can know?\" to dodge questions that do have answers. Not everything is meant to stay a mystery.",
+    "void": "Without mystery, life can feel over-explained and controlled. You may need certainty about everything, or feel anxious when things are unclear. Learning to live with not knowing brings a quiet freedom.",
+    "whole": "Clarity balances mystery. Know what can be known, and rest in what can't. Together they make a mind both clear and open.",
+    "questionnaireNotes": [
+      "Where are you hiding behind \"no one can know\" to avoid a clear answer?",
+      "What uncertainty in your life could you make peace with?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice one thing today you can't explain, and enjoy it",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Sit with a question without looking up the answer",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down three things you don't know about your future, and breathe",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Read about a great unsolved mystery",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Make a decision without needing to know every outcome",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Let a plan unfold without controlling every detail",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Step into an unknown you've been avoiding",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
     "name": "Presence",
     "slug": "presence",
     "element": "Ether",
@@ -2187,6 +6134,292 @@ export const CODEX = [
       "Where has \"living in the moment\" let something important slide?"
     ],
     "starterChallenges": []
+  },
+  {
+    "name": "Ritual",
+    "slug": "ritual",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Home & Earth"
+    ],
+    "balancingKin": [
+      "freedom"
+    ],
+    "nourishingKin": [
+      "presence",
+      "tradition"
+    ],
+    "synonyms": [
+      "ceremony",
+      "rite"
+    ],
+    "subValues": [
+      "daily-rituals",
+      "rites-of-passage",
+      "sacred-routine"
+    ],
+    "essence": "Making the ordinary sacred.",
+    "light": "Ritual is lighting a candle at the same hour each evening. It's intentional practices that mark time, bring meaning and help us move through life's transitions. Rituals turn routine into reverence: morning tea, a weekly walk, a ceremony for a new beginning.",
+    "shadow": "Too much, and ritual can become rigid or superstitious, a routine you can't break without anxiety. Ritual without meaning becomes empty habit.",
+    "void": "Without ritual, days can blur together and life's big moments pass without being marked. You may feel rushed, unanchored, or unsure how to honour endings and beginnings.",
+    "whole": "Freedom keeps ritual alive. Rituals that can bend and change stay meaningful. Together they make rhythm that holds without binding.",
+    "questionnaireNotes": [
+      "Which ritual has become empty habit, or a source of anxiety?",
+      "What moment in your life deserves to be marked?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Make your morning drink a mindful ritual",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Light a candle and set an intention for the day",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Create a small evening ritual to close the day",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Mark the change of season in a meaningful way",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Create a ritual for an ending or beginning in your life",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Share a ritual with people you love",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let go of a ritual that no longer serves you, with a ritual of its own",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Sovereignty",
+    "slug": "sovereignty",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Heart"
+    ],
+    "balancingKin": [
+      "love"
+    ],
+    "nourishingKin": [
+      "boundaries",
+      "authenticity"
+    ],
+    "synonyms": [
+      "self-possession",
+      "self-governance"
+    ],
+    "subValues": [
+      "self-belonging",
+      "choosing-for-yourself",
+      "centred-heart"
+    ],
+    "essence": "Belonging to yourself while you belong with others.",
+    "light": "Sovereignty is a lighthouse: open, warm, shining for others, and never moved by the waves. It's living from your own centre, making choices that are truly yours, and staying open-hearted without leaving yourself behind. Sovereign people can love deeply and stay whole.",
+    "shadow": "Too much, and sovereignty can harden into isolation or control: needing no one, answering to no one, or confusing independence with strength. A kingdom of one can be lonely.",
+    "void": "Without sovereignty, you may feel ruled by others' moods, expectations or needs. Your choices might follow what keeps others comfortable rather than what's true for you. Reclaiming yourself is gentle, steady work.",
+    "whole": "Love keeps sovereignty warm. Belonging to yourself is what lets you belong freely with others. Together they let you love without losing yourself.",
+    "questionnaireNotes": [
+      "Where has protecting yourself become shutting others out?",
+      "Whose comfort are you living your life around?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Make one small choice today that is purely yours",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Notice when you're absorbing someone else's mood, and come back to yourself",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down three things that are yours to decide",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend time alone doing something you love",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Say no without over-explaining",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Make a decision that's right for you, even if someone is disappointed",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Write your own commitments for how you'll stay yourself in relationships",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Spirituality",
+    "slug": "spirituality",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit"
+    ],
+    "balancingKin": [
+      "groundedness"
+    ],
+    "nourishingKin": [
+      "presence",
+      "wonder"
+    ],
+    "synonyms": [
+      "soulfulness",
+      "inner life"
+    ],
+    "subValues": [
+      "prayer",
+      "meditation",
+      "sacred-practice"
+    ],
+    "essence": "A living relationship with what is greater.",
+    "light": "Spirituality is a window left open to the night sky. It's a felt connection with something larger than yourself, whether that's God, nature, the universe, love, or the mystery of being alive. Spirituality can live in prayer, meditation, ritual, art, or a quiet walk at dawn.",
+    "shadow": "Too much, and spirituality can float away from everyday life. It can become a way of bypassing pain (\"everything happens for a reason\"), or a sense of being above others. Spirit needs a body and a life to live in.",
+    "void": "Without spirituality, life can feel flat or meaningless, as if there's nothing beyond the daily grind. You might long for something you can't name. Spirituality doesn't need a religion; it often begins with simple wonder.",
+    "whole": "Groundedness keeps spirituality real. Heaven is found in ordinary places too. Together they make a spirit that walks the earth.",
+    "questionnaireNotes": [
+      "Where might you be using spiritual ideas to skip past pain?",
+      "When do you feel most connected to something greater?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Spend five minutes in silence, simply being",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Watch a sunrise, sunset or the night sky",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Write down what you believe gives life meaning",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Try a spiritual practice: prayer, meditation, chanting or a mindful walk",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Visit a sacred place, whatever that means to you",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Keep a daily spiritual practice for a week",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Share your spiritual beliefs or questions with someone you trust",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Transcendence",
+    "slug": "transcendence",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit"
+    ],
+    "balancingKin": [
+      "groundedness"
+    ],
+    "nourishingKin": [
+      "spirituality",
+      "wonder"
+    ],
+    "synonyms": [
+      "rising above",
+      "the beyond"
+    ],
+    "subValues": [
+      "peak-moments",
+      "ego-softening",
+      "flow-states"
+    ],
+    "essence": "Reaching beyond the small self.",
+    "light": "Transcendence is a mountain-top view where your worries suddenly look small. It's moments of going beyond your usual sense of self: in awe, deep meditation, music, love or service. Transcendence brings perspective, peace and a sense of something vast.",
+    "shadow": "Too much, and transcendence can become escape: always reaching for the next peak, disconnecting from everyday life and its responsibilities. You still have to come down the mountain.",
+    "void": "Without transcendence, life can feel confined to small worries and daily routines. You may never feel lifted beyond yourself. Such moments often come when we least expect them.",
+    "whole": "Groundedness brings transcendence home. Peak moments mean most when they change how we live below. Together they connect the vast and the everyday.",
+    "questionnaireNotes": [
+      "Are you seeking peak moments to escape your everyday life?",
+      "When have you felt part of something much bigger than yourself?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Look at the stars and let yourself feel small in a good way",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Get lost in an activity until you lose track of time",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Listen to a piece of music with your eyes closed",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Meditate for twenty minutes",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend a day in service to others, forgetting yourself",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Climb a hill or mountain and take in the view",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Let go of a grudge or ego story that keeps your world small",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
   },
   {
     "name": "Trust",
@@ -2255,6 +6488,78 @@ export const CODEX = [
       },
       {
         "text": "Notice where you're trusting blindly, and gently check one thing",
+        "pts": 7,
+        "diff": "brave"
+      }
+    ]
+  },
+  {
+    "name": "Unity",
+    "slug": "unity",
+    "element": "Ether",
+    "status": "draft",
+    "pillars": [
+      "Spirit",
+      "Connection"
+    ],
+    "balancingKin": [
+      "authenticity"
+    ],
+    "nourishingKin": [
+      "love",
+      "community"
+    ],
+    "synonyms": [
+      "oneness",
+      "solidarity"
+    ],
+    "subValues": [
+      "interconnection",
+      "common-humanity",
+      "kinship"
+    ],
+    "essence": "Knowing we're part of one whole.",
+    "light": "Unity is a single ocean made of countless drops. It's sensing that we are deeply connected, to each other, to nature, to all of life. Unity grows compassion, because hurting another starts to feel like hurting ourselves.",
+    "shadow": "Too much, and unity can erase difference, pushing everyone to agree and be the same. Your individual voice can get lost in the whole.",
+    "void": "Without unity, life can feel divided: us and them, me and the world. You may feel separate, alone or at odds with others. Shared moments of connection can bridge that gap.",
+    "whole": "Authenticity keeps unity whole. Each drop stays itself and still belongs to the sea. Together they make connection that celebrates difference.",
+    "questionnaireNotes": [
+      "Where are you losing your own voice for the sake of togetherness?",
+      "Who do you see as \"other\" that you might share more with than you think?"
+    ],
+    "starterChallenges": [
+      {
+        "text": "Notice what you have in common with a stranger",
+        "pts": 2,
+        "diff": "gentle"
+      },
+      {
+        "text": "Spend time in nature and feel part of it",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Learn about someone whose life is very different from yours",
+        "pts": 3,
+        "diff": "gentle"
+      },
+      {
+        "text": "Join others in a shared effort or celebration",
+        "pts": 4,
+        "diff": "gentle"
+      },
+      {
+        "text": "Reach across a divide to understand someone you disagree with",
+        "pts": 5,
+        "diff": "bold"
+      },
+      {
+        "text": "Stand in solidarity with a group you're not part of",
+        "pts": 6,
+        "diff": "bold"
+      },
+      {
+        "text": "Forgive someone, remembering we're all part of the same whole",
         "pts": 7,
         "diff": "brave"
       }

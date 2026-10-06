@@ -21,7 +21,7 @@ export default function WeekGarden({ sessions, weekStart }) {
 
   return (
     <div>
-      <div className="rounded-card shadow-card px-3 pt-4 pb-3 grid grid-cols-7 gap-1" style={{ background: "linear-gradient(180deg, #0c1611 0%, #101a14 55%, #2a1d12 100%)" }}>
+      <div className="rounded-card shadow-card px-3 pt-4 pb-3 grid grid-cols-7 gap-1" style={{ background: "linear-gradient(180deg, #0A0A1C 0%, #0E0E26 55%, #2a1d12 100%)" }}>
         {days.map((d, i) => {
           const today = mine.filter(s => s.date_key === d).reverse();
           return (
@@ -36,7 +36,7 @@ export default function WeekGarden({ sessions, weekStart }) {
                 })}
               </svg>
               <div className="w-full h-1.5 rounded-full" style={{ background: "#3b2a1c" }} />
-              <div className="text-caption mt-1" style={{ color: "#B8B3A9" }}>{WEEKDAY_SHORT[i]}</div>
+              <div className="text-caption mt-1" style={{ color: "#B8B5D6" }}>{WEEKDAY_SHORT[i]}</div>
             </div>
           );
         })}

@@ -67,7 +67,7 @@ export default function GardenOfYou({ open, sessions, onClose }) {
       {open && (
         <motion.div
           className="fixed inset-0 z-50 overflow-y-auto text-[#F7F5EF] font-sans"
-          style={{ background: "linear-gradient(180deg, #0c1611 0%, #101a14 30%, #1a120b 100%)" }}
+          style={{ background: "linear-gradient(180deg, #0A0A1C 0%, #0E0E26 30%, #1a120b 100%)" }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           transition={{ duration: 0.45 }}
           role="dialog" aria-modal="true" aria-label="Your garden"
@@ -76,10 +76,10 @@ export default function GardenOfYou({ open, sessions, onClose }) {
             <div className="flex items-start justify-between gap-3 mb-1">
               <h1 className="font-serif text-[30px] font-semibold m-0">Your garden</h1>
               <button onClick={onClose} aria-label="Back to the Tree" className="w-11 h-11 -mr-2.5 flex items-center justify-center">
-                <X size={22} strokeWidth={1.75} className="text-[#B8B3A9]" />
+                <X size={22} strokeWidth={1.75} className="text-[#B8B5D6]" />
               </button>
             </div>
-            <p className="text-bodySm text-[#B8B3A9] mb-6 max-w-[44ch]">
+            <p className="text-bodySm text-[#B8B5D6] mb-6 max-w-[44ch]">
               Every focus session, planted around your Tree. {blooms} {blooms === 1 ? "bloom" : "blooms"} and {sessions.length - blooms} resting {sessions.length - blooms === 1 ? "seed" : "seeds"}, {minutesLabel(total)} of focus.
             </p>
 
@@ -114,14 +114,14 @@ export default function GardenOfYou({ open, sessions, onClose }) {
                 transition={{ duration: 0.25 }}
                 className="fixed left-0 right-0 bottom-0 z-10 px-4 pb-5"
               >
-                <div className="max-w-[520px] mx-auto rounded-card p-4 shadow-cardDark" style={{ background: "#141816", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <div className="max-w-[520px] mx-auto rounded-card p-4 shadow-cardDark" style={{ background: "#131331", border: "1px solid rgba(255,255,255,0.1)" }}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="text-caption uppercase tracking-[0.06em]" style={{ color: PILLAR_COLORS[picked.pillar] || "#C9A24D" }}>
                         {picked.outcome === "bloom" ? "A bloom" : "A resting seed"}{picked.pillar ? ` · ${picked.pillar}` : ""}
                       </div>
                       <div className="font-serif text-[22px] font-semibold leading-tight mt-0.5">{picked.label}</div>
-                      <div className="text-bodySm text-[#B8B3A9] mt-0.5">
+                      <div className="text-bodySm text-[#B8B5D6] mt-0.5">
                         {niceDay(picked.date_key)} · {picked.minutes ? minutesLabel(picked.minutes) : "a few moments"}
                         {picked.value_name ? ` · ${picked.value_name}` : ""}
                       </div>
@@ -133,7 +133,7 @@ export default function GardenOfYou({ open, sessions, onClose }) {
                       )}
                     </div>
                     <button onClick={() => setPicked(null)} aria-label="Close" className="w-11 h-11 -mr-2 -mt-2 flex items-center justify-center flex-none">
-                      <X size={18} strokeWidth={1.75} className="text-[#B8B3A9]" />
+                      <X size={18} strokeWidth={1.75} className="text-[#B8B5D6]" />
                     </button>
                   </div>
                 </div>

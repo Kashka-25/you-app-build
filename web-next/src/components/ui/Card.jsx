@@ -131,7 +131,7 @@ export function EventCard({ month, day, title, time, location, source, organizer
 export function CommunityCard({ name, tag, blurb, avatarInitial }) {
   return (
     <motion.div {...riseIn} className="rounded-card bg-surface1 p-4 shadow-card flex gap-3">
-      <div className="w-10 h-10 rounded-full bg-forestAccent text-surface2 flex items-center justify-center font-serif text-h3 flex-none">
+      <div className="w-10 h-10 rounded-full bg-forestAccent text-onAccent flex items-center justify-center font-serif text-h3 flex-none">
         {avatarInitial}
       </div>
       <div className="flex-1 min-w-0">

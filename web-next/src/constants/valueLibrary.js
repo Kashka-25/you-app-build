@@ -5,7 +5,9 @@
 import {
   MessageCircle, Flame, Eye, Shield, Target, Heart, Telescope, Moon, ShieldCheck, Paintbrush, Feather, Gem, Users,
   HandHeart, Bird, Waves, Sparkle, Droplets, Wind, Zap, Mountain, Smile, TreePine, HandHelping, Hourglass, Apple,
-  Leaf, Anchor, Quote, BookOpen, Glasses, Scale, Laugh, DoorOpen, Fingerprint, Compass, Rainbow, Handshake, Infinity, Orbit
+  Leaf, Anchor, Quote, BookOpen, Glasses, Scale, Laugh, DoorOpen, Fingerprint, Compass, Rainbow, Handshake, Infinity, Orbit,
+  Sun, Sunset, Sunrise, AudioWaveform, Bandage, Sprout, Cloud, HeartHandshake, Armchair, Flower, Gift, Lamp,
+  Award, BadgeCheck, BatteryCharging, Bath, Binoculars, BookOpenText, Brain, Cherry, CircleDot, CloudSun, Columns3, CookingPot, Crown, Dumbbell, Eclipse, Flag, FlameKindling, FlaskConical, Flower2, Footprints, GraduationCap, Hammer, Hand, HandCoins, HandPlatter, House, Lightbulb, Lock, Magnet, Map, Megaphone, MessagesSquare, Mic, Milestone, MountainSnow, Music, PartyPopper, Recycle, Rocket, ScanEye, Scroll, Search, Sparkles, Star, Trophy, UsersRound, WandSparkles, Wheat
 } from "lucide-react";
 import { CODEX } from "./codex.generated";
 import { ALL_VALUES_LIB } from "./values.const";
@@ -14,6 +16,13 @@ export const VALUE_ICONS = {
   // Water
   Empathy: Heart, Vulnerability: Feather, Rest: Moon, Compassion: HandHeart, Forgiveness: Bird,
   Acceptance: Waves, Intuition: Sparkle, Adaptability: Droplets,
+  Joy: Sun, Peace: Sunset, Hope: Sunrise, Sensitivity: AudioWaveform, Healing: Bandage, Nurturing: Sprout,
+  Gentleness: Cloud, Intimacy: HeartHandshake, Comfort: Armchair, Sensuality: Flower, Generosity: Gift, Kindness: Lamp,
+  // Fire, Earth, Air, Ether — added Oct 5
+  Confidence: BadgeCheck, Determination: Milestone, Strength: Dumbbell, Power: BatteryCharging, Leadership: Flag, Initiative: Rocket, Achievement: Trophy, Boldness: Megaphone, Assertiveness: Hand, Desire: Magnet, Celebration: PartyPopper, Transformation: WandSparkles,
+  Respect: Award, Stability: Columns3, Groundedness: Footprints, Diligence: Hammer, Prosperity: Wheat, Tradition: Scroll, Community: House, Sustainability: Recycle, Service: HandPlatter, "Self-care": Bath, Hospitality: CookingPot, Security: Lock,
+  "Self-awareness": ScanEye, Reason: Brain, Truth: Search, Innovation: Lightbulb, Foresight: Binoculars, Discovery: Map, Diplomacy: MessagesSquare, Inclusion: UsersRound, Advocacy: Mic, Storytelling: BookOpenText, Mentorship: GraduationCap, Inspiration: Sparkles,
+  Spirituality: Star, Grace: CloudSun, Harmony: Music, Unity: CircleDot, Beauty: Flower2, Transcendence: MountainSnow, Mystery: Eclipse, Contribution: HandCoins, Ritual: FlameKindling, Abundance: Cherry, Sovereignty: Crown, Alchemy: FlaskConical,
   // Fire
   Courage: Flame, Discipline: Target, Creativity: Paintbrush, Freedom: Wind, Passion: Zap,
   Ambition: Mountain, Playfulness: Smile, Resilience: TreePine,

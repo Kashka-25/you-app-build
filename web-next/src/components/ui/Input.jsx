@@ -56,7 +56,7 @@ export function MoodSelector({ value, onChange, className = "" }) {
             type="button"
             onClick={() => onChange?.(key)}
             className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-sm border transition-colors duration-150 ${
-              active ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-textMuted hover:bg-surface1"
+              active ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-textMuted hover:bg-surface1"
             }`}
           >
             <Icon size={20} strokeWidth={1.75} />

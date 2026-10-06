@@ -36,7 +36,7 @@ export default function Review() {
                 key={c}
                 onClick={() => setCategory(c)}
                 className={`text-caption px-2.5 py-1.5 rounded-full ${
-                  category === c ? "bg-forestAccent text-surface2" : "bg-surface3 text-textMuted"
+                  category === c ? "bg-forestAccent text-onAccent" : "bg-surface3 text-textMuted"
                 }`}
               >
                 {c}

@@ -11,6 +11,9 @@ export default {
         surface3: "var(--surface-3)",
         forest: "var(--forest)",
         forestAccent: "var(--forest-accent)",
+        onAccent: "var(--on-accent)",
+        seed: "var(--seed)",
+        element: "var(--element)",
         sage: "var(--sage)",
         gold: "var(--gold)",
         cream: "var(--cream)",
@@ -48,7 +51,8 @@ export default {
       // every card reads as gently raised/3D rather than flat — this is
       // the one definition every `shadow-card` card in the app shares.
       boxShadow: {
-        card: "0 4px 14px rgba(0,0,0,0.06), inset 0 1px 0 var(--card-highlight)",
+        // The inset top line is the section's Element (transparent where none).
+        card: "0 4px 14px rgba(0,0,0,0.06), inset 0 2px 0 var(--element-line), inset 0 1px 0 var(--card-highlight)",
         cardDark: "0 8px 24px rgba(0,0,0,0.45)",
         glass: "0 1px 0 rgba(255,255,255,0.06) inset",
         field: "inset 0 1px 3px var(--field-shadow)"

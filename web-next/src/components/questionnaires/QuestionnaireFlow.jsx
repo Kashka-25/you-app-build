@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, ArrowLeft, LifeBuoy, Sprout, Archive, Wind } from "lucide-react";
+import { X, ArrowLeft, LifeBuoy, Sprout, Archive, Wind, ChevronDown } from "lucide-react";
+import { getValueEntry } from "../../constants/valueLibrary";
 import { useEscape } from "../ui/useEscape";
 import { useAppData } from "../../lib/AppDataContext";
 import { fadeIn, sheetIn } from "../ui/motion";
@@ -174,6 +175,9 @@ export default function QuestionnaireFlow({ open, onClose, questionnaire, valueN
                     onChange={e => setAnswers(a => ({ ...a, [current.kind]: e.target.value }))}
                     className="w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field mb-3"
                   />
+                  {questionnaire === "light_shadow" && (current.kind === "shadow" || current.kind === "void") && (
+                    <GoDeeper valueName={valueName} />
+                  )}
                   {current.support && <SupportLine />}
                   {error && <div className="text-bodySm text-red-500 mb-3">{error}</div>}
                   <div className="flex gap-2.5">
@@ -222,7 +226,7 @@ export default function QuestionnaireFlow({ open, onClose, questionnaire, valueN
                               onClick={() => chooseOutcome(o.key)}
                               className="w-full text-left bg-surface1 rounded-card p-3.5 flex items-center gap-3.5 hover:bg-surface3 transition-colors duration-150"
                             >
-                              <div className="w-10 h-10 rounded-full bg-forestAccent text-surface2 flex items-center justify-center flex-none">
+                              <div className="w-10 h-10 rounded-full bg-forestAccent text-onAccent flex items-center justify-center flex-none">
                                 <Icon size={18} strokeWidth={1.75} />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -264,6 +268,27 @@ export function AnswerSummary({ steps, answers }) {
           <div className="text-bodySm text-textPrimary whitespace-pre-wrap">{answers[s.kind]}</div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// The value's own questions from the Codex (its "Questionnaire notes"),
+// folded away so the main question stays the main one.
+function GoDeeper({ valueName }) {
+  const [open, setOpen] = useState(false);
+  const notes = getValueEntry(valueName)?.questionnaireNotes || [];
+  if (!notes.length) return null;
+  return (
+    <div className="mb-3">
+      <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} className="flex items-center gap-1 text-caption text-textSecondary">
+        <ChevronDown size={13} strokeWidth={1.75} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        Go deeper with {valueName}
+      </button>
+      {open && (
+        <ul className="mt-1.5 space-y-1 pl-4 list-disc marker:text-gold">
+          {notes.map(n => <li key={n} className="font-serif italic text-body text-textPrimary">{n}</li>)}
+        </ul>
+      )}
     </div>
   );
 }

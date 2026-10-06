@@ -104,6 +104,149 @@ sheet on tapping **+**, but the app currently jumps straight to the full
 
 ---
 
+## YOUniversity · Arcana (Oct 5)
+
+Add-ons ("Arcana": Latin for secrets; to the alchemists, the hidden essence
+that heals or transforms) found in Explore and kept in the Library. Each
+opens in its own format and plugs into other parts of YOU. Content lives in
+`constants/arcana.js`; the database knows which exist, which are free, and
+who holds what (`20261005100000_arcana.sql`, applied Oct 5).
+
+- [x] YOUniversity in the side menu: **Library** and **Explore** tabs.
+- [x] First Arcana, both free: Light & Shadow, Freeing the Dream. Starting
+      either from a value/Pillar also adds it to the Library.
+- [x] Arcanum page: about, inside, where it lives in YOU, Begin a sitting,
+      past sittings (continue / let go), remove from Library (free only).
+- [x] Own tools: tools picked up along the way (name, where from, what it
+      helps with, how), "I used this today", a four-week use strip.
+- [x] Only free Arcana can be added from the app; paid ones only by the
+      service role (future payment webhook).
+- [x] **The Sovereign Empath** (first paid Arcanum, "Coming soon"; Cassidy
+      holds it as a gift to test). `constants/arcana/sovereignEmpath.js`,
+      DRAFT wording for Cassidy to reshape. Opening check-in → 7 stages
+      (lesson · practice · challenge) → closing check-in and "What changed".
+      `20261005120000_arcanum_courses.sql` (applied Oct 5): `arcanum_progress`,
+      `tool_uses`, writable only for an Arcanum the Seeker holds.
+- [x] **Reusable course layout** (`components/course/`): the path, a
+      full-screen step player (read · reflect · choose · scenario · scale ·
+      breathe · list · value · challenge), drafts kept on the device, rest
+      days on the local date (a dev-only "Skip the rest" for testing), the
+      moment after each part, tools kept in the Library with every use.
+- [x] Challenges ask which value they honoured; living it grows that value.
+- [x] **Rest is suggested, not enforced** (Oct 5): "Feel ready? Continue
+      now" opens a prompt explaining why rest helps (longer after deeper
+      parts), then "Rest until…" or "Continue now". Saved as
+      `arcanum_progress.rest_skipped_at` (`20261005140000_arcanum_rest_skipped.sql`,
+      applied), so it holds on every device. Replaces the dev-only skip.
+- [x] **More engaging course page** (from Cassidy's CENTRE mockup): arched
+      hero, stats, Today card (with minutes), a stage map of seven doors,
+      "What you've gained" (tools, locked ones show their stage), values
+      honoured, the Sovereignty Code in gold lines.
+- [x] Tested Oct 5 end to end (check-in, Stage I, the close); test data
+      removed after.
+- [ ] Value growth from a challenge: not yet tried on a real value.
+- [ ] Paid content currently ships in the app bundle (lazy-loaded). Before
+      selling, serve it only to holders (e.g. from Storage behind RLS).
+- [ ] Show the Sovereignty Code on My YOU (optional, private).
+- [ ] Payments (Stripe) for paid Arcana, granting `user_arcana` server-side.
+- [ ] More formats: course, tool. More ways to plug in: challenges, values,
+      progress over time.
+- [ ] Support line in questionnaires: when the Empatherapy directory exists,
+      offer both "Talk to someone now" (findahelpline) and "Find a
+      practitioner" (Empatherapy), not one instead of the other.
+
+## Yin & Yang design (Oct 5–6)
+
+Drawn from the "O" in the YOU logo: a yin-yang of ocean and cosmos held
+in a gold ring. Built on `design/yin-yang`, merged into `mvp` Oct 6. The
+previous forest-green design is tagged **`forest-design`** (the `main`
+commit live before this), to compare or restore.
+
+- **Light mode is the Ocean side:** sea foam `--bg #F6FAF9`, sea glass
+  surfaces, deep-ocean teal `--forest-accent #176A76` for buttons and
+  selected things, gold `#B88F3E`, ink `#122E37`. Light from above, the
+  sea below (`--sky`).
+- **Dark mode is the Cosmos side:** midnight `--bg #0B0B1F`, night-sky
+  surfaces, nebula violet `--sage #6C68B6`, starlight gold `#E0B865`, a
+  faint starfield and nebula glow (`--sky`).
+- **Each carries a seed of the other** (`--seed`): cosmos indigo
+  `#3D3B7A` in the Ocean, sea teal `#4FB3B5` in the Cosmos. Buttons in the
+  Cosmos glow sea-teal; teal text brightens to the seed.
+- Token names (forest, sage…) were kept so every screen follows; all
+  colours live in `src/styles/tokens.css`. Text on accents uses
+  `--on-accent`.
+- Home's hero: `public/images/ocean-light.svg` (dawn over waves, a small
+  moon) and `cosmos-dark.svg` (nebula, golden sun-star, crescent). Top and
+  bottom bars are glass over the sky.
+- Night scenes (Focus, Tree of Stars, Constellations, Crossroads, maps)
+  and the AI premium ink moved from forest night to cosmos night; plants
+  and soil stay green.
+- The chosen mode is remembered per device (`localStorage you.mode`,
+  applied in `index.html` before first paint). Menu: "Switch to Cosmos
+  (dark)" / "Switch to Ocean (light)".
+- **The five Elements as section accents** (`lib/elements.js`,
+  `--el-*` in tokens.css, deeper on the Ocean, softer in the Cosmos):
+  Water → Reflections · Fire → Pursue, Focus · Earth → Threshold, Sow,
+  Harvest, Wanderings · Air → YOUniversity and courses · Ether → YOUrney,
+  Mirror, Legacy, My Story · Home and the YOU tab keep the gold ring.
+  Shown only in section labels, the bottom-nav marker, a thin line on
+  cards (`shadow-card`) and a mark under the chosen tab. Buttons never
+  change. Value cards wear their own Element.
+- [ ] Other screens with their own photos or art (season images, the
+      Styleguide) may still carry the forest feel; not yet reviewed.
+- [ ] Home & Earth, Pillar colours and VALUE_COLORS elsewhere (Tree of
+      Stars) are unchanged; decide whether they follow the Elements too.
+
+## The course in your day (Oct 5, later)
+
+- [x] Home's Today card and the Threshold show each course in progress:
+      a part ready, the challenge being carried, or a rest (Home only).
+- [x] Bring Me Back to Myself: "Tools to steady you" first, hard-moment
+      tools (`quick: true`) leading, then your own tools.
+- [x] Listen: read aloud in the course player (device voice, en-AU first).
+- [x] Welcome back: after 7+ days away, a recap on the course page (last
+      part, stages walked, tools kept, a line you wrote, what's next), and a
+      "Welcome back" on Home.
+- [x] Walk a course again, as often as you like (`arcanum_walks`,
+      `arcanum_progress.walk` + `summary`; `20261005180000_arcanum_walks.sql`,
+      applied). "Your words" per stage for any walk, "Read again"
+      (read-only replay), "Your walks" date log, "Walk it again".
+- [x] Course answers in AI reviews only with a separate yes
+      (`ai_consent.include_courses`): asked once on the course page when AI
+      reflections are on; changeable in Settings. `weekly-reflection`
+      deployed (v8) to include that week's course answers.
+- [x] Light text on green everywhere (`text-onAccent`, 28 spots in 21
+      files), so selected chips, ticks and the Add button read in dark mode.
+- [x] **AI is YOU Premium** (future subscription). One gate in the app
+      (`lib/premium.js`, `invokeAi`) and one on the server (the shared
+      guard in `_shared/limit.ts`, all 6 AI functions redeployed Oct 5).
+      Open to everyone in the beta. To make it subscription-only: set
+      `PREMIUM_OPEN_IN_BETA = false` and the secret `AI_REQUIRE_PREMIUM=true`;
+      `entitlements.is_premium` then decides (service role only).
+- [ ] Payments for YOU Premium (Stripe webhook writing `entitlements`).
+
+## Values in your own words + the Codex at 100 (Oct 5)
+
+- [x] Course values question: choose several; "Choose from all values"
+      glossary (search incl. sub-values and synonyms, closest suggestions,
+      keep your own word). Growth is shared between the values chosen.
+- [x] Name your own value in the YOU tab (Codex home offered first);
+      own values get a gold card with definition, Light & Shadow, AI
+      challenges and rest.
+- [x] Codex requests for Cassidy (`20261005160000_value_words.sql`,
+      applied): `value_words`, `admins`, counts-only admin RPCs; gold dot on
+      the menu + "Codex requests" page (New / Planned / Added / Not for the
+      Codex). Never shows who.
+- [x] **Codex: 40 → 100 values** (`content/valyous-codex/_PROPOSED-60.md`).
+      Each new value: essence, light, shadow, void, whole, kin, synonyms,
+      sub-values, 2 questions, 7 starter challenges, an icon. Promoted
+      Kindness, Generosity, Security (old parents got consoling, savouring,
+      safekeeping). All `status: draft` for Cassidy's pass.
+- [x] Each value's own questions now appear in Light & Shadow ("Go deeper").
+- [ ] Sync `supabase/codex/values_library.sql` (now 100 values) to the
+      database. Nothing reads the table yet, so it can wait.
+- [ ] Email / push notice for new Codex requests (needs an email service).
+
 ## Journal highlights, premium AI look and fixes (Oct 4)
 
 - [x] **Saving an entry closes it**, with a short "Saved" note. Photos and

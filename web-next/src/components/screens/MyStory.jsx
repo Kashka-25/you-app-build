@@ -55,7 +55,7 @@ export default function MyStory() {
                 aria-checked={include[s.key]}
                 onClick={() => setInclude(prev => ({ ...prev, [s.key]: !prev[s.key] }))}
                 className={`text-caption px-2.5 py-1 rounded-full border ${
-                  include[s.key] ? "bg-forestAccent border-forestAccent text-surface2" : "border-borderC text-textSecondary"
+                  include[s.key] ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-textSecondary"
                 }`}
               >
                 {s.label}

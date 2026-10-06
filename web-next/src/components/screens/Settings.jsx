@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { LogOut, Sparkles, Sun } from "lucide-react";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
 import { AI_USER_MONTHLY_USD } from "../../lib/aiCost";
+import { PREMIUM_NAME, PREMIUM_OPEN_IN_BETA } from "../../lib/premium";
 import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle, Placeholder } from "../Primitives";
@@ -134,7 +135,13 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
 
   return (
     <AiCard className="mt-6">
-      <div className="mb-2"><AiLabel>AI reflections</AiLabel></div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <AiLabel>AI reflections</AiLabel>
+        <span className="text-caption text-[#E8C877]">{PREMIUM_NAME}{PREMIUM_OPEN_IN_BETA ? " · free in the beta" : ""}</span>
+      </div>
+      <div className="text-caption text-textMuted mb-2">
+        Every AI feature in YOU is part of {PREMIUM_NAME}{PREMIUM_OPEN_IN_BETA ? ", open to everyone while YOU is in beta" : ""}.
+      </div>
       <div className="text-bodySm text-textSecondary mb-3">
         {on
           ? `On${since ? ` since ${since}` : ""}. When you ask for a reflection, the words you chose are sent to Claude (by Anthropic) only to write it.`
@@ -160,7 +167,40 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
       <Button variant="secondary" size="sm" disabled={saving || aiConsent === null} onClick={toggle}>
         {saving ? "Saving…" : on ? "Turn off AI reflections" : "Turn on AI reflections"}
       </Button>
+      {on && <IncludeCoursesSetting aiConsent={aiConsent} />}
     </AiCard>
+  );
+}
+
+// A separate yes for courses: what's written in YOUniversity courses can be
+// included when YOU writes a weekly reflection. Off unless chosen.
+function IncludeCoursesSetting({ aiConsent }) {
+  const { setIncludeCourses } = useAppData();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const include = Boolean(aiConsent?.include_courses);
+  async function toggle() {
+    setSaving(true);
+    setError("");
+    try { await setIncludeCourses(!include); } catch (e) {
+      console.error("[Settings] include courses failed:", e);
+      setError("Couldn't change that. Try again.");
+    }
+    setSaving(false);
+  }
+  return (
+    <div className="mt-4 pt-4 border-t border-[color-mix(in_srgb,var(--gold)_25%,transparent)]">
+      <div className="text-bodySm text-textPrimary font-medium mb-1">Your courses</div>
+      <div className="text-bodySm text-textSecondary mb-3">
+        {include
+          ? "Included. Your weekly reflection can draw on what you wrote in your courses that week."
+          : "Not included. What you write in YOUniversity courses stays out of AI reflections."}
+      </div>
+      {error && <div className="text-bodySm text-red-500 mb-2">{error}</div>}
+      <Button variant="secondary" size="sm" disabled={saving} onClick={toggle}>
+        {saving ? "Saving…" : include ? "Keep my courses out" : "Include my courses"}
+      </Button>
+    </div>
   );
 }
 
