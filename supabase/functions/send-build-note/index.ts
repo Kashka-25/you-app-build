@@ -18,7 +18,9 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const NOTION_TOKEN = Deno.env.get("NOTION_TOKEN");
 const NOTION_DB = Deno.env.get("NOTION_BUILD_NOTES_DB");
-const NOTION_VERSION = "2022-06-28";
+// 2025-09-03: databases hold "data sources", and pages are written to a data
+// source. The older version refuses a database once it has more than one.
+const NOTION_VERSION = "2025-09-03";
 const TITLE_MAX = 90;
 const CHUNK = 1900; // Notion caps one rich-text run at 2000 characters
 
@@ -32,6 +34,21 @@ function notion(path: string, method: string, body?: unknown) {
     },
     body: body ? JSON.stringify(body) : undefined
   });
+}
+
+// The "Build Notes" data source inside the database (found by name, so an
+// extra data source added in Notion can't break sending). Cached per instance.
+let dataSourceId: string | null = null;
+async function buildNotesSource(): Promise<string> {
+  if (dataSourceId) return dataSourceId;
+  const res = await notion(`databases/${NOTION_DB}`, "GET");
+  const db = await res.json();
+  if (!res.ok) throw new Error(db?.message || "Couldn't open the Build Notes database");
+  const sources: { id: string; name: string }[] = db.data_sources || [];
+  const pick = sources.find(d => d.name?.trim() === "Build Notes") || sources[0];
+  if (!pick) throw new Error("The Build Notes database has no data source");
+  dataSourceId = pick.id;
+  return dataSourceId;
 }
 
 // The note's first line, without the tag, short enough to scan in a list.
@@ -73,11 +90,12 @@ Deno.serve(async req => {
       Written: { date: { start: date || new Date().toISOString().slice(0, 10) } }
     };
     if (entryId) properties["Entry ID"] = { rich_text: [{ text: { content: String(entryId) } }] };
+    const notesSource = await buildNotesSource();
 
     // A reflection already sent? Update it in place (leaving its Status and
     // Claude's note alone) and replace its body with the new words.
     if (entryId) {
-      const found = await notion(`databases/${NOTION_DB}/query`, "POST", {
+      const found = await notion(`data_sources/${notesSource}/query`, "POST", {
         filter: { property: "Entry ID", rich_text: { equals: String(entryId) } },
         page_size: 1
       }).then(r => r.json());
@@ -93,7 +111,7 @@ Deno.serve(async req => {
 
     properties.Status = { status: { name: "New" } };
     const res = await notion("pages", "POST", {
-      parent: { database_id: NOTION_DB },
+      parent: { type: "data_source_id", data_source_id: notesSource },
       properties,
       children: paragraphs(body)
     });
@@ -105,6 +123,6 @@ Deno.serve(async req => {
     return json({ ok: true, url: page.url });
   } catch (e) {
     console.error("[send-build-note]", e);
-    return json({ error: "Something went wrong sending the note" }, 500);
+    return json({ error: e instanceof Error ? e.message : "Something went wrong sending the note" }, 500);
   }
 });
