@@ -100,6 +100,9 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                     )}
                   </span>
                 </NavLink>
+                <NavLink to="/build-notes" onClick={onClose} className={linkClass}>
+                  Build notes
+                </NavLink>
               </div>
             )}
 

@@ -27,6 +27,7 @@ import OwnToolScreen from "./components/youniversity/OwnToolScreen";
 import CoursePlayer from "./components/course/CoursePlayer";
 import CourseToolScreen from "./components/course/CourseToolScreen";
 import CodexRequests from "./components/screens/CodexRequests";
+import BuildNotes from "./components/screens/BuildNotes";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
@@ -113,6 +114,7 @@ export default function App() {
         <Route path="/mirror" element={<Mirror />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/codex-requests" element={<CodexRequests />} />
+        <Route path="/build-notes" element={<BuildNotes />} />
       </Route>
     </Routes>
     </>
