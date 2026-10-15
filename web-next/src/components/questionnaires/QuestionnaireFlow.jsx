@@ -230,7 +230,7 @@ export default function QuestionnaireFlow({ open, onClose, questionnaire, valueN
                                 <Icon size={18} strokeWidth={1.75} />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-h3 font-medium text-forest">{o.title}</div>
+                                <div className="text-h3 font-medium text-forest dark:text-cream">{o.title}</div>
                                 <div className="text-bodySm text-textSecondary">{o.desc}</div>
                               </div>
                             </button>

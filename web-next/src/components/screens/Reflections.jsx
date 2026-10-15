@@ -15,7 +15,7 @@ import { Modal } from "../ui/Modal";
 import { AiButton } from "../ui/Premium";
 
 const TABS = [
-  { value: "entries", label: "Entries" },
+  { value: "entries", label: "Journal" },
   { value: "highlights", label: "Highlights" },
   { value: "week", label: "This Week" },
   { value: "explorations", label: "Explorations" }
@@ -28,37 +28,60 @@ function niceDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function EntryCard({ entry, onEdit }) {
+function EntryCard({ entry, onEdit, onTag }) {
   const moodInfo = MOODS.find(m => m.key === entry.mood);
   return (
-    <button onClick={() => onEdit(entry)} className="block w-full text-left rounded-card bg-surface1 shadow-card p-4 mb-3">
-      <div className="flex items-center justify-between mb-1.5 gap-3">
-        <span className="text-caption text-textMuted">{niceDate(entry.entry_date)}</span>
-        {moodInfo && (
-          <span className="flex items-center gap-1 text-caption text-textMuted">
-            <moodInfo.Icon size={14} strokeWidth={1.75} />
-            {moodInfo.label}
-          </span>
-        )}
-      </div>
-      {entry.content
-        ? <div className="text-bodySm text-textPrimary whitespace-pre-wrap line-clamp-4">{entry.content}</div>
-        : <div className="text-bodySm text-textMuted italic">Scanned pages, not transcribed yet. Tap to open.</div>}
-      <PlaceTag stopId={entry.stop_id} className="mt-1.5" />
+    <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
+      <button onClick={() => onEdit(entry)} className="block w-full text-left">
+        <div className="flex items-center justify-between mb-1.5 gap-3">
+          <span className="text-caption text-textMuted">{niceDate(entry.entry_date)}</span>
+          {moodInfo && (
+            <span className="flex items-center gap-1 text-caption text-textMuted">
+              <moodInfo.Icon size={14} strokeWidth={1.75} />
+              {moodInfo.label}
+            </span>
+          )}
+        </div>
+        {entry.content
+          ? <div className="text-bodySm text-textPrimary whitespace-pre-wrap line-clamp-4">{entry.content}</div>
+          : <div className="text-bodySm text-textMuted italic">Scanned pages, not transcribed yet. Tap to open.</div>}
+        <PlaceTag stopId={entry.stop_id} className="mt-1.5" />
+      </button>
       {entry.tags?.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {entry.tags.map(t => (
-            <span key={t} className="text-caption bg-surface3 text-textSecondary px-2 py-0.5 rounded-full">#{t}</span>
+            <button
+              key={t}
+              type="button"
+              onClick={() => onTag(t)}
+              aria-label={`Show entries tagged ${t}`}
+              className="text-caption bg-surface3 text-textSecondary px-2 py-0.5 rounded-full hover:text-textPrimary"
+            >
+              #{t}
+            </button>
           ))}
         </div>
       )}
-    </button>
+    </div>
   );
+}
+
+const tagKey = t => String(t).replace(/^#/, "").toLowerCase();
+
+// Every tag used, most used first, so any of them can be opened.
+function tagCounts(entries) {
+  const counts = new Map();
+  for (const e of entries) for (const t of e.tags || []) {
+    const k = tagKey(t);
+    if (k) counts.set(k, (counts.get(k) || 0) + 1);
+  }
+  return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 
 export default function Reflections() {
   const { journalEntries, loaded } = useAppData();
   const [tab, setTab] = useState("entries");
+  const [openTag, setOpenTag] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const { scanJournalPages } = useAppData();
@@ -159,7 +182,12 @@ export default function Reflections() {
           onAction={() => setAddOpen(true)}
         />
       ) : (
-        journalEntries.map(entry => <EntryCard key={entry.id} entry={entry} onEdit={setEditingEntry} />)
+        <>
+          <TagBar entries={journalEntries} openTag={openTag} onTag={setOpenTag} />
+          {journalEntries
+            .filter(e => !openTag || (e.tags || []).some(t => tagKey(t) === openTag))
+            .map(entry => <EntryCard key={entry.id} entry={entry} onEdit={setEditingEntry} onTag={t => setOpenTag(tagKey(t))} />)}
+        </>
       )}
 
       <JournalEntryModal open={addOpen} onClose={() => setAddOpen(false)} onSaved={handleSaved} />
@@ -187,6 +215,38 @@ export default function Reflections() {
           You can close this; the entry opens when it's ready.
         </div>
       </Modal>
+    </div>
+  );
+}
+
+// The tags across the journal. Tap one to see only its entries (all your
+// #dream pages, or every #idea for the app); tap again to see everything.
+function TagBar({ entries, openTag, onTag }) {
+  const tags = tagCounts(entries);
+  if (tags.length === 0) return null;
+  return (
+    <div className="mb-3">
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Tags">
+        {tags.map(([t, n]) => {
+          const on = t === openTag;
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => onTag(on ? null : t)}
+              aria-pressed={on}
+              className={`text-caption px-2.5 py-1 rounded-full border ${on ? "border-forestAccent bg-forestAccent text-onAccent" : "border-borderC text-textSecondary hover:text-textPrimary"}`}
+            >
+              #{t} · {n}
+            </button>
+          );
+        })}
+      </div>
+      {openTag && (
+        <button type="button" onClick={() => onTag(null)} className="text-caption text-textSecondary underline mt-2">
+          Showing #{openTag} only. Show the whole Journal
+        </button>
+      )}
     </div>
   );
 }

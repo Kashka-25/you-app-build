@@ -68,12 +68,23 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
 
   const kept = isEdit ? highlights.filter(h => h.entry_id === entry.id) : pending;
 
-  function addTag(e) {
-    if (e.key && e.key !== "Enter") return;
-    const v = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-");
-    if (!v || tags.includes(v)) return;
-    setTags([...tags, v]);
+  // A tag half-typed when Save is pressed (or when a phone keyboard has no
+  // real Enter) still counts. Commas and spaces separate tags too.
+  function withTyped(list) {
+    const typed = tagInput.split(/[,\s]+/).map(t => t.replace(/^#/, "").trim()).filter(Boolean);
+    return [...new Set([...list, ...typed])];
+  }
+
+  function commitTags() {
+    setTags(withTyped(tags));
     setTagInput("");
+  }
+
+  function addTag(e) {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      commitTags();
+    }
   }
 
   async function submit() {
@@ -83,14 +94,17 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
     }
     setSaving(true);
     setError("");
+    const allTags = withTyped(tags);
+    setTags(allTags);
+    setTagInput("");
     // Only send a place when one could be chosen (see AddMomentModal).
     const place = stopId || stopsCoveringDate(wanderingStops, entryDate).length > 0 || entry?.stop_id ? stopId : undefined;
     try {
       if (isEdit) {
-        const saved = await editJournalEntry(entry.id, { content: content.trim(), mood, entryDate, tags, stopId: place });
+        const saved = await editJournalEntry(entry.id, { content: content.trim(), mood, entryDate, tags: allTags, stopId: place });
         onSaved ? onSaved(saved) : onClose();
       } else {
-        const saved = await addJournalEntry({ content: content.trim(), mood, entryDate, tags, stopId: place });
+        const saved = await addJournalEntry({ content: content.trim(), mood, entryDate, tags: allTags, stopId: place });
         for (const h of pending) await addHighlight({ ...h, entryId: saved.id, entryDate });
         onSaved ? onSaved(saved, { wasNew: true }) : onClose();
       }
@@ -187,7 +201,9 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
         value={tagInput}
         onChange={e => setTagInput(e.target.value)}
         onKeyDown={addTag}
-        placeholder="Type a tag, press enter"
+        onBlur={commitTags}
+        enterKeyHint="done"
+        placeholder="Type a tag, e.g. dream or idea"
       />
 
       {isEdit && <JournalPhotoSection entryId={entry.id} />}
