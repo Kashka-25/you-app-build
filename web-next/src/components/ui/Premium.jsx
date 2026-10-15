@@ -2,7 +2,7 @@ import { Sparkles } from "lucide-react";
 
 // The YOUnderstanding look for AI (and, later, premium) features. Kept in
 // one place so every AI moment reads the same: black and gold, never the
-// everyday forest green. Styles live in styles/tokens.css (.ai-*).
+// everyday earth tones. Styles live in styles/tokens.css (.ai-*).
 
 // A button that asks AI for something.
 export function AiButton({ children, busy = false, disabled = false, size = "md", full = false, className = "", ...props }) {
@@ -43,7 +43,7 @@ export function AiCard({ children, className = "", ...props }) {
 // A quiet text link inside an AI card (Regenerate, Read it again…).
 export function AiLink({ children, className = "", ...props }) {
   return (
-    <button type="button" className={`text-caption text-[#B8B5D6] hover:text-[#F3DE9C] underline underline-offset-2 disabled:opacity-60 ${className}`} {...props}>
+    <button type="button" className={`text-caption text-[var(--ai-text-2)] hover:text-[#F3DE9C] underline underline-offset-2 disabled:opacity-60 ${className}`} {...props}>
       {children}
     </button>
   );
