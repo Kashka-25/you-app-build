@@ -44,6 +44,23 @@ Keep "insights" to at most 8 items total across all categories — only include 
 
 "highlights" are the user's own words worth keeping: a dream or idea they want to remember, a realisation, a line about who they are or want to be, something they'd want to read again. Copy each one exactly as written (one to three sentences, under 300 characters), never paraphrased, never fixed, never combined from separate places. Leave the list empty when nothing stands out; never pad it.`;
 
+// Added when the entry is tagged #dream: a night-time dream, read as a dream.
+const DREAM_PROMPT = `This entry is a night-time dream the user is recording. As well as the reflection above, add a "dream" object reading the dream itself.
+
+Hold dream meanings lightly. Draw on many lenses (personal association first, then common symbolism, Jungian ideas such as shadow and archetype, and the dream's own feeling-tone), but never claim to know what a dream "means", never treat it as prophecy, and never diagnose. Offer each meaning as one possibility among others, grounded in what the dream actually contains and, where it genuinely fits, in the user's own life context. If they wrote their own interpretation, honour it and build on it rather than replacing it.
+
+"dream": {
+  "symbols": [{ "symbol": "a figure, place, object or action from the dream", "meaning": "one tentative possibility, under 30 words" }],
+  "feelings": ["the feelings present in the dream, in their words where possible"],
+  "waking_life": ["where this may touch their waking life, only if the entry or context supports it"],
+  "recurring": ["symbols or themes that also appear in the EARLIER DREAMS given below; empty if none really do"],
+  "question": "one question that invites them to find their own meaning"
+}
+
+Keep "symbols" to the three to six that carry the most charge.`;
+
+const tagKey = (t: string) => String(t).replace(/^#/, "").toLowerCase();
+
 Deno.serve(async req => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -73,6 +90,20 @@ Deno.serve(async req => {
       .eq("user_id", user.id)
       .single();
     if (entryErr || !entry) return json({ error: "Entry not found" }, 404);
+
+    const isDream = (entry.tags || []).some((t: string) => ["dream", "dreams"].includes(tagKey(t)));
+
+    // Earlier dream readings, so recurring symbols can be noticed.
+    const { data: earlierDreams } = isDream
+      ? await supabase
+          .from("journal_ai_insights")
+          .select("dream, journal_entries!inner(entry_date)")
+          .eq("user_id", user.id)
+          .neq("entry_id", entryId)
+          .not("dream", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(12)
+      : { data: [] };
 
     const [{ data: photos }, { data: values }, { data: items }, { data: chapters }, { data: recentInsights }, compass] =
       await Promise.all([
@@ -114,12 +145,16 @@ ${entry.content}
 ${transcriptions.length ? `Transcribed handwritten pages attached to this entry:\n${transcriptions.join("\n---\n")}\n` : ""}
 
 USER CONTEXT (only use this to find genuine connections — do not restate it as if it came from this entry)
-${JSON.stringify(contextDigest, null, 2)}`;
+${JSON.stringify(contextDigest, null, 2)}${isDream ? `
+
+EARLIER DREAMS (their symbols, newest first)
+${JSON.stringify((earlierDreams || []).map((d: { dream: { symbols?: { symbol: string }[] }; journal_entries: { entry_date: string } }) => ({
+  date: d.journal_entries?.entry_date,
+  symbols: (d.dream?.symbols || []).map(x => x.symbol)
+})), null, 2)}` : ""}`;
 
     const raw = await callClaude({
-      system: compass ? `${SYSTEM_PROMPT}
-
-${COMPASS_GUIDANCE}` : SYSTEM_PROMPT,
+      system: [SYSTEM_PROMPT, isDream ? DREAM_PROMPT : "", compass ? COMPASS_GUIDANCE : ""].filter(Boolean).join("\n\n"),
       messages: [{ role: "user", content: userMessage }], usage: { req, fn: "reflect-on-journal-entry" }
     });
 
@@ -130,6 +165,13 @@ ${COMPASS_GUIDANCE}` : SYSTEM_PROMPT,
       reflection_question: string;
       suggested_next_step: string;
       highlights?: string[];
+      dream?: {
+        symbols?: { symbol: string; meaning: string }[];
+        feelings?: string[];
+        waking_life?: string[];
+        recurring?: string[];
+        question?: string;
+      };
     }>(raw);
 
     // Output moderation; `connections` only echoes the Seeker's own names.
@@ -164,6 +206,7 @@ ${COMPASS_GUIDANCE}` : SYSTEM_PROMPT,
           reflection_question: parsed.reflection_question || "",
           suggested_next_step: parsed.suggested_next_step || "",
           highlights,
+          dream: isDream && parsed.dream ? parsed.dream : null,
           model: "claude-sonnet-5",
           updated_at: new Date().toISOString()
         },
