@@ -12,6 +12,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { SegmentedControl } from "../ui/SegmentedControl";
 import { riseIn } from "../ui/motion";
 import OwnToolModal from "./OwnToolModal";
+import GiftCode from "./GiftCode";
 
 const TABS = [
   { value: "library", label: "Library" },
@@ -210,6 +211,7 @@ function Explore() {
         );
       })}
       <div className="text-bodySm text-textMuted text-center mt-5 px-4">More Arcana are being written.</div>
+      <div className="mt-4 flex justify-center"><GiftCode /></div>
     </div>
   );
 }

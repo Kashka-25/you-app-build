@@ -158,7 +158,7 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
                 <div className="font-serif text-h2 mb-3">Journal</div>
                 {saved ? (
                   <>
-                    <div className="text-bodySm text-textSecondary mb-4">Saved to your Reflections journal.</div>
+                    <div className="text-bodySm text-textSecondary mb-4">Saved to your Journal in Reflections.</div>
                     <Button variant="secondary" className="w-full" onClick={handleClose}>Close</Button>
                   </>
                 ) : (
@@ -223,7 +223,7 @@ function ChoiceList({ options, onPick }) {
             <opt.icon size={18} strokeWidth={1.75} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-h3 font-medium text-forest">{opt.title}</div>
+            <div className="text-h3 font-medium text-forest dark:text-cream">{opt.title}</div>
             <div className="text-bodySm text-textSecondary">{opt.desc}</div>
           </div>
           <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted flex-none" />

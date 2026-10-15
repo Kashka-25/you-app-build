@@ -40,6 +40,10 @@ const TEND_XP = 3;
 // Travel is scored by what the trip gave you, not how many places you
 // ticked off: each memory or journal entry pinned to a Wandering's place
 // earns this, to the trip's Pillar. Unpinning or deleting takes it back.
+// Cassidy's build inbox: the YOU ecosystem's projects, as named in the
+// "Build Notes" database in Notion.
+export const BUILD_PROJECTS = ["YOU app", "YOUrigin", "YOUniversity", "CommYOUnity", "YOU ecosystem"];
+
 export const TRAVEL_MEMORY_XP = 10;
 const travelKey = (kind, id) => `travel:${kind}:${id}`;
 
@@ -1400,6 +1404,19 @@ export function AppDataProvider({ children }) {
     setHeldArcana(prev => (prev.some(h => h.slug === slug) ? prev : [...prev, row]));
   }
 
+  // A gift code unlocks a paid Arcanum for free; checked and granted only on
+  // the server (redeem_arcanum_code). Returns the Arcanum's slug.
+  async function redeemArcanumCode(code) {
+    const res = await supabase.rpc("redeem_arcanum_code", { p_code: code });
+    if (res.error) {
+      const e = new Error(res.error.message || "That code couldn't be used.");
+      e.friendly = res.error.message;
+      throw e;
+    }
+    await loadArcana();
+    return res.data;
+  }
+
   async function removeArcanum(slug) {
     const res = await supabase.from("user_arcana").delete().eq("user_id", userId).eq("slug", slug);
     if (res.error) throw res.error;
@@ -1497,6 +1514,7 @@ export function AppDataProvider({ children }) {
     setJournalEntries(prev =>
       [res.data, ...prev].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
     );
+    sendIdeaEntry(res.data);
     return res.data;
   }
 
@@ -1508,7 +1526,49 @@ export function AppDataProvider({ children }) {
     setJournalEntries(prev =>
       prev.map(e => (e.id === id ? res.data : e)).sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
     );
+    sendIdeaEntry(res.data);
     return res.data;
+  }
+
+  // Admin only: Cassidy's build inbox. A note for this app or any project
+  // goes to the "Build Notes" database in Notion (see send-build-note).
+  async function sendBuildNote({ text, project, source, entryId, date }) {
+    const { data, error } = await supabase.functions.invoke("send-build-note", {
+      body: { text, project, source, entryId, date }
+    });
+    if (error) {
+      let message = "Couldn't send the note just now.";
+      try { message = (await error.context.json()).error || message; } catch { /* keep the default */ }
+      throw new Error(message);
+    }
+    return data;
+  }
+
+  const tagKey = t => String(t).replace(/^#/, "").toLowerCase();
+  const isIdeaEntry = e => (e?.tags || []).some(t => tagKey(t) === "idea");
+  // A second tag naming a project files it there (#idea #YOUniversity);
+  // otherwise it's for the YOU app.
+  const ideaProject = e =>
+    BUILD_PROJECTS.find(p => (e?.tags || []).some(t => tagKey(t) === p.toLowerCase().replace(/\s+/g, ""))) || "YOU app";
+
+  // A reflection tagged #idea goes to the inbox on every save; the function
+  // updates the same Notion page, so it's never sent twice. Quiet on failure:
+  // the entry itself is saved either way.
+  function sendIdeaEntry(entry) {
+    if (!isAdmin || !isIdeaEntry(entry)) return;
+    sendBuildNote({ text: entry.content, project: ideaProject(entry), source: "Reflection", entryId: entry.id, date: entry.entry_date })
+      .catch(e => console.error("[AppData] build note failed:", e));
+  }
+
+  // Sends every #idea reflection, for the ones written before the inbox existed.
+  async function sendAllIdeaEntries() {
+    const ideas = journalEntries.filter(isIdeaEntry);
+    let sent = 0;
+    for (const e of ideas) {
+      await sendBuildNote({ text: e.content, project: ideaProject(e), source: "Reflection", entryId: e.id, date: e.entry_date });
+      sent++;
+    }
+    return sent;
   }
 
   async function deleteJournalEntry(id) {
@@ -1872,8 +1932,8 @@ export function AppDataProvider({ children }) {
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
     reflections, saveReflectionAnswer, deleteReflectionSession,
-    isAdmin, adminChecked, entitlement, aiAllowed: canUseAi(entitlement), codexNew, recordValueWords, addOwnValue, loadCodexRequests, setCodexWordStatus,
-    heldArcana, arcanaLoaded, addArcanum, removeArcanum, courseProgress, toolUses, completeCoursePart, skipCourseRest, saveToolUse, courseWalks, walkFor, startNewWalk, setIncludeCourses, deleteToolUse,
+    isAdmin, adminChecked, sendBuildNote, sendAllIdeaEntries, ideaEntryCount: journalEntries.filter(isIdeaEntry).length, entitlement, aiAllowed: canUseAi(entitlement), codexNew, recordValueWords, addOwnValue, loadCodexRequests, setCodexWordStatus,
+    heldArcana, arcanaLoaded, addArcanum, redeemArcanumCode, removeArcanum, courseProgress, toolUses, completeCoursePart, skipCourseRest, saveToolUse, courseWalks, walkFor, startNewWalk, setIncludeCourses, deleteToolUse,
     ownTools, addOwnTool, editOwnTool, deleteOwnTool, toggleToolUsedToday,
     completeValueChallenge, generateValueChallenges, addJournalEntry, editJournalEntry, deleteJournalEntry,
     loadJournalPhotos, addJournalPhoto, scanJournalPages, deleteJournalPhoto, transcribeJournalPhoto, editJournalPhotoTranscription,

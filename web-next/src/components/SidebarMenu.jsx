@@ -29,7 +29,7 @@ const COMING_SOON = [
 
 const linkClass = ({ isActive }) =>
   `block px-5 py-2.5 text-body border-l-[3px] ${
-    isActive ? "border-gold text-forest font-medium bg-surface1" : "border-transparent text-textPrimary"
+    isActive ? "border-gold text-forest dark:text-cream font-medium bg-surface1" : "border-transparent text-textPrimary"
   }`;
 
 export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
@@ -100,6 +100,9 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                     )}
                   </span>
                 </NavLink>
+                <NavLink to="/build-notes" onClick={onClose} className={linkClass}>
+                  Build notes
+                </NavLink>
               </div>
             )}
 
@@ -110,7 +113,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                 className={({ isActive }) =>
                   `block px-5 py-2.5 text-body border-l-[3px] mb-2 ${
                     isActive
-                      ? "border-gold text-forest font-medium bg-surface1"
+                      ? "border-gold text-forest dark:text-cream font-medium bg-surface1"
                       : "border-transparent text-textPrimary"
                   }`
                 }

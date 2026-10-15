@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Check, X, Pencil, Highlighter } from "lucide-react";
+import { Sparkles, Check, X, Pencil, Highlighter, Moon } from "lucide-react";
 import KeepHighlight from "./KeepHighlight";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
@@ -67,6 +67,44 @@ function InsightItem({ item, onEdit, onReject }) {
   );
 }
 
+// A night-time dream (an entry tagged #dream), read as a dream: symbols as
+// possibilities, never verdicts, and what keeps coming back across dreams.
+function DreamReading({ dream }) {
+  const list = (label, items) =>
+    Array.isArray(items) && items.length > 0 && (
+      <div className="mb-2">
+        <div className="text-label uppercase text-textMuted mb-1">{label}</div>
+        <div className="text-bodySm text-textSecondary">{items.join(" · ")}</div>
+      </div>
+    );
+  return (
+    <div className="mb-3 rounded-sm border border-borderC/60 p-3">
+      <div className="flex items-center gap-1.5 text-label uppercase text-textMuted mb-2">
+        <Moon size={13} strokeWidth={1.75} /> Dream reading
+      </div>
+      {(dream.symbols || []).length > 0 && (
+        <div className="mb-2 space-y-1.5">
+          {dream.symbols.map(s => (
+            <div key={s.symbol} className="text-bodySm">
+              <span className="font-serif italic text-textPrimary">{s.symbol}</span>
+              <span className="text-textSecondary"> — {s.meaning}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {list("Feelings in the dream", dream.feelings)}
+      {list("Where it may touch waking life", dream.waking_life)}
+      {list("Coming back from earlier dreams", dream.recurring)}
+      {dream.question && (
+        <div>
+          <div className="text-label uppercase text-textMuted mb-1">What might it mean to you?</div>
+          <div className="text-bodySm text-textPrimary">{dream.question}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Shown inside JournalEntryModal once an entry has been saved. Offers an
 // optional, editable, rejectable AI reflection — never generated
 // automatically, always the user's call (see reflect-on-journal-entry Edge
@@ -81,6 +119,7 @@ export default function JournalReflectionCard({ entryId }) {
   const [error, setError] = useState("");
 
   const insight = journalInsights[entryId];
+  const isDream = (entry?.tags || []).some(t => ["dream", "dreams"].includes(String(t).replace(/^#/, "").toLowerCase()));
 
   useEffect(() => {
     setChecked(false);
@@ -123,15 +162,22 @@ export default function JournalReflectionCard({ entryId }) {
       {!insight ? (
         <>
           <div className="text-bodySm text-textMuted mb-3">
-            YOU can offer a gentle, optional reflection on this entry — themes it noticed, a question to sit with. Always your call, and you can edit or remove anything it suggests.
+            {isDream
+              ? "This is tagged #dream, so YOU can read it as a dream: its symbols, its feelings, where it may touch your waking life, and what keeps coming back. Offered as possibilities, never answers."
+              : "YOU can offer a gentle, optional reflection on this entry — themes it noticed, a question to sit with. Always your call, and you can edit or remove anything it suggests."}
           </div>
           <AiButton size="sm" onClick={generate} busy={loading}>
-            {loading ? "Reflecting…" : "Get a reflection"}
+            {loading ? "Reflecting…" : isDream ? "Read this dream" : "Get a reflection"}
           </AiButton>
         </>
       ) : (
         <>
           {insight.summary && <div className="text-bodySm text-textSecondary italic mb-3">{insight.summary}</div>}
+
+          {insight.dream && <DreamReading dream={insight.dream} />}
+          {isDream && !insight.dream && (
+            <div className="text-caption text-textMuted mb-3">Regenerate to add a dream reading to this one.</div>
+          )}
 
           {visibleItems.length > 0 && (
             <div className="mb-3 divide-y divide-borderC/60">
