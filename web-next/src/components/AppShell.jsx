@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Home as HomeIcon, Users, Compass, User, Plus } from "lucide-react";
 import AddItemModal from "./pursue/AddItemModal";
 import AddMomentModal from "./journey/AddMomentModal";
 import AddActionSheet from "./AddActionSheet";
 import TopBar from "./TopBar";
-import SidebarMenu from "./SidebarMenu";
+import SidebarMenu, { MenuContents } from "./SidebarMenu";
 import AiConsentModal from "./AiConsentModal";
 
 export default function AppShell() {
@@ -16,13 +16,16 @@ export default function AppShell() {
   const [momentOpen, setMomentOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Home spreads out into a grid on a laptop; every other screen keeps its
+  // readable column.
+  const wide = useLocation().pathname === "/";
 
   function toggleMode() {
     const next = mode === "light" ? "dark" : "light";
     setMode(next);
     document.documentElement.setAttribute("data-mode", next);
     try { localStorage.setItem("you.mode", next); } catch { /* private mode: just this visit */ }
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0B0B1F" : "#0E4A57");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0B0B1F" : "#3A2618");
   }
 
   return (
@@ -31,19 +34,39 @@ export default function AppShell() {
     // nav bar designed for 4-5 items) but never boxes the app in a
     // phone-shaped mockup — no fixed device width/height, no border, no
     // rounded "bezel", no black backdrop.
-    <div className="h-dvh you-sky flex justify-center font-sans">
-      <div className="w-full max-w-[640px] h-dvh relative flex flex-col overflow-hidden">
-        <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="flex-none bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md">
+    // Phones: the real viewport edge to edge, top bar and bottom tabs.
+    // Laptops (lg): a fixed sidebar with the full menu, and no phone chrome.
+    // Never boxed in a phone-shaped mockup.
+    <div className="h-dvh you-sky flex font-sans">
+      <aside className="hidden lg:flex w-[248px] flex-none flex-col h-dvh py-5 bg-[color-mix(in_srgb,var(--surface-2)_85%,transparent)] backdrop-blur-md border-r border-borderC">
+        <NavLink to="/" className="block px-5 mb-5" aria-label="YOU, home">
+          <img src="/logo-wordmark.png" alt="YOU — Your Own Universe" className="h-16 w-auto" />
+        </NavLink>
+        <div className="px-5 mb-4">
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className="w-full inline-flex items-center justify-center gap-2 min-h-[44px] rounded-full bg-forestAccent text-onAccent text-bodySm font-medium hover:bg-forest"
+          >
+            <Plus size={17} strokeWidth={2} /> Add
+          </button>
+        </div>
+        <MenuContents mode={mode} onToggleMode={toggleMode} />
+      </aside>
+
+      <div className="flex-1 min-w-0 flex justify-center">
+      <div className={`w-full max-w-[640px] ${wide ? "lg:max-w-[1160px]" : ""} h-dvh relative flex flex-col overflow-hidden`}>
+        <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="lg:hidden flex-none bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md">
           <TopBar onMenuClick={() => setMenuOpen(true)} />
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto lg:pt-6 lg:px-4">
           <Outlet />
         </div>
 
         <div
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-          className="absolute bottom-0 left-0 right-0 min-h-[76px] bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md border-t border-borderC flex items-center"
+          className="lg:hidden absolute bottom-0 left-0 right-0 min-h-[76px] bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md border-t border-borderC flex items-center"
         >
           <NavLink to="/" end className={({ isActive }) => tabClass(isActive)}>
             <HomeIcon size={20} strokeWidth={1.75} className="mx-auto mb-1" />
@@ -70,6 +93,7 @@ export default function AppShell() {
         </div>
 
         <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} mode={mode} onToggleMode={toggleMode} />
+      </div>
       </div>
 
       <AddItemModal open={addOpen} onClose={() => setAddOpen(false)} defaultType={addType} />

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>YOU — Living Biography</title>
-    <meta name="theme-color" content="#0E4A57" />
+    <meta name="theme-color" content="#3A2618" />
     <!-- The Seeker's chosen side (Ocean or Cosmos), applied before the app
          draws so there's no flash of the other one. Saved by AppShell. -->
     <script>
@@ -12,7 +12,7 @@
         var m = localStorage.getItem("you.mode");
         if (m === "dark" || m === "light") {
           document.documentElement.setAttribute("data-mode", m);
-          document.querySelector('meta[name="theme-color"]').setAttribute("content", m === "dark" ? "#0B0B1F" : "#0E4A57");
+          document.querySelector('meta[name="theme-color"]').setAttribute("content", m === "dark" ? "#0B0B1F" : "#3A2618");
         }
       } catch (e) {}
     </script>

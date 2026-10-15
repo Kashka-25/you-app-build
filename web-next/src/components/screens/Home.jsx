@@ -1,74 +1,29 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Compass, Star, Target, Search, ChevronRight, Check, Flame, BookOpen, Sun, X, Sprout, Wheat, Timer } from "lucide-react";
+import { Search, ChevronRight, Sun, Sprout, Wheat, Timer } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { PILLAR_COLORS } from "../../constants/app.const";
-import {
-  pickCurrentChapter, pickDirection, pickTodaysQuest, pickRelevantValues, pickNoticedPatterns, pickReflectionQuestion
-} from "../../lib/compass";
-import { HeroCard, ReflectionCard } from "../ui/Card";
+import { pickCurrentChapter, pickNoticedPatterns, pickReflectionQuestion } from "../../lib/compass";
 import { GlowBubble } from "../ui/GlowBubble";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
-import { NorthStar } from "../values/Crossroads";
-import { CourseNowRows } from "../course/CourseNow";
+import { useCourseNow } from "../course/CourseNow";
+import WelcomeHero from "../home/WelcomeHero";
+import DailyCheckIn from "../home/DailyCheckIn";
+import JourneyProgressCard from "../home/JourneyProgressCard";
+import { PracticeCard, QuickTools } from "../home/PracticeAndTools";
 import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 
-function getGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
-
-function niceDate(dateStr) {
-  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-}
-
-const ITEM_ICON = { dream: Star, goal: Target, habit: Flame };
-
-// One quick-glance tile in the "Today's Journey" strip — icon + name, no
-// interaction beyond linking to Pursue. Check-ins/completion stay on
-// Pursue's ItemCard, which already does that well; this is a glanceable
-// index, not a second place to manage items.
-function ItemChip({ item }) {
-  const Icon = ITEM_ICON[item.type] || Flame;
-  return (
-    <Link to="/pursue" className="flex-none w-[76px] text-center">
-      <GlowBubble icon={Icon} size={48} color={PILLAR_COLORS[item.cat]} className="mx-auto mb-1.5" />
-      <div className="text-caption text-textSecondary leading-tight line-clamp-2">{item.name}</div>
-    </Link>
-  );
-}
-
-// A single row inside the "Right now" card — icon, small label, one line of
-// content. Grouping direction/quest/values into rows under one card (rather
-// than three separate cards) is what keeps Home from reading as a stack of
-// identical boxes.
-function NowRow({ icon: Icon, label, children, divider = true }) {
-  return (
-    <div className={divider ? "pb-3 mb-3 border-b border-borderC" : ""}>
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon size={13} strokeWidth={1.75} className="text-textMuted" />
-        <span className="text-caption uppercase text-textMuted">{label}</span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// Every section here answers from data that's already loaded — see
-// lib/compass.js — so opening Home never triggers an AI call; it only
-// re-reads what's already been generated elsewhere (journal insights,
-// values, chapters, items).
+// Home answers three things, in this order: how am I arriving, where am I
+// on my path, and what's one step I can take. Everything reads data that's
+// already loaded (see lib/compass.js), so opening Home never calls AI.
 export default function Home() {
   const {
-    items, activeValues, chapters, journalEntries, recentInsights, profile, loaded, completeItem, loadRecentInsights,
-    todos, weekIntentions, weekHarvests, compass
+    items, chapters, journalEntries, recentInsights, profile, loaded, loadRecentInsights,
+    todos, weekIntentions, weekHarvests, compass, moodLog, logMood
   } = useAppData();
   const hasIntentions = !useTodayList().isEmpty;
-  const firstName = profile?.name?.split(" ")[0] || "Seeker";
+  const { entries: courses, tools } = useCourseNow();
   const [insightsLoaded, setInsightsLoaded] = useState(false);
 
   useEffect(() => {
@@ -78,93 +33,72 @@ export default function Home() {
   }, [loaded, insightsLoaded, loadRecentInsights]);
 
   if (!loaded) {
-    return <div className="pt-8 px-5 text-body text-textSecondary">Loading your day…</div>;
+    return (
+      <div className="pt-1 px-5 space-y-4" aria-busy="true" aria-label="Loading your day">
+        <div className="h-[220px] rounded-card bg-surface1 animate-pulse" />
+        <div className="h-[150px] rounded-card bg-surface1 animate-pulse" />
+        <div className="h-[170px] rounded-card bg-surface1 animate-pulse" />
+      </div>
+    );
   }
 
+  const today = todayKey();
+  const firstName = profile?.name?.trim().split(" ")[0] || "";
+  const isNew = items.length === 0 && journalEntries.length === 0;
+  const greeting = firstName ? `${isNew ? "Welcome" : "Welcome back"}, ${firstName}.` : isNew ? "Welcome to YOU." : "Welcome back.";
+
   const chapter = pickCurrentChapter(chapters);
-  const direction = pickDirection(items);
-  const quest = pickTodaysQuest(items);
-  const relevantValues = pickRelevantValues(activeValues, recentInsights);
-  const latestEntry = journalEntries[0];
+  const subtitleIsCompass = Boolean(compass?.compass_line);
+  const subtitle = compass?.compass_line || chapter?.title || "A little progress, every day.";
+
+  // Today's answer: the newest check-in, or a mood given with today's entry.
+  const checkIn = moodLog.find(m => m.date_key === today && MOODS.some(x => x.key === m.mood))?.mood;
+  const entryMood = journalEntries[0]?.entry_date === today ? journalEntries[0].mood : null;
+  const todayMoodKey = checkIn || entryMood || null;
+  const todayMood = MOODS.find(m => m.key === todayMoodKey) || null;
+
+  const nextCourse = courses.find(c => c.kind !== "resting");
+  const cta = nextCourse
+    ? { to: nextCourse.to, label: "Continue my journey" }
+    : { to: "/journey", label: isNew ? "Begin your journey" : "Open your YOUrney" };
+
   const patterns = pickNoticedPatterns(recentInsights, 1);
   const question = pickReflectionQuestion(recentInsights);
-  const hasNowContent = direction || quest || relevantValues.length > 0;
   const hasInsight = patterns.length > 0 || question;
-  const activeItems = items.filter(i => !i.done).slice(0, 6);
   const tendedDays = tendedDaysThisWeek(weekIntentions);
   const sownThisWeek = weekIntentions.some(w => w.week_start === weekStartKey());
   const offerSow = needsSowing(weekIntentions);
-  const todaysMood = latestEntry?.entry_date === todayKey() ? MOODS.find(m => m.key === latestEntry.mood) : null;
 
   return (
-    <div className="pt-1 pb-24 px-5">
-      <HeroCard
-        eyebrow={`${getGreeting()}, ${firstName}`}
-        title={chapter ? chapter.title : "What matters to you right now?"}
-        subtitle={chapter ? chapter.blurb : "Let's find out together."}
-        imageLight="/images/ocean-light.svg"
-        imageDark="/images/cosmos-dark.svg"
-      >
-        {todaysMood && (
-          <div className="inline-flex items-center gap-2 mt-4 px-3 py-1.5 rounded-full bg-black/25 border border-white/10">
-            <todaysMood.Icon size={14} strokeWidth={1.75} className="text-cream" />
-            <span className="text-bodySm font-medium text-cream">Feeling {todaysMood.label.toLowerCase()} today</span>
-          </div>
-        )}
-      </HeroCard>
+    // Phones: one column, in the order the questions are asked. Laptops: a
+    // grid (journey beside the practice, Today beside YOUnderstanding,
+    // the tools in a row), each cell stretching to its row's height.
+    <div
+      className="pt-1 px-5 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-5 lg:pb-10 lg:[&>*]:h-full lg:[&>*>section]:h-full"
+      style={{ paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom))" }}
+    >
+      <div className="lg:col-span-12 lg:order-1">
+        <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} />
+      </div>
 
-      {compass && (
-        <Link to="/you" className="block mt-4 rounded-card bg-surface1 shadow-card p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <NorthStar size={15} filled color="#9A7A2E" strokeWidth={1.5} />
-            <span className="text-label uppercase text-[#7A6024] dark:text-gold">Your compass</span>
-          </div>
-          {compass.compass_line && (
-            <p className="font-serif italic text-[20px] leading-snug text-forest dark:text-cream m-0 mb-2">{compass.compass_line}</p>
-          )}
-          <div className="text-caption text-textSecondary">
-            True North · <span className="font-semibold text-textPrimary">{compass.ordering[0].join(" & ")}</span>
-            {compass.ordering.length > 1 && <> · then {compass.ordering.slice(1, 3).map(g => g.join(" = ")).join(", ")}</>}
-          </div>
-        </Link>
-      )}
+      <div className="lg:col-span-12 lg:order-2">
+        <DailyCheckIn todayMood={todayMoodKey} onPick={logMood} />
+      </div>
 
-      <Link to="/pursue" className="flex items-center justify-between mt-4 mb-1">
-        <span className="font-serif text-h2 font-medium text-textPrimary">Your pursuits</span>
-        <ChevronRight size={18} strokeWidth={1.75} className="text-textMuted" />
-      </Link>
+      <div className="lg:col-span-7 lg:order-3">
+        <JourneyProgressCard entries={courses} />
+      </div>
 
-      {activeItems.length > 0 && (
-        // overflow-x-auto forces overflow-y to an effective "auto" too (per
-        // spec, an axis can't stay "visible" once its sibling axis isn't),
-        // which was clipping the bubbles' glow halo top and bottom with no
-        // room to breathe. py-4 gives that clip box enough headroom that
-        // the halo (and its float animation) renders in full instead of
-        // getting cut off at the row's edge.
-        <div className="flex gap-3 overflow-x-auto py-4 -mx-5 px-5 -mt-2">
-          {activeItems.map(item => <ItemChip key={item.id} item={item} />)}
-        </div>
-      )}
-
-      <Link to="/bring-me-back" className="block mt-4 mb-4">
-        <div className="rounded-card bg-gradient-to-br from-forest to-forestAccent p-4 shadow-card flex items-center gap-3.5">
-          <GlowBubble icon={Compass} size={44} />
-          <div className="flex-1 min-w-0">
-            <div className="font-serif text-h3 text-cream">Bring me back to myself</div>
-            <div className="text-bodySm text-[color-mix(in_srgb,var(--cream)_85%,transparent)]">What am I trying to create with my life?</div>
-          </div>
-          <ChevronRight size={18} strokeWidth={1.75} className="text-cream flex-none" />
-        </div>
-      </Link>
-
-      <div className="rounded-card bg-surface1 shadow-card p-4 mb-4">
-        <div className="flex items-center justify-between mb-1">
-          <Link to="/threshold" className="flex items-center gap-2 text-label uppercase text-gold">
-            <Sun size={13} strokeWidth={1.75} />
-            Today
-          </Link>
+      <div className={`${hasInsight ? "lg:col-span-7" : "lg:col-span-12"} lg:order-5`}>
+      <section aria-labelledby="home-today" className="rounded-card bg-surface1 shadow-card p-4">
+        <div className="flex items-baseline justify-between gap-3 mb-1">
+          <h2 id="home-today" className="font-serif text-h3 text-textPrimary m-0">
+            <Link to="/threshold" className="inline-flex items-center gap-2">
+              <Sun size={16} strokeWidth={1.75} className="text-gold" aria-hidden="true" /> Today
+            </Link>
+          </h2>
           {sownThisWeek && tendedDays > 0 && (
-            <span className="text-caption text-textSecondary">Tended on {tendedDays} {tendedDays === 1 ? "day" : "days"} this week</span>
+            <span className="text-caption text-textSecondary">Tended {tendedDays} {tendedDays === 1 ? "day" : "days"} this week</span>
           )}
         </div>
 
@@ -174,17 +108,14 @@ export default function Home() {
           <QuickList showLabel={hasIntentions} />
         </div>
 
-        {/* Courses in progress: what's ready, the challenge being carried. */}
-        <CourseNowRows />
-
-        <Link to="/focus" className="flex items-center gap-2.5 text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
+        <Link to="/focus" className="flex items-center gap-2.5 min-h-[44px] text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
           <Timer size={16} strokeWidth={1.75} />
           <span className="flex-1">{hasIntentions ? "A focus session for something else" : "Start a focus session"}</span>
           <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
         </Link>
 
         {harvestDue(weekIntentions, weekHarvests) && (
-          <Link to="/harvest" className="flex items-center gap-2.5 text-bodySm text-textPrimary mt-3 pt-3 border-t border-borderC">
+          <Link to="/harvest" className="flex items-center gap-2.5 min-h-[44px] text-bodySm text-textPrimary mt-2 pt-2 border-t border-borderC">
             <Wheat size={16} strokeWidth={1.75} className="text-gold" />
             <span className="flex-1">{isSunday() ? "Harvest this week" : "Harvest last week"}: see what grew</span>
             <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
@@ -192,81 +123,42 @@ export default function Home() {
         )}
 
         {offerSow ? (
-          <Link to="/sow" className="flex items-center gap-2.5 text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
+          <Link to="/sow" className="flex items-center gap-2.5 min-h-[44px] text-bodySm text-forestAccent mt-2 pt-2 border-t border-borderC">
             <Sprout size={16} strokeWidth={1.75} />
             <span className="flex-1">{isSunday() ? "Sow next week" : "Sow your week"}: what do you want to grow?</span>
             <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
           </Link>
         ) : sownThisWeek && (
-          <Link to="/sow" className="block mt-2 text-caption text-textMuted">Change your sowing</Link>
+          <Link to="/sow" className="inline-block mt-2 text-caption text-textMuted min-h-[32px]">Change your sowing</Link>
         )}
+      </section>
       </div>
 
-      {hasNowContent && (
-        <div className="rounded-card bg-surface1 shadow-card p-4 mb-4">
-          <div className="text-label uppercase text-gold mb-3">Right now</div>
+      <div className="lg:col-span-5 lg:order-4">
+        <PracticeCard tool={tools[0]} />
+      </div>
 
-          {direction && (
-            <NowRow icon={Star} label="Direction">
-              <Link to="/pursue" className="text-body text-textPrimary">{direction.name}</Link>
-            </NowRow>
-          )}
-
-          {quest && (
-            <NowRow icon={Target} label="Today's quest">
-              <div className="flex items-center justify-between gap-3">
-                <div className="text-body text-textPrimary">{quest.name}</div>
-                <button
-                  onClick={() => completeItem(quest.id)}
-                  aria-label="Mark done"
-                  className="w-6 h-6 flex-none rounded-full border border-borderC text-textMuted flex items-center justify-center hover:border-forestAccent hover:text-forestAccent"
-                >
-                  <Check size={12} strokeWidth={2.5} />
-                </button>
-              </div>
-            </NowRow>
-          )}
-
-          {relevantValues.length > 0 && (
-            <NowRow icon={Compass} label="Values" divider={false}>
-              <div className="flex flex-wrap gap-1.5">
-                {relevantValues.map(name => (
-                  <span key={name} className="text-caption bg-surface3 text-textSecondary px-2.5 py-1 rounded-full">{name}</span>
-                ))}
-              </div>
-            </NowRow>
-          )}
-        </div>
-      )}
-
-      {latestEntry && (
-        <Link to="/reflections" className="block mb-4">
-          <ReflectionCard
-            icon={BookOpen}
-            date={niceDate(latestEntry.entry_date)}
-            prompt="From your journal"
-            text={latestEntry.content.length > 160 ? latestEntry.content.slice(0, 160) + "…" : latestEntry.content}
-          />
-        </Link>
-      )}
+      <div className="lg:col-span-12 lg:order-7">
+        <QuickTools />
+      </div>
 
       {hasInsight && (
-        <div className="rounded-card bg-surface1 border-l-2 border-forestAccent shadow-card p-4 mb-4">
+        <div className="lg:col-span-5 lg:order-6">
+        <section aria-label="YOUnderstanding" className="rounded-card bg-surface1 border-l-2 border-forestAccent shadow-card p-4">
           <div className="flex items-center gap-3 mb-2">
             <GlowBubble icon={Search} size={36} />
             <span className="text-label uppercase text-forestAccent">YOUnderstanding</span>
           </div>
-          {patterns.length > 0 && (
-            <div className="font-serif text-body text-textPrimary italic mb-2.5">{patterns[0].text}</div>
-          )}
+          {patterns.length > 0 && <div className="font-serif text-body text-textPrimary italic mb-2.5">{patterns[0].text}</div>}
           {question && <div className="text-bodySm text-textSecondary">{question}</div>}
+        </section>
         </div>
       )}
 
-      {!hasNowContent && !latestEntry && !hasInsight && todos.length === 0 && !hasIntentions && (
-        <div className="rounded-card border border-dashed border-borderC bg-surface1 p-4 text-bodySm text-textMuted">
-          Tap Add to plant a habit, goal, or dream, or write your first journal entry — Home will start filling in from there.
-        </div>
+      {isNew && todos.length === 0 && !hasIntentions && (
+        <p className="lg:col-span-12 lg:order-8 rounded-card border border-dashed border-borderC bg-surface1 p-4 text-bodySm text-textMuted m-0">
+          Tap Add below to plant a habit, goal or dream, or write your first journal entry. Home fills in from there.
+        </p>
       )}
     </div>
   );

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { SectionTitle } from "../Primitives";
+import { PageBanner } from "../Primitives";
 import { SegmentedControl } from "../ui/SegmentedControl";
 import ChaptersView from "../journey/ChaptersView";
 import TreeAndStarsView from "../journey/TreeAndStarsView";
@@ -35,7 +35,7 @@ export default function Journey() {
 
   return (
     <div className="pt-1 pb-24 px-5">
-      <SectionTitle>YOUrney</SectionTitle>
+      <PageBanner title="YOUrney" image="/images/home/yourney.webp" />
       <div className="mb-4">
         <SegmentedControl options={TABS} value={tab} onChange={setTab} />
       </div>

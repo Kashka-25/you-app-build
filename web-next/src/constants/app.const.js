@@ -25,7 +25,7 @@ export const PILLARS = [...INNER_PILLARS, ...OUTER_PILLARS];
 
 export const PILLAR_COLORS = {
   Body:"#c4783a", Heart:"#b85f6e", Mind:"#7a8c5e", Spirit:"#d4a85a",
-  Connection:"#a06490", Purpose:"#6478a0", Play:"#4f9a94", "Home & Earth":"#8a7a52"
+  Connection:"#a06490", Purpose:"#5f7f72", Play:"#c98e6b", "Home & Earth":"#8a7a52"
 };
 
 // The old 7 -> v2. Rows are rewritten by the pillars_v2 migration; this

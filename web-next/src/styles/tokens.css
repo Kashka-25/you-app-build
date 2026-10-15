@@ -3,30 +3,30 @@
 @tailwind utilities;
 
 :root {
-  /* ── Yin & Yang (design alternative, branch design/yin-yang) ──
-     Drawn from the "O" in the YOU logo: a yin-yang of ocean and cosmos,
-     held in a gold ring. Light mode is the OCEAN side (sea foam, sea glass,
-     deep-ocean teal); dark mode is the COSMOS side (midnight indigo, nebula
-     violet, starlight). As in a yin-yang, each carries a seed of the other:
-     --seed is the cosmos indigo in light mode, the sea teal in dark mode.
+  /* ── Nature & Cosmos ──
+     Light mode is NATURE, the earthy side: sun-warmed parchment and sand,
+     clay and terracotta, umber bark and antique ochre gold.
+     Dark mode is the COSMOS: midnight indigo, nebula violet, starlight,
+     unchanged from the Yin & Yang design. No blues by day: --seed is ochre
+     bark here, the sea teal in the night.
      Token names (forest, sage…) are kept so every screen follows. */
-  --bg: #F6FAF9;            /* sea foam */
-  --surface-1: #EDF5F3;     /* mist over water */
-  --surface-2: #FCFEFD;     /* foam crest */
-  --surface-3: #DCEAE7;     /* sea glass */
-  --forest: #0E4A57;        /* deep ocean */
-  --forest-accent: #176A76; /* wave teal: buttons, selected */
-  --sage: #6AA5A3;          /* shallows */
-  --gold: #B88F3E;          /* the ring, deepened to read on light */
-  --cream: #F2EADB;
-  --text-primary: #122E37;  /* ink of deep water */
-  --text-secondary: #4C666E;
-  --text-muted: #7C9297;
-  --border: rgba(14, 74, 87, 0.10);
+  --bg: #F7F1E8;            /* parchment */
+  --surface-1: #F0E6D8;     /* sand */
+  --surface-2: #FBF7F0;     /* paper */
+  --surface-3: #E5D6C2;     /* clay dust */
+  --forest: #3A2618;        /* umber bark */
+  --forest-accent: #8E4E30; /* terracotta: buttons, selected */
+  --sage: #B4876A;          /* sandstone */
+  --gold: #A07A2C;          /* antique ochre, deepened to read on light */
+  --cream: #F4EADB;
+  --text-primary: #2B1F17;  /* bark ink */
+  --text-secondary: #6A5646;
+  --text-muted: #94806D;
+  --border: rgba(58, 38, 24, 0.11);
   --error: #C75B5B;
-  --accent-blue: #8FB8D8;
+  --accent-blue: #B4A27A;   /* no blues by day: sandstone */
   --ember: #c4783a;
-  --seed: #3D3B7A;          /* a dot of the cosmos */
+  --seed: #6B4E2E;          /* deep ochre bark */
   /* Text on the accent (buttons, selected tabs): light in both modes. */
   --on-accent: #FFFFFF;
   /* Card highlight — a thin inset line along a card's top edge that reads
@@ -35,13 +35,13 @@
      --field-shadow below (a recessed inset for inputs), the two give the
      UI a raised/sunken rhythm instead of everything sitting flush. */
   --card-highlight: rgba(255, 255, 255, 0.7);
-  --field-shadow: rgba(14, 74, 87, 0.06);
-  /* The sky behind everything: light from above, the sea below. */
+  --field-shadow: rgba(58, 38, 24, 0.06);
+  /* The sky behind everything: late sun on warm earth. */
   --sky:
-    radial-gradient(1100px 520px at 50% -8%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 60%),
-    radial-gradient(900px 480px at 10% 108%, rgba(23, 106, 118, 0.10) 0%, rgba(23, 106, 118, 0) 65%),
-    radial-gradient(700px 420px at 95% 100%, rgba(61, 59, 122, 0.06) 0%, rgba(61, 59, 122, 0) 60%),
-    linear-gradient(180deg, #F8FCFB 0%, #EEF6F4 100%);
+    radial-gradient(1100px 520px at 50% -8%, rgba(255, 248, 234, 0.95) 0%, rgba(255, 248, 234, 0) 60%),
+    radial-gradient(900px 480px at 8% 108%, rgba(142, 78, 48, 0.10) 0%, rgba(142, 78, 48, 0) 65%),
+    radial-gradient(700px 420px at 96% 100%, rgba(196, 150, 70, 0.12) 0%, rgba(196, 150, 70, 0) 60%),
+    linear-gradient(180deg, #FAF5EC 0%, #F0E6D8 100%);
 }
 
 [data-mode="dark"] {
@@ -152,12 +152,30 @@ body {
    special: a gold hairline border, gold lettering and a soft sheen. The
    same in light and dark mode, on purpose. */
 :root {
-  /* Yin & Yang: premium ink is the deep cosmos, so AI reads as starlight. */
-  --ai-ink: #0B0A1E;
-  --ai-ink-2: #15143A;
+  /* Nature: premium ink is rich espresso earth, the gold reads as ochre
+     light on it. The Cosmos (below) keeps its starlit indigo. */
+  --ai-ink: #241811;
+  --ai-ink-2: #36251A;
+  --ai-text: #F7EEE2;
+  --ai-text-2: #E2D1BC;
+  --ai-text-3: #BCA48A;
+  --ai-surface-1: #3A291D;
+  --ai-surface-2: #423022;
+  --ai-surface-3: #4F3A2A;
   --ai-gold-1: #F3DE9C;
   --ai-gold-2: #C9A24D;
   --ai-gold-3: #8C6A24;
+}
+[data-mode="dark"] {
+  /* Cosmos: premium ink is the deep night, so AI reads as starlight. */
+  --ai-ink: #0B0A1E;
+  --ai-ink-2: #15143A;
+  --ai-text: #F7F5EF;
+  --ai-text-2: #CBC8E2;
+  --ai-text-3: #A09DC2;
+  --ai-surface-1: #1A1940;
+  --ai-surface-2: #1F1E4A;
+  --ai-surface-3: #2A2858;
 }
 .ai-gold-text {
   background: linear-gradient(100deg, var(--ai-gold-3) 0%, var(--ai-gold-2) 28%, var(--ai-gold-1) 50%, var(--ai-gold-2) 72%, var(--ai-gold-3) 100%);
@@ -178,16 +196,16 @@ body {
     radial-gradient(120% 80% at 100% 0%, rgba(201, 162, 77, 0.16) 0%, transparent 55%) padding-box,
     linear-gradient(180deg, var(--ai-ink-2), var(--ai-ink)) padding-box,
     linear-gradient(135deg, var(--ai-gold-1), var(--ai-gold-3) 40%, rgba(201, 162, 77, 0.25) 70%, var(--ai-gold-2)) border-box;
-  color: #EDE6D6;
+  color: var(--ai-text);
   box-shadow: 0 10px 30px -12px rgba(201, 162, 77, 0.35), 0 4px 14px rgba(0, 0, 0, 0.12);
   /* Everything inside reads on the dark card, in either mode. */
-  --text-primary: #F7F5EF;
-  --text-secondary: #CBC8E2;
-  --text-muted: #A09DC2;
+  --text-primary: var(--ai-text);
+  --text-secondary: var(--ai-text-2);
+  --text-muted: var(--ai-text-3);
   --border: rgba(255, 255, 255, 0.09);
-  --surface-1: #1A1940;
-  --surface-2: #1F1E4A;
-  --surface-3: #2A2858;
+  --surface-1: var(--ai-surface-1);
+  --surface-2: var(--ai-surface-2);
+  --surface-3: var(--ai-surface-3);
   --field-shadow: rgba(0, 0, 0, 0.3);
 }
 @keyframes ai-sheen { from { background-position: 200% 0; } to { background-position: -200% 0; } }
@@ -209,15 +227,15 @@ body {
 [data-mode="dark"] .text-forestAccent { color: var(--seed); }
 
 /* ── The five Elements as section accents (see lib/elements.js) ──
-   Tuned per side: deeper on the Ocean so they read on light, softer and
-   brighter in the Cosmos so they read on the night. --element is the
+   Tuned per side: earthy and deep in Nature (no blues by day) so they read
+   on parchment, softer and brighter in the Cosmos so they read on the night. --element is the
    current section's; Home and anywhere unmapped keep the gold ring. */
 :root {
-  --el-water: #2E7FA6;
+  --el-water: #557A6C;      /* river stone */
   --el-fire: #C2603A;
   --el-earth: #6E7F3F;
-  --el-air: #5F74B8;
-  --el-ether: #7D5BB5;
+  --el-air: #8C7550;        /* sandstone wind */
+  --el-ether: #8A5A7A;      /* dusk plum */
   --element: var(--gold);
   --element-line: transparent;
 }

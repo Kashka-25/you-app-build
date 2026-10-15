@@ -1530,6 +1530,22 @@ export function AppDataProvider({ children }) {
     return res.data;
   }
 
+  // The daily check-in on Home ("How are you arriving today?"), kept in
+  // mood_log alongside the old moon-phase log. A change of heart adds a new
+  // row; the newest one for the day is the answer.
+  async function logMood(mood) {
+    const row = {
+      user_id: userId,
+      mood,
+      date: new Date().toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" }),
+      date_key: todayKey()
+    };
+    const res = await supabase.from("mood_log").insert(row).select().single();
+    if (res.error) throw res.error;
+    setMoodLog(prev => [res.data, ...prev]);
+    return res.data;
+  }
+
   // Admin only: Cassidy's build inbox. A note for this app or any project
   // goes to the "Build Notes" database in Notion (see send-build-note).
   async function sendBuildNote({ text, project, source, entryId, date }) {
@@ -1912,7 +1928,7 @@ export function AppDataProvider({ children }) {
   }
 
   const value = {
-    userId, loaded, sync, items: activeItems, releasedItems, memory, moodLog, values, profile, moments, chapters, valueChallenges, journalEntries,
+    userId, loaded, sync, items: activeItems, releasedItems, memory, moodLog, logMood, values, profile, moments, chapters, valueChallenges, journalEntries,
     identityVisions, todos,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,

@@ -1,4 +1,4 @@
-import { Search, Angry, Frown, Meh, Smile, Laugh } from "lucide-react";
+import { Search, Frown, Annoyed, Meh, Smile, Laugh } from "lucide-react";
 
 export function SearchInput({ placeholder = "Search", className = "", ...props }) {
   return (
@@ -37,12 +37,15 @@ export function FloatingLabelField({ label, id, type = "text", className = "", .
   );
 }
 
+// One gentle vocabulary for how someone is arriving, used by the journal and
+// the Home check-in. No state is wrong. Keys are what's stored, so they stay
+// as they were when the labels softened (rough → "Low", low → "Tender"…).
 export const MOODS = [
-  { key: "rough", Icon: Angry, label: "Rough" },
-  { key: "low", Icon: Frown, label: "Low" },
-  { key: "okay", Icon: Meh, label: "Okay" },
+  { key: "rough", Icon: Frown, label: "Low" },
+  { key: "low", Icon: Annoyed, label: "Tender" },
+  { key: "okay", Icon: Meh, label: "Steady" },
   { key: "good", Icon: Smile, label: "Good" },
-  { key: "great", Icon: Laugh, label: "Great" }
+  { key: "great", Icon: Laugh, label: "Energised" }
 ];
 
 export function MoodSelector({ value, onChange, className = "" }) {
