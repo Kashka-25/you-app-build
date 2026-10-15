@@ -8,12 +8,14 @@ import { fadeIn, easeOut } from "./ui/motion";
 
 // Journey-before-CommYOUnity is deliberate: the app is about the individual
 // first, community second. Don't reorder.
+// Each place has its emblem from the YOU art set (public/images/icons).
 const SITEMAP = [
-  { to: "/", label: "Home", end: true },
-  { to: "/journey", label: "YOUrney" },
-  { to: "/reflections", label: "Reflections" },
-  { to: "/youniversity", label: "YOUniversity" },
-  { to: "/community", label: "CommYOUnity" }
+  { to: "/", label: "Home", end: true, icon: "home" },
+  { to: "/journey", label: "YOUrney", icon: "yourney" },
+  { to: "/reflections", label: "Reflections", icon: "reflections" },
+  { to: "/youniversity", label: "YOUniversity", icon: "youniversity" },
+  { to: "/community", label: "CommYOUnity", icon: "community" },
+  { to: "/you", label: "YOU", icon: "you" }
 ];
 
 // Pages that exist but aren't built yet, folded away so the menu stays
@@ -32,14 +34,86 @@ const linkClass = ({ isActive }) =>
     isActive ? "border-gold text-forest dark:text-cream font-medium bg-surface1" : "border-transparent text-textPrimary"
   }`;
 
-export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
+// Everything the menu lists: the drawer on phones and the fixed sidebar on
+// laptops both show this, so they can never drift apart.
+export function MenuContents({ onNavigate, mode, onToggleMode, open = true }) {
   const location = useLocation();
   const { isAdmin, codexNew } = useAppData();
   const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
   const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
-  useEscape(open, onClose);
   // Opening the menu while on one of those pages shows where you are.
   useEffect(() => { if (open && onComingSoonPage) setSoonOpen(true); }, [open, onComingSoonPage]);
+
+  return (
+    <>
+      <nav aria-label="Main" className="flex-1 overflow-y-auto">
+        {SITEMAP.map(item => (
+          <NavLink key={item.to} to={item.to} end={item.end} onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
+            <img src={`/images/icons/${item.icon}.png`} alt="" width="40" height="40" className="w-10 h-10 flex-none" />
+            {item.label}
+          </NavLink>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => setSoonOpen(!soonOpen)}
+          aria-expanded={soonOpen}
+          className="w-full flex items-center gap-1.5 px-5 pt-4 pb-2 text-label uppercase text-textMuted"
+        >
+          {soonOpen ? <ChevronDown size={13} strokeWidth={1.75} /> : <ChevronRight size={13} strokeWidth={1.75} />}
+          Coming soon
+          <span className="normal-case tracking-normal">· {COMING_SOON.length}</span>
+        </button>
+        {soonOpen && COMING_SOON.map(item => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            onClick={onNavigate}
+            className={({ isActive }) => `${linkClass({ isActive })} text-bodySm ${isActive ? "" : "!text-textSecondary"}`}
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {isAdmin && (
+        <div className="border-t border-borderC pt-2 pb-1">
+          <div className="px-5 pb-1 text-label uppercase text-textMuted">For you as creator</div>
+          <NavLink to="/codex-requests" onClick={onNavigate} className={linkClass}>
+            <span className="flex items-center justify-between gap-2">
+              Codex requests
+              {codexNew > 0 && (
+                <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-gold text-[#19193D] text-caption font-semibold flex items-center justify-center" aria-label={`${codexNew} new`}>
+                  {codexNew}
+                </span>
+              )}
+            </span>
+          </NavLink>
+          <NavLink to="/build-notes" onClick={onNavigate} className={linkClass}>
+            Build notes
+          </NavLink>
+        </div>
+      )}
+
+      <div className="border-t border-borderC pt-3">
+        <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} mb-2`}>
+          Your Own Universe
+        </NavLink>
+        <div className="px-5">
+          <button
+            onClick={onToggleMode}
+            className="text-caption text-textSecondary border border-borderC rounded-full px-3 py-1.5"
+          >
+            {mode === "light" ? "Switch to Cosmos (dark)" : "Switch to Nature (light)"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
+  useEscape(open, onClose);
 
   return (
     <AnimatePresence>
@@ -58,77 +132,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                 <X size={16} strokeWidth={1.75} /> Close
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto">
-              {SITEMAP.map(item => (
-                <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose} className={linkClass}>
-                  {item.label}
-                </NavLink>
-              ))}
-
-              <button
-                type="button"
-                onClick={() => setSoonOpen(!soonOpen)}
-                aria-expanded={soonOpen}
-                className="w-full flex items-center gap-1.5 px-5 pt-4 pb-2 text-label uppercase text-textMuted"
-              >
-                {soonOpen ? <ChevronDown size={13} strokeWidth={1.75} /> : <ChevronRight size={13} strokeWidth={1.75} />}
-                Coming soon
-                <span className="normal-case tracking-normal">· {COMING_SOON.length}</span>
-              </button>
-              {soonOpen && COMING_SOON.map(item => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  onClick={onClose}
-                  className={({ isActive }) => `${linkClass({ isActive })} text-bodySm ${isActive ? "" : "!text-textSecondary"}`}
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-            </div>
-
-            {isAdmin && (
-              <div className="border-t border-borderC pt-2 pb-1">
-                <div className="px-5 pb-1 text-label uppercase text-textMuted">For you as creator</div>
-                <NavLink to="/codex-requests" onClick={onClose} className={linkClass}>
-                  <span className="flex items-center justify-between gap-2">
-                    Codex requests
-                    {codexNew > 0 && (
-                      <span className="min-w-[22px] h-[22px] px-1.5 rounded-full bg-gold text-[#19193D] text-caption font-semibold flex items-center justify-center" aria-label={`${codexNew} new`}>
-                        {codexNew}
-                      </span>
-                    )}
-                  </span>
-                </NavLink>
-                <NavLink to="/build-notes" onClick={onClose} className={linkClass}>
-                  Build notes
-                </NavLink>
-              </div>
-            )}
-
-            <div className="border-t border-borderC pt-3">
-              <NavLink
-                to="/settings"
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `block px-5 py-2.5 text-body border-l-[3px] mb-2 ${
-                    isActive
-                      ? "border-gold text-forest dark:text-cream font-medium bg-surface1"
-                      : "border-transparent text-textPrimary"
-                  }`
-                }
-              >
-                Your Own Universe
-              </NavLink>
-              <div className="px-5">
-                <button
-                  onClick={onToggleMode}
-                  className="text-caption text-textSecondary border border-borderC rounded-full px-3 py-1.5"
-                >
-                  {mode === "light" ? "Switch to Cosmos (dark)" : "Switch to Ocean (light)"}
-                </button>
-              </div>
-            </div>
+            <MenuContents onNavigate={onClose} mode={mode} onToggleMode={onToggleMode} open={open} />
           </motion.div>
         </motion.div>
       )}

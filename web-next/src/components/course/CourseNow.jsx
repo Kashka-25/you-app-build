@@ -33,17 +33,19 @@ export function useCourseNow() {
       const n = state.next;
       const p = n.part;
       const coursePage = `/youniversity/arcanum/${arcanum.slug}`;
+      // Real progress for the Home journey card: parts finished, and where.
+      const progress = { percent: state.percent, done: state.done, total: state.total, stage: course.stages[state.currentStage]?.name, coursePage };
       if (n.status === "resting") {
-        entries.push({ key: arcanum.slug, kind: "resting", icon: Moon, label: `${arcanum.name} · resting`, title: p.kind === "checkin" ? p.title : `${p.stage.name} opens ${opensLine(n.opensOn)}`, to: coursePage, arcanum });
+        entries.push({ key: arcanum.slug, kind: "resting", icon: Moon, label: `${arcanum.name} · resting`, title: p.kind === "checkin" ? p.title : `${p.stage.name} opens ${opensLine(n.opensOn)}`, to: coursePage, arcanum, ...progress });
       } else if (p.kind === "challenge") {
-        entries.push({ key: arcanum.slug, kind: "carrying", icon: Footprints, label: away ? `Welcome back · ${arcanum.name}` : `Carrying · ${p.stage.name}`, title: p.title, to: away ? coursePage : `/learn/${arcanum.slug}/${p.id}`, arcanum });
+        entries.push({ key: arcanum.slug, kind: "carrying", icon: Footprints, label: away ? `Welcome back · ${arcanum.name}` : `Carrying · ${p.stage.name}`, title: p.title, to: away ? coursePage : `/learn/${arcanum.slug}/${p.id}`, arcanum, ...progress });
       } else {
         entries.push({
           key: arcanum.slug, kind: "ready", icon: Sparkles,
           label: away ? `Welcome back · ${arcanum.name}` : `${arcanum.name} · ready for you`,
           title: p.kind === "checkin" ? p.title : `${p.stage.name} · ${PART_LABEL[p.kind]}`,
           // Away a while: the course page first, where the recap is.
-          to: away ? coursePage : `/learn/${arcanum.slug}/${p.id}`, arcanum
+          to: away ? coursePage : `/learn/${arcanum.slug}/${p.id}`, arcanum, ...progress
         });
       }
     });

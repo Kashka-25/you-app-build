@@ -83,11 +83,24 @@ export function BackRow() {
   );
 }
 
-export function ParkedScreen({ title, note, children }) {
+// A section's own card from the YOU art set across the top of its page,
+// with the title in dark ink on a parchment fade (cream on a shade in the
+// Cosmos). The art carries no words of its own; the title is real text.
+export function PageBanner({ title, image, className = "" }) {
+  return (
+    <div className={`relative h-[150px] rounded-card overflow-hidden shadow-card mb-4 ${className}`}>
+      <img src={image} alt="" width="705" height="380" decoding="async" className="absolute inset-0 w-full h-full object-cover object-[center_35%] dark:brightness-[0.65]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#FBF7F0] via-[#FBF7F0]/40 via-40% to-transparent dark:from-black/75 dark:via-black/20" />
+      <h1 className="absolute left-4 bottom-2.5 m-0 font-serif text-hero text-textPrimary dark:text-cream">{title}</h1>
+    </div>
+  );
+}
+
+export function ParkedScreen({ title, note, image, children }) {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <SectionTitle>{title}</SectionTitle>
+      {image ? <PageBanner title={title} image={image} className="mt-3" /> : <SectionTitle>{title}</SectionTitle>}
       <Pill muted>{note}</Pill>
       {children}
     </div>

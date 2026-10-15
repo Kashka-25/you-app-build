@@ -98,7 +98,7 @@ export default function App() {
             gated behind "coming soon" until it has a real backend/data
             source — don't wire mock-data screens back in without checking
             with Cassidy first. */}
-        <Route path="/community" element={<ParkedScreen title="CommYOUnity" note="coming soon — being built" />} />
+        <Route path="/community" element={<ParkedScreen title="CommYOUnity" note="coming soon — being built" image="/images/home/community.webp" />} />
         <Route path="/atlas" element={<ParkedScreen title="Living Atlas" note="coming soon — being built" />} />
         <Route path="/healing" element={<ParkedScreen title="Healing Journey" note="coming soon — being built" />} />
         <Route path="/events" element={<ParkedScreen title="Events" note="coming soon — being built" />} />

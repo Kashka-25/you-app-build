@@ -1,4 +1,4 @@
-import { Menu, Bell } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppData } from "../lib/AppDataContext";
 
@@ -18,12 +18,10 @@ export default function TopBar({ onMenuClick }) {
         <img src="/logo-wordmark.png" alt="YOU — Your Own Universe" className="h-9 w-auto mx-auto" />
       </div>
 
+      {/* No notifications yet, so no bell: a control that does nothing (and
+          a dot that never clears) only adds noise. */}
       <div className="flex items-center gap-3">
-        <button className="relative text-textSecondary" aria-label="Notifications">
-          <Bell size={18} strokeWidth={1.75} />
-          <span className="absolute -top-0.5 -right-0.5 w-[7px] h-[7px] rounded-full bg-ember border border-surface2" />
-        </button>
-        <Link to="/settings" className="relative w-8 h-8 flex-none" aria-label="Your Own Universe">
+        <Link to="/settings" className="relative w-8 h-8 flex-none before:absolute before:-inset-1.5 before:content-['']" aria-label="Settings: Your Own Universe">
           <div
             className="w-8 h-8 rounded-full"
             style={{ background: "radial-gradient(circle at 35% 30%, var(--sage), var(--forest) 70%)" }}
