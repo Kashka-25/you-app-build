@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ExternalLink, Palette, Plus, X } from "lucide-react";
 import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
-import { LINK_KINDS, normalizeHandle, normalizeUrl } from "../../lib/showcase";
+import { LINK_KINDS, fitText, normalizeHandle, normalizeUrl } from "../../lib/showcase";
 import { loadArtistProfile, saveArtistProfile } from "../../lib/showcaseApi";
 import { Button } from "../ui/Button";
 
@@ -28,7 +28,7 @@ export default function ArtistProfileCard() {
         setP(
           row
             ? { display_name: row.display_name, bio: row.bio || "", links: Array.isArray(row.links) ? row.links : [], kronk_handle: row.kronk_handle || "" }
-            : { display_name: (profile?.name || "").slice(0, 60), bio: (profile?.bio || "").slice(0, 280), links: [], kronk_handle: "" }
+            : { display_name: fitText(profile?.name, 60), bio: fitText(profile?.bio, 280), links: [], kronk_handle: "" }
         );
       })
       .catch(e => {

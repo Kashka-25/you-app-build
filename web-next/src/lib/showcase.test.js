@@ -78,3 +78,12 @@ describe("creditLine", () => {
     );
   });
 });
+
+describe("fitText", () => {
+  it("ends at a sentence, else a word", async () => {
+    const { fitText } = await import("./showcase");
+    expect(fitText("One sentence here. Another that runs on and on.", 30)).toBe("One sentence here.");
+    expect(fitText("words that keep going without any stop", 20)).toBe("words that keep…");
+    expect(fitText(null, 10)).toBe("");
+  });
+});

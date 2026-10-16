@@ -125,3 +125,14 @@ export function backgroundClass(mode) {
   if (mode === "blur") return "blur-[6px] scale-[1.06]";
   return "";
 }
+
+/** Shortens text to fit, ending at a sentence if one fits, else at a word, never mid-word. */
+export function fitText(text, max) {
+  const s = (text || "").trim();
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max);
+  const sentence = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "), cut.lastIndexOf(".\n"));
+  if (sentence >= max / 2) return cut.slice(0, sentence + 1).trim();
+  const space = cut.slice(0, max - 1).lastIndexOf(" ");
+  return `${cut.slice(0, space > 0 ? space : max - 1).trimEnd()}…`;
+}
