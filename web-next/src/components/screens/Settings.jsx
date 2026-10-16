@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LogOut, Sparkles, Sun } from "lucide-react";
+import { LogOut, Palette, Sparkles, Sun } from "lucide-react";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
 import { AI_USER_MONTHLY_USD } from "../../lib/aiCost";
 import { PREMIUM_NAME, PREMIUM_OPEN_IN_BETA } from "../../lib/premium";
@@ -9,6 +9,8 @@ import { BackRow, SectionTitle, Placeholder } from "../Primitives";
 import { FloatingLabelField } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { AiCard, AiLabel } from "../ui/Premium";
+import { SegmentedControl } from "../ui/SegmentedControl";
+import { BACKGROUND_MODES, backgroundMode, setBackgroundMode } from "../../lib/showcase";
 
 // "My YOU" — the personal identity screen (MVP Feature 1). Account-level
 // bits (sign out) live here too since there's no separate Settings screen
@@ -91,6 +93,7 @@ export default function Settings() {
 
       <AiReflectionsSetting aiConsent={aiConsent} onChange={setAiConsentGranted} />
       <ThresholdSetting />
+      <ShowcaseBackgroundSetting />
 
       <div className="mt-6">
         <Placeholder label="preferences">Notifications, privacy, data export — future.</Placeholder>
@@ -228,6 +231,31 @@ function ThresholdSetting() {
       <Button variant="secondary" size="sm" onClick={toggle}>
         {on ? "Open straight to Home" : "Open on the Threshold"}
       </Button>
+    </div>
+  );
+}
+
+// Artists' pieces can fill the welcome on Home. Remembered on this device.
+function ShowcaseBackgroundSetting() {
+  const [mode, setMode] = useState(backgroundMode);
+
+  function pick(v) {
+    setBackgroundMode(v);
+    setMode(v);
+  }
+
+  return (
+    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
+      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
+        <Palette size={13} strokeWidth={1.75} />
+        Featured art on Home
+      </div>
+      <div className="text-bodySm text-textSecondary mb-3">
+        {mode === "off"
+          ? "Off. Home keeps its own landscape. Shared pieces are still in the Showcase."
+          : "When an artist's piece is featured, it fills the welcome on Home, credited to them. Dim or blur it if you'd like it quieter."}
+      </div>
+      <SegmentedControl options={BACKGROUND_MODES} value={mode} onChange={pick} />
     </div>
   );
 }

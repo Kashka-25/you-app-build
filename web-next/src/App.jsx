@@ -10,6 +10,8 @@ import Journey from "./components/screens/Journey";
 import You from "./components/screens/You";
 import Pursue from "./components/screens/Pursue";
 import Empatherapy from "./components/screens/Empatherapy";
+import ShowcaseGallery from "./components/screens/ShowcaseGallery";
+import ShowcaseReview from "./components/screens/ShowcaseReview";
 import Reflections from "./components/screens/Reflections";
 import Legacy from "./components/screens/Legacy";
 import Mirror from "./components/screens/Mirror";
@@ -114,6 +116,8 @@ export default function App() {
         <Route path="/mirror" element={<Mirror />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/codex-requests" element={<CodexRequests />} />
+        <Route path="/showcase" element={<ShowcaseGallery />} />
+        <Route path="/showcase-review" element={<ShowcaseReview />} />
         <Route path="/build-notes" element={<BuildNotes />} />
       </Route>
     </Routes>

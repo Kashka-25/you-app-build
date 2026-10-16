@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Palette, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
@@ -53,6 +53,12 @@ export function MenuContents({ onNavigate, mode, onToggleMode, open = true }) {
             {item.label}
           </NavLink>
         ))}
+        <NavLink to="/showcase" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
+          <span className="w-10 h-10 flex-none flex items-center justify-center" aria-hidden="true">
+            <Palette size={22} strokeWidth={1.5} className="text-gold" />
+          </span>
+          Showcase
+        </NavLink>
 
         <button
           type="button"
@@ -88,6 +94,9 @@ export function MenuContents({ onNavigate, mode, onToggleMode, open = true }) {
                 </span>
               )}
             </span>
+          </NavLink>
+          <NavLink to="/showcase-review" onClick={onNavigate} className={linkClass}>
+            Showcase review
           </NavLink>
           <NavLink to="/build-notes" onClick={onNavigate} className={linkClass}>
             Build notes

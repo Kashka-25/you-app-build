@@ -12,6 +12,11 @@ import WelcomeHero from "../home/WelcomeHero";
 import DailyCheckIn from "../home/DailyCheckIn";
 import JourneyProgressCard from "../home/JourneyProgressCard";
 import { PracticeCard, QuickTools } from "../home/PracticeAndTools";
+import FeaturedWords from "../showcase/FeaturedWords";
+import ArtworkSheet from "../showcase/ArtworkSheet";
+import { useAuth } from "../../lib/AuthContext";
+import { useShowcase } from "../../lib/showcaseApi";
+import { backgroundMode, pickFeatured } from "../../lib/showcase";
 import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 
 // Home answers three things, in this order: how am I arriving, where am I
@@ -25,6 +30,10 @@ export default function Home() {
   const hasIntentions = !useTodayList().isEmpty;
   const { entries: courses, tools } = useCourseNow();
   const [insightsLoaded, setInsightsLoaded] = useState(false);
+  const { userId } = useAuth();
+  const showcase = useShowcase(userId);
+  const [openWork, setOpenWork] = useState(null);
+  const [artMode] = useState(backgroundMode);
 
   useEffect(() => {
     if (!loaded || insightsLoaded) return;
@@ -68,6 +77,8 @@ export default function Home() {
   const tendedDays = tendedDaysThisWeek(weekIntentions);
   const sownThisWeek = weekIntentions.some(w => w.week_start === weekStartKey());
   const offerSow = needsSowing(weekIntentions);
+  const featuredArt = pickFeatured(showcase.works, "home_background");
+  const featuredWords = pickFeatured(showcase.works, "featured_words");
 
   return (
     // Phones: one column, in the order the questions are asked. Laptops: a
@@ -78,12 +89,18 @@ export default function Home() {
       style={{ paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom))" }}
     >
       <div className="lg:col-span-12 lg:order-1">
-        <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} />
+        <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} art={featuredArt} artMode={artMode} onOpenArt={setOpenWork} />
       </div>
 
       <div className="lg:col-span-12 lg:order-2">
         <DailyCheckIn todayMood={todayMoodKey} onPick={logMood} />
       </div>
+
+      {featuredWords && (
+        <div className="lg:col-span-12 lg:order-2">
+          <FeaturedWords work={featuredWords} onOpen={setOpenWork} />
+        </div>
+      )}
 
       <div className="lg:col-span-7 lg:order-3">
         <JourneyProgressCard entries={courses} />
@@ -160,6 +177,13 @@ export default function Home() {
           Tap Add below to plant a habit, goal or dream, or write your first journal entry. Home fills in from there.
         </p>
       )}
+
+      <ArtworkSheet
+        work={openWork}
+        saved={Boolean(openWork && showcase.saves[openWork.id])}
+        onSavedChange={showcase.setSaved}
+        onClose={() => setOpenWork(null)}
+      />
     </div>
   );
 }
