@@ -1,4 +1,5 @@
-// Run: npm i --prefix /tmp/pg @electric-sql/pglite@0.2.17 && NODE_PATH=/tmp/pg/node_modules node supabase/tests/showcase_rls.mjs supabase/migrations/20261005160000_value_words.sql supabase/migrations/20261016120000_showcase.sql
+// Run: copy this file into a folder with @electric-sql/pglite@0.2.17 installed, then
+//   node showcase_rls.mjs <repo>/supabase/migrations/20261005160000_value_words.sql <repo>/supabase/migrations/20261016120000_showcase.sql
 // Dry-runs the Showcase migration on PGlite with Supabase-like auth/storage stubs,
 // then checks the RLS rules as an artist, a viewer and an admin.
 import { PGlite } from '@electric-sql/pglite';
