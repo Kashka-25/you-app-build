@@ -11,6 +11,7 @@ import { Button } from "../ui/Button";
 import { AiCard, AiLabel } from "../ui/Premium";
 import { SegmentedControl } from "../ui/SegmentedControl";
 import { BACKGROUND_MODES, backgroundMode, setBackgroundMode } from "../../lib/showcase";
+import ArtistProfileCard from "../showcase/ArtistProfileCard";
 
 // "My YOU" — the personal identity screen (MVP Feature 1). Account-level
 // bits (sign out) live here too since there's no separate Settings screen
@@ -93,6 +94,7 @@ export default function Settings() {
 
       <AiReflectionsSetting aiConsent={aiConsent} onChange={setAiConsentGranted} />
       <ThresholdSetting />
+      <ArtistProfileCard />
       <ShowcaseBackgroundSetting />
 
       <div className="mt-6">

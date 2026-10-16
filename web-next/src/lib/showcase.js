@@ -56,6 +56,22 @@ export function supportLinks(links) {
 
 const HANDLE = /^@([a-z0-9_]{1,30})@([a-z0-9.-]+\.[a-z]{2,})$/i;
 
+/** "ana@kronk.social" or "@ana@kronk.social" → "@ana@kronk.social"; "" stays ""; otherwise null. */
+export function normalizeHandle(raw) {
+  const s = (raw || "").trim();
+  if (!s) return "";
+  const m = s.replace(/^@/, "").match(HANDLE_BARE);
+  return m ? `@${m[1]}@${m[2].toLowerCase()}` : null;
+}
+const HANDLE_BARE = /^([a-z0-9_]{1,30})@([a-z0-9.-]+\.[a-z]{2,})$/i;
+
+/** Adds https:// when missing; only https is allowed. "" stays ""; otherwise null. */
+export function normalizeUrl(raw) {
+  const s = (raw || "").trim();
+  if (!s) return "";
+  return safeUrl(/^[a-z][a-z0-9+.-]*:/i.test(s) ? s : `https://${s}`);
+}
+
 /** "@name@kronk.social" → its profile page on that server, or null. */
 export function kronkProfileUrl(handle) {
   const m = typeof handle === "string" ? handle.trim().match(HANDLE) : null;

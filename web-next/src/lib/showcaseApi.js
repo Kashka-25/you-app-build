@@ -63,6 +63,28 @@ export async function reportWork(workId, reason) {
   if (error && error.code !== "23505") throw error; // reported once already
 }
 
+// ── Artist profile (one row, edited from YOU or YOUrigin) ──────────────────
+export async function loadArtistProfile(userId) {
+  const { data, error } = await supabase
+    .from("artist_profiles")
+    .select("display_name,bio,links,kronk_handle")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function saveArtistProfile(userId, p) {
+  const { error } = await supabase.from("artist_profiles").upsert(
+    { user_id: userId, display_name: p.display_name, bio: p.bio, links: p.links, kronk_handle: p.kronk_handle || null },
+    { onConflict: "user_id" }
+  );
+  if (error) {
+    if (/kronk_handle_key|duplicate key/i.test(error.message)) throw new Error("Another artist already uses that Kronk handle.");
+    throw error;
+  }
+}
+
 // ── Admin ─────────────────────────────────────────────────────────────────
 /** Every piece (admins see all of them under RLS) with its reports. */
 export async function loadReviewQueue() {

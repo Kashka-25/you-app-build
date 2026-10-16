@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { creditLine, kronkProfileUrl, pickFeatured, safeUrl, saveGate, supportLinks } from "./showcase";
+import { creditLine, kronkProfileUrl, normalizeHandle, normalizeUrl, pickFeatured, safeUrl, saveGate, supportLinks } from "./showcase";
 
 const live = (id, placements, featured_at, extra = {}) => ({ id, status: "live", placements, featured_at, ...extra });
 
@@ -37,6 +37,15 @@ describe("links", () => {
       { kind: "other", label: "My shop", url: "https://shop.example/" }
     ]);
     expect(supportLinks(null)).toEqual([]);
+  });
+
+  it("cleans what an artist types into their profile", () => {
+    expect(normalizeHandle("ana@Kronk.Social")).toBe("@ana@kronk.social");
+    expect(normalizeHandle("")).toBe("");
+    expect(normalizeHandle("@ana")).toBeNull();
+    expect(normalizeUrl("ko-fi.com/ana")).toBe("https://ko-fi.com/ana");
+    expect(normalizeUrl("http://ko-fi.com/ana")).toBeNull();
+    expect(normalizeUrl("")).toBe("");
   });
 
   it("turns a Kronk handle into a profile link", () => {
