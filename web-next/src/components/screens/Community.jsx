@@ -4,16 +4,20 @@ import { BackRow, PageBanner } from "../Primitives";
 import { Button } from "../ui/Button";
 import { useAuth } from "../../lib/AuthContext";
 import {
-  KRONK_HOME, KRONK_PUBLISH, KRONK_URL, KRONK_YOU_HUB, goToKronk, kronkThread, kronkTimeline, likeOnKronk, postToKronk, useKronkLink
+  KRONK_HOME, KRONK_PUBLISH, KRONK_URL, KRONK_YOU_HUB, goToKronk, kronkThread, kronkTimeline, likeOnKronk, postToKronk,
+  useKronkFeeds, useKronkLink
 } from "../../lib/kronk";
 import KommYOUnity from "../KommYOUnity";
 import { usePlugin } from "../../lib/plugins";
+import { SegmentedControl } from "../ui/SegmentedControl";
 
 // KommYOUnity: the Kronk community (kronk.info) seen from YOU. The feed of
 // mates you follow, in YOU's look, scrolling on as you read, where you can
 // froth and komment. New posts are written on Kronk itself (the link at the
 // top), and YOU offers to share at meaningful moments (ShareToKronk).
 const PAGE = 15;
+// The Kronk feed last looked at, on this device.
+const LAST_FEED = "you.kronk.feed";
 
 // Mastodon ids are numeric strings too long for a JS number.
 const laterId = (a, b) => a.length !== b.length ? a.length > b.length : a > b;
@@ -108,23 +112,43 @@ function Window({ link }) {
   const heading = useRef(null);
   const endless = usePlugin("endless_feed");
 
+  // Which of Kronk's feeds to show: the ones chosen in Your Own Universe,
+  // starting on the one last looked at on this device (else Orbit).
+  const { feeds } = useKronkFeeds();
+  const [feed, setFeedState] = useState(() => {
+    let last = null;
+    try { last = localStorage.getItem(LAST_FEED); } catch { /* fine */ }
+    return [last, "orbit"].find(v => feeds.some(f => f.value === v)) || feeds[0].value;
+  });
+  const shownFeed = feeds.some(f => f.value === feed) ? feed : feeds[0].value;
+  const feedNow = useRef(shownFeed);
+  feedNow.current = shownFeed;
+  function setFeed(v) {
+    setFeedState(v);
+    try { localStorage.setItem(LAST_FEED, v); } catch { /* fine */ }
+  }
+
   async function load(reset) {
+    const asked = shownFeed;
     setLoading(true);
     setError(null);
+    if (reset) setPosts([]);
     try {
-      const { posts: page } = await kronkTimeline("home", { limit: PAGE, maxId: reset ? undefined : cursor });
+      const { posts: page } = await kronkTimeline(asked, { limit: PAGE, maxId: reset ? undefined : cursor });
+      // Switched to another feed meanwhile? Then this page isn't wanted.
+      if (feedNow.current !== asked) return;
       setCursor(page[page.length - 1]?.id);
       if (reset) { newest.current = page[0]?.id; setFresh([]); }
-      // Everything on your Kronk home feed, your own posts included.
+      // Everything in the chosen feed, your own posts included.
       setPosts(p => (reset ? page : [...p, ...page.filter(x => !p.some(y => y.id === x.id))]));
       setMore(page.length >= PAGE);
     } catch (e) {
-      setError(e);
+      if (feedNow.current === asked) setError(e);
     }
-    setLoading(false);
+    if (feedNow.current === asked) setLoading(false);
   }
 
-  useEffect(() => { load(true); }, [link.handle]);
+  useEffect(() => { newest.current = undefined; setFresh([]); load(true); }, [link.handle, shownFeed]);
 
   // Live: while the page is open and on screen, look for new posts once a
   // minute. They wait behind a quiet pill; nothing moves until it's tapped.
@@ -133,7 +157,9 @@ function Window({ link }) {
       if (document.hidden || !newest.current) return;
       try {
         const since = newest.current;
-        const { posts: page } = await kronkTimeline("home", { limit: 20, sinceId: since });
+        const asked = feedNow.current;
+        const { posts: page } = await kronkTimeline(asked, { limit: 20, sinceId: since });
+        if (feedNow.current !== asked) return;
         // Kronk ids grow over time; only count what's truly newer.
         const newer = page.filter(x => laterId(x.id, since));
         if (!newer.length) return;
@@ -144,7 +170,7 @@ function Window({ link }) {
     const timer = setInterval(check, 60 * 1000);
     document.addEventListener("visibilitychange", check);
     return () => { clearInterval(timer); document.removeEventListener("visibilitychange", check); };
-  }, [link.handle]);
+  }, [link.handle, shownFeed]);
 
   function showFresh() {
     setPosts(p => [...fresh, ...p.filter(x => !fresh.some(f => f.id === x.id))]);
@@ -188,7 +214,14 @@ function Window({ link }) {
         </span>
       </a>
 
-      <h2 ref={heading} className="font-serif text-h3 text-textPrimary mb-2.5 scroll-mt-4">Your Kronk feed</h2>
+      <div ref={heading} className="scroll-mt-4 mb-3">
+        {feeds.length > 1 ? (
+          <SegmentedControl options={feeds} value={shownFeed} onChange={setFeed} />
+        ) : (
+          <h2 className="font-serif text-h3 text-textPrimary m-0">{feeds[0].label}</h2>
+        )}
+        <div className="text-caption text-textMuted mt-1.5">{feeds.find(f => f.value === shownFeed)?.desc}</div>
+      </div>
 
       {fresh.length > 0 && (
         <div className="sticky top-2 z-10 flex justify-center mb-2.5" role="status">

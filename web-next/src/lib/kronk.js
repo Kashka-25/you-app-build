@@ -80,6 +80,31 @@ export function useKronkLink() {
   return link;
 }
 
+// Kronk's four feeds, in Kronk's own order and words. Each Seeker picks
+// which ones KommYOUnity shows (auth prefs.kronk_feeds; all four by default).
+export const KRONK_FEEDS = [
+  { value: "kronkverse", label: "Kronkverse", desc: "Everything the whole place is saying." },
+  { value: "orbit", label: "Orbit", desc: "Your mates, and theirs." },
+  { value: "mates", label: "Mates", desc: "Only the people you've bonded with." },
+  { value: "me", label: "Me", desc: "Just your own posts." }
+];
+
+export function useKronkFeeds() {
+  const { prefs, setPrefs } = useAuth();
+  const chosen = Array.isArray(prefs?.kronk_feeds) ? prefs.kronk_feeds : null;
+  const feeds = KRONK_FEEDS.filter(f => !chosen || chosen.includes(f.value));
+  return {
+    feeds: feeds.length ? feeds : KRONK_FEEDS,
+    // Never fewer than one: the last one can't be switched off.
+    toggle: value => {
+      const now = feeds.map(f => f.value);
+      const next = now.includes(value) ? now.filter(v => v !== value) : [...now, value];
+      if (!next.length) return Promise.resolve();
+      return setPrefs({ kronk_feeds: KRONK_FEEDS.map(f => f.value).filter(v => next.includes(v)) });
+    }
+  };
+}
+
 // Kronk-only Seekers have a placeholder email and sign in with Kronk.
 export function signsInWithKronk(email) {
   return typeof email === "string" && email.endsWith("@kronk-login.invalid");

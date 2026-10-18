@@ -10,7 +10,7 @@ import { PLUGINS, usePlugin, useSetPlugin } from "../../lib/plugins";
 import { exportMyData, downloadJson, deleteMyAccount } from "../../lib/accountData";
 import { localDateKey } from "../../lib/week";
 import { useNavigate } from "react-router-dom";
-import { disconnectKronk, goToKronk, refreshKronkLink, signsInWithKronk, useKronkLink } from "../../lib/kronk";
+import { KRONK_FEEDS, disconnectKronk, goToKronk, refreshKronkLink, signsInWithKronk, useKronkFeeds, useKronkLink } from "../../lib/kronk";
 import { supabase } from "../../lib/supabaseClient";
 import { FloatingLabelField } from "../ui/Input";
 import { Button } from "../ui/Button";
@@ -465,6 +465,7 @@ function KronkSetting() {
             Connected as <span className="text-textPrimary">{link.handle}</span>. Your Kronk feed is in KommYOUnity.
             {kronkOnly && " You sign in to YOU with Kronk."}
           </div>
+          <KronkFeedChoice />
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" size="sm" onClick={() => navigate("/community")}>Open KommYOUnity</Button>
             {!kronkOnly && (
@@ -485,6 +486,45 @@ function KronkSetting() {
         </>
       )}
       {error && <div className="text-bodySm text-red-500 mt-2">{error}</div>}
+    </div>
+  );
+}
+
+// Which of Kronk's four feeds KommYOUnity shows, as tabs. At least one.
+function KronkFeedChoice() {
+  const { feeds, toggle } = useKronkFeeds();
+  const [error, setError] = useState("");
+  const on = v => feeds.some(f => f.value === v);
+  return (
+    <div className="mb-4">
+      <div className="text-label uppercase text-textMuted mb-1.5">Feeds in KommYOUnity</div>
+      <div className="space-y-1.5" role="group" aria-label="Feeds in KommYOUnity">
+        {KRONK_FEEDS.map(f => {
+          const checked = on(f.value);
+          const last = checked && feeds.length === 1;
+          return (
+            <button
+              key={f.value}
+              type="button"
+              role="checkbox"
+              aria-checked={checked}
+              aria-disabled={last}
+              title={last ? "Keep at least one feed" : undefined}
+              onClick={() => { if (last) return; setError(""); toggle(f.value).catch(() => setError("Couldn't save that. Try again.")); }}
+              className={`w-full flex items-center gap-3 rounded-sm border px-3 py-2 text-left ${checked ? "border-forestAccent bg-surface2" : "border-borderC"}`}
+            >
+              <span className={`w-4 h-4 rounded-[4px] border flex-none flex items-center justify-center text-[11px] ${checked ? "border-forestAccent bg-forestAccent text-onAccent" : "border-borderC"}`} aria-hidden="true">
+                {checked ? "✓" : ""}
+              </span>
+              <span>
+                <span className="block text-bodySm text-textPrimary">{f.label}</span>
+                <span className="block text-caption text-textMuted">{f.desc}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {error && <div className="text-caption text-red-500 mt-1.5">{error}</div>}
     </div>
   );
 }

@@ -4,7 +4,7 @@
 //   start      { mode: "link" | "signin", origin }  → { url } to send the browser to Kronk
 //   finish     { code, state }                       → link: { handle }  ·  signin: { token_hash, created }
 //   disconnect {}                                     → revokes YOU's access on Kronk and forgets it
-//   timeline   { feed, limit?, max_id?, since_id? }  → { posts: [...] } in a safe, plain shape
+//   timeline   { feed: kronkverse | orbit | mates | me, limit?, max_id?, since_id? } → { posts }
 //   post       { text, visibility, in_reply_to? }    → { url }
 //   like       { id, on }                            → { liked, likes }
 //   thread     { id }                                → { replies: [...] }
@@ -268,10 +268,19 @@ Deno.serve(async req => {
     if (!token) return json({ error: "Connect your Kronk account first.", code: "not_linked" }, 400);
 
     if (action === "timeline") {
-      const path = body.feed === "local" ? "/api/v1/timelines/public" : "/api/v1/timelines/home";
+      // Kronk's four feeds, as its own web app asks for them:
+      //   kronkverse  everything the whole place is saying (local public)
+      //   orbit       your mates, and theirs (the home timeline)
+      //   mates       only the people you've bonded with (home, scope=mates)
+      //   me          just your own posts (home, scope=me)
+      // "home" and "local" are the older names for orbit and kronkverse.
+      const feed = ({ home: "orbit", local: "kronkverse" } as Record<string, string>)[body.feed] || body.feed;
+      const kronkverse = feed === "kronkverse";
+      const path = kronkverse ? "/api/v1/timelines/public" : "/api/v1/timelines/home";
       const limit = Math.min(20, Math.max(1, parseInt(body.limit, 10) || 20));
       const q = new URLSearchParams({ limit: String(limit) });
-      if (body.feed === "local") q.set("local", "true");
+      if (kronkverse) q.set("local", "true");
+      if (feed === "mates" || feed === "me") q.set("scope", feed);
       if (body.max_id && /^\d+$/.test(String(body.max_id))) q.set("max_id", String(body.max_id));
       // "Anything new since this one?" for the new-posts pill.
       if (body.since_id && /^\d+$/.test(String(body.since_id))) q.set("since_id", String(body.since_id));
