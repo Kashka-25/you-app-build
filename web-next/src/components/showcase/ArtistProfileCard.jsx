@@ -66,11 +66,7 @@ export default function ArtistProfileCard() {
   }
 
   return (
-    <form onSubmit={submit} className="mt-4 rounded-card bg-surface1 shadow-card p-4">
-      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
-        <Palette size={13} strokeWidth={1.75} />
-        Artist profile
-      </div>
+    <form onSubmit={submit}>
       <div className="text-bodySm text-textSecondary mb-3">
         How you're credited when you share art or words from YOUrigin to the Showcase. It's one profile: YOUrigin edits the same one.
         {isNew && (profile?.name || profile?.bio) ? " Started from your YOU profile." : ""}

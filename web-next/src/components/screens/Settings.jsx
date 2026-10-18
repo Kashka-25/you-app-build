@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { Download, LogOut, Palette, Puzzle, ShieldCheck, Sparkles, Sun, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Brush, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, Trash2 } from "lucide-react";
+import { SCALE_DEFAULT, SCALE_STOPS, applyScale, coloursAt, readScale, stopName, storeScale } from "../../lib/colourScale";
+import { Fold } from "../ui/Fold";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
 import { AI_USER_MONTHLY_USD } from "../../lib/aiCost";
 import { PREMIUM_NAME, PREMIUM_OPEN_IN_BETA } from "../../lib/premium";
@@ -14,7 +16,6 @@ import { KRONK_FEEDS, disconnectKronk, goToKronk, refreshKronkLink, signsInWithK
 import { supabase } from "../../lib/supabaseClient";
 import { FloatingLabelField } from "../ui/Input";
 import { Button } from "../ui/Button";
-import { AiCard, AiLabel } from "../ui/Premium";
 import { SegmentedControl } from "../ui/SegmentedControl";
 import { BACKGROUND_MODES, backgroundMode, setBackgroundMode } from "../../lib/showcase";
 import ArtistProfileCard from "../showcase/ArtistProfileCard";
@@ -24,8 +25,63 @@ import ArtistProfileCard from "../showcase/ArtistProfileCard";
 // yet, not because they belong to the same concept long-term.
 export default function Settings() {
   const { signOut } = useAuth();
-  const { profile, saveProfile, loaded, aiConsent, setAiConsentGranted } = useAppData();
+  const { loaded, aiConsent, setAiConsentGranted } = useAppData();
 
+  return (
+    <div className="pt-1 pb-24 px-5">
+      <BackRow />
+      <SectionTitle>Your Own Universe</SectionTitle>
+
+      {!loaded ? <div className="text-body text-textSecondary">Loading…</div> : <ProfileCard />}
+
+      {/* Everything else folds away, one tidy row each (Cassidy, Oct 18). */}
+      <div className="mt-5">
+        <Fold ai title="AI reflections" hint={`${PREMIUM_NAME}${PREMIUM_OPEN_IN_BETA ? " · free in the beta" : ""} · ${aiConsent?.granted ? "on" : "off"}`}>
+          <AiReflectionsSetting aiConsent={aiConsent} onChange={setAiConsentGranted} />
+        </Fold>
+        <Fold icon={Puzzle} title="Make YOU yours" hint="Turn optional parts on or off">
+          <PluginsSetting />
+        </Fold>
+        <Fold icon={Sun} title="Opening YOU" hint="Land on the Threshold, or straight on Home">
+          <ThresholdSetting />
+        </Fold>
+        <Fold image="/images/icons/light-dark.png" title="Colours" hint="Slide Nature and the Cosmos to your own shades">
+          <ColourScaleSetting />
+        </Fold>
+        <Fold icon={Palette} title="Featured art on Home" hint="Artists' pieces in the welcome">
+          <ShowcaseBackgroundSetting />
+        </Fold>
+        <Fold icon={Brush} title="Your artist profile" hint="How you're credited in the Showcase">
+          <ArtistProfileCard />
+        </Fold>
+        <Fold icon={KronkMark} title="Kronk" hint="KommYOUnity, your feeds, signing in with Kronk">
+          <KronkSetting />
+        </Fold>
+        <Fold icon={ShieldCheck} title="Your data" hint="Download everything, or delete your account">
+          <YourDataSetting />
+        </Fold>
+      </div>
+
+      <ReplayWelcome />
+
+      <Button variant="secondary" icon={LogOut} onClick={() => signOut()} className="w-full mt-2">
+        Sign out
+      </Button>
+    </div>
+  );
+}
+
+// Kronk's Ж, sized like the other section icons.
+function KronkMark() {
+  return <span className="text-[16px] font-semibold leading-none" style={{ fontFamily: "Georgia, serif" }}>Ж</span>;
+}
+
+// Who you are, shown like a profile: name, where you are, and about you,
+// with a small Edit in the corner that opens the three for changing.
+function ProfileCard() {
+  const { profile, saveProfile } = useAppData();
+  const empty = !profile?.name && !profile?.location && !profile?.bio;
+  const [editing, setEditing] = useState(empty);
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
@@ -33,12 +89,12 @@ export default function Settings() {
   const [error, setError] = useState("");
   const [savedAt, setSavedAt] = useState(null);
 
-  useEffect(() => {
-    if (!loaded) return;
+  function reset() {
     setName(profile?.name || "");
     setBio(profile?.bio || "");
     setLocation(profile?.location || "");
-  }, [loaded, profile]);
+  }
+  useEffect(reset, [profile]);
 
   async function submit(e) {
     e.preventDefault();
@@ -47,6 +103,7 @@ export default function Settings() {
     try {
       await saveProfile({ name: name.trim(), bio: bio.trim(), location: location.trim() });
       setSavedAt(Date.now());
+      setEditing(false);
     } catch (err) {
       console.error("[Settings] profile save failed:", err);
       setError(
@@ -58,16 +115,46 @@ export default function Settings() {
     setSaving(false);
   }
 
-  return (
-    <div className="pt-1 pb-24 px-5">
-      <BackRow />
-      <SectionTitle>Your Own Universe</SectionTitle>
-      <div className="text-bodySm text-textSecondary -mt-2 mb-4">Who you are, in your own words.</div>
+  const initial = (profile?.name || "").trim().charAt(0).toUpperCase();
 
-      {!loaded ? (
-        <div className="text-body text-textSecondary">Loading…</div>
+  return (
+    <div className="relative rounded-card bg-surface1 shadow-card p-5">
+      {!editing ? (
+        <>
+          <button
+            type="button"
+            onClick={() => { setSavedAt(null); setEditing(true); }}
+            className="absolute top-3 right-3 inline-flex items-center gap-1 min-h-[36px] px-2.5 rounded-full text-caption text-textSecondary hover:text-textPrimary hover:bg-surface2"
+          >
+            <PenLine size={14} strokeWidth={1.75} /> Edit
+          </button>
+          <div className="flex items-center gap-4 pr-16">
+            <span
+              className="w-16 h-16 rounded-full flex-none flex items-center justify-center font-serif text-[26px] text-cream shadow-card"
+              style={{ background: "radial-gradient(circle at 35% 30%, var(--sage), var(--forest) 70%)" }}
+              aria-hidden="true"
+            >
+              {initial}
+            </span>
+            <div className="min-w-0">
+              <div className="font-serif text-h2 text-textPrimary leading-tight break-words">{profile?.name || "Your name"}</div>
+              {profile?.location && (
+                <div className="flex items-center gap-1 text-caption text-textMuted mt-0.5">
+                  <MapPin size={12} strokeWidth={1.75} /> {profile.location}
+                </div>
+              )}
+            </div>
+          </div>
+          {profile?.bio ? (
+            <p className="text-bodySm text-textSecondary whitespace-pre-line break-words mt-4 mb-0">{profile.bio}</p>
+          ) : (
+            <p className="text-bodySm text-textMuted italic mt-4 mb-0">A little about you, whenever you'd like.</p>
+          )}
+          {savedAt && <div className="text-caption text-sage mt-3">Saved.</div>}
+        </>
       ) : (
         <form onSubmit={submit}>
+          <div className="text-bodySm text-textSecondary mb-3">Who you are, in your own words.</div>
           <FloatingLabelField
             label="Name"
             className="mb-3"
@@ -90,27 +177,19 @@ export default function Settings() {
           />
 
           {error && <div className="text-bodySm text-red-500 mb-3">{error}</div>}
-          {savedAt && !error && <div className="text-bodySm text-sage mb-3">Saved.</div>}
 
-          <Button type="submit" disabled={saving} className="w-full">
-            {saving ? "Saving…" : "Save"}
-          </Button>
+          <div className="flex gap-2">
+            {!empty && (
+              <Button type="button" variant="ghost" className="flex-1" onClick={() => { reset(); setError(""); setEditing(false); }}>
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" disabled={saving} className="flex-1">
+              {saving ? "Saving…" : "Save"}
+            </Button>
+          </div>
         </form>
       )}
-
-      <AiReflectionsSetting aiConsent={aiConsent} onChange={setAiConsentGranted} />
-      <ThresholdSetting />
-      <ArtistProfileCard />
-      <ShowcaseBackgroundSetting />
-
-      <KronkSetting />
-      <PluginsSetting />
-      <YourDataSetting />
-      <ReplayWelcome />
-
-      <Button variant="secondary" icon={LogOut} onClick={() => signOut()} className="w-full mt-2">
-        Sign out
-      </Button>
     </div>
   );
 }
@@ -146,11 +225,7 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
     : null;
 
   return (
-    <AiCard className="mt-6">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <AiLabel>AI reflections</AiLabel>
-        <span className="text-caption text-[#E8C877]">{PREMIUM_NAME}{PREMIUM_OPEN_IN_BETA ? " · free in the beta" : ""}</span>
-      </div>
+    <div>
       <div className="text-caption text-textMuted mb-2">
         Every AI feature in YOU is part of {PREMIUM_NAME}{PREMIUM_OPEN_IN_BETA ? ", open to everyone while YOU is in beta" : ""}.
       </div>
@@ -180,7 +255,7 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
         {saving ? "Saving…" : on ? "Turn off AI reflections" : "Turn on AI reflections"}
       </Button>
       {on && <IncludeCoursesSetting aiConsent={aiConsent} />}
-    </AiCard>
+    </div>
   );
 }
 
@@ -227,11 +302,7 @@ function ThresholdSetting() {
   }
 
   return (
-    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
-      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
-        <Sun size={13} strokeWidth={1.75} />
-        Open on the Threshold
-      </div>
+    <div>
       <div className="text-bodySm text-textSecondary mb-3">
         {on
           ? "On. When you open YOU, you'll land on today first, with a portal into the rest."
@@ -254,11 +325,7 @@ function ShowcaseBackgroundSetting() {
   }
 
   return (
-    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
-      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
-        <Palette size={13} strokeWidth={1.75} />
-        Featured art on Home
-      </div>
+    <div>
       <div className="text-bodySm text-textSecondary mb-3">
         {mode === "off"
           ? "Off. Home keeps its own landscape. Shared pieces are still in the Showcase."
@@ -273,11 +340,7 @@ function ShowcaseBackgroundSetting() {
 function PluginsSetting() {
   const setPlugin = useSetPlugin();
   return (
-    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
-      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
-        <Puzzle size={13} strokeWidth={1.75} />
-        Make YOU yours
-      </div>
+    <div>
       <div className="text-bodySm text-textSecondary mb-3">Turn on only what helps. Nothing you've added is lost when you turn something off.</div>
       {PLUGINS.map(p => <PluginRow key={p.key} plugin={p} onChange={on => setPlugin(p.key, on)} />)}
     </div>
@@ -360,11 +423,7 @@ function YourDataSetting() {
   }
 
   return (
-    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
-      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
-        <ShieldCheck size={13} strokeWidth={1.75} />
-        Your data
-      </div>
+    <div>
       <div className="text-bodySm text-textSecondary mb-3">
         Everything you make in YOU is yours. <a href="/privacy" className="underline underline-offset-2">Privacy &amp; beta terms</a>
       </div>
@@ -452,11 +511,7 @@ function KronkSetting() {
   }
 
   return (
-    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
-      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
-        <span className="font-semibold" aria-hidden="true">Ж</span>
-        Kronk
-      </div>
+    <div>
       {link === undefined ? (
         <div className="text-bodySm text-textMuted">Checking…</div>
       ) : link ? (
@@ -525,6 +580,83 @@ function KronkFeedChoice() {
         })}
       </div>
       {error && <div className="text-caption text-red-500 mt-1.5">{error}</div>}
+    </div>
+  );
+}
+
+// The colour scale: one slider for Nature (by day) and one for the Cosmos
+// (by night). The side you're in changes as you slide; the other shows a
+// small preview. Saved to the account a moment after you let go.
+function ColourScaleSetting() {
+  const { setPrefs } = useAuth();
+  const [scale, setScale] = useState(readScale);
+  const [error, setError] = useState("");
+  const timer = useRef(null);
+
+  function change(mode, pos) {
+    save({ ...scale, [mode]: pos });
+  }
+  function save(next) {
+    setScale(next);
+    storeScale(next);
+    applyScale(next);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      setPrefs({ colour_scale: next }).catch(() => setError("Saved on this device; couldn't save to your account just now."));
+    }, 700);
+  }
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  return (
+    <div>
+      <div className="text-bodySm text-textSecondary mb-4">
+        Your words stay easy to read at every shade. Switch between Nature and the Cosmos in the menu to see each side.
+      </div>
+      <ScaleSlider mode="light" title="Nature, by day" value={scale.light} onChange={v => change("light", v)} />
+      <ScaleSlider mode="dark" title="The Cosmos, by night" value={scale.dark} onChange={v => change("dark", v)} />
+      {(Math.abs(scale.light - SCALE_DEFAULT) > 0.5 || Math.abs(scale.dark - SCALE_DEFAULT) > 0.5) && (
+        <button
+          type="button"
+          onClick={() => save({ light: SCALE_DEFAULT, dark: SCALE_DEFAULT })}
+          className="inline-flex items-center gap-1.5 text-caption text-textSecondary min-h-[40px]"
+        >
+          <RotateCcw size={13} strokeWidth={1.75} /> Back to YOU's own colours
+        </button>
+      )}
+      {error && <div className="text-caption text-red-500 mt-1">{error}</div>}
+    </div>
+  );
+}
+
+function ScaleSlider({ mode, title, value, onChange }) {
+  const stops = SCALE_STOPS[mode];
+  const track = `linear-gradient(90deg, ${stops.map(s => s.s1).join(", ")})`;
+  const here = coloursAt(mode, value);
+  const id = `scale-${mode}`;
+  return (
+    <div className="mb-5">
+      <div className="flex items-center justify-between mb-2">
+        <label htmlFor={id} className="text-bodySm text-textPrimary">{title}</label>
+        <span className="inline-flex items-center gap-1.5 text-caption text-textSecondary">
+          <span className="w-4 h-4 rounded-full border border-borderC" style={{ background: here.s1 }} aria-hidden="true" />
+          {stopName(mode, value)}
+        </span>
+      </div>
+      <input
+        id={id}
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value={Math.round(value)}
+        onChange={e => onChange(Number(e.target.value))}
+        aria-valuetext={stopName(mode, value)}
+        className="you-scale w-full"
+        style={{ "--track": track }}
+      />
+      <div className="flex justify-between text-caption text-textMuted mt-1" aria-hidden="true">
+        {stops.map(s => <span key={s.label}>{s.label}</span>)}
+      </div>
     </div>
   );
 }

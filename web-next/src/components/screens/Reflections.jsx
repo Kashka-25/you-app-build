@@ -141,7 +141,7 @@ export default function Reflections() {
     <div className="pt-1 pb-24 px-5">
       <BackRow />
       <div className="flex justify-between items-center gap-3 mt-4">
-        <h1 className="font-serif text-h2 font-medium m-0">Reflections</h1>
+        <h1 className="font-serif text-h2 font-medium m-0">YOUrnal</h1>
         {tab === "entries" && (
           <div className="flex gap-2">
             <AiButton size="sm" onClick={() => scanInput.current?.click()} busy={scanning}>

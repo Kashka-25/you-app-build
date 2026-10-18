@@ -27,7 +27,7 @@ function saveProjects(list) {
 
 // For Cassidy as creator: one place to jot an edit or idea for this app or
 // any other project. Each note goes to the "Build Notes" database in Notion,
-// where Claude picks it up. Reflections tagged #idea go there on their own; add a project tag (#YOUniversity, #CommYOUnity, #YOUrigin) to file one elsewhere.
+// where Claude picks it up. YOUrnal entries tagged #idea go there on their own; add a project tag (#YOUniversity, #CommYOUnity, #YOUrigin) to file one elsewhere.
 export default function BuildNotes() {
   const { isAdmin, adminChecked, sendBuildNote, sendAllIdeaEntries, ideaEntryCount } = useAppData();
   const [text, setText] = useState("");
@@ -98,7 +98,7 @@ export default function BuildNotes() {
       <BackRow />
       <h1 className="font-serif text-h2 font-medium mt-4 mb-0">Build notes</h1>
       <div className="text-bodySm text-textSecondary mt-2 mb-4">
-        An edit or idea for YOU or any of your projects. It goes to Build Notes in your Notion, where Claude reads it. Reflections tagged #idea go there on their own; add a project tag (#YOUniversity, #CommYOUnity, #YOUrigin) to file one elsewhere.
+        An edit or idea for YOU or any of your projects. It goes to Build Notes in your Notion, where Claude reads it. YOUrnal entries tagged #idea go there on their own; add a project tag (#YOUniversity, #CommYOUnity, #YOUrigin) to file one elsewhere.
       </div>
 
       <div className="flex flex-wrap gap-1.5 mb-3" role="group" aria-label="Project">

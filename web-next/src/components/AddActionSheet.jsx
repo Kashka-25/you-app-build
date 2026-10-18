@@ -162,7 +162,7 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
                 <div className="font-serif text-h2 mb-3">Journal</div>
                 {saved ? (
                   <>
-                    <div className="text-bodySm text-textSecondary mb-4">Saved to your Journal in Reflections.</div>
+                    <div className="text-bodySm text-textSecondary mb-4">Saved to your YOUrnal.</div>
                     <Button variant="secondary" className="w-full" onClick={handleClose}>Close</Button>
                   </>
                 ) : (

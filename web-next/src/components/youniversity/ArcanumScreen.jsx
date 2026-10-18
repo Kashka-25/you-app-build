@@ -185,7 +185,7 @@ export default function ArcanumScreen() {
               {confirm ? (
                 <>
                   <div className="text-bodySm text-textSecondary text-center mb-3">
-                    Your sittings stay in Reflections. You can add it back any time.
+                    Your sittings stay in your YOUrnal. You can add it back any time.
                   </div>
                   <div className="flex gap-2.5">
                     <Button variant="ghost" size="sm" className="flex-1" onClick={() => setConfirm(false)}>Keep it</Button>

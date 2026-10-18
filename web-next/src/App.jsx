@@ -41,6 +41,22 @@ const WanderingScreen = lazy(() => import("./components/wandering/WanderingScree
 import { ParkedScreen } from "./components/Primitives";
 import { thresholdOnOpen } from "./lib/week";
 import { useSectionElement } from "./lib/elements";
+import { applyScale, readScale, storeScale, watchMode } from "./lib/colourScale";
+
+// The Seeker's colour scale: painted now and on every mode flip, and taken
+// from their account when it differs from this device (a change made on
+// another phone follows them here).
+function useColourScale(fromAccount) {
+  useEffect(() => { watchMode(); applyScale(); }, []);
+  useEffect(() => {
+    if (!fromAccount) return;
+    const here = readScale();
+    if (here.light === fromAccount.light && here.dark === fromAccount.dark) return;
+    const next = { ...here, ...fromAccount };
+    storeScale(next);
+    applyScale(next);
+  }, [fromAccount?.light, fromAccount?.dark]);
+}
 
 // Opening the app lands on the Threshold first — once per session, only
 // when arriving at Home (a deep link goes where it points), and only if
@@ -67,6 +83,7 @@ export default function App() {
   useEffect(() => { if (prefs?.welcomed === false) setWelcomeDone(false); }, [prefs?.welcomed]);
   useThresholdOnOpen(!loading && Boolean(userId) && !recovering && !welcoming);
   useSectionElement();
+  useColourScale(prefs?.colour_scale);
 
   // Readable before signing up, so it's checked before the auth gate.
   if (pathname === "/privacy") return <Privacy />;
