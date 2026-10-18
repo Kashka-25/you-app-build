@@ -1,5 +1,5 @@
 import { useAppData } from "../../lib/AppDataContext";
-import { SectionTitle, Pill, ExploreLink, Placeholder, DropdownSection } from "../Primitives";
+import { SectionTitle, Pill, ExploreLink, DropdownSection } from "../Primitives";
 import ValuesPanel from "../values/ValuesPanel";
 import PillarsPanel from "../pillars/PillarsPanel";
 import { GlowBubble } from "../ui/GlowBubble";
@@ -23,15 +23,9 @@ export default function You() {
         <ValuesPanel />
       </DropdownSection>
 
-      <div className="mt-4">
-        <Placeholder label="avatar upgrade station">
-          Sims/Fallout-style attribute-driven upgrades to your avatar, companion, and world — driven
-          by Pillar/Value XP instead of just stat bars. Bigger design conversation before this gets
-          built; this is a placeholder for now.
-        </Placeholder>
-      </div>
-
-      <div className="mt-2">
+      {/* The avatar upgrade station (attribute-driven upgrades from Pillar/Value
+          XP) is still a design conversation; hidden for the beta. */}
+      <div className="mt-6">
         <ExploreLink to="/mirror" label="the mirror" sub="this year so far, and this week one year ago" />
         <ExploreLink to="/legacy" label="legacy" sub="your life, year by year" />
       </div>

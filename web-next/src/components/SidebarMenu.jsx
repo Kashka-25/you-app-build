@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, Palette, X } from "lucide-react";
+import { ChevronDown, ChevronRight, MessageSquareHeart, Palette, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
@@ -14,13 +14,13 @@ const SITEMAP = [
   { to: "/journey", label: "YOUrney", icon: "yourney" },
   { to: "/reflections", label: "Reflections", icon: "reflections" },
   { to: "/youniversity", label: "YOUniversity", icon: "youniversity" },
-  { to: "/community", label: "CommYOUnity", icon: "community" },
   { to: "/you", label: "YOU", icon: "you" }
 ];
 
 // Pages that exist but aren't built yet, folded away so the menu stays
 // clean. Move one up into SITEMAP when it's real.
 const COMING_SOON = [
+  { to: "/community", label: "CommYOUnity" },
   { to: "/therapists", label: "Therapists" },
   { to: "/events", label: "Events / Calendar" },
   { to: "/shop", label: "Shop" },
@@ -36,7 +36,7 @@ const linkClass = ({ isActive }) =>
 
 // Everything the menu lists: the drawer on phones and the fixed sidebar on
 // laptops both show this, so they can never drift apart.
-export function MenuContents({ onNavigate, mode, onToggleMode, open = true }) {
+export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open = true }) {
   const location = useLocation();
   const { isAdmin, codexNew } = useAppData();
   const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
@@ -105,9 +105,19 @@ export function MenuContents({ onNavigate, mode, onToggleMode, open = true }) {
       )}
 
       <div className="border-t border-borderC pt-3">
-        <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} mb-2`}>
+        <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} mb-1`}>
           Your Own Universe
         </NavLink>
+        {onFeedback && (
+          <button
+            type="button"
+            onClick={() => { onNavigate?.(); onFeedback(); }}
+            className="w-full flex items-center gap-2 px-5 py-2.5 mb-2 text-body text-textPrimary border-l-[3px] border-transparent"
+          >
+            <MessageSquareHeart size={17} strokeWidth={1.75} className="text-gold" />
+            Send feedback
+          </button>
+        )}
         <div className="px-5">
           <button
             onClick={onToggleMode}
@@ -121,7 +131,7 @@ export function MenuContents({ onNavigate, mode, onToggleMode, open = true }) {
   );
 }
 
-export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
+export default function SidebarMenu({ open, onClose, mode, onToggleMode, onFeedback }) {
   useEscape(open, onClose);
 
   return (
@@ -141,7 +151,7 @@ export default function SidebarMenu({ open, onClose, mode, onToggleMode }) {
                 <X size={16} strokeWidth={1.75} /> Close
               </button>
             </div>
-            <MenuContents onNavigate={onClose} mode={mode} onToggleMode={onToggleMode} open={open} />
+            <MenuContents onNavigate={onClose} mode={mode} onToggleMode={onToggleMode} onFeedback={onFeedback} open={open} />
           </motion.div>
         </motion.div>
       )}

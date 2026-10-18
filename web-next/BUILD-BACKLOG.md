@@ -773,6 +773,61 @@ unlimited AI.
 - [ ] `suggest-value-challenges` has no AI-consent check. That's fine, since
       it sends only a value's name, but worth knowing.
 
+## Beta readiness (Oct 18)
+
+Built on `feat/nav-and-values-notes`, from the launch-ready list.
+
+- [x] **Password reset**: "Forgot your password?" on sign-in emails a link;
+      arriving from it asks for a new password (12+ characters) first.
+- [x] **Privacy & beta terms** at `/privacy`, readable signed out, linked
+      from sign-in, sign-up and Your Own Universe. Written from what the code
+      does; keep it true when a new service touches anyone's data.
+- [x] **Your data** in Your Own Universe: download everything as JSON
+      (`lib/accountData.js`, own rows only) and delete the account (typed
+      DELETE, then `functions/delete-account`: storage files first, then the
+      auth user, which cascades).
+- [x] **Send feedback** in the side menu, for every tester: saved in
+      `beta_feedback` and forwarded to Build Notes (Source "Beta feedback",
+      the screen it came from, a short tester ref, never an email). 10 a day.
+- [x] **Today's to-do list is optional** (Make YOU yours, in Your Own
+      Universe and the welcome). Per account in auth `user_metadata.prefs`,
+      on by default. Off hides the quick list on Home and the Threshold and
+      the "Today" choice in + Add. More plugins go in `lib/plugins.js`.
+- [x] **Crash catcher**: a calm "try again / back to Home" screen instead
+      of a blank page, and a short report in `client_errors` (message, stack,
+      path, browser; never content; admins read; 20/hour cap).
+- [x] **First-run welcome** (`components/Welcome.jsx`): six pages with the
+      YOU art, once per account, Skip/Back/Escape always there, name and
+      to-do choice inline, ends at Sow or Home. "See the welcome again" in
+      Your Own Universe.
+- [x] Beta badge on sign-in, the top bar and the laptop sidebar.
+- [x] Placeholders: avatar upgrade station hidden; CommYOUnity moved to
+      Coming soon in the menu (it's out of the tab bar too).
+
+### To go live (Cassidy's go-ahead)
+- [ ] Apply `20261018120000_beta_readiness.sql` (and `20261015120000_dream_analysis.sql` if not yet).
+- [ ] Deploy `send-feedback`, `delete-account`, `send-build-note` (now uses
+      `_shared/notion.ts`), and `reflect-on-journal-entry` (dream analysis).
+- [ ] Supabase → Auth → URL Configuration: the site URL and
+      `https://you-app-build.netlify.app/**` under Redirect URLs, so reset
+      links come back to the app.
+- [ ] Check every older table (profiles, items, memory, life_moments,
+      life_chapters, mood_log, user_values, value_challenges) cascades on
+      user delete — run in SQL editor:
+      `select conrelid::regclass, confdeltype from pg_constraint where confrelid = 'auth.users'::regclass;`
+      Any row with `confdeltype` other than `c` or `n` would block deleting
+      an account.
+- [ ] Re-run Security and Performance advisors after the Showcase and beta
+      migrations.
+
+### AI test pass (turn AI reflections on in Your Own Universe first)
+- [ ] Journal: "Reflect" on an entry; a #dream entry → "Read this dream".
+- [ ] Journal highlights: "moments worth keeping" suggestions.
+- [ ] Scan a journal page (photo → text).
+- [ ] Weekly reflection after a Harvest; Seasons; suggest chapters.
+- [ ] Values: "Generate more challenges".
+- [ ] Settings shows the month's allowance moving.
+
 ## Memory photos: carousel + small storage (Oct 3)
 
 - [x] **Several photos per memory** (up to 10), shown as a swipeable

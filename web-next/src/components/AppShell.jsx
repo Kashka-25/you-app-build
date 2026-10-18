@@ -7,6 +7,8 @@ import AddActionSheet from "./AddActionSheet";
 import TopBar from "./TopBar";
 import SidebarMenu, { MenuContents } from "./SidebarMenu";
 import AiConsentModal from "./AiConsentModal";
+import FeedbackSheet from "./FeedbackSheet";
+import { BetaBadge } from "./SignIn";
 
 export default function AppShell() {
   // Remembered on this device; index.html applies it before the first paint.
@@ -16,6 +18,7 @@ export default function AppShell() {
   const [momentOpen, setMomentOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   // Home spreads out into a grid on a laptop; every other screen keeps its
   // readable column.
   const wide = useLocation().pathname === "/";
@@ -41,6 +44,7 @@ export default function AppShell() {
       <aside className="hidden lg:flex w-[248px] flex-none flex-col h-dvh py-5 bg-[color-mix(in_srgb,var(--surface-2)_85%,transparent)] backdrop-blur-md border-r border-borderC">
         <NavLink to="/" className="block px-5 mb-5" aria-label="YOU, home">
           <img src="/logo-wordmark.png" alt="YOU — Your Own Universe" className="h-16 w-auto" />
+          <BetaBadge className="mt-1 inline-block" />
         </NavLink>
         <div className="px-5 mb-4">
           <button
@@ -51,7 +55,7 @@ export default function AppShell() {
             <Plus size={17} strokeWidth={2} /> Add
           </button>
         </div>
-        <MenuContents mode={mode} onToggleMode={toggleMode} />
+        <MenuContents mode={mode} onToggleMode={toggleMode} onFeedback={() => setFeedbackOpen(true)} />
       </aside>
 
       <div className="flex-1 min-w-0 flex justify-center">
@@ -94,13 +98,14 @@ export default function AppShell() {
           </NavLink>
         </div>
 
-        <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} mode={mode} onToggleMode={toggleMode} />
+        <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} mode={mode} onToggleMode={toggleMode} onFeedback={() => setFeedbackOpen(true)} />
       </div>
       </div>
 
       <AddItemModal open={addOpen} onClose={() => setAddOpen(false)} defaultType={addType} />
       <AddMomentModal open={momentOpen} onClose={() => setMomentOpen(false)} />
       <AiConsentModal />
+      <FeedbackSheet open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <AddActionSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}

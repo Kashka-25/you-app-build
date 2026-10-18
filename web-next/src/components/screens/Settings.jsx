@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { LogOut, Palette, Sparkles, Sun } from "lucide-react";
+import { Download, LogOut, Palette, Puzzle, ShieldCheck, Sparkles, Sun, Trash2 } from "lucide-react";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
 import { AI_USER_MONTHLY_USD } from "../../lib/aiCost";
 import { PREMIUM_NAME, PREMIUM_OPEN_IN_BETA } from "../../lib/premium";
 import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
-import { BackRow, SectionTitle, Placeholder } from "../Primitives";
+import { BackRow, SectionTitle } from "../Primitives";
+import { PLUGINS, usePlugin, useSetPlugin } from "../../lib/plugins";
+import { exportMyData, downloadJson, deleteMyAccount } from "../../lib/accountData";
+import { localDateKey } from "../../lib/week";
 import { FloatingLabelField } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { AiCard, AiLabel } from "../ui/Premium";
@@ -97,9 +100,9 @@ export default function Settings() {
       <ArtistProfileCard />
       <ShowcaseBackgroundSetting />
 
-      <div className="mt-6">
-        <Placeholder label="preferences">Notifications, privacy, data export — future.</Placeholder>
-      </div>
+      <PluginsSetting />
+      <YourDataSetting />
+      <ReplayWelcome />
 
       <Button variant="secondary" icon={LogOut} onClick={() => signOut()} className="w-full mt-2">
         Sign out
@@ -258,6 +261,170 @@ function ShowcaseBackgroundSetting() {
           : "When an artist's piece is featured, it fills the welcome on Home, credited to them. Dim or blur it if you'd like it quieter."}
       </div>
       <SegmentedControl options={BACKGROUND_MODES} value={mode} onChange={pick} />
+    </div>
+  );
+}
+
+// Optional parts of YOU, on or off per account (lib/plugins.js).
+function PluginsSetting() {
+  const setPlugin = useSetPlugin();
+  return (
+    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
+      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
+        <Puzzle size={13} strokeWidth={1.75} />
+        Make YOU yours
+      </div>
+      <div className="text-bodySm text-textSecondary mb-3">Turn on only what helps. Nothing you've added is lost when you turn something off.</div>
+      {PLUGINS.map(p => <PluginRow key={p.key} plugin={p} onChange={on => setPlugin(p.key, on)} />)}
+    </div>
+  );
+}
+
+function PluginRow({ plugin, onChange }) {
+  const on = usePlugin(plugin.key);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  async function toggle() {
+    setSaving(true);
+    setError("");
+    try { await onChange(!on); } catch (e) {
+      console.error("[Settings] plugin change failed:", e);
+      setError("Couldn't change that. Check your connection and try again.");
+    }
+    setSaving(false);
+  }
+  return (
+    <div className="flex items-start gap-3 py-2">
+      <div className="flex-1 min-w-0">
+        <div className="text-body text-textPrimary">{plugin.title}</div>
+        <div className="text-caption text-textMuted">{plugin.desc}</div>
+        {error && <div className="text-caption text-red-500 mt-1">{error}</div>}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        aria-label={plugin.title}
+        disabled={saving}
+        onClick={toggle}
+        className={`flex-none mt-0.5 inline-flex items-center gap-2 min-h-[36px] px-3 rounded-full text-caption font-medium border ${on ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC text-textSecondary"}`}
+      >
+        <span className={`w-2 h-2 rounded-full ${on ? "bg-onAccent" : "bg-textMuted"}`} aria-hidden="true" />
+        {on ? "On" : "Off"}
+      </button>
+    </div>
+  );
+}
+
+// Take everything with you, or leave entirely. Deleting asks for the word
+// DELETE, so it can't happen by a stray tap.
+function YourDataSetting() {
+  const { userId, signOut } = useAuth();
+  const [exporting, setExporting] = useState(false);
+  const [exportNote, setExportNote] = useState("");
+  const [confirming, setConfirming] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+
+  async function download() {
+    setExporting(true);
+    setExportNote("");
+    try {
+      const data = await exportMyData(userId);
+      downloadJson(data, `YOU-my-data-${localDateKey()}.json`);
+      setExportNote(data.skipped.length
+        ? "Downloaded. A few parts couldn't be read just now; try again later for those."
+        : "Downloaded. Your photos stay in the app; save any you'd like to keep from their moments.");
+    } catch (e) {
+      console.error("[Settings] export failed:", e);
+      setExportNote("Couldn't put your download together. Check your connection and try again.");
+    }
+    setExporting(false);
+  }
+
+  async function remove() {
+    setDeleting(true);
+    setError("");
+    try {
+      await deleteMyAccount();
+      await signOut();
+    } catch (e) {
+      setError(e.message);
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
+      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
+        <ShieldCheck size={13} strokeWidth={1.75} />
+        Your data
+      </div>
+      <div className="text-bodySm text-textSecondary mb-3">
+        Everything you make in YOU is yours. <a href="/privacy" className="underline underline-offset-2">Privacy &amp; beta terms</a>
+      </div>
+      <Button variant="secondary" size="sm" icon={Download} disabled={exporting} onClick={download}>
+        {exporting ? "Gathering everything…" : "Download my data"}
+      </Button>
+      {exportNote && <div className="text-caption text-textSecondary mt-2">{exportNote}</div>}
+
+      <div className="mt-5 pt-4 border-t border-borderC">
+        {!confirming ? (
+          <button type="button" onClick={() => setConfirming(true)} className="inline-flex items-center gap-1.5 text-bodySm text-textMuted min-h-[44px]">
+            <Trash2 size={14} strokeWidth={1.75} />
+            Delete my account
+          </button>
+        ) : (
+          <div>
+            <div className="text-body text-textPrimary font-medium mb-1">Delete your account?</div>
+            <div className="text-bodySm text-textSecondary mb-3">
+              Everything goes: your journal, values, pursuits, photos and pieces you've shared. It can't be undone.
+              You might like to download your data first.
+            </div>
+            <label className="block text-label uppercase text-textMuted mb-1.5" htmlFor="confirm-delete">Type DELETE to confirm</label>
+            <input
+              id="confirm-delete"
+              value={typed}
+              onChange={e => setTyped(e.target.value)}
+              autoComplete="off"
+              className="w-full bg-surface2 border border-borderC rounded-sm px-3 py-2.5 mb-3 text-body text-textPrimary outline-none focus:border-red-400"
+            />
+            {error && <div className="text-bodySm text-red-500 mb-3">{error}</div>}
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" className="flex-1" onClick={() => { setConfirming(false); setTyped(""); setError(""); }}>
+                Keep my account
+              </Button>
+              <button
+                type="button"
+                disabled={typed.trim() !== "DELETE" || deleting}
+                onClick={remove}
+                className="flex-1 min-h-[40px] rounded-sm bg-red-700 text-white text-bodySm font-medium disabled:opacity-40"
+              >
+                {deleting ? "Deleting…" : "Delete everything"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// The first-run welcome, again (App shows it while prefs.welcomed is off).
+function ReplayWelcome() {
+  const { setPrefs } = useAuth();
+  const [error, setError] = useState("");
+  return (
+    <div className="mt-4 text-center">
+      <button
+        type="button"
+        onClick={() => setPrefs({ welcomed: false }).catch(() => setError("Couldn't open it just now. Try again."))}
+        className="text-bodySm text-textSecondary underline underline-offset-4 min-h-[44px]"
+      >
+        See the welcome again
+      </button>
+      {error && <div className="text-caption text-red-500">{error}</div>}
     </div>
   );
 }
