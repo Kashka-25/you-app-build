@@ -49,13 +49,13 @@ export function MenuContents({ onNavigate, mode, onToggleMode, open = true }) {
       <nav aria-label="Main" className="flex-1 overflow-y-auto">
         {SITEMAP.map(item => (
           <NavLink key={item.to} to={item.to} end={item.end} onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
-            <img src={`/images/icons/${item.icon}.png`} alt="" width="40" height="40" className="w-10 h-10 flex-none" />
+            <img src={`/images/icons/${item.icon}.png`} alt="" width="30" height="30" className="w-[30px] h-[30px] flex-none" />
             {item.label}
           </NavLink>
         ))}
         <NavLink to="/showcase" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
-          <span className="w-10 h-10 flex-none flex items-center justify-center" aria-hidden="true">
-            <Palette size={22} strokeWidth={1.5} className="text-gold" />
+          <span className="w-[30px] h-[30px] flex-none flex items-center justify-center" aria-hidden="true">
+            <Palette size={18} strokeWidth={1.5} className="text-gold" />
           </span>
           Showcase
         </NavLink>

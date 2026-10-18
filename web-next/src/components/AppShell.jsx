@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Home as HomeIcon, Users, Compass, User, Plus } from "lucide-react";
+import { Home as HomeIcon, NotebookPen, Compass, User, Plus } from "lucide-react";
 import AddItemModal from "./pursue/AddItemModal";
 import AddMomentModal from "./journey/AddMomentModal";
 import AddActionSheet from "./AddActionSheet";
@@ -82,9 +82,11 @@ export default function AppShell() {
             </div>
             Add
           </button>
-          <NavLink to="/community" className={({ isActive }) => tabClass(isActive)}>
-            <Users size={20} strokeWidth={1.75} className="mx-auto mb-1" />
-            CommYOUnity
+          {/* Reflections, named YOUrnal in the tab bar (Cassidy, Oct 18).
+              CommYOUnity stays in the side menu. */}
+          <NavLink to="/reflections" className={({ isActive }) => tabClass(isActive)}>
+            <NotebookPen size={20} strokeWidth={1.75} className="mx-auto mb-1" />
+            YOUrnal
           </NavLink>
           <NavLink to="/you" className={({ isActive }) => tabClass(isActive)}>
             <User size={20} strokeWidth={1.75} className="mx-auto mb-1" />
