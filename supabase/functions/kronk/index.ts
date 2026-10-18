@@ -5,7 +5,9 @@
 //   finish     { code, state }                       → link: { handle }  ·  signin: { token_hash, created }
 //   disconnect {}                                     → revokes YOU's access on Kronk and forgets it
 //   timeline   { feed: "home" | "local", limit?, max_id? } → { posts: [...] } in a safe, plain shape
-//   post       { text, visibility }                  → { url }
+//   post       { text, visibility, in_reply_to? }    → { url }
+//   like       { id, on }                            → { liked, likes }
+//   thread     { id }                                → { replies: [...] }
 //
 // "link" connects the signed-in Seeker's Kronk account. "signin" is
 // "Continue with Kronk": it signs in the YOU account linked to that Kronk
@@ -31,7 +33,9 @@ const KRONK_HOST = new URL(KRONK).host;
 const CLIENT_ID = Deno.env.get("KRONK_CLIENT_ID")!;
 const CLIENT_SECRET = Deno.env.get("KRONK_CLIENT_SECRET")!;
 const STATE_SECRET = Deno.env.get("KRONK_STATE_SECRET")!;
-const SCOPES = "read write:statuses";
+// write:favourites added Oct 18 for likes; links made before then are asked
+// to connect again the first time they like something.
+const SCOPES = "read write:statuses write:favourites";
 // Must match the redirect URIs registered on kronk.info.
 const ORIGINS = ["https://you.kronk.info", "https://you-app-build.netlify.app", "http://localhost:5173"];
 const STATE_TTL_MS = 15 * 60 * 1000;
@@ -98,6 +102,10 @@ function shapePost(s: any) {
   const shown = s.reblog || s;
   return {
     id: s.id,
+    // Likes and replies act on the post itself, not a boost of it.
+    target_id: shown.id,
+    visibility: shown.visibility,
+    liked: Boolean(shown.favourited),
     url: https(shown.url) || https(shown.uri),
     created_at: shown.created_at,
     boosted_by: s.reblog ? { name: s.account?.display_name || s.account?.username, handle: handleOf(s.account?.acct || "") } : null,
@@ -271,14 +279,39 @@ Deno.serve(async req => {
       return json({ posts: res.body.map(shapePost) });
     }
 
+    const statusId = /^\d+$/.test(String(body.id || "")) ? String(body.id) : null;
+    // A token from before a scope was added can't do the new thing.
+    const scopeShort = (status: number) => status === 403
+      ? json({ error: "Kronk needs a fresh yes from you for this. Please connect again.", code: "relink" }, 403)
+      : null;
+
+    if (action === "like") {
+      if (!statusId) return json({ error: "Unknown post" }, 400);
+      const res = await kronk(`/api/v1/statuses/${statusId}/${body.on ? "favourite" : "unfavourite"}`, token, { method: "POST" });
+      if (res.status === 401) return json({ error: "Kronk has signed YOU out. Please connect again.", code: "relink" }, 401);
+      const short = scopeShort(res.status);
+      if (short) return short;
+      if (!res.ok) return json({ error: "Kronk didn't take that just now. Try again in a moment." }, 502);
+      return json({ liked: Boolean(res.body?.favourited), likes: res.body?.favourites_count || 0 });
+    }
+
+    if (action === "thread") {
+      if (!statusId) return json({ error: "Unknown post" }, 400);
+      const res = await kronk(`/api/v1/statuses/${statusId}/context`, token);
+      if (res.status === 401) return json({ error: "Kronk has signed YOU out. Please connect again.", code: "relink" }, 401);
+      if (!res.ok) return json({ error: "Couldn't open the conversation just now." }, 502);
+      return json({ replies: (res.body?.descendants || []).slice(0, 60).map(shapePost) });
+    }
+
     if (action === "post") {
       const text = String(body.text || "").trim().slice(0, 5000);
       if (!text) return json({ error: "Nothing to post yet." }, 400);
       const visibility = ["public", "unlisted", "private"].includes(body.visibility) ? body.visibility : "public";
+      const replyTo = /^\d+$/.test(String(body.in_reply_to || "")) ? String(body.in_reply_to) : undefined;
       const res = await kronk("/api/v1/statuses", token, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
-        body: JSON.stringify({ status: text, visibility })
+        body: JSON.stringify({ status: text, visibility, in_reply_to_id: replyTo })
       });
       if (res.status === 401) return json({ error: "Kronk has signed YOU out. Please connect again.", code: "relink" }, 401);
       if (!res.ok) return json({ error: res.body?.error || "Kronk didn't take that post. Try again in a moment." }, 502);

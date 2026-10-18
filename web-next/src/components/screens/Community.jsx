@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
-import { ArrowUpRight, ExternalLink, Link2, Repeat2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, ExternalLink, Heart, Link2, MessageCircle, Repeat2, Send } from "lucide-react";
 import { BackRow, PageBanner } from "../Primitives";
 import { Button } from "../ui/Button";
 import { useAuth } from "../../lib/AuthContext";
-import { KRONK_HOME, KRONK_PUBLISH, KRONK_URL, KRONK_YOU_HUB, goToKronk, kronkTimeline, useKronkLink } from "../../lib/kronk";
+import {
+  KRONK_HOME, KRONK_PUBLISH, KRONK_URL, KRONK_YOU_HUB, goToKronk, kronkThread, kronkTimeline, likeOnKronk, postToKronk, useKronkLink
+} from "../../lib/kronk";
 import KommYOUnity from "../KommYOUnity";
 
 // KommYOUnity: the Kronk community (kronk.info) seen from YOU. The feed of
-// mates you follow, in YOU's look, with no like or boost counts and more only
-// when asked. Posting happens on Kronk itself (the link at the top), and YOU
-// offers to share at meaningful moments (ShareToKronk), always by choice.
+// mates you follow, in YOU's look, scrolling on as you read, where you can
+// like and comment. New posts are written on Kronk itself (the link at the
+// top), and YOU offers to share at meaningful moments (ShareToKronk).
 const PAGE = 15;
 
 const ago = (n, unit) => `${n} ${unit}${n === 1 ? "" : "s"} ago`;
@@ -116,6 +118,20 @@ function Window({ link }) {
 
   useEffect(() => { load(true); }, [link.handle]);
 
+  // Keep the feed going: the next page loads as the end comes into view.
+  const end = useRef(null);
+  const busy = useRef(false);
+  busy.current = loading;
+  useEffect(() => {
+    const el = end.current;
+    if (!el || !more || error || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !busy.current) load(false);
+    }, { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [more, error, cursor]);
+
   return (
     <div>
       {/* Posting happens on Kronk itself; this is the way there. */}
@@ -148,7 +164,7 @@ function Window({ link }) {
         </div>
       )}
 
-      {posts.map(p => <Glimpse key={p.id} post={p} />)}
+      {posts.map(p => <FeedPost key={p.id} post={p} />)}
 
       {!loading && !error && posts.length === 0 && (
         <div className="rounded-card bg-surface1 p-4 text-bodySm text-textSecondary mb-3">
@@ -156,9 +172,12 @@ function Window({ link }) {
         </div>
       )}
       {loading && <div className="text-bodySm text-textMuted py-6 text-center">Looking in on your mates…</div>}
+      {/* The scroll trigger; the button is there for keyboards and older browsers. */}
+      <div ref={end} aria-hidden="true" />
       {!loading && !error && more && posts.length > 0 && (
-        <Button variant="secondary" size="sm" className="w-full mt-1" onClick={() => load(false)}>Show more</Button>
+        <Button variant="ghost" size="sm" className="w-full mt-1" onClick={() => load(false)}>Load more</Button>
       )}
+      {!more && posts.length > 0 && <div className="text-caption text-textMuted text-center py-3">You're all caught up.</div>}
 
       <a
         href={KRONK_HOME}
@@ -172,10 +191,34 @@ function Window({ link }) {
   );
 }
 
-// One post, quietly: who, when, the words and the first image. No counts.
-function Glimpse({ post }) {
+// Kronk's magenta, for a liked heart (lighter in the Cosmos).
+const LIKED = "text-[color:oklch(0.5_0.2_326)] dark:text-[color:oklch(0.72_0.17_326)]";
+
+// One post: who, when, the words and images, with Like and Comment.
+function FeedPost({ post }) {
   const [reveal, setReveal] = useState(!post.warning);
-  const image = post.media[0];
+  const [liked, setLiked] = useState(post.liked);
+  const [likes, setLikes] = useState(post.likes);
+  const [replies, setReplies] = useState(post.replies);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function toggleLike() {
+    const next = !liked;
+    setLiked(next);
+    setLikes(n => Math.max(0, n + (next ? 1 : -1)));
+    setError(null);
+    try {
+      const res = await likeOnKronk(post.target_id, next);
+      setLiked(res.liked);
+      setLikes(res.likes);
+    } catch (e) {
+      setLiked(!next);
+      setLikes(n => Math.max(0, n + (next ? -1 : 1)));
+      setError(e);
+    }
+  }
+
   return (
     <article className="rounded-card bg-surface1 shadow-card p-4 mb-2.5">
       {post.boosted_by && (
@@ -183,15 +226,7 @@ function Glimpse({ post }) {
           <Repeat2 size={13} strokeWidth={1.75} /> shared by {post.boosted_by.name}
         </div>
       )}
-      <div className="flex items-center gap-3 mb-2">
-        {post.account.avatar
-          ? <img src={post.account.avatar} alt="" loading="lazy" className="w-8 h-8 rounded-full object-cover flex-none" />
-          : <span className="w-8 h-8 rounded-full bg-surface3 flex-none" aria-hidden="true" />}
-        <div className="flex-1 min-w-0">
-          <div className="text-bodySm font-medium text-textPrimary truncate">{post.account.name || post.account.handle}</div>
-          <div className="text-caption text-textMuted truncate">{timeAgo(post.created_at)}</div>
-        </div>
-      </div>
+      <PostHead account={post.account} when={post.created_at} />
       {post.warning && (
         <button
           type="button"
@@ -203,15 +238,152 @@ function Glimpse({ post }) {
       )}
       {reveal && (
         <>
-          {post.text && <p className="text-bodySm text-textSecondary whitespace-pre-line break-words line-clamp-5 m-0">{post.text}</p>}
-          {image && <img src={image.preview} alt={image.alt} loading="lazy" className="w-full max-h-56 object-cover rounded-sm mt-2.5" />}
+          {post.text && <p className="text-bodySm text-textSecondary whitespace-pre-line break-words m-0">{post.text}</p>}
+          {post.media.length > 0 && (
+            <div className={`grid gap-1.5 mt-2.5 ${post.media.length > 1 ? "grid-cols-2" : ""}`}>
+              {post.media.map(m => (
+                <a key={m.preview} href={m.full || m.preview} target="_blank" rel="noopener noreferrer">
+                  <img src={m.preview} alt={m.alt} loading="lazy" className="w-full max-h-72 object-cover rounded-sm" />
+                </a>
+              ))}
+            </div>
+          )}
         </>
       )}
-      {post.url && (
-        <a href={post.url} target="_blank" rel="noopener noreferrer" className="flex justify-end items-center gap-1 text-caption text-forestAccent mt-2 min-h-[32px]">
-          Open on Kronk <ExternalLink size={12} strokeWidth={1.75} />
-        </a>
-      )}
+
+      <div className="flex items-center gap-1 mt-2 -ml-2">
+        <button
+          type="button"
+          onClick={toggleLike}
+          aria-pressed={liked}
+          className={`inline-flex items-center gap-1.5 min-h-[40px] px-2 rounded-sm text-caption ${liked ? LIKED : "text-textMuted"}`}
+        >
+          <Heart size={16} strokeWidth={1.75} fill={liked ? "currentColor" : "none"} />
+          {liked ? "Liked" : "Like"}{likes > 0 && ` · ${likes}`}
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          className="inline-flex items-center gap-1.5 min-h-[40px] px-2 rounded-sm text-caption text-textMuted"
+        >
+          <MessageCircle size={16} strokeWidth={1.75} />
+          Comment{replies > 0 && ` · ${replies}`}
+        </button>
+        {post.url && (
+          <a href={post.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-caption text-forestAccent min-h-[40px] px-1">
+            Kronk <ExternalLink size={12} strokeWidth={1.75} />
+          </a>
+        )}
+      </div>
+      {error && <ActionError error={error} />}
+      {open && <Thread post={post} onReplied={() => setReplies(n => n + 1)} />}
     </article>
+  );
+}
+
+function PostHead({ account, when, small = false }) {
+  const size = small ? "w-7 h-7" : "w-9 h-9";
+  return (
+    <div className="flex items-center gap-2.5 mb-2">
+      {account.avatar
+        ? <img src={account.avatar} alt="" loading="lazy" className={`${size} rounded-full object-cover flex-none`} />
+        : <span className={`${size} rounded-full bg-surface3 flex-none`} aria-hidden="true" />}
+      <div className="flex-1 min-w-0">
+        <div className="text-bodySm font-medium text-textPrimary truncate">{account.name || account.handle}</div>
+        <div className="text-caption text-textMuted truncate">{timeAgo(when)}</div>
+      </div>
+    </div>
+  );
+}
+
+function ActionError({ error }) {
+  return (
+    <div className="text-caption text-red-500 mt-1">
+      {error.message}
+      {error.code === "relink" && (
+        <button type="button" onClick={() => goToKronk("link", "/community")} className="ml-1.5 underline underline-offset-2 text-forestAccent">
+          Connect again
+        </button>
+      )}
+    </div>
+  );
+}
+
+// The comments under a post, and a box to add one. A reply mentions the
+// person and keeps the post's own visibility, as Kronk does.
+function Thread({ post, onReplied }) {
+  const [items, setItems] = useState(null);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function loadThread() {
+    try {
+      setItems((await kronkThread(post.target_id)).replies);
+    } catch (e) {
+      setError(e);
+      setItems([]);
+    }
+  }
+  useEffect(() => { loadThread(); }, []);
+
+  async function reply() {
+    setSending(true);
+    setError(null);
+    try {
+      // "@name" is enough for someone on Kronk itself.
+      const mention = post.account.handle.replace(/@kronk\.info$/i, "");
+      const visibility = post.visibility === "direct" ? "private" : post.visibility;
+      await postToKronk(`${mention} ${text.trim()}`, visibility, post.target_id);
+      setText("");
+      onReplied();
+      await loadThread();
+    } catch (e) {
+      setError(e);
+    }
+    setSending(false);
+  }
+
+  return (
+    <div className="mt-2 pt-3 border-t border-borderC">
+      {items === null ? (
+        <div className="text-caption text-textMuted py-2">Opening the conversation…</div>
+      ) : items.length === 0 ? (
+        <div className="text-caption text-textMuted pb-2">No comments yet.</div>
+      ) : (
+        <div className="space-y-3 mb-3">
+          {items.map(c => (
+            <div key={c.id} className="pl-3 border-l-2 border-borderC">
+              <PostHead account={c.account} when={c.created_at} small />
+              <p className="text-bodySm text-textSecondary whitespace-pre-line break-words m-0">
+                {c.warning ? `${c.warning} (open it on Kronk)` : c.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex items-end gap-2">
+        <label htmlFor={`reply-${post.id}`} className="sr-only">Write a comment</label>
+        <textarea
+          id={`reply-${post.id}`}
+          rows={1}
+          value={text}
+          onChange={e => setText(e.target.value)}
+          maxLength={5000}
+          placeholder="Write a comment…"
+          className="flex-1 min-w-0 bg-surface2 border border-borderC rounded-sm px-3 py-2 text-bodySm text-textPrimary outline-none focus:border-forestAccent resize-none"
+        />
+        <button
+          type="button"
+          onClick={reply}
+          disabled={!text.trim() || sending}
+          className="min-h-[40px] px-3 rounded-sm bg-forestAccent text-onAccent text-caption font-medium inline-flex items-center gap-1.5 disabled:opacity-40"
+        >
+          <Send size={14} strokeWidth={1.75} /> {sending ? "Sending…" : "Send"}
+        </button>
+      </div>
+      {error && <ActionError error={error} />}
+    </div>
   );
 }

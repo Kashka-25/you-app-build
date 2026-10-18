@@ -44,7 +44,9 @@ export const kronkTimeline = (feed, { limit, maxId } = {}) => call({ action: "ti
 export const KRONK_HOME = "https://kronk.info/home";
 // Kronk's own "What's on your mind?" box.
 export const KRONK_PUBLISH = "https://kronk.info/publish";
-export const postToKronk = (text, visibility) => call({ action: "post", text, visibility });
+export const postToKronk = (text, visibility, inReplyTo) => call({ action: "post", text, visibility, in_reply_to: inReplyTo });
+export const likeOnKronk = (id, on) => call({ action: "like", id, on });
+export const kronkThread = id => call({ action: "thread", id });
 
 // The Seeker's Kronk link (without the token, which the database never
 // gives out). `null` = not connected; `undefined` = still checking.
