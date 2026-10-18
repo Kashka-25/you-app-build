@@ -14,13 +14,13 @@ const SITEMAP = [
   { to: "/journey", label: "YOUrney", icon: "yourney" },
   { to: "/reflections", label: "Reflections", icon: "reflections" },
   { to: "/youniversity", label: "YOUniversity", icon: "youniversity" },
+  { to: "/community", label: "CommYOUnity", icon: "community" },
   { to: "/you", label: "YOU", icon: "you" }
 ];
 
 // Pages that exist but aren't built yet, folded away so the menu stays
 // clean. Move one up into SITEMAP when it's real.
 const COMING_SOON = [
-  { to: "/community", label: "CommYOUnity" },
   { to: "/therapists", label: "Therapists" },
   { to: "/events", label: "Events / Calendar" },
   { to: "/shop", label: "Shop" },

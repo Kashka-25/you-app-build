@@ -4,6 +4,9 @@ import { useAuth } from "./lib/AuthContext";
 import SignIn, { SetNewPassword } from "./components/SignIn";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Welcome from "./components/Welcome";
+import KronkCallback from "./components/KronkCallback";
+import Community from "./components/screens/Community";
+import { KRONK_CALLBACK_PATH } from "./lib/kronk";
 import Privacy from "./components/screens/Privacy";
 import AppShell from "./components/AppShell";
 import { LoadingScreen } from "./components/ui/LoadingScreen";
@@ -67,6 +70,8 @@ export default function App() {
 
   // Readable before signing up, so it's checked before the auth gate.
   if (pathname === "/privacy") return <Privacy />;
+  // Kronk's sign-in comes back here, signed in (connecting) or not (Continue with Kronk).
+  if (pathname === KRONK_CALLBACK_PATH) return <KronkCallback />;
 
   if (loading) {
     return (
@@ -110,12 +115,12 @@ export default function App() {
         <Route path="/youniversity/arcanum/:slug" element={<ArcanumScreen />} />
         <Route path="/youniversity/tool/:id" element={<OwnToolScreen />} />
         <Route path="/youniversity/arcanum/:slug/tool/:toolId" element={<CourseToolScreen />} />
+        <Route path="/community" element={<Community />} />
 
         {/* Real, working screens end here. Everything below is intentionally
             gated behind "coming soon" until it has a real backend/data
             source — don't wire mock-data screens back in without checking
             with Cassidy first. */}
-        <Route path="/community" element={<ParkedScreen title="CommYOUnity" note="coming soon — being built" image="/images/home/community.webp" />} />
         <Route path="/atlas" element={<ParkedScreen title="Living Atlas" note="coming soon — being built" />} />
         <Route path="/healing" element={<ParkedScreen title="Healing Journey" note="coming soon — being built" />} />
         <Route path="/events" element={<ParkedScreen title="Events" note="coming soon — being built" />} />

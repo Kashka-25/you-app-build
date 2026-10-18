@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../lib/AuthContext";
+import { goToKronk } from "../lib/kronk";
 
 const fieldClass =
   "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
@@ -113,6 +114,8 @@ export default function SignIn() {
         </button>
       </form>
 
+      {mode !== "reset" && <KronkButton />}
+
       {mode === "signin" && (
         <button type="button" className="w-full text-center text-bodySm text-textSecondary mt-4" onClick={() => go("reset")}>
           Forgot your password?
@@ -186,5 +189,34 @@ export function BetaBadge({ className = "" }) {
     <span className={`font-sans text-[11px] font-semibold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--gold)_50%,transparent)] text-gold align-middle ${className}`}>
       Beta
     </span>
+  );
+}
+
+// "Continue with Kronk": signs in the YOU account linked to a Kronk account,
+// or makes one for someone who's only on Kronk (supabase/functions/kronk).
+function KronkButton() {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function go() {
+    setBusy(true);
+    setError("");
+    try { await goToKronk("signin", "/"); } catch (e) { setError(e.message); setBusy(false); }
+  }
+  return (
+    <div className="mt-4">
+      <div className="flex items-center gap-3 text-caption text-textMuted mb-3" aria-hidden="true">
+        <span className="flex-1 h-px bg-borderC" /> or <span className="flex-1 h-px bg-borderC" />
+      </div>
+      <button
+        type="button"
+        onClick={go}
+        disabled={busy}
+        className="w-full inline-flex items-center justify-center gap-2.5 rounded-sm py-3 font-medium border border-borderC bg-surface1 text-textPrimary disabled:opacity-40"
+      >
+        <span className="w-6 h-6 rounded-full bg-[#2B1F3D] text-[#E8DDF5] text-[13px] leading-6 font-semibold" aria-hidden="true">Ж</span>
+        {busy ? "Opening Kronk…" : "Continue with Kronk"}
+      </button>
+      {error && <div className="text-bodySm text-red-500 mt-2">{error}</div>}
+    </div>
   );
 }

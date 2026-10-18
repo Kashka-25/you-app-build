@@ -87,7 +87,7 @@ export default function ArtistProfileCard() {
         className={`${field} mb-3`}
         value={p.kronk_handle}
         onChange={e => setP({ ...p, kronk_handle: e.target.value })}
-        placeholder="@you@kronk.social"
+        placeholder="@you@kronk.info"
         autoCapitalize="off"
       />
 

@@ -9,6 +9,9 @@ import { BackRow, SectionTitle } from "../Primitives";
 import { PLUGINS, usePlugin, useSetPlugin } from "../../lib/plugins";
 import { exportMyData, downloadJson, deleteMyAccount } from "../../lib/accountData";
 import { localDateKey } from "../../lib/week";
+import { useNavigate } from "react-router-dom";
+import { disconnectKronk, goToKronk, refreshKronkLink, signsInWithKronk, useKronkLink } from "../../lib/kronk";
+import { supabase } from "../../lib/supabaseClient";
 import { FloatingLabelField } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { AiCard, AiLabel } from "../ui/Premium";
@@ -100,6 +103,7 @@ export default function Settings() {
       <ArtistProfileCard />
       <ShowcaseBackgroundSetting />
 
+      <KronkSetting />
       <PluginsSetting />
       <YourDataSetting />
       <ReplayWelcome />
@@ -425,6 +429,62 @@ function ReplayWelcome() {
         See the welcome again
       </button>
       {error && <div className="text-caption text-red-500">{error}</div>}
+    </div>
+  );
+}
+
+// Kronk (kronk.info): connect, see who you're connected as, or disconnect.
+function KronkSetting() {
+  const link = useKronkLink();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email || null)); }, []);
+  const kronkOnly = signsInWithKronk(email);
+
+  async function run(fn) {
+    setBusy(true);
+    setError("");
+    try { await fn(); } catch (e) { setError(e.message); }
+    setBusy(false);
+  }
+
+  return (
+    <div className="mt-4 rounded-card bg-surface1 shadow-card p-4">
+      <div className="flex items-center gap-2 text-label uppercase text-gold mb-2">
+        <span className="font-semibold" aria-hidden="true">Ж</span>
+        Kronk
+      </div>
+      {link === undefined ? (
+        <div className="text-bodySm text-textMuted">Checking…</div>
+      ) : link ? (
+        <>
+          <div className="text-bodySm text-textSecondary mb-3">
+            Connected as <span className="text-textPrimary">{link.handle}</span>. Your Kronk feed is in CommYOUnity.
+            {kronkOnly && " You sign in to YOU with Kronk."}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" size="sm" onClick={() => navigate("/community")}>Open CommYOUnity</Button>
+            {!kronkOnly && (
+              <Button variant="ghost" size="sm" disabled={busy} onClick={() => run(async () => { await disconnectKronk(); refreshKronkLink(); })}>
+                {busy ? "Disconnecting…" : "Disconnect"}
+              </Button>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="text-bodySm text-textSecondary mb-3">
+            Connect your Kronk account to see your mates in CommYOUnity, post to Kronk from YOU, and sign in with Kronk.
+          </div>
+          <Button variant="secondary" size="sm" disabled={busy} onClick={() => run(() => goToKronk("link", "/settings"))}>
+            {busy ? "Opening Kronk…" : "Connect Kronk"}
+          </Button>
+        </>
+      )}
+      {error && <div className="text-bodySm text-red-500 mt-2">{error}</div>}
     </div>
   );
 }

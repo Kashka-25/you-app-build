@@ -18,6 +18,9 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Every bucket stores a Seeker's files under a folder named by their user id.
 const BUCKETS = ["journal-photos", "life-moments", "showcase"];
+const KRONK_BASE = (Deno.env.get("KRONK_BASE") || "https://kronk.info").replace(/\/$/, "");
+const KRONK_CLIENT_ID = Deno.env.get("KRONK_CLIENT_ID");
+const KRONK_CLIENT_SECRET = Deno.env.get("KRONK_CLIENT_SECRET");
 
 // Every file under <userId>/ in a bucket, including nested folders.
 async function listAll(admin: ReturnType<typeof createClient>, bucket: string, prefix: string): Promise<string[]> {
@@ -57,6 +60,16 @@ Deno.serve(async req => {
         const { error } = await admin.storage.from(bucket).remove(paths.slice(i, i + 100));
         if (error) throw new Error(`${bucket}: ${error.message}`);
       }
+    }
+
+    // A connected Kronk account: take back YOU's access there too.
+    const { data: kronkLink } = await admin.from("kronk_links").select("access_token").eq("user_id", user.id).maybeSingle();
+    if (kronkLink?.access_token && KRONK_CLIENT_ID && KRONK_CLIENT_SECRET) {
+      await fetch(`${KRONK_BASE}/oauth/revoke`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ client_id: KRONK_CLIENT_ID, client_secret: KRONK_CLIENT_SECRET, token: kronkLink.access_token })
+      }).catch(() => null);
     }
 
     const { error } = await admin.auth.admin.deleteUser(user.id);
