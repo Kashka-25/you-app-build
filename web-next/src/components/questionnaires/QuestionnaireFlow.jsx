@@ -201,7 +201,7 @@ export default function QuestionnaireFlow({ open, onClose, questionnaire, valueN
                     Thank you for sitting with {valueName}, light and shadow both.
                   </div>
                   <AnswerSummary steps={steps} answers={answers} />
-                  <div className="text-caption text-textMuted mb-4">Kept in Reflections → Explorations, just for you.</div>
+                  <div className="text-caption text-textMuted mb-4">Kept in your YOUrnal → Explorations, just for you.</div>
                   <Button variant="secondary" className="w-full" onClick={onClose}>Close</Button>
                 </div>
               )}

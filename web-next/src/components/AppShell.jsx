@@ -86,7 +86,7 @@ export default function AppShell() {
             </div>
             Add
           </button>
-          {/* Reflections, named YOUrnal in the tab bar (Cassidy, Oct 18).
+          {/* The YOUrnal (Reflections screen) in the tab bar (Cassidy, Oct 18).
               CommYOUnity stays in the side menu. */}
           <NavLink to="/reflections" className={({ isActive }) => tabClass(isActive)}>
             <NotebookPen size={20} strokeWidth={1.75} className="mx-auto mb-1" />

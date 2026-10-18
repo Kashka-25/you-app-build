@@ -13,7 +13,7 @@ import KommYOUnity from "./KommYOUnity";
 const SITEMAP = [
   { to: "/", label: "Home", end: true, icon: "home" },
   { to: "/journey", label: "YOUrney", icon: "yourney" },
-  { to: "/reflections", label: "Reflections", icon: "reflections" },
+  { to: "/reflections", label: "YOUrnal", icon: "reflections" },
   { to: "/youniversity", label: "YOUniversity", icon: "youniversity" },
   { to: "/community", label: <KommYOUnity />, icon: "community" },
   { to: "/you", label: "YOU", icon: "you" }
