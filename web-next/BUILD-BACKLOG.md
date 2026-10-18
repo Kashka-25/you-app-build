@@ -778,14 +778,19 @@ unlimited AI.
 Kronk is kronk.info (Mastodon 4.5, invite-only). Its **YOU hub**
 (kronk.info/hub/you) is the door in, with "Open YOU" → you.kronk.info.
 
-- [x] OAuth app on kronk.info: "YOU - Your Own Universe" (id 2021, scopes
-      `read write:statuses`, redirects for you.kronk.info, Netlify and
-      localhost). Credentials are Supabase secrets `KRONK_*`, nowhere else.
+- [x] OAuth app on kronk.info: "YOU - Your Own Universe" (id 2022, scopes
+      `read write:statuses write:favourites`, redirects for you.kronk.info,
+      Netlify and localhost). Credentials are Supabase secrets `KRONK_*`,
+      nowhere else. *(Replaced app 2021 the same day to add Froth; links made
+      with 2021 are asked to connect again on their first Froth.)*
 - [x] `functions/kronk` (deployed): connect, Continue with Kronk (signs in
       or creates a YOU account; Kronk-only accounts get a placeholder email
       `kronk-<id>@kronk-login.invalid`), disconnect, feed, post.
-- [x] CommYOUnity is real (feed + composer + credit line); Kronk card in
-      Your Own Universe; "Continue with Kronk" on sign-in.
+- [x] KommYOUnity (₭ from Kronk's logo): your live Kronk home feed, endless
+      scroll (a Make YOU yours choice), Froth / Komment, a new-posts pill, a
+      "What's on your mind?" link to kronk.info/publish, share prompts at
+      meaningful moments; Kronk card in Your Own Universe; "Continue with
+      Kronk" on sign-in.
 - [ ] Apply `20261018150000_kronk_links.sql` in the SQL editor.
 - [ ] End-to-end test: connect from Your Own Universe, post, then sign out
       and "Continue with Kronk".
