@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, ExternalLink, Heart, Link2, MessageCircle, Repeat2, Send } from "lucide-react";
+import { ArrowUp, ArrowUpRight, ExternalLink, Heart, Link2, MessageCircle, Repeat2, Send } from "lucide-react";
 import { BackRow, PageBanner } from "../Primitives";
 import { Button } from "../ui/Button";
 import { useAuth } from "../../lib/AuthContext";
@@ -7,12 +7,16 @@ import {
   KRONK_HOME, KRONK_PUBLISH, KRONK_URL, KRONK_YOU_HUB, goToKronk, kronkThread, kronkTimeline, likeOnKronk, postToKronk, useKronkLink
 } from "../../lib/kronk";
 import KommYOUnity from "../KommYOUnity";
+import { usePlugin } from "../../lib/plugins";
 
 // KommYOUnity: the Kronk community (kronk.info) seen from YOU. The feed of
 // mates you follow, in YOU's look, scrolling on as you read, where you can
 // froth and komment. New posts are written on Kronk itself (the link at the
 // top), and YOU offers to share at meaningful moments (ShareToKronk).
 const PAGE = 15;
+
+// Mastodon ids are numeric strings too long for a JS number.
+const laterId = (a, b) => a.length !== b.length ? a.length > b.length : a > b;
 
 const ago = (n, unit) => `${n} ${unit}${n === 1 ? "" : "s"} ago`;
 function timeAgo(iso) {
@@ -100,6 +104,11 @@ function Window({ link }) {
   // that aren't shown here.
   const [cursor, setCursor] = useState(undefined);
   const mine = h => h.toLowerCase() === link.handle.toLowerCase();
+  // The newest post Kronk has given us, and new ones waiting behind the pill.
+  const newest = useRef(undefined);
+  const [fresh, setFresh] = useState([]);
+  const heading = useRef(null);
+  const endless = usePlugin("endless_feed");
 
   async function load(reset) {
     setLoading(true);
@@ -107,6 +116,7 @@ function Window({ link }) {
     try {
       const { posts: page } = await kronkTimeline("home", { limit: PAGE, maxId: reset ? undefined : cursor });
       setCursor(page[page.length - 1]?.id);
+      if (reset) { newest.current = page[0]?.id; setFresh([]); }
       const shown = page.filter(x => !mine(x.account.handle));
       setPosts(p => (reset ? shown : [...p, ...shown]));
       setMore(page.length >= PAGE);
@@ -118,19 +128,47 @@ function Window({ link }) {
 
   useEffect(() => { load(true); }, [link.handle]);
 
-  // Keep the feed going: the next page loads as the end comes into view.
+  // Live: while the page is open and on screen, look for new posts once a
+  // minute. They wait behind a quiet pill; nothing moves until it's tapped.
+  useEffect(() => {
+    async function check() {
+      if (document.hidden || !newest.current) return;
+      try {
+        const since = newest.current;
+        const { posts: page } = await kronkTimeline("home", { limit: 20, sinceId: since });
+        // Kronk ids grow over time; only count what's truly newer.
+        const newer = page.filter(x => laterId(x.id, since));
+        if (!newer.length) return;
+        newest.current = newer[0].id;
+        const theirs = newer.filter(x => !mine(x.account.handle));
+        if (theirs.length) setFresh(f => [...theirs, ...f.filter(x => !theirs.some(t => t.id === x.id))]);
+      } catch { /* the next minute will try again */ }
+    }
+    const timer = setInterval(check, 60 * 1000);
+    document.addEventListener("visibilitychange", check);
+    return () => { clearInterval(timer); document.removeEventListener("visibilitychange", check); };
+  }, [link.handle]);
+
+  function showFresh() {
+    setPosts(p => [...fresh, ...p.filter(x => !fresh.some(f => f.id === x.id))]);
+    setFresh([]);
+    heading.current?.scrollIntoView({ block: "start" });
+  }
+
+  // Endless scroll (a Make YOU yours choice, on by default): the next page
+  // loads as the end comes into view. Off, it waits for "Show more".
   const end = useRef(null);
   const busy = useRef(false);
   busy.current = loading;
   useEffect(() => {
     const el = end.current;
-    if (!el || !more || error || typeof IntersectionObserver === "undefined") return;
+    if (!endless || !el || !more || error || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && !busy.current) load(false);
     }, { rootMargin: "600px 0px" });
     io.observe(el);
     return () => io.disconnect();
-  }, [more, error, cursor]);
+  }, [endless, more, error, cursor]);
 
   return (
     <div>
@@ -153,7 +191,20 @@ function Window({ link }) {
         </span>
       </a>
 
-      <h2 className="font-serif text-h3 text-textPrimary mb-2.5">From your mates</h2>
+      <h2 ref={heading} className="font-serif text-h3 text-textPrimary mb-2.5 scroll-mt-4">From your mates</h2>
+
+      {fresh.length > 0 && (
+        <div className="sticky top-2 z-10 flex justify-center mb-2.5" role="status">
+          <button
+            type="button"
+            onClick={showFresh}
+            className="inline-flex items-center gap-1.5 min-h-[40px] px-4 rounded-full bg-forestAccent text-onAccent text-bodySm font-medium shadow-card"
+          >
+            <ArrowUp size={15} strokeWidth={2} />
+            {fresh.length === 1 ? "1 new post" : `${fresh.length >= 20 ? "20+" : fresh.length} new posts`} from your mates
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-card bg-surface1 p-4 text-bodySm text-textSecondary mb-3">
@@ -172,10 +223,13 @@ function Window({ link }) {
         </div>
       )}
       {loading && <div className="text-bodySm text-textMuted py-6 text-center">Looking in on your mates…</div>}
-      {/* The scroll trigger; the button is there for keyboards and older browsers. */}
+      {/* The scroll trigger; with endless scroll on, the button is only a
+          fallback for keyboards and older browsers. */}
       <div ref={end} aria-hidden="true" />
       {!loading && !error && more && posts.length > 0 && (
-        <Button variant="ghost" size="sm" className="w-full mt-1" onClick={() => load(false)}>Load more</Button>
+        <Button variant={endless ? "ghost" : "secondary"} size="sm" className="w-full mt-1" onClick={() => load(false)}>
+          {endless ? "Load more" : "Show more"}
+        </Button>
       )}
       {!more && posts.length > 0 && <div className="text-caption text-textMuted text-center py-3">You're all caught up.</div>}
 

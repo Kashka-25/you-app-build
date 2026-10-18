@@ -40,7 +40,8 @@ export function takeReturnPath() {
 
 export const finishKronk = (code, state) => call({ action: "finish", code, state });
 export const disconnectKronk = () => call({ action: "disconnect" });
-export const kronkTimeline = (feed, { limit, maxId } = {}) => call({ action: "timeline", feed, limit, max_id: maxId });
+export const kronkTimeline = (feed, { limit, maxId, sinceId } = {}) =>
+  call({ action: "timeline", feed, limit, max_id: maxId, since_id: sinceId });
 export const KRONK_HOME = "https://kronk.info/home";
 // Kronk's own "What's on your mind?" box.
 export const KRONK_PUBLISH = "https://kronk.info/publish";

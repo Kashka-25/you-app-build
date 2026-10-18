@@ -9,6 +9,12 @@ export const PLUGINS = [
     title: "Today's to-do list",
     desc: "A quick list for small things today, on Home and the Threshold. Whatever's left tonight falls away.",
     on: true
+  },
+  {
+    key: "endless_feed",
+    title: "Endless KommYOUnity feed",
+    desc: "Your mates' posts keep loading as you scroll. Off, the feed pauses every 15 posts until you tap Show more.",
+    on: true
   }
 ];
 

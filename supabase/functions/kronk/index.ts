@@ -4,7 +4,7 @@
 //   start      { mode: "link" | "signin", origin }  → { url } to send the browser to Kronk
 //   finish     { code, state }                       → link: { handle }  ·  signin: { token_hash, created }
 //   disconnect {}                                     → revokes YOU's access on Kronk and forgets it
-//   timeline   { feed: "home" | "local", limit?, max_id? } → { posts: [...] } in a safe, plain shape
+//   timeline   { feed, limit?, max_id?, since_id? }  → { posts: [...] } in a safe, plain shape
 //   post       { text, visibility, in_reply_to? }    → { url }
 //   like       { id, on }                            → { liked, likes }
 //   thread     { id }                                → { replies: [...] }
@@ -273,6 +273,8 @@ Deno.serve(async req => {
       const q = new URLSearchParams({ limit: String(limit) });
       if (body.feed === "local") q.set("local", "true");
       if (body.max_id && /^\d+$/.test(String(body.max_id))) q.set("max_id", String(body.max_id));
+      // "Anything new since this one?" for the new-posts pill.
+      if (body.since_id && /^\d+$/.test(String(body.since_id))) q.set("since_id", String(body.since_id));
       const res = await kronk(`${path}?${q}`, token);
       if (res.status === 401) return json({ error: "Kronk has signed YOU out. Please connect again.", code: "relink" }, 401);
       if (!res.ok || !Array.isArray(res.body)) return json({ error: "Kronk didn't answer just now. Try again in a moment." }, 502);
