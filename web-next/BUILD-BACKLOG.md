@@ -805,7 +805,7 @@ Built on `feat/nav-and-values-notes`, from the launch-ready list.
       Coming soon in the menu (it's out of the tab bar too).
 
 ### To go live (Cassidy's go-ahead)
-- [ ] Apply `20261018120000_beta_readiness.sql` in the SQL editor. *(Dream analysis column already live.)*
+- [x] Apply `20261018120000_beta_readiness.sql` in the SQL editor (Oct 18; tables live, anon writes refused). *(Dream analysis column already live.)*
 - [x] Deploy `send-feedback`, `delete-account`, `send-build-note` (now uses
       `_shared/notion.ts`), and `reflect-on-journal-entry` (dream analysis).
       *(Deployed Oct 18 via CLI; all four refuse signed-out calls with 401.
