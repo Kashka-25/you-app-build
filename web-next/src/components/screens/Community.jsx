@@ -10,7 +10,7 @@ import KommYOUnity from "../KommYOUnity";
 
 // KommYOUnity: the Kronk community (kronk.info) seen from YOU. The feed of
 // mates you follow, in YOU's look, scrolling on as you read, where you can
-// like and comment. New posts are written on Kronk itself (the link at the
+// froth and komment. New posts are written on Kronk itself (the link at the
 // top), and YOU offers to share at meaningful moments (ShareToKronk).
 const PAGE = 15;
 
@@ -191,10 +191,10 @@ function Window({ link }) {
   );
 }
 
-// Kronk's magenta, for a liked heart (lighter in the Cosmos).
+// Kronk's magenta, for a frothed heart (lighter in the Cosmos).
 const LIKED = "text-[color:oklch(0.5_0.2_326)] dark:text-[color:oklch(0.72_0.17_326)]";
 
-// One post: who, when, the words and images, with Like and Comment.
+// One post: who, when, the words and images, with Froth and Komment (Kronk's words for like and reply).
 function FeedPost({ post }) {
   const [reveal, setReveal] = useState(!post.warning);
   const [liked, setLiked] = useState(post.liked);
@@ -259,7 +259,7 @@ function FeedPost({ post }) {
           className={`inline-flex items-center gap-1.5 min-h-[40px] px-2 rounded-sm text-caption ${liked ? LIKED : "text-textMuted"}`}
         >
           <Heart size={16} strokeWidth={1.75} fill={liked ? "currentColor" : "none"} />
-          {liked ? "Liked" : "Like"}{likes > 0 && ` · ${likes}`}
+          {liked ? "Frothed" : "Froth"}{likes > 0 && ` · ${likes}`}
         </button>
         <button
           type="button"
@@ -268,7 +268,7 @@ function FeedPost({ post }) {
           className="inline-flex items-center gap-1.5 min-h-[40px] px-2 rounded-sm text-caption text-textMuted"
         >
           <MessageCircle size={16} strokeWidth={1.75} />
-          Comment{replies > 0 && ` · ${replies}`}
+          Komment{replies > 0 && ` · ${replies}`}
         </button>
         {post.url && (
           <a href={post.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-caption text-forestAccent min-h-[40px] px-1">
@@ -310,7 +310,7 @@ function ActionError({ error }) {
   );
 }
 
-// The comments under a post, and a box to add one. A reply mentions the
+// The komments under a post, and a box to add one. A reply mentions the
 // person and keeps the post's own visibility, as Kronk does.
 function Thread({ post, onReplied }) {
   const [items, setItems] = useState(null);
@@ -350,7 +350,7 @@ function Thread({ post, onReplied }) {
       {items === null ? (
         <div className="text-caption text-textMuted py-2">Opening the conversation…</div>
       ) : items.length === 0 ? (
-        <div className="text-caption text-textMuted pb-2">No comments yet.</div>
+        <div className="text-caption text-textMuted pb-2">No komments yet.</div>
       ) : (
         <div className="space-y-3 mb-3">
           {items.map(c => (
@@ -364,14 +364,14 @@ function Thread({ post, onReplied }) {
         </div>
       )}
       <div className="flex items-end gap-2">
-        <label htmlFor={`reply-${post.id}`} className="sr-only">Write a comment</label>
+        <label htmlFor={`reply-${post.id}`} className="sr-only">Write a komment</label>
         <textarea
           id={`reply-${post.id}`}
           rows={1}
           value={text}
           onChange={e => setText(e.target.value)}
           maxLength={5000}
-          placeholder="Write a comment…"
+          placeholder="Write a komment…"
           className="flex-1 min-w-0 bg-surface2 border border-borderC rounded-sm px-3 py-2 text-bodySm text-textPrimary outline-none focus:border-forestAccent resize-none"
         />
         <button
