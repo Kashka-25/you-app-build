@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Highlighter, Sparkles, Trash2, Star } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { EmptyState } from "../ui/EmptyState";
+import ShareToKronk from "../ShareToKronk";
 
 function niceDate(key) {
   return key ? new Date(key + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
@@ -81,6 +82,7 @@ export default function HighlightsView({ onOpenEntry }) {
             <Trash2 size={16} strokeWidth={1.75} />
           </button>
         </div>
+        <ShareToKronk text={`“${h.text}”`} label="Share on Kronk" className="mt-1" />
       </div>
     );
   };

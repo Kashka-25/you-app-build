@@ -773,6 +773,37 @@ unlimited AI.
 - [ ] `suggest-value-challenges` has no AI-consent check. That's fine, since
       it sends only a value's name, but worth knowing.
 
+## YOU ↔ Kronk (Oct 18)
+
+Kronk is kronk.info (Mastodon 4.5, invite-only). Its **YOU hub**
+(kronk.info/hub/you) is the door in, with "Open YOU" → you.kronk.info.
+
+- [x] OAuth app on kronk.info: "YOU - Your Own Universe" (id 2022, scopes
+      `read write:statuses write:favourites`, redirects for you.kronk.info,
+      Netlify and localhost). Credentials are Supabase secrets `KRONK_*`,
+      nowhere else. *(Replaced app 2021 the same day to add Froth; links made
+      with 2021 are asked to connect again on their first Froth.)*
+- [x] `functions/kronk` (deployed): connect, Continue with Kronk (signs in
+      or creates a YOU account; Kronk-only accounts get a placeholder email
+      `kronk-<id>@kronk-login.invalid`), disconnect, feed, post.
+- [x] KommYOUnity (₭ from Kronk's logo): your live Kronk home feed, endless
+      scroll (a Make YOU yours choice), Froth / Komment, a new-posts pill, a
+      "What's on your mind?" link to kronk.info/publish, share prompts at
+      meaningful moments; Kronk card in Your Own Universe; "Continue with
+      Kronk" on sign-in.
+- [ ] Apply `20261018150000_kronk_links.sql` in the SQL editor.
+- [ ] End-to-end test: connect from Your Own Universe, post, then sign out
+      and "Continue with Kronk".
+- [ ] **you.kronk.info** (Chris): DNS `CNAME you → you-app-build.netlify.app`;
+      then add the domain in Netlify and `https://you.kronk.info/**` to
+      Supabase Auth redirect URLs.
+- [ ] **YOU → Kronk sign-up** (Chris): Kronk is invite-only, so YOU can't
+      make Kronk accounts. Options: an invite link YOU can hand out, or a
+      small Kronk endpoint YOU calls. For now CommYOUnity says to ask a friend.
+- [ ] Kronk's YOU hub copy says "12 values"; the Codex now has 100 (Chris).
+- [ ] Later: likes/boosts/replies from YOU; Kronk-only Seekers adding a real
+      email so they can also sign in without Kronk.
+
 ## Beta readiness (Oct 18)
 
 Built on `feat/nav-and-values-notes`, from the launch-ready list.

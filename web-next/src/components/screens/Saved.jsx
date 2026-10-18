@@ -13,7 +13,7 @@ const TABS = [
 ];
 
 const EMPTY_COPY = {
-  posts: { title: "No saved posts yet", description: "Posts you save from CommYOUnity will collect here." },
+  posts: { title: "No saved posts yet", description: "Posts you save from KommYOUnity will collect here." },
   quotes: { title: "No saved quotes yet", description: "Daily quotes and messages worth keeping will collect here." },
   toolkit: { title: "No saved tools yet", description: "Skills and practices you've learned through YOU will collect here." }
 };

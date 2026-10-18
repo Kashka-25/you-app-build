@@ -17,6 +17,7 @@ import { DropdownSection } from "../Primitives";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { AiButton, AiCard } from "../ui/Premium";
 import TrueNorthCard from "./TrueNorthCard";
+import ShareToKronk from "../ShareToKronk";
 import { elementColor } from "../../lib/elements";
 import { findInCodex, closestValues, displayWord, validWord } from "../../lib/valueWords";
 
@@ -245,6 +246,9 @@ function ValueCard({
         <div className="font-serif italic text-body text-textPrimary mt-3 pl-1">
           {v.name} has ripened into {moment.tier}.
           {moment.slotGrew && " There's room for one more value in your focus, whenever you're ready."}
+          <div>
+            <ShareToKronk text={`${v.name} has ripened into ${moment.tier} for me. 🌿`} className="not-italic font-sans" />
+          </div>
         </div>
       )}
 

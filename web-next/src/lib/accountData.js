@@ -12,16 +12,18 @@ const OWN_TABLES = [
   "wanderings", "wandering_stops",
   "user_arcana", "arcanum_progress", "arcanum_walks", "own_tools", "tool_uses",
   "artist_profiles", "showcase_works", "showcase_saves",
-  "ai_consent", "entitlements"
+  "ai_consent", "entitlements",
+  // The Kronk login key is never readable, so only the public parts.
+  ["kronk_links", "user_id", "handle,display_name,profile_url,created_at"]
 ].map(t => (Array.isArray(t) ? t : [t, "user_id"]));
 
 export async function exportMyData(userId) {
   const out = { exported_at: new Date().toISOString(), app: "YOU — Your Own Universe", tables: {}, skipped: [] };
-  for (const [table, column] of OWN_TABLES) {
+  for (const [table, column, columns = "*"] of OWN_TABLES) {
     const rows = [];
     // Pages of 1000, Supabase's default cap per request.
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase.from(table).select("*").eq(column, userId).range(from, from + 999);
+      const { data, error } = await supabase.from(table).select(columns).eq(column, userId).range(from, from + 999);
       if (error) { out.skipped.push({ table, reason: error.message }); break; }
       rows.push(...data);
       if (data.length < 1000) break;

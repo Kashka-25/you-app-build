@@ -37,7 +37,8 @@ const SECTIONS = [
     body: [
       "Supabase stores the app's data and photos. Netlify serves the app itself.",
       "Maps come from OpenFreeMap, and place search from Photon (komoot). Only what you type into a place search is sent there.",
-      "Feedback you send from the app goes to our private Notion workspace so we can act on it."
+      "Feedback you send from the app goes to our private Notion workspace so we can act on it.",
+      "Kronk (kronk.info), only if you connect it. YOU then keeps a key to your Kronk account so it can show your feed and post what you choose to post. Disconnect any time in Your Own Universe, and the key is handed back."
     ]
   },
   {
