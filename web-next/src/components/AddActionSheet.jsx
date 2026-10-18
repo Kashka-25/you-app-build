@@ -5,6 +5,7 @@ import { fadeIn, sheetIn } from "./ui/motion";
 import { Button } from "./ui/Button";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
+import { usePlugin } from "../lib/plugins";
 
 // Three choices at the top level, never more (standing rule: max 2–3 at
 // one level). Anything finer — which kind of pursuit, which kind of
@@ -34,6 +35,9 @@ const fieldClass =
 
 export default function AddActionSheet({ open, onClose, onSelectPursue, onSelectMoment }) {
   const { addJournalEntry, addTodo } = useAppData();
+  // "Today" only shows while the to-do list plugin is on.
+  const todoOn = usePlugin("todo_list");
+  const choices = TOP.filter(c => c.key !== "today" || todoOn);
   const [screen, setScreen] = useState("choices");
   const [text, setText] = useState("");
   const [kind, setKind] = useState("entry");
@@ -114,7 +118,7 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
                     <X size={20} strokeWidth={1.75} />
                   </button>
                 </div>
-                <ChoiceList options={TOP} onPick={goTo} />
+                <ChoiceList options={choices} onPick={goTo} />
               </>
             )}
 

@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppData } from "../lib/AppDataContext";
+import { BetaBadge } from "./SignIn";
 
 export default function TopBar({ onMenuClick }) {
   const { codexNew } = useAppData();
@@ -12,10 +13,11 @@ export default function TopBar({ onMenuClick }) {
         {codexNew > 0 && <span className="absolute top-0 right-0 w-[8px] h-[8px] rounded-full bg-gold border border-surface2" />}
       </button>
 
-      <div className="text-center">
+      <div className="text-center flex items-center gap-1.5">
         {/* Keyed out to real transparency (not just a light-mode render), so
             the same gold mark works on both the light and dark TopBar. */}
         <img src="/logo-wordmark.png" alt="YOU — Your Own Universe" className="h-9 w-auto mx-auto" />
+        <BetaBadge className="!text-[9px] !px-1.5" />
       </div>
 
       {/* No notifications yet, so no bell: a control that does nothing (and

@@ -2,12 +2,15 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./lib/AuthContext";
 import { AppDataProvider } from "./lib/AppDataContext";
 import "./styles/tokens.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
+    {/* Last line of defence; App has its own, reset on every screen change. */}
+    <ErrorBoundary>
     <AuthProvider>
       <AppDataProvider>
         <BrowserRouter>
@@ -15,6 +18,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </BrowserRouter>
       </AppDataProvider>
     </AuthProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
 

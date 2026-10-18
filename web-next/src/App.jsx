@@ -1,7 +1,10 @@
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./lib/AuthContext";
-import SignIn from "./components/SignIn";
+import SignIn, { SetNewPassword } from "./components/SignIn";
+import ErrorBoundary from "./components/ErrorBoundary";
+import Welcome from "./components/Welcome";
+import Privacy from "./components/screens/Privacy";
 import AppShell from "./components/AppShell";
 import { LoadingScreen } from "./components/ui/LoadingScreen";
 import Home from "./components/screens/Home";
@@ -51,9 +54,19 @@ function useThresholdOnOpen(ready) {
 }
 
 export default function App() {
-  const { userId, loading } = useAuth();
-  useThresholdOnOpen(!loading && Boolean(userId));
+  const { userId, loading, recovering, prefs } = useAuth();
+  const { pathname } = useLocation();
+  // First run: the welcome, once per account. Dismissed in this visit even
+  // if saving the preference fails, so no one gets stuck in it.
+  const [welcomeDone, setWelcomeDone] = useState(false);
+  const welcoming = Boolean(userId) && !recovering && !prefs?.welcomed && !welcomeDone;
+  // "See the welcome again" in Your Own Universe turns the preference off.
+  useEffect(() => { if (prefs?.welcomed === false) setWelcomeDone(false); }, [prefs?.welcomed]);
+  useThresholdOnOpen(!loading && Boolean(userId) && !recovering && !welcoming);
   useSectionElement();
+
+  // Readable before signing up, so it's checked before the auth gate.
+  if (pathname === "/privacy") return <Privacy />;
 
   if (loading) {
     return (
@@ -63,9 +76,11 @@ export default function App() {
     );
   }
   if (!userId) return <SignIn />;
+  if (recovering) return <SetNewPassword />;
+  if (welcoming) return <Welcome onDone={() => setWelcomeDone(true)} />;
 
   return (
-    <>
+    <ErrorBoundary key={pathname}>
     <FocusWatcher />
     <Routes>
       <Route path="/styleguide" element={<Styleguide />} />
@@ -121,6 +136,6 @@ export default function App() {
         <Route path="/build-notes" element={<BuildNotes />} />
       </Route>
     </Routes>
-    </>
+    </ErrorBoundary>
   );
 }

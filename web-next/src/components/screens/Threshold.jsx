@@ -6,6 +6,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { easeOut } from "../ui/motion";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
+import { usePlugin } from "../../lib/plugins";
 import TravellingToday from "../wandering/TravellingToday";
 import { CourseNowCards } from "../course/CourseNow";
 import { tendedDaysThisWeek, isSunday, weekStartKey, sowWeekStartKey, isWeekRested, harvestDue } from "../../lib/week";
@@ -93,6 +94,7 @@ export default function Threshold() {
   const tendedDays = tendedDaysThisWeek(weekIntentions);
   const sownThisWeek = weekIntentions.some(w => w.week_start === weekStartKey());
   const hasIntentions = !useTodayList().isEmpty;
+  const todoOn = usePlugin("todo_list");
   const dateLabel = new Date().toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" });
 
   return (
@@ -118,20 +120,21 @@ export default function Threshold() {
             {/* While travelling, where you are today comes first of all. */}
             <TravellingToday />
 
-            {/* Today first: the one question that's always answerable. */}
-            <section>
+            {/* Today first: the one question that's always answerable.
+                With the to-do list off and nothing sown, there's nothing to show. */}
+            {(todoOn || hasIntentions) && <section>
               <h2 className="font-serif text-h2 text-textPrimary mb-2.5">What do you want to plant today?</h2>
               <div className="rounded-card bg-surface1 shadow-card px-4 py-2">
                 {hasIntentions && (
                   <>
                     <div className="text-label uppercase text-textMuted pt-2">From your week</div>
                     <TodayIntentions />
-                    <div className="border-t border-borderC mt-1 pt-2" />
+                    {todoOn && <div className="border-t border-borderC mt-1 pt-2" />}
                   </>
                 )}
-                <QuickList showLabel={false} />
+                {todoOn && <QuickList showLabel={false} />}
               </div>
-            </section>
+            </section>}
 
             {/* A course that needs you today: a part that's ready, a challenge carried. */}
             <CourseNowCards />

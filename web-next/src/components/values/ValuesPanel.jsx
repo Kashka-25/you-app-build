@@ -79,50 +79,56 @@ export default function ValuesPanel() {
 
   return (
     <div>
-      <TrueNorthCard />
-      <div className="text-bodySm text-textSecondary mb-3">
-        {activeValues.length} of {valueSlots} in focus
-        <span className="text-textMuted"> · every value is always yours to choose</span>
-      </div>
-
-      {activeValues.length === 0 && (
-        <div className="text-bodySm text-textMuted mb-3">No values in focus yet.</div>
-      )}
-
-      <div className="space-y-2.5 mb-4">
-        {activeValues.map(v => (
-          <ValueCard
-            key={v.name}
-            v={v}
-            open={openName === v.name}
-            onToggle={() => toggleOpen(v.name)}
-            moment={moment?.name === v.name ? { ...moment, slotGrew: valueSlots > moment.slotsBefore } : null}
-            valueChallenges={valueChallenges.filter(c => c.value_name === v.name)}
-            onCompleteLib={idx => withMoment(v.name, () => completeChallenge(v.name, idx))}
-            onCompleteAi={id => withMoment(v.name, () => completeValueChallenge(id))}
-            onGenerate={() => generateValueChallenges(v.name)}
-            onSaveDefinition={text => saveValueDefinition(v.name, text)}
-            onRest={async () => { await setValueStatus(v.name, "rested"); setOpenName(null); }}
-          />
-        ))}
-      </div>
-
-      {hasRoom ? (
-        <AddValuePicker
-          adding={adding}
-          setAdding={setAdding}
-          available={available}
-          activeValues={activeValues}
-          onPick={handleAddValue}
-          onPickOwn={handleAddOwn}
-          held={values}
-        />
-      ) : (
-        <div className="text-bodySm text-textMuted border border-dashed border-borderC rounded-sm px-3.5 py-3">
-          All {valueSlots} places for focus are in use. Rest a value to make room — it keeps everything it has grown.
-          {valueSlots < MAX_VALUE_SLOTS && " More room opens as your values ripen."}
+      {/* Values in focus open first; True North folds away below (Cassidy, Oct 18). */}
+      <DropdownSection title={`In focus (${activeValues.length})`} level={1} defaultOpen>
+        <div className="text-bodySm text-textSecondary mb-3">
+          {activeValues.length} of {valueSlots} in focus
+          <span className="text-textMuted"> · every value is always yours to choose</span>
         </div>
-      )}
+
+        {activeValues.length === 0 && (
+          <div className="text-bodySm text-textMuted mb-3">No values in focus yet.</div>
+        )}
+
+        <div className="space-y-2.5 mb-4">
+          {activeValues.map(v => (
+            <ValueCard
+              key={v.name}
+              v={v}
+              open={openName === v.name}
+              onToggle={() => toggleOpen(v.name)}
+              moment={moment?.name === v.name ? { ...moment, slotGrew: valueSlots > moment.slotsBefore } : null}
+              valueChallenges={valueChallenges.filter(c => c.value_name === v.name)}
+              onCompleteLib={idx => withMoment(v.name, () => completeChallenge(v.name, idx))}
+              onCompleteAi={id => withMoment(v.name, () => completeValueChallenge(id))}
+              onGenerate={() => generateValueChallenges(v.name)}
+              onSaveDefinition={text => saveValueDefinition(v.name, text)}
+              onRest={async () => { await setValueStatus(v.name, "rested"); setOpenName(null); }}
+            />
+          ))}
+        </div>
+
+        {hasRoom ? (
+          <AddValuePicker
+            adding={adding}
+            setAdding={setAdding}
+            available={available}
+            activeValues={activeValues}
+            onPick={handleAddValue}
+            onPickOwn={handleAddOwn}
+            held={values}
+          />
+        ) : (
+          <div className="text-bodySm text-textMuted border border-dashed border-borderC rounded-sm px-3.5 py-3">
+            All {valueSlots} places for focus are in use. Rest a value to make room — it keeps everything it has grown.
+            {valueSlots < MAX_VALUE_SLOTS && " More room opens as your values ripen."}
+          </div>
+        )}
+      </DropdownSection>
+
+      <DropdownSection title="True North" level={1}>
+        <TrueNorthCard />
+      </DropdownSection>
 
       {rested.length > 0 && (
         <DropdownSection title={`Resting (${rested.length})`} level={1}>

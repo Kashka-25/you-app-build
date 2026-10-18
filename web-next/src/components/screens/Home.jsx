@@ -7,6 +7,7 @@ import { GlowBubble } from "../ui/GlowBubble";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
+import { usePlugin } from "../../lib/plugins";
 import { useCourseNow } from "../course/CourseNow";
 import WelcomeHero from "../home/WelcomeHero";
 import DailyCheckIn from "../home/DailyCheckIn";
@@ -28,6 +29,7 @@ export default function Home() {
     todos, weekIntentions, weekHarvests, compass, moodLog, logMood
   } = useAppData();
   const hasIntentions = !useTodayList().isEmpty;
+  const todoOn = usePlugin("todo_list");
   const { entries: courses, tools } = useCourseNow();
   const [insightsLoaded, setInsightsLoaded] = useState(false);
   const { userId } = useAuth();
@@ -121,9 +123,11 @@ export default function Home() {
 
         <TodayIntentions />
 
-        <div className={hasIntentions ? "mt-2 pt-2 border-t border-borderC" : ""}>
-          <QuickList showLabel={hasIntentions} />
-        </div>
+        {todoOn && (
+          <div className={hasIntentions ? "mt-2 pt-2 border-t border-borderC" : ""}>
+            <QuickList showLabel={hasIntentions} />
+          </div>
+        )}
 
         <Link to="/focus" className="flex items-center gap-2.5 min-h-[44px] text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
           <Timer size={16} strokeWidth={1.75} />
