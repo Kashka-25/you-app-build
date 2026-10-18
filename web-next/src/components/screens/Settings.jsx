@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Brush, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, SunMoon, Trash2 } from "lucide-react";
+import { Brush, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, Trash2 } from "lucide-react";
 import { SCALE_DEFAULT, SCALE_STOPS, applyScale, coloursAt, readScale, stopName, storeScale } from "../../lib/colourScale";
 import { Fold } from "../ui/Fold";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
@@ -45,7 +45,7 @@ export default function Settings() {
         <Fold icon={Sun} title="Opening YOU" hint="Land on the Threshold, or straight on Home">
           <ThresholdSetting />
         </Fold>
-        <Fold icon={SunMoon} title="Colours" hint="Slide Nature and the Cosmos to your own shades">
+        <Fold image="/images/icons/light-dark.png" title="Colours" hint="Slide Nature and the Cosmos to your own shades">
           <ColourScaleSetting />
         </Fold>
         <Fold icon={Palette} title="Featured art on Home" hint="Artists' pieces in the welcome">
@@ -610,7 +610,7 @@ function ColourScaleSetting() {
   return (
     <div>
       <div className="text-bodySm text-textSecondary mb-4">
-        Only the grounds change, so your words stay easy to read. Switch between Nature and the Cosmos in the menu to see each side.
+        Your words stay easy to read at every shade. Switch between Nature and the Cosmos in the menu to see each side.
       </div>
       <ScaleSlider mode="light" title="Nature, by day" value={scale.light} onChange={v => change("light", v)} />
       <ScaleSlider mode="dark" title="The Cosmos, by night" value={scale.dark} onChange={v => change("dark", v)} />

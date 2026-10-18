@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, MessageSquareHeart, Palette, X } from "lucide-react";
+import { ChevronDown, ChevronRight, MessageSquareHeart, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
@@ -55,9 +55,7 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
           </NavLink>
         ))}
         <NavLink to="/showcase" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
-          <span className="w-[30px] h-[30px] flex-none flex items-center justify-center" aria-hidden="true">
-            <Palette size={18} strokeWidth={1.5} className="text-gold" />
-          </span>
+          <img src="/images/icons/showcase.png" alt="" width="30" height="30" className="w-[30px] h-[30px] flex-none" />
           Showcase
         </NavLink>
 
@@ -122,8 +120,9 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
         <div className="px-5">
           <button
             onClick={onToggleMode}
-            className="text-caption text-textSecondary border border-borderC rounded-full px-3 py-1.5"
+            className="inline-flex items-center gap-2 text-caption text-textSecondary border border-borderC rounded-full pl-1.5 pr-3 py-1"
           >
+            <img src="/images/icons/light-dark.png" alt="" width="24" height="24" className="w-6 h-6 flex-none" />
             {mode === "light" ? "Switch to Cosmos (dark)" : "Switch to Nature (light)"}
           </button>
         </div>

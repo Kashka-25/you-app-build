@@ -23,7 +23,10 @@ export default function ShowcaseGallery() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <h1 className="font-serif text-h2 font-medium mt-4 mb-0">Showcase</h1>
+      <h1 className="font-serif text-h2 font-medium mt-4 mb-0 flex items-center gap-2.5">
+        <img src="/images/icons/showcase@4x.png" alt="" width="52" height="52" className="w-[52px] h-[52px] flex-none" />
+        Showcase
+      </h1>
       <div className="text-bodySm text-textSecondary mt-2 mb-4">
         Art and words shared by the people who made them. Tap a piece to see it in full and support the artist.
       </div>

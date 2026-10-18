@@ -7,7 +7,7 @@ import { AiLabel } from "./Premium";
 // A settings section folded into one tidy row: icon, title and a short
 // line of what's inside; tap to open, tap again to close. `ai` wears the
 // black-and-gold YOU Premium look.
-export function Fold({ icon: Icon, title, hint, ai = false, defaultOpen = false, className = "", children }) {
+export function Fold({ icon: Icon, image, title, hint, ai = false, defaultOpen = false, className = "", children }) {
   const [open, setOpen] = useState(defaultOpen);
   const id = useId();
   return (
@@ -26,7 +26,9 @@ export function Fold({ icon: Icon, title, hint, ai = false, defaultOpen = false,
           </span>
         ) : (
           <>
-            {Icon && (
+            {/* An emblem from the YOU art set, or a line icon on a gold dot. */}
+            {image && <img src={image} alt="" width="40" height="40" className="w-10 h-10 flex-none" />}
+            {!image && Icon && (
               <span className="w-9 h-9 rounded-full bg-[color-mix(in_srgb,var(--gold)_14%,transparent)] text-gold flex items-center justify-center flex-none" aria-hidden="true">
                 <Icon size={17} strokeWidth={1.75} />
               </span>

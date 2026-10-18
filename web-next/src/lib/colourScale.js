@@ -1,17 +1,19 @@
 // The colour scale: each Seeker slides YOU's backgrounds along Nature's
 // palette by day (bark brown → sand → snow white → moss green) and along
-// the Cosmos by night (void → midnight → nebula → aurora). Only the grounds
-// move (page, card and field surfaces, and the sky behind them); ink, gold
-// and accents stay put, so words read the same at every point.
+// the Cosmos by night (void → midnight → nebula → aurora). The grounds move
+// (page, card and field surfaces, and the sky behind them); gold and accents
+// stay put. Nature's deep ends are rich (Cassidy, Oct 18), so its ink
+// deepens with them: every shade reads at least as well as Sand.
 //
 // Kept per account (auth prefs.colour_scale) and on the device, where
 // index.html applies the last colours before the first paint (no flash).
 
+const SAND_INK = { p: "#2B1F17", sec: "#6A5646", mut: "#94806D" };
 const LIGHT_STOPS = [
-  { label: "Bark", bg: "#E9DAC5", s1: "#E0CDB3", s2: "#F2E7D7", s3: "#D3BC9C" },
-  { label: "Sand", bg: "#F7F1E8", s1: "#F0E6D8", s2: "#FBF7F0", s3: "#E5D6C2" },
-  { label: "Snow", bg: "#FBFAF7", s1: "#F3F1EC", s2: "#FFFFFF", s3: "#E7E3DB" },
-  { label: "Moss", bg: "#EDF1E2", s1: "#E1E8D1", s2: "#F7F9EF", s3: "#D0DABD" }
+  { label: "Bark", bg: "#D9BE98", s1: "#CDAE84", s2: "#E8D6BA", s3: "#BC9A6E", ink: { p: "#2B1F17", sec: "#4A3626", mut: "#5E4733" } },
+  { label: "Sand", bg: "#F7F1E8", s1: "#F0E6D8", s2: "#FBF7F0", s3: "#E5D6C2", ink: SAND_INK },
+  { label: "Snow", bg: "#FBFAF7", s1: "#F3F1EC", s2: "#FFFFFF", s3: "#E7E3DB", ink: SAND_INK },
+  { label: "Moss", bg: "#D3E0BA", s1: "#C3D4A5", s2: "#E5EED6", s3: "#AFC38C", ink: { p: "#22261A", sec: "#3F4A2E", mut: "#525E3D" } }
 ];
 const DARK_STOPS = [
   { label: "Void", bg: "#050510", s1: "#0C0C1D", s2: "#101024", s3: "#1B1A34" },
@@ -37,7 +39,11 @@ export function coloursAt(mode, pos) {
   const i = Math.min(stops.length - 2, Math.floor(x));
   const t = x - i;
   const [a, b] = [stops[i], stops[i + 1]];
-  return { bg: mix(a.bg, b.bg, t), s1: mix(a.s1, b.s1, t), s2: mix(a.s2, b.s2, t), s3: mix(a.s3, b.s3, t) };
+  const out = { bg: mix(a.bg, b.bg, t), s1: mix(a.s1, b.s1, t), s2: mix(a.s2, b.s2, t), s3: mix(a.s3, b.s3, t) };
+  if (a.ink && b.ink) {
+    out.ink = { p: mix(a.ink.p, b.ink.p, t), sec: mix(a.ink.sec, b.ink.sec, t), mut: mix(a.ink.mut, b.ink.mut, t) };
+  }
+  return out;
 }
 
 // The nearest stop's name, for the slider's label.
@@ -73,10 +79,12 @@ function sky(mode, c) {
 export function varsFor(mode, pos) {
   if (Math.abs(pos - SCALE_DEFAULT) < 0.5) return null;
   const c = coloursAt(mode, pos);
-  return { "--bg": c.bg, "--surface-1": c.s1, "--surface-2": c.s2, "--surface-3": c.s3, "--sky": sky(mode, c) };
+  const vars = { "--bg": c.bg, "--surface-1": c.s1, "--surface-2": c.s2, "--surface-3": c.s3, "--sky": sky(mode, c) };
+  if (c.ink) Object.assign(vars, { "--text-primary": c.ink.p, "--text-secondary": c.ink.sec, "--text-muted": c.ink.mut });
+  return vars;
 }
 
-const NAMES = ["--bg", "--surface-1", "--surface-2", "--surface-3", "--sky"];
+const NAMES = ["--bg", "--surface-1", "--surface-2", "--surface-3", "--sky", "--text-primary", "--text-secondary", "--text-muted"];
 
 export function readScale() {
   try {
@@ -93,7 +101,7 @@ const currentMode = () => (document.documentElement.getAttribute("data-mode") ==
 export function applyScale(scale = readScale()) {
   const root = document.documentElement;
   const vars = varsFor(currentMode(), scale[currentMode()]);
-  NAMES.forEach(n => (vars ? root.style.setProperty(n, vars[n]) : root.style.removeProperty(n)));
+  NAMES.forEach(n => (vars?.[n] ? root.style.setProperty(n, vars[n]) : root.style.removeProperty(n)));
 }
 
 // Remember a scale on this device (and the painted values for index.html).
