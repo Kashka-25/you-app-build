@@ -815,12 +815,12 @@ Built on `feat/nav-and-values-notes`, from the launch-ready list.
 - [ ] Supabase → Auth → URL Configuration: the site URL and
       `https://you-app-build.netlify.app/**` under Redirect URLs, so reset
       links come back to the app.
-- [ ] Check every older table (profiles, items, memory, life_moments,
+- [x] Check every older table (profiles, items, memory, life_moments,
       life_chapters, mood_log, user_values, value_challenges) cascades on
       user delete — run in SQL editor:
       `select conrelid::regclass, confdeltype from pg_constraint where confrelid = 'auth.users'::regclass;`
       Any row with `confdeltype` other than `c` or `n` would block deleting
-      an account.
+      an account. *(Oct 18: every row c or n, so deleting an account is clear.)*
 - [ ] Re-run Security and Performance advisors after the Showcase and beta
       migrations.
 
