@@ -3,14 +3,14 @@ import { ArrowUpRight, ExternalLink, Link2, Repeat2 } from "lucide-react";
 import { BackRow, PageBanner } from "../Primitives";
 import { Button } from "../ui/Button";
 import { useAuth } from "../../lib/AuthContext";
-import { KRONK_HOME, KRONK_URL, KRONK_YOU_HUB, goToKronk, kronkTimeline, useKronkLink } from "../../lib/kronk";
+import { KRONK_HOME, KRONK_PUBLISH, KRONK_URL, KRONK_YOU_HUB, goToKronk, kronkTimeline, useKronkLink } from "../../lib/kronk";
+import KommYOUnity from "../KommYOUnity";
 
-// CommYOUnity: a calm window onto Kronk (kronk.info), not a second Kronk.
-// A glimpse of what a few mates shared, then the door to Kronk itself for
-// the full social space. No counts, no endless scroll, no composer here:
-// sharing happens at meaningful moments in YOU (ShareToKronk), by choice.
-// Individual first, community second.
-const GLIMPSE = 5;
+// KommYOUnity: the Kronk community (kronk.info) seen from YOU. The feed of
+// mates you follow, in YOU's look, with no like or boost counts and more only
+// when asked. Posting happens on Kronk itself (the link at the top), and YOU
+// offers to share at meaningful moments (ShareToKronk), always by choice.
+const PAGE = 15;
 
 const ago = (n, unit) => `${n} ${unit}${n === 1 ? "" : "s"} ago`;
 function timeAgo(iso) {
@@ -27,7 +27,7 @@ export default function Community() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <PageBanner title="CommYOUnity" image="/images/home/community.webp" className="mt-3" />
+      <PageBanner title={<KommYOUnity />} image="/images/home/community.webp" className="mt-3" />
       {link === undefined ? (
         <div className="text-bodySm text-textMuted">Opening the door to Kronk…</div>
       ) : link ? (
@@ -58,10 +58,10 @@ function Invitation() {
       <div className="rounded-card bg-surface1 shadow-card p-5">
         <div className="font-serif text-h2 text-textPrimary mb-2">Your people, on Kronk</div>
         <p className="text-bodySm text-textSecondary mb-4">
-          CommYOUnity lives on Kronk, a small community built together. Connect your Kronk account and YOU becomes a quiet window onto it.
+          KommYOUnity lives on Kronk, a small community built together. Connect your Kronk account to see your mates here, in YOU.
         </p>
         <ul className="space-y-1.5 mb-5">
-          {["A glimpse of what your mates are sharing", "Share a moment from YOU when it feels right", "Sign in to YOU with Kronk next time"].map(t => (
+          {["What your mates are sharing, in YOU's calm look", "Share a moment from YOU when it feels right", "Sign in to YOU with Kronk next time"].map(t => (
             <li key={t} className="flex items-start gap-2.5 text-bodySm text-textPrimary">
               <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-gold flex-none" aria-hidden="true" />{t}
             </li>
@@ -90,62 +90,84 @@ function Invitation() {
 }
 
 function Window({ link }) {
-  const [posts, setPosts] = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [more, setMore] = useState(true);
   const [error, setError] = useState(null);
+  // Paging uses the last post Kronk sent, including the Seeker's own ones
+  // that aren't shown here.
+  const [cursor, setCursor] = useState(undefined);
+  const mine = h => h.toLowerCase() === link.handle.toLowerCase();
 
-  useEffect(() => {
-    let live = true;
-    // Ask for a few extra, since the Seeker's own posts are left out.
-    kronkTimeline("home", { limit: GLIMPSE * 3 })
-      .then(({ posts: p }) => {
-        if (live) setPosts(p.filter(x => x.account.handle.toLowerCase() !== link.handle.toLowerCase()).slice(0, GLIMPSE));
-      })
-      .catch(e => { if (live) setError(e); });
-    return () => { live = false; };
-  }, [link.handle]);
+  async function load(reset) {
+    setLoading(true);
+    setError(null);
+    try {
+      const { posts: page } = await kronkTimeline("home", { limit: PAGE, maxId: reset ? undefined : cursor });
+      setCursor(page[page.length - 1]?.id);
+      const shown = page.filter(x => !mine(x.account.handle));
+      setPosts(p => (reset ? shown : [...p, ...shown]));
+      setMore(page.length >= PAGE);
+    } catch (e) {
+      setError(e);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => { load(true); }, [link.handle]);
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-5">
+      {/* Posting happens on Kronk itself; this is the way there. */}
+      <a
+        href={KRONK_PUBLISH}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 rounded-card bg-surface1 shadow-card p-3.5 mb-5"
+      >
         {link.avatar_url
           ? <img src={link.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover flex-none" />
           : <span className="w-10 h-10 rounded-full bg-surface3 flex-none" aria-hidden="true" />}
-        <div className="flex-1 min-w-0">
-          <div className="text-body text-textPrimary truncate">{link.display_name || link.handle}</div>
-          <div className="text-caption text-textMuted truncate">{link.handle}</div>
-        </div>
-      </div>
+        <span className="flex-1 min-w-0">
+          <span className="block text-body text-textMuted">What's on your mind?</span>
+          <span className="block text-caption text-textMuted truncate">Share on Kronk as {link.handle}</span>
+        </span>
+        <span className="inline-flex items-center gap-1 text-bodySm text-forestAccent font-medium flex-none">
+          Share <ArrowUpRight size={16} strokeWidth={1.75} />
+        </span>
+      </a>
 
       <h2 className="font-serif text-h3 text-textPrimary mb-2.5">From your mates</h2>
 
-      {error ? (
+      {error && (
         <div className="rounded-card bg-surface1 p-4 text-bodySm text-textSecondary mb-3">
           {error.message}
           {error.code === "relink" && (
             <Button size="sm" variant="secondary" className="mt-3" onClick={() => goToKronk("link", "/community")}>Connect again</Button>
           )}
         </div>
-      ) : posts === null ? (
-        <div className="text-bodySm text-textMuted py-6 text-center">Looking in on your mates…</div>
-      ) : posts.length === 0 ? (
+      )}
+
+      {posts.map(p => <Glimpse key={p.id} post={p} />)}
+
+      {!loading && !error && posts.length === 0 && (
         <div className="rounded-card bg-surface1 p-4 text-bodySm text-textSecondary mb-3">
-          Quiet for now. When the mates you follow on Kronk share something, a little of it shows here.
+          Quiet for now. When the mates you follow on Kronk share something, it shows here.
         </div>
-      ) : (
-        posts.map(p => <Glimpse key={p.id} post={p} />)
+      )}
+      {loading && <div className="text-bodySm text-textMuted py-6 text-center">Looking in on your mates…</div>}
+      {!loading && !error && more && posts.length > 0 && (
+        <Button variant="secondary" size="sm" className="w-full mt-1" onClick={() => load(false)}>Show more</Button>
       )}
 
       <a
         href={KRONK_HOME}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 w-full min-h-[50px] rounded-sm bg-forestAccent text-onAccent font-medium inline-flex items-center justify-center gap-2"
+        className="mt-4 w-full min-h-[48px] rounded-sm border border-borderC text-textPrimary inline-flex items-center justify-center gap-2 text-bodySm"
       >
-        Continue on Kronk <ArrowUpRight size={18} strokeWidth={1.75} />
+        Continue on Kronk <ArrowUpRight size={16} strokeWidth={1.75} />
       </a>
-      <p className="text-caption text-textMuted text-center mt-3">
-        Want to share something? Look for “Share with your mates” after a Harvest, when a value ripens, on your highlights and in the Showcase.
-      </p>
     </div>
   );
 }

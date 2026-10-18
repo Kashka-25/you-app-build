@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, MessageSquareHeart, Palette, X } from "lucid
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
+import KommYOUnity from "./KommYOUnity";
 
 // Journey-before-CommYOUnity is deliberate: the app is about the individual
 // first, community second. Don't reorder.
@@ -14,7 +15,7 @@ const SITEMAP = [
   { to: "/journey", label: "YOUrney", icon: "yourney" },
   { to: "/reflections", label: "Reflections", icon: "reflections" },
   { to: "/youniversity", label: "YOUniversity", icon: "youniversity" },
-  { to: "/community", label: "CommYOUnity", icon: "community" },
+  { to: "/community", label: <KommYOUnity />, icon: "community" },
   { to: "/you", label: "YOU", icon: "you" }
 ];
 

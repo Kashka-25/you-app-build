@@ -462,11 +462,11 @@ function KronkSetting() {
       ) : link ? (
         <>
           <div className="text-bodySm text-textSecondary mb-3">
-            Connected as <span className="text-textPrimary">{link.handle}</span>. Your Kronk feed is in CommYOUnity.
+            Connected as <span className="text-textPrimary">{link.handle}</span>. Your Kronk feed is in KommYOUnity.
             {kronkOnly && " You sign in to YOU with Kronk."}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" onClick={() => navigate("/community")}>Open CommYOUnity</Button>
+            <Button variant="secondary" size="sm" onClick={() => navigate("/community")}>Open KommYOUnity</Button>
             {!kronkOnly && (
               <Button variant="ghost" size="sm" disabled={busy} onClick={() => run(async () => { await disconnectKronk(); refreshKronkLink(); })}>
                 {busy ? "Disconnecting…" : "Disconnect"}
@@ -477,7 +477,7 @@ function KronkSetting() {
       ) : (
         <>
           <div className="text-bodySm text-textSecondary mb-3">
-            Connect your Kronk account to see your mates in CommYOUnity, post to Kronk from YOU, and sign in with Kronk.
+            Connect your Kronk account to see your mates in KommYOUnity, share moments from YOU, and sign in with Kronk.
           </div>
           <Button variant="secondary" size="sm" disabled={busy} onClick={() => run(() => goToKronk("link", "/settings"))}>
             {busy ? "Opening Kronk…" : "Connect Kronk"}
