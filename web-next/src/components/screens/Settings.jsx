@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { Brush, Download, LogOut, MapPin, Palette, PenLine, Puzzle, ShieldCheck, Sun, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Brush, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, SunMoon, Trash2 } from "lucide-react";
+import { SCALE_DEFAULT, SCALE_STOPS, applyScale, coloursAt, readScale, stopName, storeScale } from "../../lib/colourScale";
 import { Fold } from "../ui/Fold";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
 import { AI_USER_MONTHLY_USD } from "../../lib/aiCost";
@@ -43,6 +44,9 @@ export default function Settings() {
         </Fold>
         <Fold icon={Sun} title="Opening YOU" hint="Land on the Threshold, or straight on Home">
           <ThresholdSetting />
+        </Fold>
+        <Fold icon={SunMoon} title="Colours" hint="Slide Nature and the Cosmos to your own shades">
+          <ColourScaleSetting />
         </Fold>
         <Fold icon={Palette} title="Featured art on Home" hint="Artists' pieces in the welcome">
           <ShowcaseBackgroundSetting />
@@ -576,6 +580,83 @@ function KronkFeedChoice() {
         })}
       </div>
       {error && <div className="text-caption text-red-500 mt-1.5">{error}</div>}
+    </div>
+  );
+}
+
+// The colour scale: one slider for Nature (by day) and one for the Cosmos
+// (by night). The side you're in changes as you slide; the other shows a
+// small preview. Saved to the account a moment after you let go.
+function ColourScaleSetting() {
+  const { setPrefs } = useAuth();
+  const [scale, setScale] = useState(readScale);
+  const [error, setError] = useState("");
+  const timer = useRef(null);
+
+  function change(mode, pos) {
+    save({ ...scale, [mode]: pos });
+  }
+  function save(next) {
+    setScale(next);
+    storeScale(next);
+    applyScale(next);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      setPrefs({ colour_scale: next }).catch(() => setError("Saved on this device; couldn't save to your account just now."));
+    }, 700);
+  }
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  return (
+    <div>
+      <div className="text-bodySm text-textSecondary mb-4">
+        Only the grounds change, so your words stay easy to read. Switch between Nature and the Cosmos in the menu to see each side.
+      </div>
+      <ScaleSlider mode="light" title="Nature, by day" value={scale.light} onChange={v => change("light", v)} />
+      <ScaleSlider mode="dark" title="The Cosmos, by night" value={scale.dark} onChange={v => change("dark", v)} />
+      {(Math.abs(scale.light - SCALE_DEFAULT) > 0.5 || Math.abs(scale.dark - SCALE_DEFAULT) > 0.5) && (
+        <button
+          type="button"
+          onClick={() => save({ light: SCALE_DEFAULT, dark: SCALE_DEFAULT })}
+          className="inline-flex items-center gap-1.5 text-caption text-textSecondary min-h-[40px]"
+        >
+          <RotateCcw size={13} strokeWidth={1.75} /> Back to YOU's own colours
+        </button>
+      )}
+      {error && <div className="text-caption text-red-500 mt-1">{error}</div>}
+    </div>
+  );
+}
+
+function ScaleSlider({ mode, title, value, onChange }) {
+  const stops = SCALE_STOPS[mode];
+  const track = `linear-gradient(90deg, ${stops.map(s => s.s1).join(", ")})`;
+  const here = coloursAt(mode, value);
+  const id = `scale-${mode}`;
+  return (
+    <div className="mb-5">
+      <div className="flex items-center justify-between mb-2">
+        <label htmlFor={id} className="text-bodySm text-textPrimary">{title}</label>
+        <span className="inline-flex items-center gap-1.5 text-caption text-textSecondary">
+          <span className="w-4 h-4 rounded-full border border-borderC" style={{ background: here.s1 }} aria-hidden="true" />
+          {stopName(mode, value)}
+        </span>
+      </div>
+      <input
+        id={id}
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value={Math.round(value)}
+        onChange={e => onChange(Number(e.target.value))}
+        aria-valuetext={stopName(mode, value)}
+        className="you-scale w-full"
+        style={{ "--track": track }}
+      />
+      <div className="flex justify-between text-caption text-textMuted mt-1" aria-hidden="true">
+        {stops.map(s => <span key={s.label}>{s.label}</span>)}
+      </div>
     </div>
   );
 }
