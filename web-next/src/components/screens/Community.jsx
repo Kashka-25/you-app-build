@@ -100,10 +100,8 @@ function Window({ link }) {
   const [loading, setLoading] = useState(true);
   const [more, setMore] = useState(true);
   const [error, setError] = useState(null);
-  // Paging uses the last post Kronk sent, including the Seeker's own ones
-  // that aren't shown here.
+  // Paging carries on from the last post Kronk sent.
   const [cursor, setCursor] = useState(undefined);
-  const mine = h => h.toLowerCase() === link.handle.toLowerCase();
   // The newest post Kronk has given us, and new ones waiting behind the pill.
   const newest = useRef(undefined);
   const [fresh, setFresh] = useState([]);
@@ -117,8 +115,8 @@ function Window({ link }) {
       const { posts: page } = await kronkTimeline("home", { limit: PAGE, maxId: reset ? undefined : cursor });
       setCursor(page[page.length - 1]?.id);
       if (reset) { newest.current = page[0]?.id; setFresh([]); }
-      const shown = page.filter(x => !mine(x.account.handle));
-      setPosts(p => (reset ? shown : [...p, ...shown]));
+      // Everything on your Kronk home feed, your own posts included.
+      setPosts(p => (reset ? page : [...p, ...page.filter(x => !p.some(y => y.id === x.id))]));
       setMore(page.length >= PAGE);
     } catch (e) {
       setError(e);
@@ -140,8 +138,7 @@ function Window({ link }) {
         const newer = page.filter(x => laterId(x.id, since));
         if (!newer.length) return;
         newest.current = newer[0].id;
-        const theirs = newer.filter(x => !mine(x.account.handle));
-        if (theirs.length) setFresh(f => [...theirs, ...f.filter(x => !theirs.some(t => t.id === x.id))]);
+        setFresh(f => [...newer, ...f.filter(x => !newer.some(t => t.id === x.id))]);
       } catch { /* the next minute will try again */ }
     }
     const timer = setInterval(check, 60 * 1000);
@@ -191,7 +188,7 @@ function Window({ link }) {
         </span>
       </a>
 
-      <h2 ref={heading} className="font-serif text-h3 text-textPrimary mb-2.5 scroll-mt-4">From your mates</h2>
+      <h2 ref={heading} className="font-serif text-h3 text-textPrimary mb-2.5 scroll-mt-4">Your Kronk feed</h2>
 
       {fresh.length > 0 && (
         <div className="sticky top-2 z-10 flex justify-center mb-2.5" role="status">
@@ -201,7 +198,7 @@ function Window({ link }) {
             className="inline-flex items-center gap-1.5 min-h-[40px] px-4 rounded-full bg-forestAccent text-onAccent text-bodySm font-medium shadow-card"
           >
             <ArrowUp size={15} strokeWidth={2} />
-            {fresh.length === 1 ? "1 new post" : `${fresh.length >= 20 ? "20+" : fresh.length} new posts`} from your mates
+            {fresh.length === 1 ? "1 new post" : `${fresh.length >= 20 ? "20+" : fresh.length} new posts`}
           </button>
         </div>
       )}
