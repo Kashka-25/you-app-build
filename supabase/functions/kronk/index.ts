@@ -4,7 +4,7 @@
 //   start      { mode: "link" | "signin", origin }  → { url } to send the browser to Kronk
 //   finish     { code, state }                       → link: { handle }  ·  signin: { token_hash, created }
 //   disconnect {}                                     → revokes YOU's access on Kronk and forgets it
-//   timeline   { feed: "home" | "local", max_id? }    → { posts: [...] } in a safe, plain shape
+//   timeline   { feed: "home" | "local", limit?, max_id? } → { posts: [...] } in a safe, plain shape
 //   post       { text, visibility }                  → { url }
 //
 // "link" connects the signed-in Seeker's Kronk account. "signin" is
@@ -261,7 +261,8 @@ Deno.serve(async req => {
 
     if (action === "timeline") {
       const path = body.feed === "local" ? "/api/v1/timelines/public" : "/api/v1/timelines/home";
-      const q = new URLSearchParams({ limit: "20" });
+      const limit = Math.min(20, Math.max(1, parseInt(body.limit, 10) || 20));
+      const q = new URLSearchParams({ limit: String(limit) });
       if (body.feed === "local") q.set("local", "true");
       if (body.max_id && /^\d+$/.test(String(body.max_id))) q.set("max_id", String(body.max_id));
       const res = await kronk(`${path}?${q}`, token);

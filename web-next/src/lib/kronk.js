@@ -40,7 +40,8 @@ export function takeReturnPath() {
 
 export const finishKronk = (code, state) => call({ action: "finish", code, state });
 export const disconnectKronk = () => call({ action: "disconnect" });
-export const kronkTimeline = (feed, maxId) => call({ action: "timeline", feed, max_id: maxId });
+export const kronkTimeline = (feed, { limit, maxId } = {}) => call({ action: "timeline", feed, limit, max_id: maxId });
+export const KRONK_HOME = "https://kronk.info/home";
 export const postToKronk = (text, visibility) => call({ action: "post", text, visibility });
 
 // The Seeker's Kronk link (without the token, which the database never

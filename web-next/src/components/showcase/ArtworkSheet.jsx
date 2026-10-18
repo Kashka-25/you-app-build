@@ -4,6 +4,7 @@ import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { creditLine, kronkProfileUrl, safeUrl, saveGate, supportLinks } from "../../lib/showcase";
 import { reportWork, saveWork, unsaveWork } from "../../lib/showcaseApi";
+import ShareToKronk from "../ShareToKronk";
 
 // A shared piece in full: the display-sized image or the words, who made it
 // and who offered it, how to support them, and Save (free, or after an
@@ -126,6 +127,12 @@ export default function ArtworkSheet({ work, saved, onSavedChange, onClose }) {
           })}
         </ul>
       )}
+
+      <ShareToKronk
+        text={`${work.title ? `“${work.title}” by ` : "A piece by "}${name}${artist?.kronk_handle ? ` ${artist.kronk_handle}` : ""}. Found it in the YOU Showcase. 🎨`}
+        label="Share this piece on Kronk"
+        className="mt-2"
+      />
 
       <section aria-labelledby="support-artist" className="mt-4 pt-3 border-t border-borderC">
         <h3 id="support-artist" className="flex items-center gap-2 text-label uppercase text-gold m-0 mb-2">

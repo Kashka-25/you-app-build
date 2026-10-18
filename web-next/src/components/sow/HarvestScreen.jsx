@@ -7,6 +7,7 @@ import { harvestWeekStartKey, weekRangeLabel, addDaysKey, WEEKDAY_SHORT, goBack,
 import { stepProgress } from "../ui/StepList";
 import { Button } from "../ui/Button";
 import WeekGarden from "../focus/WeekGarden";
+import ShareToKronk from "../ShareToKronk";
 import { AiButton, AiCard } from "../ui/Premium";
 
 const MAX_SOWN = 3;
@@ -172,6 +173,9 @@ export default function HarvestScreen() {
             See what season you're in
           </Button>
           <Button variant="ghost" className="w-full" onClick={() => goBack(navigate)}>Done</Button>
+        </div>
+        <div className="text-center mt-4">
+          <ShareToKronk text="This week's harvest is gathered. Grateful for what grew. 🌾" />
         </div>
       </>
     );
