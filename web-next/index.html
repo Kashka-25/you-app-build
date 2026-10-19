@@ -28,9 +28,22 @@
     <meta name="apple-mobile-web-app-title" content="YOU" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- The opening splash: the full YOU logo, painted with the very first
+         frame (before the app's code arrives) and in the same place as the
+         app's own loading screen, so opening YOU shows one splash, not a
+         blank page then a second one. React replaces it when it starts. -->
+    <link rel="preload" as="image" href="/logo-full.png" />
+    <style>
+      html, body { margin: 0; background: #F7F1E8; }
+      html[data-mode="dark"], html[data-mode="dark"] body { background: #0B0B1F; }
+      .boot { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 64px 24px; box-sizing: border-box; text-align: center; }
+      .boot img { width: 100%; max-width: 240px; height: auto; }
+      .boot p { margin: 0; max-width: 240px; font: italic 500 16px/1.4 "Cormorant Garamond", Georgia, serif; color: #6A5646; }
+      html[data-mode="dark"] .boot p { color: #B8B5D6; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="boot"><img src="/logo-full.png" alt="YOU — Your Own Universe" width="720" height="621" /><p>Come back to yourself, whenever you're ready.</p></div></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
