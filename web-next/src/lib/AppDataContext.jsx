@@ -1561,7 +1561,8 @@ export function AppDataProvider({ children }) {
   }
 
   const tagKey = t => String(t).replace(/^#/, "").toLowerCase();
-  const isIdeaEntry = e => (e?.tags || []).some(t => tagKey(t) === "idea");
+  // #idea, or #buildnotes as Cassidy also writes it, sends an entry to Build Notes.
+  const isIdeaEntry = e => (e?.tags || []).some(t => ["idea", "buildnotes", "buildnote"].includes(tagKey(t)));
   // A second tag naming a project files it there (#idea #YOUniversity);
   // otherwise it's for the YOU app.
   const ideaProject = e =>

@@ -20,7 +20,8 @@ export async function callClaude({
   maxTokens = 1500,
   usage,
   model = MODEL,
-  fallbacks = false
+  fallbacks = false,
+  jsonSchema
 }: {
   system: string;
   messages: { role: "user" | "assistant"; content: string | ContentBlock[] }[];
@@ -28,6 +29,11 @@ export async function callClaude({
   usage?: { req?: Request; fn: string };
   model?: string;
   fallbacks?: boolean;
+  // Structured outputs: the reply is guaranteed to be valid JSON matching
+  // this schema (every object needs additionalProperties: false). Use it
+  // wherever the reply is parsed as JSON, so a stray quote in the Seeker's
+  // own words can never break the parse.
+  jsonSchema?: Record<string, unknown>;
 }): Promise<string> {
   if (!ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY is not configured on this project.");
@@ -46,6 +52,7 @@ export async function callClaude({
       max_tokens: maxTokens,
       system,
       messages,
+      ...(jsonSchema ? { output_config: { format: { type: "json_schema", schema: jsonSchema } } } : {}),
       ...(fallbacks ? { fallbacks: "default" } : {})
     })
   });
@@ -59,6 +66,10 @@ export async function callClaude({
   if (usage) await logUsage({ ...usage, data });
   if (data.stop_reason === "refusal") {
     throw new Error("The model declined this request.");
+  }
+  // JSON cut off at max_tokens can't be parsed; say so plainly.
+  if (jsonSchema && data.stop_reason === "max_tokens") {
+    throw new Error("The reply ran out of room before it finished.");
   }
 
   // Only text blocks: thinking blocks (on by default on newer models) are skipped.

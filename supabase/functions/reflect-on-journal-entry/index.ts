@@ -61,6 +61,58 @@ Keep "symbols" to the three to six that carry the most charge.`;
 
 const tagKey = (t: string) => String(t).replace(/^#/, "").toLowerCase();
 
+// The JSON shape above as a schema, so the reply always parses. A dream
+// entry must also carry the "dream" reading.
+const strings = { type: "array", items: { type: "string" } };
+const INSIGHT_CATEGORIES = ["theme", "emotion", "value", "dream", "goal", "challenge", "achievement", "relationship", "event", "life_area", "question", "pattern"];
+const CONNECTION_KEYS = ["values", "goals", "dreams", "challenges", "life_areas", "moments", "chapters", "related_entries"];
+function reflectionSchema(isDream: boolean) {
+  const properties: Record<string, unknown> = {
+    summary: { type: "string" },
+    insights: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: { category: { type: "string", enum: INSIGHT_CATEGORIES }, text: { type: "string" } },
+        required: ["category", "text"],
+        additionalProperties: false
+      }
+    },
+    connections: {
+      type: "object",
+      properties: Object.fromEntries(CONNECTION_KEYS.map(k => [k, strings])),
+      required: CONNECTION_KEYS,
+      additionalProperties: false
+    },
+    reflection_question: { type: "string" },
+    suggested_next_step: { type: "string" },
+    highlights: strings
+  };
+  if (isDream) {
+    properties.dream = {
+      type: "object",
+      properties: {
+        symbols: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: { symbol: { type: "string" }, meaning: { type: "string" } },
+            required: ["symbol", "meaning"],
+            additionalProperties: false
+          }
+        },
+        feelings: strings,
+        waking_life: strings,
+        recurring: strings,
+        question: { type: "string" }
+      },
+      required: ["symbols", "feelings", "waking_life", "recurring", "question"],
+      additionalProperties: false
+    };
+  }
+  return { type: "object", properties, required: Object.keys(properties), additionalProperties: false };
+}
+
 Deno.serve(async req => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -153,9 +205,14 @@ ${JSON.stringify((earlierDreams || []).map((d: { dream: { symbols?: { symbol: st
   symbols: (d.dream?.symbols || []).map(x => x.symbol)
 })), null, 2)}` : ""}`;
 
+    // Structured outputs + room to finish (Oct 19): long dreams quoted in the
+    // Seeker's own words used to break the JSON (a stray quote) or run past
+    // the old 1,500-token limit, so the dream reading never arrived.
     const raw = await callClaude({
       system: [SYSTEM_PROMPT, isDream ? DREAM_PROMPT : "", compass ? COMPASS_GUIDANCE : ""].filter(Boolean).join("\n\n"),
-      messages: [{ role: "user", content: userMessage }], usage: { req, fn: "reflect-on-journal-entry" }
+      messages: [{ role: "user", content: userMessage }], usage: { req, fn: "reflect-on-journal-entry" },
+      jsonSchema: reflectionSchema(isDream),
+      maxTokens: isDream ? 6000 : 3000
     });
 
     const unmoderated = parseJsonResponse<{

@@ -15,7 +15,7 @@ export default function You() {
         <Pill>{level.name} — companion presence</Pill>
       </div>
 
-      <DropdownSection title="Pillars">
+      <DropdownSection title="Pillars" defaultOpen>
         <PillarsPanel />
       </DropdownSection>
 

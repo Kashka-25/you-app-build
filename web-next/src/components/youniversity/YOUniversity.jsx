@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Guide } from "../ui/Guide";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Check, Wrench, BookOpen, ChevronRight, Clock } from "lucide-react";
@@ -228,9 +229,9 @@ export default function YOUniversity() {
     <div className="pt-1 pb-24 px-5">
       <BackRow />
       <h1 className="font-serif text-h2 font-medium mt-4 mb-0">YOUniversity</h1>
-      <div className="text-bodySm text-textSecondary mt-2 mb-4">
+      <Guide className="mt-1 mb-3">
         Your Arcana: the tools and teachings you carry, to return to whenever you need them.
-      </div>
+      </Guide>
       <div className="mb-4">
         <SegmentedControl options={TABS} value={tab} onChange={setTab} />
       </div>

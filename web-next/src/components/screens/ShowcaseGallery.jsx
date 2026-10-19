@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Guide } from "../ui/Guide";
 import { Palette } from "lucide-react";
 import { useAuth } from "../../lib/AuthContext";
 import { useShowcase } from "../../lib/showcaseApi";
@@ -27,9 +28,9 @@ export default function ShowcaseGallery() {
         <img src="/images/icons/showcase@4x.png" alt="" width="52" height="52" className="w-[52px] h-[52px] flex-none" />
         Showcase
       </h1>
-      <div className="text-bodySm text-textSecondary mt-2 mb-4">
+      <Guide className="mt-1 mb-3">
         Art and words shared by the people who made them. Tap a piece to see it in full and support the artist.
-      </div>
+      </Guide>
 
       <div className="mb-4">
         <SegmentedControl

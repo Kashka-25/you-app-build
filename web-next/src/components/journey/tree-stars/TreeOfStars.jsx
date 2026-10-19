@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Guide } from "../../ui/Guide";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus } from "lucide-react";
@@ -320,11 +321,11 @@ export default function TreeOfStars() {
   return (
     <div className="pt-1 pb-24 px-5">
       <div className="font-serif text-h2 font-medium mb-1">Tree of YOU</div>
-      <p className="text-bodySm text-textSecondary mb-4 max-w-[46ch]">
+      <Guide className="mb-3">
         Your Pillars are the roots, your Values the branches, bearing fruit as they ripen. The canopy
         reaches into the stars: the versions of yourself you're growing toward. Tap anything to trace
         what feeds it.
-      </p>
+      </Guide>
 
       <motion.div
         className="relative rounded-card overflow-hidden border border-borderC"

@@ -17,6 +17,7 @@ import { DropdownSection } from "../Primitives";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { AiButton, AiCard } from "../ui/Premium";
 import TrueNorthCard from "./TrueNorthCard";
+import { NorthStar } from "./Crossroads";
 import ShareToKronk from "../ShareToKronk";
 import { elementColor } from "../../lib/elements";
 import { findInCodex, closestValues, displayWord, validWord } from "../../lib/valueWords";
@@ -82,14 +83,45 @@ export default function ValuesPanel() {
     <div>
       {/* Values in focus open first; True North folds away below (Cassidy, Oct 18). */}
       <DropdownSection title={`In focus (${activeValues.length})`} level={1} defaultOpen>
-        <div className="text-bodySm text-textSecondary mb-3">
-          {activeValues.length} of {valueSlots} in focus
-          <span className="text-textMuted"> · every value is always yours to choose</span>
+        {/* Your values in focus as glowing orbs, with the open places beside
+            them (Cassidy, Oct 19: make this space a pleasure to look at).
+            Tap one to open its card, or an open place to add a value. */}
+        <div className="flex gap-1 overflow-x-auto -mx-1 px-1 pb-1 mb-4 [scrollbar-width:none]" role="list" aria-label={`${activeValues.length} of ${valueSlots} values in focus`}>
+          {activeValues.map(v => {
+            const color = VALUE_ELEMENT[v.name] ? elementColor(VALUE_ELEMENT[v.name]) : (VALUE_COLORS[v.name] || "#C9A24D");
+            const Icon = VALUE_ICONS[v.name] || Sparkles;
+            const on = openName === v.name;
+            return (
+              <button
+                key={v.name}
+                type="button"
+                role="listitem"
+                onClick={() => toggleOpen(v.name)}
+                aria-pressed={on}
+                className="w-[76px] flex-none flex flex-col items-center gap-1.5"
+              >
+                <span className={`rounded-full transition-shadow ${on ? "ring-2 ring-offset-2 ring-offset-[var(--surface-2)]" : ""}`} style={on ? { "--tw-ring-color": color } : undefined}>
+                  <GlowBubble icon={Icon} size={44} color={color} />
+                </span>
+                <span className="w-full text-[11px] text-textPrimary leading-tight text-center">{v.name}</span>
+              </button>
+            );
+          })}
+          {hasRoom && Array.from({ length: valueSlots - activeValues.length }).map((_, i) => (
+            <button
+              key={`open-${i}`}
+              type="button"
+              onClick={() => setAdding(true)}
+              className="w-[76px] flex-none flex flex-col items-center gap-1.5"
+              aria-label="Add a value to this open place"
+            >
+              <span className="w-[44px] h-[44px] rounded-full border-2 border-dashed border-borderC flex items-center justify-center text-textMuted">
+                <Plus size={18} strokeWidth={1.75} />
+              </span>
+              <span className="text-[11px] text-textMuted">Open</span>
+            </button>
+          ))}
         </div>
-
-        {activeValues.length === 0 && (
-          <div className="text-bodySm text-textMuted mb-3">No values in focus yet.</div>
-        )}
 
         <div className="space-y-2.5 mb-4">
           {activeValues.map(v => (
@@ -127,9 +159,8 @@ export default function ValuesPanel() {
         )}
       </DropdownSection>
 
-      <DropdownSection title="True North" level={1}>
-        <TrueNorthCard />
-      </DropdownSection>
+      <TrueNorthInvite />
+
 
       {rested.length > 0 && (
         <DropdownSection title={`Resting (${rested.length})`} level={1}>
@@ -606,6 +637,49 @@ function Perspective({ entry }) {
         <ChevronDown size={12} strokeWidth={1.75} className={`transition-transform duration-200 ${more ? "rotate-180" : ""}`} />
         {more ? "Show less" : "Read the fuller picture"}
       </button>
+    </div>
+  );
+}
+
+// True North, made easy to find and inviting (Cassidy, Oct 19): a starlit
+// card that names your North (or invites you to find it) and opens the
+// Crossroads and compass beneath.
+function TrueNorthInvite() {
+  const { compass } = useAppData();
+  const [open, setOpen] = useState(false);
+  const north = compass?.ordering?.[0]?.join(" & ");
+  return (
+    <div className="mt-5">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center gap-3.5 rounded-card p-4 text-left text-[#F7F5EF] shadow-cardDark overflow-hidden relative"
+        style={{ background: "radial-gradient(120% 140% at 85% -20%, rgba(108,104,182,0.55) 0%, rgba(108,104,182,0) 55%), radial-gradient(90% 120% at 0% 120%, rgba(201,162,77,0.28) 0%, rgba(201,162,77,0) 60%), #0B0B1F" }}
+      >
+        <span className="w-12 h-12 rounded-full flex-none flex items-center justify-center border border-[#C9A24D]/50 bg-[#C9A24D]/10">
+          <NorthStar size={26} strokeWidth={1.5} filled={Boolean(north)} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-label uppercase tracking-[0.12em] text-[#C9A24D]">{north ? "Your True North" : "True North"}</span>
+          <span className="block font-serif text-[21px] leading-tight mt-0.5 truncate">{north || "Find which way you lean"}</span>
+          <span className="block text-caption text-[#B8B5D6] mt-0.5">{north ? "Open your compass" : "Walk the crossroads of your values"}</span>
+        </span>
+        <ChevronDown size={18} strokeWidth={1.75} className={`flex-none text-[#C9A24D] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: easeOut }}
+            className="overflow-hidden"
+          >
+            <div className="pt-2.5"><TrueNorthCard /></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
