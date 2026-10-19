@@ -11,21 +11,24 @@ export function Skeleton({ className = "" }) {
   );
 }
 
-// The branded splash — full wordmark (with "Your Own Universe") + a warm
-// invitation line + a gently pulsing status label underneath. Deliberately
-// left un-wrapped (no full-viewport container) so it drops into either a
-// full-screen boot splash (App.jsx) or a contained preview card
+// The branded splash: the YOU app emblem (the same image Android shows as
+// it opens the app, so the two read as one load, not two pages; Cassidy,
+// Oct 19) + a warm invitation line + a gently pulsing status label.
+// Deliberately left un-wrapped (no full-viewport container) so it drops into
+// either a full-screen boot splash (App.jsx) or a contained preview card
 // (Styleguide) without fighting either one's own layout.
 export function LoadingScreen({ label = "Gathering your story" }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 gap-5 text-center">
       <motion.img
-        src="/logo-full.png"
+        src="/images/splash-emblem.png"
         alt="YOU — Your Own Universe"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: easeOut }}
-        className="w-full max-w-[240px]"
+        width="144"
+        height="141"
+        initial={{ opacity: 0.85 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: easeOut }}
+        className="w-36 h-auto drop-shadow-[0_8px_24px_rgba(58,38,24,0.18)]"
       />
       <motion.div
         initial={{ opacity: 0 }}
