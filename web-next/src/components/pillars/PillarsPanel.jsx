@@ -73,8 +73,15 @@ export default function PillarsPanel() {
 }
 
 const R = 150;          // half the wheel's size
-const MIN = 34;         // a just-begun petal still shows
-const SPAN = 104;       // how far a full level reaches beyond MIN
+const MIN = 40;         // a just-begun petal still shows
+const SPAN = 100;       // how far the petals can reach beyond MIN
+
+// Petals grow with every level and never shrink back at a level up (Cassidy,
+// Oct 19): a Pillar's whole journey (levels earned + progress to the next)
+// maps to a length that keeps growing but eases as it goes, so early levels
+// show clearly and later ones still fit on the wheel.
+const reach = levels => MIN + SPAN * (levels / (levels + 1));
+const LEVEL_RINGS = [1, 2, 3, 5];
 
 // A petal from the centre out along `angle`, `len` long and `w` wide.
 function petal(angle, len, w) {
@@ -98,27 +105,45 @@ function PillarWheel({ pillars, selected, onSelect }) {
     ...outer.map((p, i) => ({ p, angle: 45 + i * 90 }))
   ];
   const totalLevel = pillars.reduce((s, p) => s + p.level, 0);
+  // The centre's ring: how far all eight petals are, together, toward their
+  // next levels. It fills as the petals grow.
+  const together = pillars.length ? pillars.reduce((s, p) => s + p.pct, 0) / pillars.length : 0;
+  const centreRing = 2 * Math.PI * 34;
   return (
     <div className="relative mx-auto w-full max-w-[300px] aspect-square">
-      <svg viewBox={`0 0 ${R * 2} ${R * 2}`} className="w-full h-full" role="img" aria-label="Your eight Pillars as a wheel; each petal grows with its Pillar">
+      <svg viewBox={`0 0 ${R * 2} ${R * 2}`} className="w-full h-full" role="img"
+        aria-label={`Your eight Pillars as a flower: ${totalLevel} levels earned; each petal grows a band with every level and fills toward the next`}>
         <circle cx={R} cy={R} r={R - 6} fill="none" stroke="var(--gold)" strokeOpacity="0.25" strokeDasharray="1 5" />
-        <circle cx={R} cy={R} r={MIN + SPAN} fill="none" stroke="var(--gold)" strokeOpacity="0.18" />
+        {/* Where each level begins: a petal crossing a ring has levelled up. */}
+        {LEVEL_RINGS.map(l => (
+          <circle key={l} cx={R} cy={R} r={reach(l)} fill="none" stroke="var(--gold)" strokeOpacity="0.16" strokeDasharray={l === 1 ? undefined : "2 4"} />
+        ))}
         {placed.map(({ p, angle }) => {
-          const len = MIN + SPAN * (p.pct / 100);
           const w = p.inner ? 24 : 18;
           const on = selected === p.name;
+          const next = reach(p.level + 1);
+          const now = reach(p.level + p.pct / 100);
           return (
             <g key={p.name} onClick={() => onSelect(p.name)} className="cursor-pointer">
-              <path d={petal(angle, MIN + SPAN, w)} fill={p.color} fillOpacity={on ? 0.18 : 0.09} stroke={p.color} strokeOpacity="0.25" />
-              <path d={petal(angle, len, w)} fill={p.color} fillOpacity={on ? 1 : 0.82} />
+              {/* The room to the next level, then the growth toward it, then
+                  every level already earned as a solid band within. */}
+              <path d={petal(angle, next, w)} fill={p.color} fillOpacity={on ? 0.16 : 0.08} stroke={p.color} strokeOpacity="0.25" />
+              <path d={petal(angle, now, w)} fill={p.color} fillOpacity={on ? 0.6 : 0.45} />
+              {Array.from({ length: p.level }, (_, i) => p.level - i).map(l => (
+                <path key={l} d={petal(angle, reach(l), w)} fill={p.color} fillOpacity={on ? 1 : 0.88}
+                  stroke="var(--surface-2)" strokeOpacity="0.55" strokeWidth="0.8" />
+              ))}
             </g>
           );
         })}
-        <circle cx={R} cy={R} r="30" fill="var(--surface-2)" stroke="var(--gold)" strokeOpacity="0.5" />
+        <circle cx={R} cy={R} r="30" fill="var(--surface-2)" stroke="var(--gold)" strokeOpacity="0.35" />
+        <circle cx={R} cy={R} r="34" fill="none" stroke="var(--gold)" strokeOpacity="0.15" strokeWidth="3" />
+        <circle cx={R} cy={R} r="34" fill="none" stroke="var(--gold)" strokeWidth="3" strokeLinecap="round"
+          strokeDasharray={`${(centreRing * Math.max(together, 1)) / 100} ${centreRing}`} transform={`rotate(-90 ${R} ${R})`} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
         <div className="font-serif text-[22px] leading-none text-textPrimary">{totalLevel}</div>
-        <div className="text-[9px] uppercase tracking-[0.14em] text-textMuted mt-0.5">levels</div>
+        <div className="text-[9px] uppercase tracking-[0.14em] text-textMuted mt-0.5">{totalLevel === 1 ? "level" : "levels"}</div>
       </div>
     </div>
   );
