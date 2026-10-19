@@ -1,4 +1,5 @@
 import { useMemo, useState, lazy, Suspense } from "react";
+import { Guide } from "../../ui/Guide";
 import { Link } from "react-router-dom";
 import { X, MapPin, BookOpen, Globe2 } from "lucide-react";
 import { useEscape } from "../../ui/useEscape";
@@ -162,10 +163,10 @@ export default function LifeConstellations({ onClose }) {
         <div className="text-center mb-8">
           <div className="text-caption uppercase tracking-wide text-gold mb-1">Memories over places</div>
           <div className="font-serif text-h2 font-medium text-cream">Life Constellations</div>
-          <p className="text-bodySm max-w-[42ch] mx-auto mt-1" style={{ color: "#B8B5D6" }}>
+          <Guide tone="night" className="mt-1 flex flex-col items-center [&>div]:text-center [&>div]:mx-auto">
             Every wandering you remember becomes a constellation, drawn in the true shape of the way you went.
             The brighter the star, the more you carried home from there.
-          </p>
+          </Guide>
           <button
             onClick={() => setWorldOpen(true)}
             className="inline-flex items-center gap-1.5 mt-3 text-caption uppercase tracking-wide px-3 py-1.5 rounded-full border"
