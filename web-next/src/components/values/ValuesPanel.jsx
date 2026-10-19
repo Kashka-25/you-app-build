@@ -19,6 +19,7 @@ import { AiButton, AiCard } from "../ui/Premium";
 import TrueNorthCard from "./TrueNorthCard";
 import { NorthStar } from "./Crossroads";
 import ValuesSky from "./ValuesSky";
+import { XpBar } from "../ui/XpBar";
 import ShareToKronk from "../ShareToKronk";
 import { elementColor } from "../../lib/elements";
 import { findInCodex, closestValues, displayWord, validWord } from "../../lib/valueWords";
@@ -223,16 +224,7 @@ function ValueCard({
       }}
     >
       <button onClick={onToggle} className="w-full flex items-center gap-3">
-        <span className="relative w-[52px] h-[52px] flex-none">
-          <svg viewBox="0 0 52 52" className="absolute inset-0 -rotate-90" aria-hidden="true">
-            <circle cx="26" cy="26" r="23.5" fill="none" stroke="var(--surface-3)" strokeWidth="3" />
-            <circle cx="26" cy="26" r="23.5" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round"
-              strokeDasharray={`${(2 * Math.PI * 23.5 * Math.max(pct, 2)) / 100} ${2 * Math.PI * 23.5}`} />
-          </svg>
-          <span className="absolute inset-[6px] flex items-center justify-center">
-            {Icon && <GlowBubble icon={Icon} size={40} color={color} />}
-          </span>
-        </span>
+        {Icon && <GlowBubble icon={Icon} size={44} color={color} />}
         <div className="flex-1 min-w-0 text-left">
           <div className="flex items-center gap-2">
             <span className="font-serif text-h3 text-textPrimary flex-1 min-w-0 truncate">{v.name}</span>
@@ -247,8 +239,10 @@ function ValueCard({
               {stage.name}
             </span>
           </div>
-          <div className="text-caption text-textMuted mt-0.5">
-            <span className="font-medium" style={{ color: tier.color }}>{tier.name}</span> · {pct}% ripened
+          {/* The Fallout-style XP bar through this cycle (Cassidy, Oct 19). */}
+          <XpBar pct={pct} color={color} xp={v.rating} of={requirement} className="mt-1.5" />
+          <div className="text-caption text-textMuted mt-1">
+            <span className="font-medium" style={{ color: tier.color }}>{tier.name}</span>
             {VALUE_ELEMENT[v.name] ? <> · {VALUE_ELEMENT[v.name]}</> : own ? <> · your own</> : null}
           </div>
         </div>

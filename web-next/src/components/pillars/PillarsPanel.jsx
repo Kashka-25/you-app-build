@@ -6,6 +6,7 @@ import { getPillarLevel, TIERS, INNER_PILLARS } from "../../constants/app.const"
 import { PILLAR_ICONS } from "../../constants/pillarIcons";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { easeOut } from "../ui/motion";
+import { XpBar } from "../ui/XpBar";
 
 // The eight Pillars as something to look at, not a list to read (Cassidy,
 // Oct 19): a wheel of petals, the inner four on the cardinal points and the
@@ -188,35 +189,30 @@ export function SunflowerHeart({ filled, cx = R, cy = R, r = HEART }) {
 
 function PillarTile({ p, selected, onSelect }) {
   const Icon = PILLAR_ICONS[p.name];
-  const ring = 2 * Math.PI * 19;
   const badgeColor = p.level > 0 ? TIERS[(p.level - 1) % TIERS.length].color : null;
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-expanded={selected}
-      className={`flex items-center gap-2.5 rounded-card p-2.5 text-left transition-shadow ${selected ? "bg-surface2 shadow-card" : "bg-surface1 shadow-card"}`}
+      className={`rounded-card p-2.5 text-left transition-shadow ${selected ? "bg-surface2 shadow-card" : "bg-surface1 shadow-card"}`}
       style={selected ? { boxShadow: `0 0 0 2px ${p.color}66` } : undefined}
     >
-      <span className="relative w-11 h-11 flex-none">
-        <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden="true">
-          <circle cx="22" cy="22" r="19" fill="none" stroke="var(--surface-3)" strokeWidth="3" />
-          <circle cx="22" cy="22" r="19" fill="none" stroke={p.color} strokeWidth="3" strokeLinecap="round"
-            strokeDasharray={`${(ring * Math.max(p.pct, 2)) / 100} ${ring}`} />
-        </svg>
-        <span className="absolute inset-[6px] rounded-full flex items-center justify-center" style={{ background: `${p.color}22`, color: p.color }}>
+      <span className="flex items-center gap-2.5">
+        <span className="w-9 h-9 rounded-full flex items-center justify-center flex-none" style={{ background: `${p.color}26`, color: p.color }}>
           {Icon && <Icon size={16} strokeWidth={1.75} />}
         </span>
-      </span>
-      <span className="min-w-0">
-        <span className="block text-bodySm font-medium text-textPrimary truncate">{p.name}</span>
-        <span className="flex items-center gap-1 text-caption text-textMuted">
-          {p.level > 0 ? (
-            <span className="inline-flex items-center gap-0.5" style={{ color: badgeColor }}><Award size={11} strokeWidth={1.75} />Lv {p.level}</span>
-          ) : "New"}
-          <span>· {p.xp} XP</span>
+        <span className="min-w-0">
+          <span className="block text-bodySm font-medium text-textPrimary truncate">{p.name}</span>
+          <span className="flex items-center gap-1 text-caption text-textMuted">
+            {p.level > 0 ? (
+              <span className="inline-flex items-center gap-0.5" style={{ color: badgeColor }}><Award size={11} strokeWidth={1.75} />Lv {p.level}</span>
+            ) : "Lv 0"}
+          </span>
         </span>
       </span>
+      {/* The Fallout-style XP bar toward the next level. */}
+      <XpBar pct={p.pct} color={p.color} xp={p.progress} of={p.requirement} className="mt-2" />
     </button>
   );
 }
