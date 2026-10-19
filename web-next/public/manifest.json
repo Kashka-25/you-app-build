@@ -4,8 +4,8 @@
   "description": "Your personal universe of habits, goals, values and memories",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FCFBF8",
-  "theme_color": "#294D3A",
+  "background_color": "#F7F1E8",
+  "theme_color": "#3A2618",
   "orientation": "portrait",
   "icons": [
     { "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" },

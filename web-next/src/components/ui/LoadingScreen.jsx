@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { easeOut } from "./motion";
 
 export function Skeleton({ className = "" }) {
   return (
@@ -11,30 +10,27 @@ export function Skeleton({ className = "" }) {
   );
 }
 
-// The branded splash — full wordmark (with "Your Own Universe") + a warm
-// invitation line + a gently pulsing status label underneath. Deliberately
-// left un-wrapped (no full-viewport container) so it drops into either a
-// full-screen boot splash (App.jsx) or a contained preview card
+// The branded splash: the full YOU logo (with "Your Own Universe"), the one
+// Cassidy chose for opening (Oct 19), + a warm invitation line + a gently
+// pulsing status label. index.html paints the same logo before the app's
+// code arrives, so opening YOU shows one splash, not two pages.
+// Deliberately left un-wrapped (no full-viewport container) so it drops into
+// either a full-screen boot splash (App.jsx) or a contained preview card
 // (Styleguide) without fighting either one's own layout.
 export function LoadingScreen({ label = "Gathering your story" }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 gap-5 text-center">
-      <motion.img
+      <img
         src="/logo-full.png"
         alt="YOU — Your Own Universe"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: easeOut }}
-        className="w-full max-w-[240px]"
+        width="720"
+        height="621"
+        className="w-full max-w-[240px] h-auto"
       />
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.7, delay: 0.25, ease: easeOut }}
-        className="font-serif text-body italic text-textSecondary max-w-[240px]"
-      >
+      {/* Already on screen from index.html's splash, so no fade-in here. */}
+      <div className="font-serif text-body italic text-textSecondary max-w-[240px]">
         Come back to yourself, whenever you're ready.
-      </motion.div>
+      </div>
       {label && (
         <motion.div
           animate={{ opacity: [0.4, 1, 0.4] }}
