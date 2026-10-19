@@ -1,97 +1,66 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Award, Feather } from "lucide-react";
+import { Award, Feather, Flame, Sprout } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { getPillarLevel, TIERS } from "../../constants/app.const";
+import { getPillarLevel, TIERS, INNER_PILLARS } from "../../constants/app.const";
 import { PILLAR_ICONS } from "../../constants/pillarIcons";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { easeOut } from "../ui/motion";
 
-const SEGMENTS = 10;
-
+// The eight Pillars as something to look at, not a list to read (Cassidy,
+// Oct 19): a wheel of petals, the inner four on the cardinal points and the
+// outer four between them, each petal growing with its Pillar's level; then
+// a tile for each Pillar with its progress as a ring around its icon. Tap a
+// tile (or a petal) to open it. Nothing moves until the Seeker taps.
 export default function PillarsPanel() {
   const { pillars } = useAppData();
-  const [openPillar, setOpenPillar] = useState(null);
+  const [openName, setOpenName] = useState(null);
   const [dream, setDream] = useState({ open: false, pillar: null });
+  const shown = pillars.map(p => ({ ...p, ...getPillarLevel(p.xp), inner: INNER_PILLARS.includes(p.name) }));
+  const open = shown.find(p => p.name === openName);
+  const toggle = name => setOpenName(n => (n === name ? null : name));
 
   return (
-    <div className="space-y-2.5">
-      {pillars.map(p => {
-        const { level, pct } = getPillarLevel(p.xp);
-        const filled = Math.round((pct / 100) * SEGMENTS);
-        const Icon = PILLAR_ICONS[p.name];
-        const open = openPillar === p.name;
-        const badgeColor = level > 0 ? TIERS[(level - 1) % TIERS.length].color : null;
-        return (
-          <div key={p.name} className="rounded-card bg-surface1 shadow-card p-3.5">
-            <button
-              onClick={() => setOpenPillar(open ? null : p.name)}
-              className="w-full flex items-center gap-3"
-            >
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center flex-none"
-                style={{ background: `${p.color}26`, color: p.color }}
-              >
-                {Icon && <Icon size={17} strokeWidth={1.75} />}
-              </div>
-              <div className="flex-1 min-w-0 text-left">
-                <div className="flex justify-between items-center text-body mb-1">
-                  <span className="flex items-center gap-1.5 font-medium text-textPrimary">
-                    {p.name}
-                    {level > 0 && (
-                      <span className="flex items-center gap-0.5 text-caption font-normal" style={{ color: badgeColor }}>
-                        <Award size={11} strokeWidth={1.75} />
-                        Lv {level}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-textMuted text-bodySm">{p.xp} XP</span>
-                </div>
-                <div className="flex gap-1">
-                  {Array.from({ length: SEGMENTS }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 h-2 rounded-sm"
-                      style={{ background: i < filled ? p.color : "var(--surface-3)" }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <ChevronDown
-                size={16}
-                strokeWidth={1.75}
-                className={`text-textMuted flex-none transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-              />
-            </button>
+    <div>
+      <PillarWheel pillars={shown} selected={openName} onSelect={toggle} />
 
-            <AnimatePresence initial={false}>
-              {open && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25, ease: easeOut }}
-                  className="overflow-hidden"
-                >
-                  <div className="flex gap-4 text-caption text-textMuted pt-2.5 pl-12">
-                    <span>Active: {p.active}</span>
-                    <span>Best streak: {p.bestStreak}d</span>
-                  </div>
-                  <div className="pl-12 pt-2.5">
-                    <button
-                      onClick={() => setDream({ open: true, pillar: p.name })}
-                      className="flex items-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-1.5"
-                    >
-                      <Feather size={14} strokeWidth={1.75} />
-                      Free a dream in {p.name}
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
+      <div className="grid grid-cols-2 gap-2.5 mt-4">
+        {shown.map(p => (
+          <PillarTile key={p.name} p={p} selected={openName === p.name} onSelect={() => toggle(p.name)} />
+        ))}
+      </div>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key={open.name}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: easeOut }}
+            className="overflow-hidden"
+          >
+            <div className="mt-2.5 rounded-card p-4 border" style={{ borderColor: `${open.color}55`, background: `color-mix(in srgb, ${open.color} 9%, var(--surface-1))` }}>
+              <div className="font-serif text-h3 text-textPrimary">{open.name}</div>
+              <div className="text-caption text-textMuted mb-3">
+                {open.level > 0 ? `Level ${open.level}` : "Just beginning"} · {open.xp} XP · {100 - open.pct}% to the next level
+              </div>
+              <div className="flex gap-4 text-bodySm text-textSecondary mb-3">
+                <span className="inline-flex items-center gap-1.5"><Sprout size={14} strokeWidth={1.75} style={{ color: open.color }} /> {open.active} growing</span>
+                <span className="inline-flex items-center gap-1.5"><Flame size={14} strokeWidth={1.75} style={{ color: open.color }} /> best streak {open.bestStreak}d</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDream({ open: true, pillar: open.name })}
+                className="inline-flex items-center gap-1.5 text-bodySm text-textPrimary border border-borderC bg-surface2 rounded-full px-3.5 min-h-[40px]"
+              >
+                <Feather size={14} strokeWidth={1.75} />
+                Free a dream in {open.name}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <QuestionnaireFlow
         open={dream.open}
@@ -100,5 +69,92 @@ export default function PillarsPanel() {
         pillar={dream.pillar}
       />
     </div>
+  );
+}
+
+const R = 150;          // half the wheel's size
+const MIN = 34;         // a just-begun petal still shows
+const SPAN = 104;       // how far a full level reaches beyond MIN
+
+// A petal from the centre out along `angle`, `len` long and `w` wide.
+function petal(angle, len, w) {
+  const a = (angle - 90) * (Math.PI / 180);
+  const u = [Math.cos(a), Math.sin(a)];
+  const n = [-u[1], u[0]];
+  const tip = [R + u[0] * len, R + u[1] * len];
+  const mid = [R + u[0] * len * 0.48, R + u[1] * len * 0.48];
+  const c1 = [mid[0] + n[0] * w, mid[1] + n[1] * w];
+  const c2 = [mid[0] - n[0] * w, mid[1] - n[1] * w];
+  const f = v => v.toFixed(1);
+  return `M${R},${R} Q${f(c1[0])},${f(c1[1])} ${f(tip[0])},${f(tip[1])} Q${f(c2[0])},${f(c2[1])} ${R},${R} Z`;
+}
+
+function PillarWheel({ pillars, selected, onSelect }) {
+  const inner = pillars.filter(p => p.inner);
+  const outer = pillars.filter(p => !p.inner);
+  // Inner Pillars on the cardinal points, outer ones between them.
+  const placed = [
+    ...inner.map((p, i) => ({ p, angle: i * 90 })),
+    ...outer.map((p, i) => ({ p, angle: 45 + i * 90 }))
+  ];
+  const totalLevel = pillars.reduce((s, p) => s + p.level, 0);
+  return (
+    <div className="relative mx-auto w-full max-w-[300px] aspect-square">
+      <svg viewBox={`0 0 ${R * 2} ${R * 2}`} className="w-full h-full" role="img" aria-label="Your eight Pillars as a wheel; each petal grows with its Pillar">
+        <circle cx={R} cy={R} r={R - 6} fill="none" stroke="var(--gold)" strokeOpacity="0.25" strokeDasharray="1 5" />
+        <circle cx={R} cy={R} r={MIN + SPAN} fill="none" stroke="var(--gold)" strokeOpacity="0.18" />
+        {placed.map(({ p, angle }) => {
+          const len = MIN + SPAN * (p.pct / 100);
+          const w = p.inner ? 24 : 18;
+          const on = selected === p.name;
+          return (
+            <g key={p.name} onClick={() => onSelect(p.name)} className="cursor-pointer">
+              <path d={petal(angle, MIN + SPAN, w)} fill={p.color} fillOpacity={on ? 0.18 : 0.09} stroke={p.color} strokeOpacity="0.25" />
+              <path d={petal(angle, len, w)} fill={p.color} fillOpacity={on ? 1 : 0.82} />
+            </g>
+          );
+        })}
+        <circle cx={R} cy={R} r="30" fill="var(--surface-2)" stroke="var(--gold)" strokeOpacity="0.5" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
+        <div className="font-serif text-[22px] leading-none text-textPrimary">{totalLevel}</div>
+        <div className="text-[9px] uppercase tracking-[0.14em] text-textMuted mt-0.5">levels</div>
+      </div>
+    </div>
+  );
+}
+
+function PillarTile({ p, selected, onSelect }) {
+  const Icon = PILLAR_ICONS[p.name];
+  const ring = 2 * Math.PI * 19;
+  const badgeColor = p.level > 0 ? TIERS[(p.level - 1) % TIERS.length].color : null;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-expanded={selected}
+      className={`flex items-center gap-2.5 rounded-card p-2.5 text-left transition-shadow ${selected ? "bg-surface2 shadow-card" : "bg-surface1 shadow-card"}`}
+      style={selected ? { boxShadow: `0 0 0 2px ${p.color}66` } : undefined}
+    >
+      <span className="relative w-11 h-11 flex-none">
+        <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden="true">
+          <circle cx="22" cy="22" r="19" fill="none" stroke="var(--surface-3)" strokeWidth="3" />
+          <circle cx="22" cy="22" r="19" fill="none" stroke={p.color} strokeWidth="3" strokeLinecap="round"
+            strokeDasharray={`${(ring * Math.max(p.pct, 2)) / 100} ${ring}`} />
+        </svg>
+        <span className="absolute inset-[6px] rounded-full flex items-center justify-center" style={{ background: `${p.color}22`, color: p.color }}>
+          {Icon && <Icon size={16} strokeWidth={1.75} />}
+        </span>
+      </span>
+      <span className="min-w-0">
+        <span className="block text-bodySm font-medium text-textPrimary truncate">{p.name}</span>
+        <span className="flex items-center gap-1 text-caption text-textMuted">
+          {p.level > 0 ? (
+            <span className="inline-flex items-center gap-0.5" style={{ color: badgeColor }}><Award size={11} strokeWidth={1.75} />Lv {p.level}</span>
+          ) : "New"}
+          <span>· {p.xp} XP</span>
+        </span>
+      </span>
+    </button>
   );
 }
