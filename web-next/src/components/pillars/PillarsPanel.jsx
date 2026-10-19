@@ -105,10 +105,9 @@ function PillarWheel({ pillars, selected, onSelect }) {
     ...outer.map((p, i) => ({ p, angle: 45 + i * 90 }))
   ];
   const totalLevel = pillars.reduce((s, p) => s + p.level, 0);
-  // The centre's ring: how far all eight petals are, together, toward their
-  // next levels. It fills as the petals grow.
+  // How far all eight petals are, together, toward their next levels: the
+  // sunflower heart's seeds turn gold as it grows.
   const together = pillars.length ? pillars.reduce((s, p) => s + p.pct, 0) / pillars.length : 0;
-  const centreRing = 2 * Math.PI * 34;
   return (
     <div className="relative mx-auto w-full max-w-[300px] aspect-square">
       <svg viewBox={`0 0 ${R * 2} ${R * 2}`} className="w-full h-full" role="img"
@@ -136,16 +135,54 @@ function PillarWheel({ pillars, selected, onSelect }) {
             </g>
           );
         })}
-        <circle cx={R} cy={R} r="30" fill="var(--surface-2)" stroke="var(--gold)" strokeOpacity="0.35" />
-        <circle cx={R} cy={R} r="34" fill="none" stroke="var(--gold)" strokeOpacity="0.15" strokeWidth="3" />
-        <circle cx={R} cy={R} r="34" fill="none" stroke="var(--gold)" strokeWidth="3" strokeLinecap="round"
-          strokeDasharray={`${(centreRing * Math.max(together, 1)) / 100} ${centreRing}`} transform={`rotate(-90 ${R} ${R})`} />
+        <SunflowerHeart filled={together} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
-        <div className="font-serif text-[22px] leading-none text-textPrimary">{totalLevel}</div>
-        <div className="text-[9px] uppercase tracking-[0.14em] text-textMuted mt-0.5">{totalLevel === 1 ? "level" : "levels"}</div>
+        {/* Over the sunflower heart: starlight-cream with a soft shadow. */}
+        <div className="font-serif text-[22px] leading-none text-[#FBF3DF] [text-shadow:0_1px_4px_rgba(0,0,0,0.85)]">{totalLevel}</div>
+        <div className="text-[8.5px] uppercase tracking-[0.14em] text-[#F3DE9C] mt-0.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{totalLevel === 1 ? "level" : "levels"}</div>
       </div>
     </div>
+  );
+}
+
+// The flower's heart, like a sunflower's (Cassidy, Oct 19): a dark disc of
+// seeds laid out the way a sunflower lays them (each a golden angle on from
+// the last), ripening gold from the rim inward, as real sunflower seeds do,
+// as the petals grow together toward their next levels.
+const SEEDS = 120;
+const GOLDEN_ANGLE = 137.508 * (Math.PI / 180);
+const HEART = 36;
+export function SunflowerHeart({ filled, cx = R, cy = R, r = HEART }) {
+  const lit = Math.round((SEEDS * Math.min(100, Math.max(0, filled))) / 100);
+  const spacing = (r - 3) / Math.sqrt(SEEDS);
+  return (
+    <g aria-hidden="true">
+      <defs>
+        <radialGradient id="sunflower-disc" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#3B2614" />
+          <stop offset="70%" stopColor="#1C1209" />
+          <stop offset="100%" stopColor="#120B05" />
+        </radialGradient>
+      </defs>
+      <circle cx={cx} cy={cy} r={r + 2.5} fill="none" stroke="#C9A24D" strokeOpacity="0.55" strokeWidth="1.5" />
+      <circle cx={cx} cy={cy} r={r} fill="url(#sunflower-disc)" />
+      {Array.from({ length: SEEDS }, (_, i) => {
+        const d = spacing * Math.sqrt(i + 0.5);
+        const a = i * GOLDEN_ANGLE;
+        const gold = i >= SEEDS - lit;
+        return (
+          <circle
+            key={i}
+            cx={(cx + d * Math.cos(a)).toFixed(2)}
+            cy={(cy + d * Math.sin(a)).toFixed(2)}
+            r={1.3 + (i / SEEDS) * 0.7}
+            fill={gold ? (i % 3 === 0 ? "#F3DE9C" : "#D9AE52") : "#4A3420"}
+            fillOpacity={gold ? 1 : 0.85}
+          />
+        );
+      })}
+    </g>
   );
 }
 
