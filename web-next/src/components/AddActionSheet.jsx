@@ -5,6 +5,7 @@ import { fadeIn, sheetIn } from "./ui/motion";
 import { Button } from "./ui/Button";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
+import { TagField } from "./ui/TagField";
 import { usePlugin } from "../lib/plugins";
 
 // Three choices at the top level, never more (standing rule: max 2–3 at
@@ -34,7 +35,11 @@ const fieldClass =
   "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field mb-3";
 
 export default function AddActionSheet({ open, onClose, onSelectPursue, onSelectMoment }) {
-  const { addJournalEntry, addTodo } = useAppData();
+  const { addJournalEntry, addTodo, journalEntries } = useAppData();
+  // Tags on the quick add (Cassidy, Oct 19), suggesting the Seeker's most used.
+  const [tags, setTags] = useState([]);
+  const tagSuggestions = Object.entries((journalEntries || []).flatMap(e => e.tags || []).reduce((n, t) => ({ ...n, [t]: (n[t] || 0) + 1 }), {}))
+    .sort((a, b) => b[1] - a[1]).map(([t]) => t);
   // "Today" only shows while the to-do list plugin is on.
   const todoOn = usePlugin("todo_list");
   const choices = TOP.filter(c => c.key !== "today" || todoOn);
@@ -49,6 +54,7 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
     setScreen("choices");
     setText("");
     setKind("entry");
+    setTags([]);
     setSaved(false);
     setError("");
   }
@@ -88,7 +94,8 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
         setSaved(true);
       } else {
         const tag = JOURNAL_KINDS.find(k => k.key === kind)?.tag;
-        await addJournalEntry({ content: text.trim(), tags: tag ? [tag] : [] });
+        await addJournalEntry({ content: text.trim(), tags: [...new Set([...(tag ? [tag] : []), ...tags])] });
+        setTags([]);
         setSaved(true);
       }
     } catch (e) {
@@ -192,6 +199,7 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
                       placeholder={journalKind.placeholder}
                       className={fieldClass}
                     />
+                    <TagField tags={tags} onChange={setTags} suggestions={tagSuggestions} className="mb-3 -mt-1" />
                     {error && <div className="text-bodySm text-red-500 mb-3">{error}</div>}
                     <Button variant="primary" className="w-full" disabled={!text.trim() || saving} onClick={save}>
                       {saving ? "Saving…" : "Save"}
