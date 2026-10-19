@@ -6,6 +6,7 @@ import { getPillarLevel, TIERS, INNER_PILLARS } from "../../constants/app.const"
 import { PILLAR_ICONS } from "../../constants/pillarIcons";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { easeOut } from "../ui/motion";
+import { XpBar } from "../ui/XpBar";
 
 // The eight Pillars as something to look at, not a list to read (Cassidy,
 // Oct 19): a wheel of petals, the inner four on the cardinal points and the
@@ -73,8 +74,15 @@ export default function PillarsPanel() {
 }
 
 const R = 150;          // half the wheel's size
-const MIN = 34;         // a just-begun petal still shows
-const SPAN = 104;       // how far a full level reaches beyond MIN
+const MIN = 40;         // a just-begun petal still shows
+const SPAN = 100;       // how far the petals can reach beyond MIN
+
+// Petals grow with every level and never shrink back at a level up (Cassidy,
+// Oct 19): a Pillar's whole journey (levels earned + progress to the next)
+// maps to a length that keeps growing but eases as it goes, so early levels
+// show clearly and later ones still fit on the wheel.
+const reach = levels => MIN + SPAN * (levels / (levels + 1));
+const LEVEL_RINGS = [1, 2, 3, 5];
 
 // A petal from the centre out along `angle`, `len` long and `w` wide.
 function petal(angle, len, w) {
@@ -98,63 +106,113 @@ function PillarWheel({ pillars, selected, onSelect }) {
     ...outer.map((p, i) => ({ p, angle: 45 + i * 90 }))
   ];
   const totalLevel = pillars.reduce((s, p) => s + p.level, 0);
+  // How far all eight petals are, together, toward their next levels: the
+  // sunflower heart's seeds turn gold as it grows.
+  const together = pillars.length ? pillars.reduce((s, p) => s + p.pct, 0) / pillars.length : 0;
   return (
     <div className="relative mx-auto w-full max-w-[300px] aspect-square">
-      <svg viewBox={`0 0 ${R * 2} ${R * 2}`} className="w-full h-full" role="img" aria-label="Your eight Pillars as a wheel; each petal grows with its Pillar">
+      <svg viewBox={`0 0 ${R * 2} ${R * 2}`} className="w-full h-full" role="img"
+        aria-label={`Your eight Pillars as a flower: ${totalLevel} levels earned; each petal grows a band with every level and fills toward the next`}>
         <circle cx={R} cy={R} r={R - 6} fill="none" stroke="var(--gold)" strokeOpacity="0.25" strokeDasharray="1 5" />
-        <circle cx={R} cy={R} r={MIN + SPAN} fill="none" stroke="var(--gold)" strokeOpacity="0.18" />
+        {/* Where each level begins: a petal crossing a ring has levelled up. */}
+        {LEVEL_RINGS.map(l => (
+          <circle key={l} cx={R} cy={R} r={reach(l)} fill="none" stroke="var(--gold)" strokeOpacity="0.16" strokeDasharray={l === 1 ? undefined : "2 4"} />
+        ))}
         {placed.map(({ p, angle }) => {
-          const len = MIN + SPAN * (p.pct / 100);
           const w = p.inner ? 24 : 18;
           const on = selected === p.name;
+          const next = reach(p.level + 1);
+          const now = reach(p.level + p.pct / 100);
           return (
             <g key={p.name} onClick={() => onSelect(p.name)} className="cursor-pointer">
-              <path d={petal(angle, MIN + SPAN, w)} fill={p.color} fillOpacity={on ? 0.18 : 0.09} stroke={p.color} strokeOpacity="0.25" />
-              <path d={petal(angle, len, w)} fill={p.color} fillOpacity={on ? 1 : 0.82} />
+              {/* The room to the next level, then the growth toward it, then
+                  every level already earned as a solid band within. */}
+              <path d={petal(angle, next, w)} fill={p.color} fillOpacity={on ? 0.16 : 0.08} stroke={p.color} strokeOpacity="0.25" />
+              <path d={petal(angle, now, w)} fill={p.color} fillOpacity={on ? 0.6 : 0.45} />
+              {Array.from({ length: p.level }, (_, i) => p.level - i).map(l => (
+                <path key={l} d={petal(angle, reach(l), w)} fill={p.color} fillOpacity={on ? 1 : 0.88}
+                  stroke="var(--surface-2)" strokeOpacity="0.55" strokeWidth="0.8" />
+              ))}
             </g>
           );
         })}
-        <circle cx={R} cy={R} r="30" fill="var(--surface-2)" stroke="var(--gold)" strokeOpacity="0.5" />
+        <SunflowerHeart filled={together} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
-        <div className="font-serif text-[22px] leading-none text-textPrimary">{totalLevel}</div>
-        <div className="text-[9px] uppercase tracking-[0.14em] text-textMuted mt-0.5">levels</div>
+        {/* Over the sunflower heart: starlight-cream with a soft shadow. */}
+        <div className="font-serif text-[22px] leading-none text-[#FBF3DF] [text-shadow:0_1px_4px_rgba(0,0,0,0.85)]">{totalLevel}</div>
+        <div className="text-[8.5px] uppercase tracking-[0.14em] text-[#F3DE9C] mt-0.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{totalLevel === 1 ? "level" : "levels"}</div>
       </div>
     </div>
   );
 }
 
+// The flower's heart, like a sunflower's (Cassidy, Oct 19): a dark disc of
+// seeds laid out the way a sunflower lays them (each a golden angle on from
+// the last), ripening gold from the rim inward, as real sunflower seeds do,
+// as the petals grow together toward their next levels.
+const SEEDS = 120;
+const GOLDEN_ANGLE = 137.508 * (Math.PI / 180);
+const HEART = 36;
+export function SunflowerHeart({ filled, cx = R, cy = R, r = HEART }) {
+  const lit = Math.round((SEEDS * Math.min(100, Math.max(0, filled))) / 100);
+  const spacing = (r - 3) / Math.sqrt(SEEDS);
+  return (
+    <g aria-hidden="true">
+      <defs>
+        <radialGradient id="sunflower-disc" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#3B2614" />
+          <stop offset="70%" stopColor="#1C1209" />
+          <stop offset="100%" stopColor="#120B05" />
+        </radialGradient>
+      </defs>
+      <circle cx={cx} cy={cy} r={r + 2.5} fill="none" stroke="#C9A24D" strokeOpacity="0.55" strokeWidth="1.5" />
+      <circle cx={cx} cy={cy} r={r} fill="url(#sunflower-disc)" />
+      {Array.from({ length: SEEDS }, (_, i) => {
+        const d = spacing * Math.sqrt(i + 0.5);
+        const a = i * GOLDEN_ANGLE;
+        const gold = i >= SEEDS - lit;
+        return (
+          <circle
+            key={i}
+            cx={(cx + d * Math.cos(a)).toFixed(2)}
+            cy={(cy + d * Math.sin(a)).toFixed(2)}
+            r={1.3 + (i / SEEDS) * 0.7}
+            fill={gold ? (i % 3 === 0 ? "#F3DE9C" : "#D9AE52") : "#4A3420"}
+            fillOpacity={gold ? 1 : 0.85}
+          />
+        );
+      })}
+    </g>
+  );
+}
+
 function PillarTile({ p, selected, onSelect }) {
   const Icon = PILLAR_ICONS[p.name];
-  const ring = 2 * Math.PI * 19;
   const badgeColor = p.level > 0 ? TIERS[(p.level - 1) % TIERS.length].color : null;
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-expanded={selected}
-      className={`flex items-center gap-2.5 rounded-card p-2.5 text-left transition-shadow ${selected ? "bg-surface2 shadow-card" : "bg-surface1 shadow-card"}`}
+      className={`rounded-card p-2.5 text-left transition-shadow ${selected ? "bg-surface2 shadow-card" : "bg-surface1 shadow-card"}`}
       style={selected ? { boxShadow: `0 0 0 2px ${p.color}66` } : undefined}
     >
-      <span className="relative w-11 h-11 flex-none">
-        <svg viewBox="0 0 44 44" className="absolute inset-0 -rotate-90" aria-hidden="true">
-          <circle cx="22" cy="22" r="19" fill="none" stroke="var(--surface-3)" strokeWidth="3" />
-          <circle cx="22" cy="22" r="19" fill="none" stroke={p.color} strokeWidth="3" strokeLinecap="round"
-            strokeDasharray={`${(ring * Math.max(p.pct, 2)) / 100} ${ring}`} />
-        </svg>
-        <span className="absolute inset-[6px] rounded-full flex items-center justify-center" style={{ background: `${p.color}22`, color: p.color }}>
+      <span className="flex items-center gap-2.5">
+        <span className="w-9 h-9 rounded-full flex items-center justify-center flex-none" style={{ background: `${p.color}26`, color: p.color }}>
           {Icon && <Icon size={16} strokeWidth={1.75} />}
         </span>
-      </span>
-      <span className="min-w-0">
-        <span className="block text-bodySm font-medium text-textPrimary truncate">{p.name}</span>
-        <span className="flex items-center gap-1 text-caption text-textMuted">
-          {p.level > 0 ? (
-            <span className="inline-flex items-center gap-0.5" style={{ color: badgeColor }}><Award size={11} strokeWidth={1.75} />Lv {p.level}</span>
-          ) : "New"}
-          <span>· {p.xp} XP</span>
+        <span className="min-w-0">
+          <span className="block text-bodySm font-medium text-textPrimary truncate">{p.name}</span>
+          <span className="flex items-center gap-1 text-caption text-textMuted">
+            {p.level > 0 ? (
+              <span className="inline-flex items-center gap-0.5" style={{ color: badgeColor }}><Award size={11} strokeWidth={1.75} />Lv {p.level}</span>
+            ) : "Lv 0"}
+          </span>
         </span>
       </span>
+      {/* The Fallout-style XP bar toward the next level. */}
+      <XpBar pct={p.pct} color={p.color} xp={p.progress} of={p.requirement} className="mt-2" />
     </button>
   );
 }

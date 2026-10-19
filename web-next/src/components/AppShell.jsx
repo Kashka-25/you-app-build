@@ -8,6 +8,7 @@ import TopBar from "./TopBar";
 import SidebarMenu, { MenuContents } from "./SidebarMenu";
 import AiConsentModal from "./AiConsentModal";
 import FeedbackSheet from "./FeedbackSheet";
+import LevelUpCelebration from "./pillars/LevelUpCelebration";
 import { BetaBadge } from "./SignIn";
 
 export default function AppShell() {
@@ -105,6 +106,7 @@ export default function AppShell() {
       <AddItemModal open={addOpen} onClose={() => setAddOpen(false)} defaultType={addType} />
       <AddMomentModal open={momentOpen} onClose={() => setMomentOpen(false)} />
       <AiConsentModal />
+      <LevelUpCelebration />
       <FeedbackSheet open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <AddActionSheet
         open={sheetOpen}
