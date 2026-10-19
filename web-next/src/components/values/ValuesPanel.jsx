@@ -18,6 +18,7 @@ import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { AiButton, AiCard } from "../ui/Premium";
 import TrueNorthCard from "./TrueNorthCard";
 import { NorthStar } from "./Crossroads";
+import ValuesSky from "./ValuesSky";
 import ShareToKronk from "../ShareToKronk";
 import { elementColor } from "../../lib/elements";
 import { findInCodex, closestValues, displayWord, validWord } from "../../lib/valueWords";
@@ -83,45 +84,24 @@ export default function ValuesPanel() {
     <div>
       {/* Values in focus open first; True North folds away below (Cassidy, Oct 18). */}
       <DropdownSection title={`In focus (${activeValues.length})`} level={1} defaultOpen>
-        {/* Your values in focus as glowing orbs, with the open places beside
-            them (Cassidy, Oct 19: make this space a pleasure to look at).
-            Tap one to open its card, or an open place to add a value. */}
-        <div className="flex gap-1 overflow-x-auto -mx-1 px-1 pb-1 mb-4 [scrollbar-width:none]" role="list" aria-label={`${activeValues.length} of ${valueSlots} values in focus`}>
-          {activeValues.map(v => {
-            const color = VALUE_ELEMENT[v.name] ? elementColor(VALUE_ELEMENT[v.name]) : (VALUE_COLORS[v.name] || "#C9A24D");
-            const Icon = VALUE_ICONS[v.name] || Sparkles;
-            const on = openName === v.name;
-            return (
-              <button
-                key={v.name}
-                type="button"
-                role="listitem"
-                onClick={() => toggleOpen(v.name)}
-                aria-pressed={on}
-                className="w-[76px] flex-none flex flex-col items-center gap-1.5"
-              >
-                <span className={`rounded-full transition-shadow ${on ? "ring-2 ring-offset-2 ring-offset-[var(--surface-2)]" : ""}`} style={on ? { "--tw-ring-color": color } : undefined}>
-                  <GlowBubble icon={Icon} size={44} color={color} />
-                </span>
-                <span className="w-full text-[11px] text-textPrimary leading-tight text-center">{v.name}</span>
-              </button>
-            );
+        {/* Your values sky (Cassidy, Oct 19): the values in focus as a
+            constellation; tap a star to open its card below. */}
+        <ValuesSky
+          total={valueSlots}
+          open={openName}
+          onSelect={name => toggleOpen(name)}
+          onAdd={() => setAdding(true)}
+          stars={activeValues.map(v => {
+            const { pct, tier } = cycleView(v);
+            return {
+              name: v.name,
+              color: VALUE_ELEMENT[v.name] ? elementColor(VALUE_ELEMENT[v.name]) : (VALUE_COLORS[v.name] || "#C9A24D"),
+              pct,
+              tier: tier.name,
+              tierColor: tier.color
+            };
           })}
-          {hasRoom && Array.from({ length: valueSlots - activeValues.length }).map((_, i) => (
-            <button
-              key={`open-${i}`}
-              type="button"
-              onClick={() => setAdding(true)}
-              className="w-[76px] flex-none flex flex-col items-center gap-1.5"
-              aria-label="Add a value to this open place"
-            >
-              <span className="w-[44px] h-[44px] rounded-full border-2 border-dashed border-borderC flex items-center justify-center text-textMuted">
-                <Plus size={18} strokeWidth={1.75} />
-              </span>
-              <span className="text-[11px] text-textMuted">Open</span>
-            </button>
-          ))}
-        </div>
+        />
 
         <div className="space-y-2.5 mb-4">
           {activeValues.map(v => (
@@ -233,11 +213,28 @@ function ValueCard({
   }
 
   return (
-    <div className="rounded-card bg-surface1 shadow-card p-3.5 border-l-2" style={{ borderLeftColor: color }}>
+    // A soft wash of the value's Element across the card, and its growth as a
+    // ring around its emblem (Cassidy, Oct 19: a pleasure to look at).
+    <div
+      className="rounded-card shadow-card p-3.5 border"
+      style={{
+        borderColor: `color-mix(in srgb, ${color} 28%, transparent)`,
+        background: `linear-gradient(105deg, color-mix(in srgb, ${color} 16%, var(--surface-1)) 0%, var(--surface-1) 62%)`
+      }}
+    >
       <button onClick={onToggle} className="w-full flex items-center gap-3">
-        {Icon && <GlowBubble icon={Icon} size={40} color={color} />}
+        <span className="relative w-[52px] h-[52px] flex-none">
+          <svg viewBox="0 0 52 52" className="absolute inset-0 -rotate-90" aria-hidden="true">
+            <circle cx="26" cy="26" r="23.5" fill="none" stroke="var(--surface-3)" strokeWidth="3" />
+            <circle cx="26" cy="26" r="23.5" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round"
+              strokeDasharray={`${(2 * Math.PI * 23.5 * Math.max(pct, 2)) / 100} ${2 * Math.PI * 23.5}`} />
+          </svg>
+          <span className="absolute inset-[6px] flex items-center justify-center">
+            {Icon && <GlowBubble icon={Icon} size={40} color={color} />}
+          </span>
+        </span>
         <div className="flex-1 min-w-0 text-left">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2">
             <span className="font-serif text-h3 text-textPrimary flex-1 min-w-0 truncate">{v.name}</span>
             {/* A solid chip rather than plain colored text -- next to the tier
                 caption below, plain text read as one blurred phrase. */}
@@ -250,19 +247,8 @@ function ValueCard({
               {stage.name}
             </span>
           </div>
-          {/* A smooth gradient fill (vs. Pillars' segmented bar) — values are
-              personal and continuous, pillars are a game-like stat track. */}
-          <div className="h-2 rounded-full bg-surface3 overflow-hidden">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${pct}%`,
-                background: `linear-gradient(90deg, color-mix(in srgb, ${color} 55%, white), ${color})`
-              }}
-            />
-          </div>
-          <div className="text-caption text-textMuted mt-1">
-            <span style={{ color: tier.color }}>{tier.name}</span> · {v.rating}/{requirement}
+          <div className="text-caption text-textMuted mt-0.5">
+            <span className="font-medium" style={{ color: tier.color }}>{tier.name}</span> · {pct}% ripened
             {VALUE_ELEMENT[v.name] ? <> · {VALUE_ELEMENT[v.name]}</> : own ? <> · your own</> : null}
           </div>
         </div>
