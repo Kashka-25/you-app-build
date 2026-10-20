@@ -44,6 +44,14 @@ function PhotoCard({ entryId, photo }) {
         {photo.photo_url && (
           <img src={photo.photo_url} alt="Journal page" className="w-16 h-16 object-cover rounded-sm flex-none" />
         )}
+        {/* Once a page is turned into text, its photo is cleared to keep
+            storage small; the words below are what's kept. */}
+        {!photo.storage_path && (
+          <div className="w-16 h-16 rounded-sm flex-none border border-dashed border-borderC flex flex-col items-center justify-center text-center text-[9.5px] leading-tight text-textMuted px-1">
+            <ScanText size={14} strokeWidth={1.75} className="mb-0.5" />
+            Page cleared, text kept
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           {photo.transcription_status === "done" ? (
             <textarea
@@ -61,14 +69,17 @@ function PhotoCard({ entryId, photo }) {
         </div>
       </div>
       <div className="flex items-center gap-3 mt-1.5">
-        <button
-          onClick={transcribe}
-          disabled={transcribing}
-          className="flex items-center gap-1 text-caption text-textSecondary hover:text-textPrimary"
-        >
-          <ScanText size={13} strokeWidth={1.75} />
-          {transcribing ? "Transcribing…" : photo.transcription_status === "done" ? "Re-transcribe" : "Transcribe handwriting"}
-        </button>
+        {/* A cleared page has no photo left to read again. */}
+        {photo.storage_path && (
+          <button
+            onClick={transcribe}
+            disabled={transcribing}
+            className="flex items-center gap-1 text-caption text-textSecondary hover:text-textPrimary"
+          >
+            <ScanText size={13} strokeWidth={1.75} />
+            {transcribing ? "Transcribing…" : photo.transcription_status === "done" ? "Re-transcribe" : "Transcribe handwriting"}
+          </button>
+        )}
         <button
           onClick={() => deleteJournalPhoto(entryId, photo.id)}
           className="flex items-center gap-1 text-caption text-textMuted hover:text-red-500"

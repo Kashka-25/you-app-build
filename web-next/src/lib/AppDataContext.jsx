@@ -1608,7 +1608,8 @@ export function AppDataProvider({ children }) {
     const res = await supabase.from("journal_photos").select("*").eq("entry_id", entryId).eq("user_id", userId).order("created_at");
     if (res.error) throw res.error;
     const rows = res.data || [];
-    const signed = await Promise.all(rows.map(r => supabase.storage.from("journal-photos").createSignedUrl(r.storage_path, 3600)));
+    // An empty storage_path is a page already turned into text and cleared.
+    const signed = await Promise.all(rows.map(r => (r.storage_path ? supabase.storage.from("journal-photos").createSignedUrl(r.storage_path, 3600) : null)));
     const withUrls = rows.map((r, i) => ({ ...r, photo_url: signed[i]?.data?.signedUrl || null }));
     setJournalPhotos(prev => ({ ...prev, [entryId]: withUrls }));
     return withUrls;
@@ -1685,7 +1686,9 @@ export function AppDataProvider({ children }) {
     const data = await invokeAi("transcribe-journal-photo", { photoId });
     setJournalPhotos(prev => ({
       ...prev,
-      [entryId]: (prev[entryId] || []).map(p => (p.id === photoId ? { ...p, ...data.photo } : p))
+      [entryId]: (prev[entryId] || []).map(p => (p.id === photoId
+        ? { ...p, ...data.photo, ...(data.photo?.storage_path === "" ? { photo_url: null } : {}) }
+        : p))
     }));
     return data.photo;
   }

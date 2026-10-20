@@ -4,7 +4,8 @@ import { supabase } from "./supabaseClient";
 // its owner column as well as RLS, so shared tables (Showcase, the Codex)
 // only give back the Seeker's own rows. Add a table here when one is made.
 const OWN_TABLES = [
-  ["profiles", "id"],
+  // Profiles are keyed by user_id (their own id is a separate row id).
+  "profiles",
   "journal_entries", "journal_highlights", "journal_photos", "journal_ai_insights", "reflections",
   "weekly_reflections", "mood_log", "memory", "life_moments", "life_chapters", "seasons",
   "items", "todos", "week_intentions", "week_harvests", "focus_sessions",

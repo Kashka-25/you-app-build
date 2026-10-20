@@ -231,7 +231,7 @@ Deno.serve(async req => {
         userId = data.user.id;
         created = true;
         // The profile row comes from the signup trigger; give it their Kronk name.
-        if (row.display_name) await admin.from("profiles").update({ name: row.display_name }).eq("id", userId).or("name.is.null,name.eq.");
+        if (row.display_name) await admin.from("profiles").update({ name: row.display_name }).eq("user_id", userId).or("name.is.null,name.eq.");
       }
       const { error: linkErr } = await admin.from("kronk_links").upsert({ user_id: userId, ...row }, { onConflict: "user_id" });
       if (linkErr) throw new Error(linkErr.message);
