@@ -37,7 +37,15 @@ const STATE_SECRET = Deno.env.get("KRONK_STATE_SECRET")!;
 // to connect again the first time they like something.
 const SCOPES = "read write:statuses write:favourites";
 // Must match the redirect URIs registered on kronk.info.
-const ORIGINS = ["https://you.kronk.info", "https://you-app-build.netlify.app", "http://localhost:5173"];
+// yourownuniverse.life and staging added Oct 20 (Kronk app id 2025).
+const ORIGINS = [
+  "https://yourownuniverse.life",
+  "https://www.yourownuniverse.life",
+  "https://staging--you-app-build.netlify.app",
+  "https://you-app-build.netlify.app",
+  "https://you.kronk.info",
+  "http://localhost:5173"
+];
 const STATE_TTL_MS = 15 * 60 * 1000;
 // Kronk-only Seekers get a placeholder address that can never receive mail;
 // they sign in with Kronk.
