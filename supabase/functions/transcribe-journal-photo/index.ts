@@ -86,7 +86,23 @@ Deno.serve(async req => {
         .select()
         .single();
       if (saveErr) return json({ error: saveErr.message }, 500);
-      return json({ photo: saved });
+
+      // Once the words are safely saved, the page photo goes (Cassidy,
+      // Oct 20): it keeps storage small and holds nothing the text doesn't.
+      // An empty storage_path means "page cleared, text kept". If removal
+      // fails, the photo simply stays; the text is already saved.
+      const { error: rmErr } = await supabase.storage.from("journal-photos").remove([photo.storage_path]);
+      if (rmErr) {
+        console.error("[transcribe-journal-photo] couldn't clear the page photo:", rmErr.message);
+        return json({ photo: saved });
+      }
+      const { data: cleared } = await supabase
+        .from("journal_photos")
+        .update({ storage_path: "" })
+        .eq("id", photoId)
+        .select()
+        .single();
+      return json({ photo: cleared || saved });
     } catch (claudeErr) {
       await supabase.from("journal_photos").update({ transcription_status: "failed" }).eq("id", photoId);
       throw claudeErr;
