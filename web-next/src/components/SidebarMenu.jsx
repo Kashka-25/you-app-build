@@ -30,6 +30,8 @@ const COMING_SOON = [
   { to: "/review", label: "Review" }
 ];
 
+const CREATOR_PAGES = ["/codex-requests", "/showcase-review", "/build-notes", "/tester-inbox"];
+
 const linkClass = ({ isActive }) =>
   `block px-5 py-2.5 text-body border-l-[3px] ${
     isActive ? "border-gold text-forest dark:text-cream font-medium bg-surface1" : "border-transparent text-textPrimary"
@@ -42,6 +44,9 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
   const { isAdmin, codexNew } = useAppData();
   const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
   const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
+  const onCreatorPage = CREATOR_PAGES.some(p => location.pathname.startsWith(p));
+  const [creatorOpen, setCreatorOpen] = useState(onCreatorPage);
+  useEffect(() => { if (open && onCreatorPage) setCreatorOpen(true); }, [open, onCreatorPage]);
   // Opening the menu while on one of those pages shows where you are.
   useEffect(() => { if (open && onComingSoonPage) setSoonOpen(true); }, [open, onComingSoonPage]);
 
@@ -82,8 +87,24 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
       </nav>
 
       {isAdmin && (
-        <div className="border-t border-borderC pt-2 pb-1">
-          <div className="px-5 pb-1 text-label uppercase text-textMuted">For you as creator</div>
+        <div className="border-t border-borderC pt-1 pb-1">
+          {/* Folded away unless you're on one of its pages (Cassidy, Oct 20);
+              new Codex requests still show on the closed header. */}
+          <button
+            type="button"
+            onClick={() => setCreatorOpen(!creatorOpen)}
+            aria-expanded={creatorOpen}
+            className="w-full flex items-center gap-1.5 px-5 pt-3 pb-2 text-label uppercase text-textMuted"
+          >
+            {creatorOpen ? <ChevronDown size={13} strokeWidth={1.75} /> : <ChevronRight size={13} strokeWidth={1.75} />}
+            For you as creator
+            {!creatorOpen && codexNew > 0 && (
+              <span className="ml-auto min-w-[20px] h-[20px] px-1.5 rounded-full bg-gold text-[#19193D] text-caption font-semibold normal-case tracking-normal flex items-center justify-center" aria-label={`${codexNew} new Codex requests`}>
+                {codexNew}
+              </span>
+            )}
+          </button>
+          {creatorOpen && <>
           <NavLink to="/codex-requests" onClick={onNavigate} className={linkClass}>
             <span className="flex items-center justify-between gap-2">
               Codex requests
@@ -103,6 +124,7 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
           <NavLink to="/tester-inbox" onClick={onNavigate} className={linkClass}>
             Tester inbox
           </NavLink>
+          </>}
         </div>
       )}
 
