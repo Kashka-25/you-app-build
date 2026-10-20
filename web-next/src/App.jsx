@@ -36,6 +36,7 @@ import CoursePlayer from "./components/course/CoursePlayer";
 import CourseToolScreen from "./components/course/CourseToolScreen";
 import CodexRequests from "./components/screens/CodexRequests";
 import BuildNotes from "./components/screens/BuildNotes";
+import BetaInbox from "./components/screens/BetaInbox";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
@@ -156,6 +157,7 @@ export default function App() {
         <Route path="/showcase" element={<ShowcaseGallery />} />
         <Route path="/showcase-review" element={<ShowcaseReview />} />
         <Route path="/build-notes" element={<BuildNotes />} />
+        <Route path="/tester-inbox" element={<BetaInbox />} />
       </Route>
     </Routes>
     </ErrorBoundary>

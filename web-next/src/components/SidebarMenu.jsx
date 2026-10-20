@@ -100,6 +100,9 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
           <NavLink to="/build-notes" onClick={onNavigate} className={linkClass}>
             Build notes
           </NavLink>
+          <NavLink to="/tester-inbox" onClick={onNavigate} className={linkClass}>
+            Tester inbox
+          </NavLink>
         </div>
       )}
 
