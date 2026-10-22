@@ -24,7 +24,7 @@ const WAYS = [
 // The first page a brand-new YOUser sees: what YOU is for, how to keep it on
 // their phone, then into creating an account. Also at /welcome, so the
 // link can be shared. onContinue("signup" | "signin").
-export default function Intro({ onContinue }) {
+export default function Intro({ onContinue, between = null }) {
   const reduceMotion = useReducedMotion();
   const rise = (delay = 0) =>
     reduceMotion
@@ -71,6 +71,8 @@ export default function Intro({ onContinue }) {
           </div>
         </motion.section>
 
+        {between}
+
         <motion.div {...rise(0.2)}>
           <InstallCard />
         </motion.div>
@@ -97,7 +99,7 @@ export default function Intro({ onContinue }) {
 }
 
 // How to keep YOU on this phone. Hidden once it's opened from the home screen.
-function InstallCard() {
+export function InstallCard() {
   const [platform] = useState(devicePlatform);
   const { canPrompt, install } = useInstallPrompt();
   const [added, setAdded] = useState(false);

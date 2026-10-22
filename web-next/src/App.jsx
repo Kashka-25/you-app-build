@@ -5,6 +5,7 @@ import SignIn, { SetNewPassword } from "./components/SignIn";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Welcome from "./components/Welcome";
 import Intro, { introSeen } from "./components/Intro";
+import WelcomeLab from "./components/WelcomeLab";
 import KronkCallback from "./components/KronkCallback";
 import Community from "./components/screens/Community";
 import { KRONK_CALLBACK_PATH } from "./lib/kronk";
@@ -96,9 +97,11 @@ export default function App() {
   // Kronk's sign-in comes back here, signed in (connecting) or not (Continue with Kronk).
   if (pathname === KRONK_CALLBACK_PATH) return <KronkCallback />;
   // A link to share: what YOU is and how to install it, signed in or not.
-  if (pathname === "/welcome") {
+  // The welcome lab: a few versions of that page, to try side by side.
+  if (pathname === "/welcome" || pathname === "/welcome-lab") {
+    const Page = pathname === "/welcome" ? Intro : WelcomeLab;
     return (
-      <Intro
+      <Page
         onContinue={mode => {
           setSignInMode(mode);
           navigate("/", { replace: true });

@@ -97,7 +97,7 @@ function petal(angle, len, w) {
   return `M${R},${R} Q${f(c1[0])},${f(c1[1])} ${f(tip[0])},${f(tip[1])} Q${f(c2[0])},${f(c2[1])} ${R},${R} Z`;
 }
 
-function PillarWheel({ pillars, selected, onSelect }) {
+export function PillarWheel({ pillars, selected, onSelect }) {
   const inner = pillars.filter(p => p.inner);
   const outer = pillars.filter(p => !p.inner);
   // Inner Pillars on the cardinal points, outer ones between them.
