@@ -29,7 +29,7 @@ function saveProjects(list) {
 // any other project. Each note goes to the "Build Notes" database in Notion,
 // where Claude picks it up. YOUrnal entries tagged #idea go there on their own; add a project tag (#YOUniversity, #CommYOUnity, #YOUrigin) to file one elsewhere.
 export default function BuildNotes() {
-  const { isAdmin, adminChecked, sendBuildNote, sendAllIdeaEntries, ideaEntryCount } = useAppData();
+  const { isAdmin, adminChecked, sendBuildNote } = useAppData();
   const [text, setText] = useState("");
   const [projects, setProjects] = useState(readProjects);
   const [project, setProject] = useState(DEFAULT_PROJECTS[0]);
@@ -46,20 +46,6 @@ export default function BuildNotes() {
       const res = await sendBuildNote({ text: text.trim(), project, source: "Quick note" });
       setText("");
       setStatus({ ok: true, message: `Sent to Build Notes under ${project}.`, url: res?.url });
-    } catch (e) {
-      setStatus({ ok: false, message: e.message });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function sendAll() {
-    if (busy) return;
-    setBusy(true);
-    setStatus(null);
-    try {
-      const n = await sendAllIdeaEntries();
-      setStatus({ ok: true, message: `${n} #idea reflection${n === 1 ? "" : "s"} in Build Notes.` });
     } catch (e) {
       setStatus({ ok: false, message: e.message });
     } finally {
@@ -143,17 +129,11 @@ export default function BuildNotes() {
         </div>
       )}
 
-      <div className="rounded-card bg-surface1 shadow-card p-4 mt-6">
-        <div className="text-body text-textPrimary">Your #idea reflections</div>
-        <div className="text-bodySm text-textSecondary mt-1 mb-3">
-          {ideaEntryCount === 0
-            ? "None yet. Tag a reflection #idea and it'll be sent when you save it."
-            : `${ideaEntryCount} tagged. New saves send on their own; this sends any from before, without doubling up.`}
-        </div>
-        <Button variant="secondary" size="sm" onClick={sendAll} disabled={busy || ideaEntryCount === 0}>
-          Send all #idea reflections
-        </Button>
-      </div>
+      {/* The one-off "send all" catch-up is done (Oct 22): every #idea
+          reflection is in Build Notes, and each new save sends itself. */}
+      <p className="text-caption text-textMuted mt-6">
+        YOUrnal entries tagged #idea or #buildnotes arrive in Build Notes on their own when you save them.
+      </p>
     </div>
   );
 }
