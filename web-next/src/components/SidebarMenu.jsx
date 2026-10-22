@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, MessageSquareHeart, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Map as MapIcon, MessageSquareHeart, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
@@ -131,6 +131,10 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
       <div className="border-t border-borderC pt-3">
         <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} mb-1`}>
           Your Own Universe
+        </NavLink>
+        <NavLink to="/find-your-way" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
+          <MapIcon size={17} strokeWidth={1.75} className="text-gold" />
+          Find your way
         </NavLink>
         {onFeedback && (
           <button

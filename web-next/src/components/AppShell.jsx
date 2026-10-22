@@ -66,7 +66,7 @@ export default function AppShell() {
         </div>
 
         <div className="flex-1 overflow-y-auto lg:pt-6 lg:px-4">
-          <Outlet />
+          <Outlet context={{ openFeedback: () => setFeedbackOpen(true) }} />
         </div>
 
         <div
