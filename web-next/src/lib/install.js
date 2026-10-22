@@ -38,6 +38,14 @@ export function devicePlatform() {
   return "desktop";
 }
 
+// Safari on an iPhone, where Share lives in the toolbar below the page.
+// (Chrome, Firefox and Edge on iPhone add CriOS / FxiOS / EdgiOS; iPads
+// keep Share at the top.)
+export function isIPhoneSafari() {
+  const ua = navigator.userAgent || "";
+  return /iPhone|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+}
+
 // { canPrompt, install } — install() resolves true if they said yes.
 export function useInstallPrompt() {
   const [, bump] = useState(0);

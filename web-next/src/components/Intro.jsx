@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import QRCode from "qrcode";
 import { motion, useReducedMotion } from "framer-motion";
-import { Compass, Download, Feather, MoreVertical, Share, SquarePlus, Sprout } from "lucide-react";
+import { ArrowDown, Compass, Download, Feather, MoreVertical, Share, SquarePlus, Sprout, X } from "lucide-react";
 import { BetaBadge } from "./SignIn";
-import { devicePlatform, isInstalled, useInstallPrompt } from "../lib/install";
+import { devicePlatform, isInstalled, isIPhoneSafari, useInstallPrompt } from "../lib/install";
 import { easeOut } from "./ui/motion";
 
 // Seen once per device, before signing in for the first time.
@@ -73,6 +74,7 @@ export default function Intro({ onContinue }) {
         <motion.div {...rise(0.2)}>
           <InstallCard />
         </motion.div>
+        <SharePointer />
 
         <motion.div {...rise(0.3)} className="mt-8 flex flex-col gap-2">
           <button
@@ -121,7 +123,7 @@ function InstallCard() {
       ) : platform === "ios" ? (
         <Steps
           steps={[
-            [Share, <>Tap the <b>Share</b> button in your browser's toolbar.</>],
+            [Share, <>Tap the <b>Share</b> button in your browser's toolbar. On newer iPhones, tap <b>•••</b> first.</>],
             [SquarePlus, <>Scroll down and choose <b>Add to Home Screen</b>.</>],
             [null, <>Tap <b>Add</b>. YOU appears with your other apps.</>]
           ]}
@@ -135,10 +137,7 @@ function InstallCard() {
           ]}
         />
       ) : (
-        <p className="text-bodySm text-textSecondary">
-          On your phone, open <b className="text-textPrimary">{window.location.host}</b>, then add it to your home screen from
-          the browser's menu. You can use YOU here on the computer too.
-        </p>
+        <ScanToOpen />
       )}
     </section>
   );
@@ -159,5 +158,67 @@ function Steps({ steps }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+// On a computer: a code to scan with the phone's camera, which opens this
+// same page there, ready to install.
+function ScanToOpen() {
+  const url = `${window.location.origin}/welcome`;
+  const [svg, setSvg] = useState("");
+  useEffect(() => {
+    // Dark on light in both modes: phone cameras read it most reliably.
+    QRCode.toString(url, { type: "svg", margin: 1, color: { dark: "#3A2618", light: "#FFFDF8" } })
+      .then(setSvg)
+      .catch(e => console.error("[Intro] QR code failed:", e));
+  }, [url]);
+  return (
+    <div className="flex items-center gap-4">
+      <div
+        className="w-[120px] h-[120px] flex-none rounded-sm overflow-hidden bg-[#FFFDF8] p-1.5 shadow-card [&_svg]:w-full [&_svg]:h-full"
+        role="img"
+        aria-label={`QR code that opens ${url}`}
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+      <p className="text-bodySm text-textSecondary">
+        Point your phone's camera at the code to open YOU there, then add it to your home screen. Or visit{" "}
+        <b className="text-textPrimary font-medium break-all">{window.location.host}</b>. You can use YOU here on the computer too.
+      </p>
+    </div>
+  );
+}
+
+// In Safari on an iPhone the Share button sits in the toolbar below the
+// page, so a small note points down at it. Dismissable, and gone once YOU
+// is opened from the home screen.
+function SharePointer() {
+  const reduceMotion = useReducedMotion();
+  const [show, setShow] = useState(() => isIPhoneSafari() && !isInstalled());
+  if (!show) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 1.2, ease: easeOut }}
+      className="fixed inset-x-0 z-20 flex justify-center px-4 pointer-events-none"
+      style={{ bottom: "max(env(safe-area-inset-bottom), 12px)" }}
+    >
+      <div className="pointer-events-auto flex items-center gap-2.5 rounded-full bg-forestAccent text-onAccent shadow-card pl-4 pr-1.5 py-1.5 text-bodySm">
+        <motion.span
+          animate={reduceMotion ? undefined : { y: [0, 4, 0] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+          className="flex"
+          aria-hidden="true"
+        >
+          <ArrowDown size={16} strokeWidth={2} />
+        </motion.span>
+        <span>
+          Tap <Share size={14} strokeWidth={2} className="inline -mt-0.5" aria-label="Share" /> below, then <b className="font-medium">Add to Home Screen</b>
+        </span>
+        <button type="button" onClick={() => setShow(false)} aria-label="Hide this tip" className="w-8 h-8 rounded-full flex items-center justify-center">
+          <X size={15} strokeWidth={2} />
+        </button>
+      </div>
+    </motion.div>
   );
 }
