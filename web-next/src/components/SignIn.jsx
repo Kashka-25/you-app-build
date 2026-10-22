@@ -25,9 +25,9 @@ const HEADINGS = {
   reset: "Forgotten your password? We'll email you a link to set a new one."
 };
 
-export default function SignIn() {
+export default function SignIn({ initialMode = "signin" }) {
   const { signInWithPassword, signUp, sendPasswordReset } = useAuth();
-  const [mode, setMode] = useState("signin"); // "signin" | "signup" | "reset"
+  const [mode, setMode] = useState(initialMode); // "signin" | "signup" | "reset"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
