@@ -4,6 +4,7 @@ import { useAuth } from "./lib/AuthContext";
 import SignIn, { SetNewPassword } from "./components/SignIn";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Welcome from "./components/Welcome";
+import Intro, { introSeen } from "./components/Intro";
 import KronkCallback from "./components/KronkCallback";
 import Community from "./components/screens/Community";
 import { KRONK_CALLBACK_PATH } from "./lib/kronk";
@@ -36,6 +37,8 @@ import CoursePlayer from "./components/course/CoursePlayer";
 import CourseToolScreen from "./components/course/CourseToolScreen";
 import CodexRequests from "./components/screens/CodexRequests";
 import BuildNotes from "./components/screens/BuildNotes";
+import BetaInbox from "./components/screens/BetaInbox";
+import FindYourWay from "./components/screens/FindYourWay";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
@@ -75,6 +78,9 @@ function useThresholdOnOpen(ready) {
 export default function App() {
   const { userId, loading, recovering, prefs } = useAuth();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  // Brand-new on this device: the Intro first, then sign-up or sign-in.
+  const [signInMode, setSignInMode] = useState(() => (introSeen() ? "signin" : null));
   // First run: the welcome, once per account. Dismissed in this visit even
   // if saving the preference fails, so no one gets stuck in it.
   const [welcomeDone, setWelcomeDone] = useState(false);
@@ -89,6 +95,17 @@ export default function App() {
   if (pathname === "/privacy") return <Privacy />;
   // Kronk's sign-in comes back here, signed in (connecting) or not (Continue with Kronk).
   if (pathname === KRONK_CALLBACK_PATH) return <KronkCallback />;
+  // A link to share: what YOU is and how to install it, signed in or not.
+  if (pathname === "/welcome") {
+    return (
+      <Intro
+        onContinue={mode => {
+          setSignInMode(mode);
+          navigate("/", { replace: true });
+        }}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -97,7 +114,10 @@ export default function App() {
       </div>
     );
   }
-  if (!userId) return <SignIn />;
+  if (!userId) {
+    if (!signInMode) return <Intro onContinue={setSignInMode} />;
+    return <SignIn key={signInMode} initialMode={signInMode} />;
+  }
   if (recovering) return <SetNewPassword />;
   if (welcoming) return <Welcome onDone={() => setWelcomeDone(true)} />;
 
@@ -156,6 +176,8 @@ export default function App() {
         <Route path="/showcase" element={<ShowcaseGallery />} />
         <Route path="/showcase-review" element={<ShowcaseReview />} />
         <Route path="/build-notes" element={<BuildNotes />} />
+        <Route path="/tester-inbox" element={<BetaInbox />} />
+        <Route path="/find-your-way" element={<FindYourWay />} />
       </Route>
     </Routes>
     </ErrorBoundary>
