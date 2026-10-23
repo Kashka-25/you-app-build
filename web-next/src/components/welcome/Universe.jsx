@@ -13,8 +13,10 @@ import { GlimpseChapters, GlimpseFlower, GlimpseJournal, GlimpseKommYOUnity, Gli
 // tap YOU for what it's for, tap a star to see what lives there. Found
 // stars ring gold and their paths to the centre light up; once all six are
 // found the whole circle glows. Then: begin, and keep YOU on your phone.
-// Always night here, in either mode: data-mode="dark" scopes the Cosmos
-// colours to this page.
+// Night (Cosmos) or day (Nature: a parchment dawn, no blues), chosen with
+// the emblem in the top-right corner. It's the app's own setting
+// (you.mode), so the choice carries on into YOU; a brand-new visitor starts
+// at night. The page's own colours are --u-* variables (see SKY_STYLES).
 const PLACES = [
   { key: "home", name: "Home", icon: "home", color: "#d4a85a",
     line: "Where each day begins. Begin by sowing three things a week to grow (a habit, a goal, a dream), take one small step a day, and harvest what grew at the week's end.",
@@ -71,8 +73,22 @@ const SETTLED = WAKE + PLACES.length * STAGGER + 0.6;
 const BREATH = 4.8;
 const RIPPLE = 3.2;
 
+// Night unless this device has already chosen.
+function storedMode() {
+  try { return localStorage.getItem("you.mode") === "light" ? "light" : "dark"; } catch { return "dark"; }
+}
+
 export default function Universe({ onContinue }) {
   const reduceMotion = useReducedMotion();
+  const [mode, setMode] = useState(storedMode);
+  function toggleMode() {
+    const next = mode === "dark" ? "light" : "dark";
+    setMode(next);
+    // The same as the app's own switch (AppShell), so sign-in and YOU follow.
+    document.documentElement.setAttribute("data-mode", next);
+    try { localStorage.setItem("you.mode", next); } catch { /* private window: just this visit */ }
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0B0B1F" : "#3A2618");
+  }
   const [open, setOpen] = useState(null); // a place key, or "centre"
   const [seen, setSeen] = useState(() => new Set());
   const [metYou, setMetYou] = useState(false);
@@ -101,8 +117,9 @@ export default function Universe({ onContinue }) {
   }, [open]);
 
   return (
-    <div data-mode="dark" className="relative min-h-dvh flex justify-center font-sans text-textPrimary bg-[#0A0A1C]">
+    <div data-mode={mode} className="you-universe relative min-h-dvh flex justify-center font-sans text-textPrimary bg-[var(--u-bg)]">
       <NightSky reduceMotion={reduceMotion} glow={all} />
+      <ModeToggle mode={mode} onToggle={toggleMode} />
 
       <main
         className="relative w-full max-w-[480px] px-5 flex flex-col"
@@ -164,7 +181,7 @@ export default function Universe({ onContinue }) {
         {place && (
           <Sheet key={place.key} title={place.name} emblem={`/images/icons/${place.icon}.png`} color={place.color} reduceMotion={reduceMotion} onClose={() => setOpen(null)}>
             <p className="text-body text-textSecondary mb-3">{place.line}</p>
-            <p className="flex gap-2 font-serif italic text-[17px] leading-snug text-[#F3DE9C] mb-4">
+            <p className="flex gap-2 font-serif italic text-[17px] leading-snug text-[var(--u-gold-soft)] mb-4">
               <Sparkles size={15} strokeWidth={1.75} className="flex-none mt-1" aria-hidden="true" />
               <span><span className="sr-only">Why come here: </span>{place.why}</span>
             </p>
@@ -196,7 +213,7 @@ function StepIn() {
 }
 
 function Gold({ children }) {
-  return <b className="font-bold text-[#E5C470] [text-shadow:0_0_12px_rgba(229,196,112,0.45)]">{children}</b>;
+  return <b className="font-bold text-[var(--u-gold-bright)] [text-shadow:0_0_12px_var(--u-gold-glow)]">{children}</b>;
 }
 
 // What YOU is for: shown when YOU, at the centre, is tapped.
@@ -213,7 +230,7 @@ function Purpose() {
         Everything around the centre is a part of you. Explore it in any order; it all grows together.
       </p>
       <p className="text-body text-textPrimary">
-        Our goal is to give you the tools to help create the life you deserve to live. <span className="font-serif italic text-[18px] text-[#F3DE9C]">Your Own Universe, lived your way.</span>
+        Our goal is to give you the tools to help create the life you deserve to live. <span className="font-serif italic text-[18px] text-[var(--u-gold-soft)]">Your Own Universe, lived your way.</span>
       </p>
       <p className="font-serif italic text-body text-textMuted mt-4 text-right">A message directly from YOU</p>
     </div>
@@ -227,7 +244,7 @@ function Orbits({ seen, all, t, reduceMotion }) {
     <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full" aria-hidden="true">
       <motion.circle
         cx="50" cy="50" r={ORBIT}
-        fill="none" stroke="#C9A24D" strokeWidth="0.3" strokeDasharray="0.6 1.6"
+        fill="none" stroke="var(--u-gold)" strokeWidth="0.3" strokeDasharray="0.6 1.6"
         initial={{ pathLength: 0, opacity: 0 }}
         animate={{ pathLength: 1, opacity: all ? 0.85 : 0.4 }}
         transition={{ pathLength: { duration: t(1.6), delay: t(0.9), ease: "easeInOut" }, opacity: { duration: 0.8 } }}
@@ -238,8 +255,8 @@ function Orbits({ seen, all, t, reduceMotion }) {
         animate={reduceMotion ? undefined : { rotate: 360 }}
         transition={{ duration: 180, repeat: Infinity, ease: "linear" }}
       >
-        <circle cx="50" cy="50" r="47" fill="none" stroke="#B8B5D6" strokeOpacity="0.12" strokeWidth="0.25" strokeDasharray="0.4 3" />
-        <circle cx="50" cy="3" r="0.7" fill="#F3DE9C" fillOpacity="0.8" />
+        <circle cx="50" cy="50" r="47" fill="none" stroke="var(--u-ring)" strokeOpacity="0.16" strokeWidth="0.25" strokeDasharray="0.4 3" />
+        <circle cx="50" cy="3" r="0.7" fill="var(--u-gold-soft)" fillOpacity="0.8" />
       </motion.g>
       {PLACES.map((p, i) => {
         const { x, y } = at(i);
@@ -251,7 +268,7 @@ function Orbits({ seen, all, t, reduceMotion }) {
           <motion.line
             key={p.key}
             x1={50 + dx * 0.42} y1={50 + dy * 0.42} x2={50 + dx * 0.8} y2={50 + dy * 0.8}
-            stroke="#C9A24D" strokeLinecap="round"
+            stroke="var(--u-gold)" strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
             animate={{ pathLength: 1, opacity: lit ? 0.9 : 0.14, strokeWidth: lit ? 0.5 : 0.3 }}
             transition={{ pathLength: { duration: t(0.8), delay: t(SETTLED - 0.4 + i * 0.05) }, opacity: { duration: 0.7 } }}
@@ -280,7 +297,7 @@ function Centre({ onTap, met, hint, t, reduceMotion }) {
         <span
           aria-hidden="true"
           className="absolute inset-[-14%] rounded-full"
-          style={{ background: "radial-gradient(closest-side, rgba(201,162,77,0.32), rgba(108,104,182,0.12) 60%, rgba(0,0,0,0))" }}
+          style={{ background: "var(--u-halo)" }}
         />
         {/* Two ripples, half a beat apart, each fading in and out so the
             loop never shows a seam. */}
@@ -288,14 +305,14 @@ function Centre({ onTap, met, hint, t, reduceMotion }) {
           <span
             key={d}
             aria-hidden="true"
-            className="you-ripple absolute inset-0 rounded-full border border-[#F3DE9C]"
+            className="you-ripple absolute inset-0 rounded-full border border-[var(--u-gold-soft)]"
             style={{ animationDelay: `${SETTLED + d}s` }}
           />
         ))}
         <span
           className="absolute inset-0 rounded-full flex items-center justify-center overflow-hidden"
           style={{
-            background: "radial-gradient(circle at 50% 40%, #1E1B3F 0%, #100F28 70%, #0A0A1C 100%)",
+            background: "var(--u-centre)",
             boxShadow: `0 0 ${met ? 34 : 22}px rgba(201,162,77,${met ? 0.55 : 0.35}), inset 0 0 18px rgba(201,162,77,0.18)`,
             outline: "1.5px solid rgba(201,162,77,0.65)",
             outlineOffset: 3
@@ -305,7 +322,7 @@ function Centre({ onTap, met, hint, t, reduceMotion }) {
         </span>
         {hint && (
           <motion.span
-            className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 text-[11px] text-[#F3DE9C] whitespace-nowrap"
+            className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 text-[11px] text-[var(--u-gold-soft)] whitespace-nowrap"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: SETTLED + 0.4 }}
@@ -353,9 +370,9 @@ function Star({ place, index, seen, reduceMotion, onTap }) {
         <span
           style={{
             animationDelay: `${wake + 0.8 + index * (BREATH / PLACES.length)}s`,
-            background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${place.color} 35%, #1E1B3F) 0%, #12112C 72%)`,
+            background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${place.color} var(--u-orb-tint), var(--u-orb-in)) 0%, var(--u-orb-out) 72%)`,
             boxShadow: `0 0 ${seen ? 26 : 14}px color-mix(in srgb, ${place.color} ${seen ? 85 : 50}%, transparent)`,
-            outline: seen ? "1.5px solid #E5C470" : "1px solid rgba(255,246,220,0.2)",
+            outline: seen ? "1.5px solid var(--u-gold-bright)" : "1px solid var(--u-orb-edge)",
             outlineOffset: 2,
             transition: "box-shadow 0.6s, outline-color 0.6s"
           }}
@@ -366,7 +383,7 @@ function Star({ place, index, seen, reduceMotion, onTap }) {
           <img src={`/images/icons/${place.icon}.png`} alt="" width="128" height="128" className="w-[92%] h-[92%] object-contain" />
         </span>
         <span
-          className={`absolute left-1/2 -translate-x-1/2 ${below ? "top-full mt-1" : "bottom-full mb-1"} font-serif text-[14px] font-semibold whitespace-nowrap text-[#F2F1FA] [text-shadow:0_1px_6px_rgba(0,0,0,0.95)] group-focus-visible:underline`}
+          className={`absolute left-1/2 -translate-x-1/2 ${below ? "top-full mt-1" : "bottom-full mb-1"} font-serif text-[14px] font-semibold whitespace-nowrap text-[var(--u-label)] [text-shadow:var(--u-label-shadow)] group-focus-visible:underline`}
         >
           {place.name}
         </span>
@@ -387,21 +404,20 @@ function Found({ count, all, delay }) {
     >
       <div className="flex gap-2" aria-hidden="true">
         {PLACES.map((p, i) => (
-          <motion.span
+          <span
             key={p.key}
-            className="w-2 h-2 rotate-45 rounded-[1px]"
-            animate={{
-              backgroundColor: i < count ? "#E5C470" : "rgba(242,241,250,0.18)",
-              boxShadow: i < count ? "0 0 8px rgba(229,196,112,0.8)" : "0 0 0px rgba(0,0,0,0)"
+            className="w-2 h-2 rotate-45 rounded-[1px] transition-[background-color,box-shadow] duration-500"
+            style={{
+              backgroundColor: i < count ? "var(--u-gold-bright)" : "var(--u-pip-off)",
+              boxShadow: i < count ? "0 0 8px var(--u-gold-glow)" : "none"
             }}
-            transition={{ duration: 0.5 }}
           />
         ))}
       </div>
       <AnimatePresence mode="wait" initial={false}>
         <motion.p
           key={all ? "all" : "some"}
-          className={`text-center ${all ? "font-serif italic text-body text-[#F3DE9C]" : "text-caption text-textSecondary"}`}
+          className={`text-center ${all ? "font-serif italic text-body text-[var(--u-gold-soft)]" : "text-caption text-textSecondary"}`}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
@@ -426,7 +442,7 @@ function BeginBar({ all, onGo, delay }) {
       transition={{ duration: 0.6, delay, ease: easeOut }}
     >
       <div
-        className="w-full max-w-[480px] px-6 pt-8 bg-gradient-to-t from-[#0A0A1C] via-[#0A0A1Cee] to-transparent"
+        className="w-full max-w-[480px] px-6 pt-8 bg-gradient-to-t from-[var(--u-bg)] via-[color-mix(in_srgb,var(--u-bg)_93%,transparent)] to-transparent"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 14px)" }}
       >
         <button
@@ -493,7 +509,7 @@ function Sheet({ title, emblem, color, reduceMotion, onClose, children }) {
           <div className="w-10 h-1 rounded-full bg-borderC mx-auto mb-3" aria-hidden="true" />
           <div className="flex items-center justify-between mb-3">
             <span className="flex items-center gap-3">
-              <span className="w-12 h-12 rounded-full flex items-center justify-center bg-[#12112C]" style={{ boxShadow: `0 0 16px color-mix(in srgb, ${color} 60%, transparent)` }}>
+              <span className="w-12 h-12 rounded-full flex items-center justify-center bg-[var(--u-orb-out)]" style={{ boxShadow: `0 0 16px color-mix(in srgb, ${color} 60%, transparent)` }}>
                 <img src={emblem} alt="" width="128" height="128" className="w-[92%] h-[92%] object-contain" />
               </span>
               <h2 className="font-serif text-[23px] leading-tight">{title}</h2>
@@ -506,6 +522,59 @@ function Sheet({ title, emblem, color, reduceMotion, onClose, children }) {
         </div>
       </motion.div>
     </>
+  );
+}
+
+// The page's two palettes. Night is the Cosmos as before; day is Nature at
+// dawn: parchment, ochre gold, terracotta, and no blues.
+const SKY_STYLES = `
+  .you-universe {
+    --u-bg: #0A0A1C;
+    --u-gold: #C9A24D; --u-gold-bright: #E5C470; --u-gold-soft: #F3DE9C; --u-gold-glow: rgba(229,196,112,0.45);
+    --u-label: #F2F1FA; --u-label-shadow: 0 1px 6px rgba(0,0,0,0.95); --u-ring: #B8B5D6;
+    --u-centre: radial-gradient(circle at 50% 40%, #1E1B3F 0%, #100F28 70%, #0A0A1C 100%);
+    --u-halo: radial-gradient(closest-side, rgba(201,162,77,0.32), rgba(108,104,182,0.12) 60%, rgba(0,0,0,0));
+    --u-orb-tint: 35%; --u-orb-in: #1E1B3F; --u-orb-out: #12112C; --u-orb-edge: rgba(255,246,220,0.2);
+    --u-pip-off: rgba(242,241,250,0.18);
+    --u-dust: #F2F1FA; --u-dust-gold: #F3DE9C;
+    --u-shot: rgba(255,246,220,0.95); --u-shot-glow: rgba(255,246,220,0.6);
+    --u-nebula:
+      radial-gradient(110% 60% at 50% -5%, rgba(108,104,182,0.45) 0%, rgba(108,104,182,0) 60%),
+      radial-gradient(70% 45% at 105% 75%, rgba(31,122,130,0.30) 0%, rgba(31,122,130,0) 60%),
+      radial-gradient(60% 40% at -10% 95%, rgba(160,100,144,0.28) 0%, rgba(160,100,144,0) 60%);
+  }
+  .you-universe[data-mode="light"] {
+    --u-bg: #F7F1E8;
+    --u-gold: #A07A2C; --u-gold-bright: #B8892E; --u-gold-soft: #8A6420; --u-gold-glow: rgba(184,137,46,0.35);
+    --u-label: #2B1F17; --u-label-shadow: 0 1px 5px rgba(251,247,240,0.95); --u-ring: #8E4E30;
+    --u-centre: radial-gradient(circle at 50% 40%, #FFFBF3 0%, #F4EADB 70%, #E8DAC4 100%);
+    --u-halo: radial-gradient(closest-side, rgba(201,162,77,0.34), rgba(196,120,58,0.10) 60%, rgba(0,0,0,0));
+    --u-orb-tint: 22%; --u-orb-in: #FFFBF3; --u-orb-out: #EFE4D3; --u-orb-edge: rgba(58,38,24,0.16);
+    --u-pip-off: rgba(58,38,24,0.16);
+    --u-dust: #B8892E; --u-dust-gold: #8E4E30;
+    --u-shot: rgba(176,128,40,0.9); --u-shot-glow: rgba(214,170,80,0.55);
+    --u-nebula:
+      radial-gradient(110% 60% at 50% -5%, rgba(255,240,210,0.95) 0%, rgba(255,240,210,0) 60%),
+      radial-gradient(70% 45% at 105% 75%, rgba(196,150,70,0.18) 0%, rgba(196,150,70,0) 60%),
+      radial-gradient(60% 40% at -10% 95%, rgba(142,78,48,0.14) 0%, rgba(142,78,48,0) 60%),
+      linear-gradient(180deg, #FAF5EC 0%, #F0E6D8 100%);
+  }
+`;
+
+// Night or day, with the app's own light-and-dark emblem.
+function ModeToggle({ mode, onToggle }) {
+  const toDay = mode === "dark";
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={toDay ? "Switch to day (light mode)" : "Switch to night (dark mode)"}
+      title={toDay ? "Day" : "Night"}
+      className="fixed z-20 right-3 w-11 h-11 rounded-full flex items-center justify-center bg-[color-mix(in_srgb,var(--u-bg)_70%,transparent)] border border-[color-mix(in_srgb,var(--u-gold)_45%,transparent)] backdrop-blur shadow-card"
+      style={{ top: "max(env(safe-area-inset-top), 12px)" }}
+    >
+      <img src="/images/icons/light-dark.png" alt="" width="128" height="128" className={`w-8 h-8 transition-transform duration-500 ${toDay ? "" : "rotate-180"}`} />
+    </button>
   );
 }
 
@@ -552,6 +621,7 @@ function NightSky({ reduceMotion, glow }) {
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       <style>{`
+        ${SKY_STYLES}
         @keyframes you-twinkle { 0%, 100% { opacity: 0.25 } 50% { opacity: 1 } }
         @keyframes you-drift { from { transform: rotate(0deg) scale(1.35) } to { transform: rotate(360deg) scale(1.35) } }
         @keyframes you-breathe { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.06) } }
@@ -563,14 +633,11 @@ function NightSky({ reduceMotion, glow }) {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(110% 60% at 50% -5%, rgba(108,104,182,0.45) 0%, rgba(108,104,182,0) 60%)," +
-            "radial-gradient(70% 45% at 105% 75%, rgba(31,122,130,0.30) 0%, rgba(31,122,130,0) 60%)," +
-            "radial-gradient(60% 40% at -10% 95%, rgba(160,100,144,0.28) 0%, rgba(160,100,144,0) 60%)"
+          background: "var(--u-nebula)"
         }}
       />
       <motion.div className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 1.6 }}>
-        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" className="you-dust absolute inset-0 w-full h-full" style={{ animation: "you-drift 400s linear infinite", transformOrigin: "50% 50%" }}>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" className="you-dust absolute inset-0 w-full h-full [.you-universe[data-mode=light]_&]:opacity-60" style={{ animation: "you-drift 400s linear infinite", transformOrigin: "50% 50%" }}>
           {DUST.map((d, i) => (
             <circle
               key={i}
@@ -578,7 +645,7 @@ function NightSky({ reduceMotion, glow }) {
               cx={d.x}
               cy={d.y}
               r={d.r}
-              fill={i % 7 === 0 ? "#F3DE9C" : "#F2F1FA"}
+              fill={i % 7 === 0 ? "var(--u-dust-gold)" : "var(--u-dust)"}
               style={{ animation: `you-twinkle ${d.p}s ease-in-out ${d.d}s infinite` }}
             />
           ))}
@@ -598,7 +665,7 @@ function NightSky({ reduceMotion, glow }) {
           <span key={s.id} className="absolute" style={{ left: `${s.x}%`, top: `${s.y}%`, transform: `rotate(${s.angle + (dir < 0 ? 180 : 0)}deg)`, transformOrigin: "0 0" }}>
             <motion.span
               className="block h-[1.5px] rounded-full"
-              style={{ width: s.length, background: "linear-gradient(90deg, rgba(255,246,220,0), rgba(255,246,220,0.95))", boxShadow: "0 0 6px rgba(255,246,220,0.6)" }}
+              style={{ width: s.length, background: "linear-gradient(90deg, transparent, var(--u-shot))", boxShadow: "0 0 6px var(--u-shot-glow)" }}
               initial={{ opacity: 0, x: 0, scaleX: 0.3 }}
               animate={{ opacity: [0, 1, 0], x: s.travel, scaleX: 1 }}
               transition={{ duration: s.duration, ease: "easeOut" }}
