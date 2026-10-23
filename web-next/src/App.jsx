@@ -120,7 +120,7 @@ export default function App() {
   }
   if (!userId) {
     if (!signInMode) return <Universe onContinue={setSignInMode} />;
-    return <SignIn key={signInMode} initialMode={signInMode} />;
+    return <SignIn key={signInMode} initialMode={signInMode} onExit={() => setSignInMode(null)} />;
   }
   if (recovering) return <SetNewPassword />;
   if (welcoming) return <Welcome onDone={() => setWelcomeDone(true)} />;

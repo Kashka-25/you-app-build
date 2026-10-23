@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import { useAuth } from "../lib/AuthContext";
 import { goToKronk } from "../lib/kronk";
 
@@ -9,10 +10,22 @@ const labelClass = "text-label uppercase text-textMuted";
 export const MIN_PASSWORD = 12;
 
 // The card every signed-out screen sits in.
-export function AuthCard({ children }) {
+// onExit adds a close button that goes back (to the welcome universe).
+export function AuthCard({ children, onExit }) {
   return (
     <div className="min-h-dvh bg-black flex justify-center items-center sm:py-8 sm:px-3 font-sans">
-      <div className="w-full min-h-dvh sm:min-h-0 sm:w-[390px] bg-bg sm:border sm:border-borderC sm:rounded-[40px] overflow-hidden p-8 flex flex-col justify-center">
+      <div className="relative w-full min-h-dvh sm:min-h-0 sm:w-[390px] bg-bg sm:border sm:border-borderC sm:rounded-[40px] overflow-hidden p-8 flex flex-col justify-center">
+        {onExit && (
+          <button
+            type="button"
+            onClick={onExit}
+            aria-label="Back to the welcome"
+            className="absolute right-3 w-11 h-11 rounded-full flex items-center justify-center text-textSecondary hover:text-textPrimary"
+            style={{ top: "max(env(safe-area-inset-top), 12px)" }}
+          >
+            <X size={20} strokeWidth={1.75} />
+          </button>
+        )}
         {children}
       </div>
     </div>
@@ -25,7 +38,7 @@ const HEADINGS = {
   reset: "Forgotten your password? We'll email you a link to set a new one."
 };
 
-export default function SignIn({ initialMode = "signin" }) {
+export default function SignIn({ initialMode = "signin", onExit }) {
   const { signInWithPassword, signUp, sendPasswordReset } = useAuth();
   const [mode, setMode] = useState(initialMode); // "signin" | "signup" | "reset"
   const [email, setEmail] = useState("");
@@ -67,7 +80,7 @@ export default function SignIn({ initialMode = "signin" }) {
   }
 
   return (
-    <AuthCard>
+    <AuthCard onExit={onExit}>
       {/* The YOU logo, as on the welcome page (Cassidy, Oct 23). */}
       <div className="flex flex-col items-center mb-5">
         <img src="/logo-full.png" alt="YOU — Your Own Universe" width="720" height="621" className="w-full max-w-[170px] h-auto" />
