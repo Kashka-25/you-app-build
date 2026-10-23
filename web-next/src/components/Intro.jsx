@@ -11,7 +11,7 @@ export const INTRO_SEEN = "you.intro.seen";
 export function introSeen() {
   try { return localStorage.getItem(INTRO_SEEN) === "1"; } catch { return false; }
 }
-function markSeen() {
+export function markIntroSeen() {
   try { localStorage.setItem(INTRO_SEEN, "1"); } catch { /* private window */ }
 }
 
@@ -24,7 +24,7 @@ const WAYS = [
 // The first page a brand-new YOUser sees: what YOU is for, how to keep it on
 // their phone, then into creating an account. Also at /welcome, so the
 // link can be shared. onContinue("signup" | "signin").
-export default function Intro({ onContinue }) {
+export default function Intro({ onContinue, between = null }) {
   const reduceMotion = useReducedMotion();
   const rise = (delay = 0) =>
     reduceMotion
@@ -32,7 +32,7 @@ export default function Intro({ onContinue }) {
       : { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, delay, ease: easeOut } };
 
   function go(mode) {
-    markSeen();
+    markIntroSeen();
     onContinue(mode);
   }
 
@@ -71,6 +71,8 @@ export default function Intro({ onContinue }) {
           </div>
         </motion.section>
 
+        {between}
+
         <motion.div {...rise(0.2)}>
           <InstallCard />
         </motion.div>
@@ -97,7 +99,7 @@ export default function Intro({ onContinue }) {
 }
 
 // How to keep YOU on this phone. Hidden once it's opened from the home screen.
-function InstallCard() {
+export function InstallCard() {
   const [platform] = useState(devicePlatform);
   const { canPrompt, install } = useInstallPrompt();
   const [added, setAdded] = useState(false);
@@ -191,7 +193,7 @@ function ScanToOpen() {
 // In Safari on an iPhone the Share button sits in the toolbar below the
 // page, so a small note points down at it. Dismissable, and gone once YOU
 // is opened from the home screen.
-function SharePointer() {
+export function SharePointer({ lift = 0 }) {
   const reduceMotion = useReducedMotion();
   const [show, setShow] = useState(() => isIPhoneSafari() && !isInstalled());
   if (!show) return null;
@@ -201,7 +203,7 @@ function SharePointer() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 1.2, ease: easeOut }}
       className="fixed inset-x-0 z-20 flex justify-center px-4 pointer-events-none"
-      style={{ bottom: "max(env(safe-area-inset-bottom), 12px)" }}
+      style={{ bottom: `calc(max(env(safe-area-inset-bottom), 12px) + ${lift}px)` }}
     >
       <div className="pointer-events-auto flex items-center gap-2.5 rounded-full bg-forestAccent text-onAccent shadow-card pl-4 pr-1.5 py-1.5 text-bodySm">
         <motion.span
