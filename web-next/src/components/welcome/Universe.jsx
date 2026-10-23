@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, X } from "lucide-react";
 import { BetaBadge } from "../SignIn";
 import { InstallCard, SharePointer, markIntroSeen } from "../Intro";
 import { easeOut } from "../ui/motion";
-import { GlimpseChapters, GlimpseFlower, GlimpseJournal, GlimpseSky, GlimpseToday } from "./glimpses";
+import { GlimpseChapters, GlimpseFlower, GlimpseJournal, GlimpseKommYOUnity, GlimpseSky, GlimpseToday, GlimpseYOUniversity } from "./glimpses";
 
 // The welcome page (Cassidy, Oct 23: "make it alluring"): Your Own Universe
 // as a night sky. YOU sits at the centre, and around it, like planets in
@@ -17,23 +17,34 @@ import { GlimpseChapters, GlimpseFlower, GlimpseJournal, GlimpseSky, GlimpseToda
 // colours to this page.
 const PLACES = [
   { key: "home", name: "Home", icon: "home", color: "#d4a85a",
-    line: "Where each day begins. Once a week you sow up to three things to grow (a habit, a goal, a dream), tend them with one small step a day, and harvest what grew at the week's end.",
+    line: "Where each day begins. Once a week you sow up to three things to grow (a habit, a goal, a dream), take one small step a day, and harvest what grew at the week's end.",
+    why: "For a gentle nudge forward, without a to-do list shouting at you.",
     Glimpse: GlimpseToday },
   { key: "yourney", name: "YOUrney", icon: "yourney", color: "#c4783a",
-    line: "Your life, told as a story. Gather moments and memories into chapters, see who you're becoming, and keep your dreams in sight.",
+    line: "Your life, told as a story: moments and memories gathered into chapters, the person you're becoming, and the dreams still ahead.",
+    why: "To see how far you've come, and remember who you are when life gets loud.",
     Glimpse: GlimpseChapters },
   { key: "yournal", name: "YOUrnal", icon: "reflections", color: "#7a8c5e",
-    line: "Write whatever's on your mind, or photograph a handwritten page. It's private to you, and AI reflections only happen if you say yes.",
+    line: "A private journal for whatever's on your mind. Type it, or photograph a handwritten page. A gentle AI reflection is there if you'd like one, and only then.",
+    why: "To empty your head, make sense of a feeling, or catch an idea before it slips away.",
     Glimpse: GlimpseJournal },
   { key: "kommyounity", name: "KommYOUnity", icon: "community", color: "#c98e6b",
-    line: "A calm window onto Kronk, our small social space. Share what you choose, and only if you want to." },
+    line: "A calm window onto Kronk, our own small social space: kind people, a slow feed, no ads and no algorithm chasing you. Froth a post you love, Komment to cheer someone on.",
+    why: "To feel less alone on the path, and share a win only when you want to.",
+    Glimpse: GlimpseKommYOUnity },
   { key: "youniversity", name: "YOUniversity", icon: "youniversity", color: "#a06490",
-    line: "Short guided courses and tools for when you want to go deeper: habits, healing, purpose, and more on the way." },
+    line: "Short guided courses and tools for going deeper, paced gently with rest between parts so you can live what you learn. More are on the way.",
+    why: "For when something keeps coming up (boundaries, a dream, a value) and you'd like a kind guide through it.",
+    Glimpse: GlimpseYOUniversity },
   { key: "you", name: "YOU", icon: "you", color: "#5f7f72",
     line: "Your eight Pillars bloom as a flower as you grow, and the values you live by shine as your own constellation, guiding you to your True North.",
+    why: "To see your whole self at a glance, and find your way when choices pull you two ways.",
     Glimpse: GlimpseYou }
 ];
 
+// The YOU star shows the app's real flower and values sky on demo data, so
+// it follows the app as YOU (Pillars and Values) changes; check it still
+// reads well after big changes there (see the note in glimpses.jsx).
 function GlimpseYou() {
   return (
     <div className="space-y-4">
@@ -148,7 +159,11 @@ export default function Universe({ onContinue }) {
         )}
         {place && (
           <Sheet key={place.key} title={place.name} emblem={`/images/icons/${place.icon}.png`} color={place.color} reduceMotion={reduceMotion} onClose={() => setOpen(null)}>
-            <p className="text-body text-textSecondary mb-4">{place.line}</p>
+            <p className="text-body text-textSecondary mb-3">{place.line}</p>
+            <p className="flex gap-2 font-serif italic text-[17px] leading-snug text-[#F3DE9C] mb-4">
+              <Sparkles size={15} strokeWidth={1.75} className="flex-none mt-1" aria-hidden="true" />
+              <span><span className="sr-only">Why come here: </span>{place.why}</span>
+            </p>
             {place.Glimpse && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.2 }}>
                 <place.Glimpse />

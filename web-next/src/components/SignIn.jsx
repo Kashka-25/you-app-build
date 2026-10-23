@@ -68,10 +68,12 @@ export default function SignIn({ initialMode = "signin" }) {
 
   return (
     <AuthCard>
-      <div className="font-serif text-h1 text-textPrimary mb-1 flex items-center gap-2.5">
-        YOU <BetaBadge />
+      {/* The YOU logo, as on the welcome page (Cassidy, Oct 23). */}
+      <div className="flex flex-col items-center mb-5">
+        <img src="/logo-full.png" alt="YOU — Your Own Universe" width="720" height="621" className="w-full max-w-[170px] h-auto" />
+        <BetaBadge className="mt-2" />
       </div>
-      <div className="text-bodySm text-textSecondary mb-6">{HEADINGS[mode]}</div>
+      <div className="text-bodySm text-textSecondary mb-6 text-center">{HEADINGS[mode]}</div>
 
       <form onSubmit={submit}>
         <label className={labelClass}>Email</label>

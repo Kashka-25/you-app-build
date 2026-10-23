@@ -1,13 +1,20 @@
 import { useState } from "react";
-import { Sprout } from "lucide-react";
+import { Heart, MessageCircle, Sprout } from "lucide-react";
 import { PillarWheel } from "../pillars/PillarsPanel";
 import ValuesSky from "../values/ValuesSky";
 import { XpBar } from "../ui/XpBar";
 import { INNER_PILLARS, PILLARS, PILLAR_COLORS } from "../../constants/app.const";
 import { elementColor } from "../../lib/elements";
 
-// Small, real pieces of YOU for the welcome page and the welcome lab,
-// running on made-up demo data: nothing here touches an account.
+// Small pieces of YOU for the welcome page and the welcome lab, running on
+// made-up demo data: nothing here touches an account.
+//
+// NOTE for future us: these are a snapshot of the app as it looked in
+// October 2026. The flower, values sky and XP bars are the app's real
+// components, so they change when the app does; the rest (the YOUrnal
+// page, chapters, Kronk post, courses, harvest) are hand-built look-alikes
+// and will drift. When a screen changes a lot, especially YOU (Pillars and
+// Values), check the matching glimpse here still tells the truth.
 
 // ── Demo data: a YOUser a few weeks in ──
 const DEMO_LEVELS = { Body: [2, 60], Heart: [3, 30], Mind: [1, 80], Spirit: [2, 20], Connection: [1, 50], Purpose: [2, 70], Play: [1, 35], "Home & Earth": [1, 15] };
@@ -158,6 +165,63 @@ export function GlimpseToday() {
     <div className="space-y-4">
       <GlimpseSeeds />
       <GlimpseDays />
+    </div>
+  );
+}
+
+// KommYOUnity: one post from the Kronk feed, with a Froth to try.
+export function GlimpseKommYOUnity() {
+  const [frothed, setFrothed] = useState(false);
+  return (
+    <div className="rounded-card bg-surface1 shadow-card p-4 text-left">
+      <div className="flex items-center gap-2.5 mb-2">
+        <span className="w-9 h-9 rounded-full flex items-center justify-center bg-[#5f7f72] text-[#FBF3DF] font-serif text-[17px]" aria-hidden="true">W</span>
+        <div className="min-w-0">
+          <div className="text-bodySm text-textPrimary font-medium leading-tight">Wren</div>
+          <div className="text-[11px] text-textMuted">@wren@kronk.info · 2h</div>
+        </div>
+      </div>
+      <p className="text-bodySm text-textSecondary">
+        Day 12 of walking at sunrise. Didn't want to go this morning. Went anyway. The light was worth it. 🌅
+      </p>
+      <div className="flex items-center gap-1 mt-2 -ml-2">
+        <button
+          type="button"
+          onClick={() => setFrothed(f => !f)}
+          aria-pressed={frothed}
+          className={`inline-flex items-center gap-1.5 min-h-[36px] px-2 rounded-sm text-caption ${frothed ? "text-[#E5C470]" : "text-textMuted"}`}
+        >
+          <Heart size={15} strokeWidth={1.75} fill={frothed ? "currentColor" : "none"} />
+          {frothed ? "Frothed" : "Froth"} · {frothed ? 15 : 14}
+        </button>
+        <span className="inline-flex items-center gap-1.5 min-h-[36px] px-2 text-caption text-textMuted">
+          <MessageCircle size={15} strokeWidth={1.75} /> Komment · 3
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// YOUniversity: a course under way, and two more waiting.
+const DEMO_COURSES = [
+  { name: "Light & Shadow", tagline: "Sit with one of your values, all of it." },
+  { name: "Freeing the Dream", tagline: "Find the dream waiting inside a Pillar of your life." }
+];
+export function GlimpseYOUniversity() {
+  return (
+    <div className="space-y-2.5 text-left">
+      <div className="rounded-card bg-surface1 shadow-card p-4">
+        <div className="text-label uppercase text-textMuted mb-1">Continue · stage 3 of 7</div>
+        <div className="font-serif text-[19px] text-textPrimary leading-snug">The Sovereign Empath</div>
+        <div className="text-caption text-textSecondary mb-2.5">Feel deeply. Stand firmly.</div>
+        <XpBar pct={43} color="#a06490" />
+      </div>
+      {DEMO_COURSES.map(c => (
+        <div key={c.name} className="rounded-sm bg-surface1 shadow-card px-4 py-2.5">
+          <div className="text-bodySm text-textPrimary font-medium">{c.name}</div>
+          <div className="text-caption text-textMuted">{c.tagline}</div>
+        </div>
+      ))}
     </div>
   );
 }
