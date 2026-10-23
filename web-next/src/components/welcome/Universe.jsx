@@ -24,7 +24,7 @@ const PLACES = [
     line: "Write whatever's on your mind, or photograph a handwritten page. It's private to you, and AI reflections only happen if you say yes.", Glimpse: GlimpseJournal },
   { key: "youniversity", name: "YOUniversity", Icon: BookOpen, x: 80, y: 60, color: "#5f7f72",
     line: "Short guided courses and tools for when you want to go deeper: habits, healing, purpose, and more on the way." },
-  { key: "kommyounity", name: "KommYOUnity", Icon: Users, x: 50, y: 84, color: "#c98e6b",
+  { key: "kommyounity", name: "KommYOUnity", Icon: Users, x: 50, y: 80, color: "#c98e6b",
     line: "A calm window onto Kronk, our small social space. Share what you choose, and only if you want to." }
 ];
 const THREADS = [[0, 2], [1, 2], [2, 3], [2, 4], [3, 5], [4, 5], [0, 3], [1, 4]];
@@ -239,7 +239,7 @@ function Star({ place, index, seen, hint, reduceMotion, onTap }) {
 function Found({ count, all, delay }) {
   return (
     <motion.div
-      className="flex flex-col items-center gap-2 mt-3 mb-7"
+      className="flex flex-col items-center gap-2 mt-9 mb-7"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8, delay }}
@@ -290,12 +290,12 @@ function BeginBar({ all, onGo, delay }) {
         <button
           type="button"
           onClick={() => onGo("signup")}
-          className="relative overflow-hidden w-full min-h-[52px] rounded-sm bg-forestAccent text-onAccent font-medium inline-flex items-center justify-center gap-2 shadow-[0_0_24px_rgba(201,162,77,0.25)]"
+          className="relative overflow-hidden w-full min-h-[52px] rounded-sm bg-[linear-gradient(135deg,#E5C470_0%,#C9A24D_55%,#A9822F_100%)] text-[#1C1209] font-semibold inline-flex items-center justify-center gap-2 shadow-[0_0_28px_rgba(201,162,77,0.35)]"
         >
           {all && (
             <motion.span
               aria-hidden="true"
-              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-[rgba(255,246,220,0.35)] to-transparent"
+              className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.55)] to-transparent"
               initial={{ x: "-120%" }}
               animate={{ x: "320%" }}
               transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.2, ease: "easeInOut" }}
@@ -356,7 +356,7 @@ function PlaceSheet({ place, all, next, reduceMotion, onClose, onNext, onBegin }
             </motion.div>
           )}
           {all ? (
-            <button type="button" onClick={onBegin} className="w-full min-h-[50px] mt-5 rounded-sm bg-forestAccent text-onAccent font-medium inline-flex items-center justify-center gap-2">
+            <button type="button" onClick={onBegin} className="w-full min-h-[50px] mt-5 rounded-sm bg-[linear-gradient(135deg,#E5C470_0%,#C9A24D_55%,#A9822F_100%)] text-[#1C1209] font-semibold inline-flex items-center justify-center gap-2">
               <Sparkles size={17} strokeWidth={1.75} /> Begin your universe
             </button>
           ) : (
@@ -375,7 +375,7 @@ function PlaceSheet({ place, all, next, reduceMotion, onClose, onNext, onBegin }
 function scatter(n, seed) {
   let s = seed;
   const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
-  return Array.from({ length: n }, () => ({ x: rnd() * 100, y: rnd() * 100, r: 0.12 + rnd() * 0.32, d: rnd() * 6, p: 2.5 + rnd() * 4 }));
+  return Array.from({ length: n }, () => ({ x: rnd() * 100, y: rnd() * 100, r: 0.04 + rnd() * 0.13, d: rnd() * 6, p: 2.5 + rnd() * 4 }));
 }
 const DUST = scatter(110, 20261023);
 
