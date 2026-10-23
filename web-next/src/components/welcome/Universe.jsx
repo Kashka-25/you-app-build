@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, X } from "lucide-react";
 import { BetaBadge } from "../SignIn";
 import { InstallCard, SharePointer, markIntroSeen } from "../Intro";
 import { easeOut } from "../ui/motion";
-import { GlimpseChapters, GlimpseFlower, GlimpseJournal, GlimpseKommYOUnity, GlimpseSky, GlimpseToday, GlimpseYOUniversity } from "./glimpses";
+import { GlimpseChapters, GlimpseFlower, GlimpseJournal, GlimpseKommYOUnity, GlimpseSky, GlimpseToday, GlimpseValueChallenges, GlimpseYOUniversity } from "./glimpses";
 
 // The welcome page (Cassidy, Oct 23: "make it alluring"): Your Own Universe
 // as a night sky. YOU sits at the centre, and around it, like planets in
@@ -17,11 +17,11 @@ import { GlimpseChapters, GlimpseFlower, GlimpseJournal, GlimpseKommYOUnity, Gli
 // colours to this page.
 const PLACES = [
   { key: "home", name: "Home", icon: "home", color: "#d4a85a",
-    line: "Where each day begins. Once a week you sow up to three things to grow (a habit, a goal, a dream), take one small step a day, and harvest what grew at the week's end.",
-    why: "For a gentle nudge forward, without a to-do list shouting at you.",
+    line: "Where each day begins. Begin by sowing three things a week to grow (a habit, a goal, a dream), take one small step a day, and harvest what grew at the week's end.",
+    why: "For a gentle nudge forward towards what matters to YOU.",
     Glimpse: GlimpseToday },
   { key: "yourney", name: "YOUrney", icon: "yourney", color: "#c4783a",
-    line: "Your life, told as a story: moments and memories gathered into chapters, the person you're becoming, and the dreams still ahead.",
+    line: "Your life, told as a story: moments, journal reflections and memories gathered into chapters, so you can see the person you're becoming, and the dreams being set free.",
     why: "To see how far you've come, and remember who you are when life gets loud.",
     Glimpse: GlimpseChapters },
   { key: "yournal", name: "YOUrnal", icon: "reflections", color: "#7a8c5e",
@@ -29,15 +29,15 @@ const PLACES = [
     why: "To empty your head, make sense of a feeling, or catch an idea before it slips away.",
     Glimpse: GlimpseJournal },
   { key: "kommyounity", name: "KommYOUnity", icon: "community", color: "#c98e6b",
-    line: "A calm window onto Kronk, our own small social space: kind people, a slow feed, no ads and no algorithm chasing you. Froth a post you love, Komment to cheer someone on.",
-    why: "To feel less alone on the path, and share a win only when you want to.",
+    line: "Where your own journey meets the people you love. Invite your friends, then share the moments you choose, cheer each other on, and grow side by side. KommYOUnity runs on Kronk, a small, independent social space: no ads, no algorithm deciding what you see (your feed simply shows people you follow, newest first), and run by real people rather than a company selling your attention.",
+    why: "To grow alongside your friends, and share a win only when you want to.",
     Glimpse: GlimpseKommYOUnity },
   { key: "youniversity", name: "YOUniversity", icon: "youniversity", color: "#a06490",
     line: "Short guided courses and tools for going deeper, paced gently with rest between parts so you can live what you learn. More are on the way.",
     why: "For when something keeps coming up (boundaries, a dream, a value) and you'd like a kind guide through it.",
     Glimpse: GlimpseYOUniversity },
   { key: "you", name: "YOU", icon: "you", color: "#5f7f72",
-    line: "Your eight Pillars bloom as a flower as you grow, and the values you live by shine as your own constellation, guiding you to your True North.",
+    line: "Your eight Pillars of life bloom as a flower as you grow, and the values you live by shine as your own constellation, guiding you to your True North. They shine brighter with every challenge you face.",
     why: "To see your whole self at a glance, and find your way when choices pull you two ways.",
     Glimpse: GlimpseYou }
 ];
@@ -50,6 +50,7 @@ function GlimpseYou() {
     <div className="space-y-4">
       <GlimpseFlower />
       <GlimpseSky />
+      <GlimpseValueChallenges />
     </div>
   );
 }
@@ -186,10 +187,11 @@ export default function Universe({ onContinue }) {
   );
 }
 
-// The action's words, with Y, O, U picked out (on the gold button, deep
-// brown and heavier, since gold on gold would vanish).
+// The action's words, with Y, O, U picked out (on the gold button: a deep
+// night violet, extra-bold with a soft light behind, so they stand apart
+// from the gold and from the brown of the other words).
 function StepIn() {
-  const B = ({ children }) => <b className="font-extrabold text-[#2A1A0B]">{children}</b>;
+  const B = ({ children }) => <b className="font-extrabold text-[#2E2470] [text-shadow:0_0_6px_rgba(255,246,220,0.55)]">{children}</b>;
   return <span className="font-medium">Step into <B>Y</B>our <B>O</B>wn <B>U</B>niverse</span>;
 }
 
@@ -207,8 +209,11 @@ function Purpose() {
       <p className="text-body text-textSecondary mb-3">
         YOU is a living biography: your days, your values, your dreams and your story, held gently in one place. Not a feed to keep up with, and no streaks to keep. Just you, a little at a time, at your own pace.
       </p>
-      <p className="text-body text-textSecondary">
+      <p className="text-body text-textSecondary mb-3">
         Everything around the centre is a part of you. Explore it in any order; it all grows together.
+      </p>
+      <p className="text-body text-textPrimary">
+        Our goal is to give you the tools to help create the life you deserve to live. <span className="font-serif italic text-[18px] text-[#F3DE9C]">Your Own Universe, lived your way.</span>
       </p>
       <p className="font-serif italic text-body text-textMuted mt-4 text-right">A message directly from YOU</p>
     </div>
