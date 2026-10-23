@@ -175,9 +175,9 @@ function Star({ place, index, seen, hint, reduceMotion, onTap }) {
       type="button"
       onClick={onTap}
       aria-label={`${place.name}${seen ? ", explored" : ""}`}
-      className="absolute -translate-x-1/2 -translate-y-[28px] flex flex-col items-center gap-1.5 outline-none group"
+      className="absolute flex flex-col items-center gap-1.5 outline-none group"
       // The orb's centre (not the label's) sits on the point the threads meet.
-      style={{ left: `${place.x}%`, top: `${place.y}%` }}
+      style={{ left: `${place.x}%`, top: `${place.y}%`, x: "-50%", y: -28 }}
       initial={{ opacity: 0, scale: 0.2 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: reduceMotion ? 0 : 0.7, delay: wake, ease: [0.34, 1.56, 0.64, 1] }}
