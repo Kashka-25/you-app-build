@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { Heart, MessageCircle, PenLine, Sparkles, Sprout } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Dot, Heart, MessageCircle, PenLine, Sparkles, Sprout } from "lucide-react";
 import KommYOUnity from "../KommYOUnity";
 import { PillarWheel } from "../pillars/PillarsPanel";
 import ValuesSky from "../values/ValuesSky";
 import { XpBar } from "../ui/XpBar";
-import { INNER_PILLARS, PILLARS, PILLAR_COLORS } from "../../constants/app.const";
+import { INNER_PILLARS, PILLARS, PILLAR_COLORS, TIERS, applyPrestigeGain, getPrestigeStage, getTier } from "../../constants/app.const";
+import { ALL_VALUES_LIB } from "../../constants/values.const";
 import { elementColor } from "../../lib/elements";
 
 // Small pieces of YOU for the welcome page and the welcome lab, running on
@@ -39,13 +41,37 @@ const DEMO_SEEDS = [
 ];
 
 // ── Glimpses: small, real pieces of YOU ──
+// The petals breathe, one after another round the flower, to say "tap
+// me" (Cassidy, Oct 23), until the first one is tapped. Only here: the
+// app's own flower stays still.
+const PETAL_PULSE = `
+  @keyframes you-petal { 0%, 100% { transform: scale(1); filter: brightness(1) } 50% { transform: scale(1.045); filter: brightness(1.18) } }
+  .you-petals svg g.cursor-pointer { transform-box: view-box; transform-origin: 50% 50%; animation: you-petal 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite both; }
+  @media (prefers-reduced-motion: reduce) { .you-petals svg g.cursor-pointer { animation: none } }
+`;
+
 export function GlimpseFlower() {
   const [sel, setSel] = useState(null);
+  const [tapped, setTapped] = useState(false);
+  const wheel = useRef(null);
   const p = DEMO_PILLARS.find(x => x.name === sel);
+  // Stagger each petal's breath so the pulse travels round the flower.
+  useEffect(() => {
+    const petals = wheel.current?.querySelectorAll("svg g.cursor-pointer") || [];
+    petals.forEach((g, i) => { g.style.animationDelay = `${(i * 2.6) / petals.length}s`; });
+  }, []);
   return (
     <div>
-      <div className="max-w-[230px] mx-auto">
-        <PillarWheel pillars={DEMO_PILLARS} selected={sel} onSelect={n => setSel(s => (s === n ? null : n))} />
+      <style>{PETAL_PULSE}</style>
+      <div ref={wheel} className={`max-w-[230px] mx-auto ${tapped ? "" : "you-petals"}`}>
+        <PillarWheel
+          pillars={DEMO_PILLARS}
+          selected={sel}
+          onSelect={n => {
+            setTapped(true);
+            setSel(s => (s === n ? null : n));
+          }}
+        />
       </div>
       <div className="h-9 mt-1 text-center text-caption text-textMuted">
         {p ? (
@@ -284,35 +310,104 @@ export function GlimpseYOUniversity() {
   );
 }
 
-// YOU: one value opened up, Communication (an Air value), with a few of its
-// challenges: gentle, bold and brave, each worth XP toward its next tier.
-const DEMO_CHALLENGES = [
-  { text: "Ask someone how they're really doing, then simply listen.", diff: "gentle", pts: 10, done: true },
-  { text: "Write down one thing you've been meaning to say.", diff: "gentle", pts: 10, done: true },
-  { text: "Tell a friend, out loud, something you appreciate about them.", diff: "bold", pts: 20 },
-  { text: "Have the conversation you've been putting off. Begin with how you feel.", diff: "brave", pts: 35 }
-];
+// YOU: one value opened up, Communication (an Air value), on the app's own
+// XP: its real challenges and points (ALL_VALUES_LIB), a 100 XP first
+// cycle (prestigeRequirement), and the same tiers and growth stages as
+// ValuesPanel. It starts at 86 of 100 with two challenges done; tick the
+// other two (+6, +8) and it reaches 100 and grows from Seed to Sprout.
+const COMMUNICATION = ALL_VALUES_LIB.find(v => v.name === "Communication");
+const DEMO_PICKS = [
+  { idx: 0, done: true },
+  { idx: 1, done: true },
+  { idx: 2 },
+  { idx: 5 }
+].map(p => ({ ...COMMUNICATION.challenges[p.idx], done: Boolean(p.done) }));
+const START_XP = 86;
+const STAGE_ICONS = [Dot, Sprout];
+
 export function GlimpseValueChallenges() {
-  // Tap a challenge to try it: its XP joins the bar (the first two are done).
-  const [done, setDone] = useState(() => DEMO_CHALLENGES.map(c => Boolean(c.done)));
-  const xp = Math.min(100, 40 + DEMO_CHALLENGES.reduce((n, c, i) => n + (done[i] && !c.done ? c.pts : 0), 0));
+  const reduceMotion = useReducedMotion();
+  const [done, setDone] = useState(() => DEMO_PICKS.map(c => c.done));
+  const gained = DEMO_PICKS.reduce((n, c, i) => n + (done[i] && !c.done ? c.pts : 0), 0);
+  const { rating, prestige, requirement } = applyPrestigeGain(START_XP, 0, gained);
+  const grew = prestige > 0;
+  const pct = Math.min(100, Math.round((rating / requirement) * 100));
+  const tier = getTier(Math.min(99, Math.round((rating / requirement) * 99)));
+  const stage = getPrestigeStage(prestige);
+  const stageColor = TIERS[prestige % TIERS.length].color;
+  const StageIcon = STAGE_ICONS[stage.index] || Sprout;
   const air = elementColor("Air");
+
+  function tick(i) {
+    if (DEMO_PICKS[i].done || grew) return;
+    setDone(d => d.map((v, j) => (j === i ? !v : v)));
+  }
+
   return (
-    <div className="rounded-card bg-surface1 shadow-card p-4 text-left">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="font-serif text-[20px] text-textPrimary">Communication</span>
-        <span className="text-[10.5px] uppercase tracking-wide flex-none" style={{ color: air }}>Air · Practising</span>
+    <div
+      className="relative overflow-hidden rounded-card shadow-card p-4 text-left border"
+      style={{
+        borderColor: `color-mix(in srgb, ${air} 28%, transparent)`,
+        background: `linear-gradient(105deg, color-mix(in srgb, ${air} 16%, var(--surface-1)) 0%, var(--surface-1) 62%)`
+      }}
+    >
+      {/* The level-up: a golden ring opens out from the stage chip. */}
+      <AnimatePresence>
+        {grew && !reduceMotion && (
+          <motion.span
+            key="burst"
+            aria-hidden="true"
+            className="absolute right-6 top-5 w-10 h-10 rounded-full border-2 border-gold pointer-events-none"
+            initial={{ opacity: 0.9, scale: 0.3 }}
+            animate={{ opacity: 0, scale: 9 }}
+            transition={{ duration: 1.4, ease: "easeOut" }}
+          />
+        )}
+      </AnimatePresence>
+      <div className="flex items-center gap-2">
+        <span className="font-serif text-[20px] text-textPrimary flex-1">Communication</span>
+        <motion.span
+          key={stage.name}
+          className="flex items-center gap-1 text-caption font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full flex-none"
+          style={{ color: stageColor, background: `color-mix(in srgb, ${stageColor} 18%, transparent)` }}
+          initial={grew && !reduceMotion ? { scale: 0.4, opacity: 0 } : false}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 380, damping: 14 }}
+          title={stage.desc}
+        >
+          <StageIcon size={11} strokeWidth={2} /> {stage.name}
+        </motion.span>
       </div>
-      <p className="text-caption text-textMuted mb-2">Saying what's true, kindly, and truly hearing what's said.</p>
-      <XpBar pct={xp} color={air} xp={xp} of={100} className="mb-3" />
+      <p className="text-caption text-textMuted mb-1.5">{COMMUNICATION.tagline}.</p>
+      <XpBar pct={pct} color={air} xp={rating} of={requirement} />
+      <div className="text-caption text-textMuted mt-1 mb-3">
+        <span className="font-medium" style={{ color: tier.color }}>{tier.name}</span> · Air
+      </div>
+
+      <AnimatePresence>
+        {grew && (
+          <motion.div
+            key="grew"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: reduceMotion ? 0 : 0.3 }}
+            className="rounded-sm bg-[color-mix(in_srgb,var(--gold)_14%,transparent)] border border-[color-mix(in_srgb,var(--gold)_40%,transparent)] p-2.5 mb-3"
+          >
+            <div className="font-serif text-[17px] text-textPrimary leading-snug">Communication grew into {stage.name}.</div>
+            <div className="text-caption text-textSecondary italic">"{stage.desc}" Its next cycle asks a little more: {requirement} XP.</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="space-y-1.5">
-        {DEMO_CHALLENGES.map((c, i) => (
+        {DEMO_PICKS.map((c, i) => (
           <div key={c.text} className={`flex items-center gap-2.5 p-2 rounded-sm bg-surface2 ${done[i] ? "opacity-60" : ""}`}>
             <button
               type="button"
-              onClick={() => !c.done && setDone(d => d.map((v, j) => (j === i ? !v : v)))}
+              onClick={() => tick(i)}
+              disabled={c.done || grew}
               aria-label={done[i] ? "Done" : "Mark done"}
-              className={`w-6 h-6 flex-none rounded-full border text-caption ${done[i] ? "bg-sage border-sage text-onAccent" : "border-borderC"}`}
+              className={`w-7 h-7 flex-none rounded-full border text-caption ${done[i] ? "bg-sage border-sage text-onAccent" : "border-borderC"}`}
             >
               {done[i] ? "✓" : ""}
             </button>
@@ -323,6 +418,15 @@ export function GlimpseValueChallenges() {
             <div className="text-caption text-gold flex-none">+{c.pts}</div>
           </div>
         ))}
+      </div>
+      <div className="text-center mt-2.5">
+        {grew ? (
+          <button type="button" onClick={() => setDone(DEMO_PICKS.map(c => c.done))} className="text-caption text-textMuted underline underline-offset-2">
+            Try it again
+          </button>
+        ) : (
+          <span className="text-caption text-textMuted">Tick the last two to see Communication grow.</span>
+        )}
       </div>
     </div>
   );
