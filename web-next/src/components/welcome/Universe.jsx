@@ -104,7 +104,7 @@ export default function Universe({ onContinue }) {
           <p className="text-bodySm text-textSecondary mt-1.5">YOU is at the centre. Every star around it is a part of YOU: tap to explore.</p>
         </motion.div>
 
-        <div className="relative w-full aspect-square mt-2" role="group" aria-label="YOU, and the places around it">
+        <div className="relative w-full aspect-square mt-9" role="group" aria-label="YOU, and the places around it">
           {/* A soft bloom behind the circle once every star is found. */}
           <motion.div
             aria-hidden="true"
@@ -339,7 +339,7 @@ function Star({ place, index, seen, reduceMotion, onTap }) {
 function Found({ count, all, delay }) {
   return (
     <motion.div
-      className="flex flex-col items-center gap-2 mt-6 mb-7"
+      className="flex flex-col items-center gap-2 mt-8 mb-7"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.8, delay }}
@@ -498,7 +498,7 @@ function useShootingStars(reduceMotion) {
         duration: 0.8 + Math.random() * 0.6
       };
       setShots(s => [...s.slice(-2), shot]);
-      timer = setTimeout(fire, 2800 + Math.random() * 4200);
+      timer = setTimeout(fire, 4000 + Math.random() * 4000);
     };
     timer = setTimeout(fire, 2400);
     return () => clearTimeout(timer);
