@@ -142,7 +142,7 @@ export default function Universe({ onContinue }) {
           <Sheet key="centre" title="Your Own Universe" emblem="/images/icons/you.png" color="#C9A24D" reduceMotion={reduceMotion} onClose={() => setOpen(null)}>
             <Purpose />
             <SheetButton onClick={() => (all ? go("signup") : visit((nextUnseen || PLACES[0]).key))} gold={all}>
-              {all ? <><Sparkles size={17} strokeWidth={1.75} /> Begin your universe</> : <>Explore the stars <ArrowRight size={16} strokeWidth={1.75} /></>}
+              {all ? <><Sparkles size={17} strokeWidth={1.75} /> <StepIn /></> : <>Explore the stars <ArrowRight size={16} strokeWidth={1.75} /></>}
             </SheetButton>
           </Sheet>
         )}
@@ -155,7 +155,7 @@ export default function Universe({ onContinue }) {
               </motion.div>
             )}
             {all ? (
-              <SheetButton onClick={() => go("signup")} gold><Sparkles size={17} strokeWidth={1.75} /> Begin your universe</SheetButton>
+              <SheetButton onClick={() => go("signup")} gold><Sparkles size={17} strokeWidth={1.75} /> <StepIn /></SheetButton>
             ) : (
               <SheetButton onClick={() => (nextUnseen ? visit(nextUnseen.key) : setOpen(null))}>
                 Next star{nextUnseen ? `: ${nextUnseen.name}` : ""} <ArrowRight size={16} strokeWidth={1.75} />
@@ -166,6 +166,13 @@ export default function Universe({ onContinue }) {
       </AnimatePresence>
     </div>
   );
+}
+
+// The action's words, with Y, O, U picked out (on the gold button, deep
+// brown and heavier, since gold on gold would vanish).
+function StepIn() {
+  const B = ({ children }) => <b className="font-extrabold text-[#2A1A0B]">{children}</b>;
+  return <span className="font-medium">Step into <B>Y</B>our <B>O</B>wn <B>U</B>niverse</span>;
 }
 
 function Gold({ children }) {
@@ -410,7 +417,7 @@ function BeginBar({ all, onGo, delay }) {
               transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.2, ease: "easeInOut" }}
             />
           )}
-          <Sparkles size={17} strokeWidth={1.75} /> Begin your universe
+          <Sparkles size={17} strokeWidth={1.75} /> <StepIn />
         </button>
         <button type="button" onClick={() => onGo("signin")} className="w-full min-h-[40px] text-bodySm text-textSecondary">
           I already have an account
