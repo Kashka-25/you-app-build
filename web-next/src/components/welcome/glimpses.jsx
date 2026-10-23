@@ -29,7 +29,7 @@ const DEMO_PILLARS = PILLARS.map(name => ({
 const DEMO_STARS = [
   { name: "Courage", element: "Fire", pct: 70, tier: "Embodying" },
   { name: "Compassion", element: "Water", pct: 40, tier: "Practising" },
-  { name: "Freedom", element: "Air", pct: 85, tier: "Mastering" },
+  { name: "Communication", element: "Air", pct: 40, tier: "Practising" },
   { name: "Wonder", element: "Ether", pct: 25, tier: "Awakening" }
 ].map(s => ({ ...s, color: elementColor(s.element) }));
 const DEMO_SEEDS = [
