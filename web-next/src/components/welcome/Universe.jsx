@@ -100,7 +100,10 @@ export default function Universe({ onContinue }) {
           transition={{ duration: t(0.8), delay: t(0.4), ease: easeOut }}
         >
           <BetaBadge />
-          <h1 className="font-serif text-[28px] leading-tight mt-3">Explore Your Own Universe</h1>
+          <h1 className="font-serif text-[28px] leading-tight mt-3">
+            {/* Y, O, U: the name hiding in its own words. */}
+            Explore <Gold>Y</Gold>our <Gold>O</Gold>wn <Gold>U</Gold>niverse
+          </h1>
           <p className="text-bodySm text-textSecondary mt-1.5">YOU is at the centre. Every star around it is a part of YOU: tap to explore.</p>
         </motion.div>
 
@@ -163,6 +166,10 @@ export default function Universe({ onContinue }) {
       </AnimatePresence>
     </div>
   );
+}
+
+function Gold({ children }) {
+  return <b className="font-bold text-[#E5C470] [text-shadow:0_0_12px_rgba(229,196,112,0.45)]">{children}</b>;
 }
 
 // What YOU is for: shown when YOU, at the centre, is tapped.
