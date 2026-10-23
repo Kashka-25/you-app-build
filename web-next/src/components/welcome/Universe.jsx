@@ -66,6 +66,9 @@ const at = i => {
 const WAKE = 1.2;
 const STAGGER = 0.16;
 const SETTLED = WAKE + PLACES.length * STAGGER + 0.6;
+// One star's breath, and the centre's ripple, in seconds.
+const BREATH = 4.8;
+const RIPPLE = 3.2;
 
 export default function Universe({ onContinue }) {
   const reduceMotion = useReducedMotion();
@@ -274,14 +277,16 @@ function Centre({ onTap, met, hint, t, reduceMotion }) {
           className="absolute inset-[-14%] rounded-full"
           style={{ background: "radial-gradient(closest-side, rgba(201,162,77,0.32), rgba(108,104,182,0.12) 60%, rgba(0,0,0,0))" }}
         />
-        {hint && (
-          <motion.span
+        {/* Two ripples, half a beat apart, each fading in and out so the
+            loop never shows a seam. */}
+        {hint && [0, RIPPLE / 2].map(d => (
+          <span
+            key={d}
             aria-hidden="true"
-            className="absolute inset-0 rounded-full border border-[#F3DE9C]"
-            animate={{ opacity: [0.7, 0], scale: [1, 1.35] }}
-            transition={{ duration: 2, repeat: Infinity, delay: SETTLED, ease: "easeOut" }}
+            className="you-ripple absolute inset-0 rounded-full border border-[#F3DE9C]"
+            style={{ animationDelay: `${SETTLED + d}s` }}
           />
-        )}
+        ))}
         <span
           className="absolute inset-0 rounded-full flex items-center justify-center overflow-hidden"
           style={{
@@ -340,20 +345,21 @@ function Star({ place, index, seen, reduceMotion, onTap }) {
             transition={{ duration: 1.1, delay: wake, ease: "easeOut" }}
           />
         )}
-        <motion.span
-          className="absolute inset-0 rounded-full flex items-center justify-center"
+        <span
           style={{
+            animationDelay: `${wake + 0.8 + index * (BREATH / PLACES.length)}s`,
             background: `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${place.color} 35%, #1E1B3F) 0%, #12112C 72%)`,
             boxShadow: `0 0 ${seen ? 26 : 14}px color-mix(in srgb, ${place.color} ${seen ? 85 : 50}%, transparent)`,
             outline: seen ? "1.5px solid #E5C470" : "1px solid rgba(255,246,220,0.2)",
             outlineOffset: 2,
             transition: "box-shadow 0.6s, outline-color 0.6s"
           }}
-          animate={reduceMotion ? undefined : { scale: [1, 1.05, 1] }}
-          transition={{ duration: 3.2 + index * 0.35, repeat: Infinity, ease: "easeInOut", delay: wake + 1 }}
+          // One slow, even breath for every star, passed round the circle
+          // like a wave (CSS, so each loop flows into the next with no seam).
+          className="you-breathe absolute inset-0 rounded-full flex items-center justify-center"
         >
           <img src={`/images/icons/${place.icon}.png`} alt="" width="128" height="128" className="w-[92%] h-[92%] object-contain" />
-        </motion.span>
+        </span>
         <span
           className={`absolute left-1/2 -translate-x-1/2 ${below ? "top-full mt-1" : "bottom-full mb-1"} font-serif text-[14px] font-semibold whitespace-nowrap text-[#F2F1FA] [text-shadow:0_1px_6px_rgba(0,0,0,0.95)] group-focus-visible:underline`}
         >
@@ -543,7 +549,11 @@ function NightSky({ reduceMotion, glow }) {
       <style>{`
         @keyframes you-twinkle { 0%, 100% { opacity: 0.25 } 50% { opacity: 1 } }
         @keyframes you-drift { from { transform: rotate(0deg) scale(1.35) } to { transform: rotate(360deg) scale(1.35) } }
-        @media (prefers-reduced-motion: reduce) { .you-star, .you-dust { animation: none !important } }
+        @keyframes you-breathe { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.06) } }
+        .you-breathe { animation: you-breathe ${BREATH}s cubic-bezier(0.45, 0, 0.55, 1) infinite both; }
+        @keyframes you-ripple { 0% { opacity: 0; transform: scale(1) } 18% { opacity: 0.6 } 100% { opacity: 0; transform: scale(1.45) } }
+        .you-ripple { opacity: 0; animation: you-ripple ${RIPPLE}s cubic-bezier(0.2, 0.6, 0.35, 1) infinite both; }
+        @media (prefers-reduced-motion: reduce) { .you-star, .you-dust, .you-breathe, .you-ripple { animation: none !important } }
       `}</style>
       <div
         className="absolute inset-0"
