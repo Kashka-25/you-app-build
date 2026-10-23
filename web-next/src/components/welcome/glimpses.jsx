@@ -130,3 +130,34 @@ export function GlimpseHarvest() {
     </div>
   );
 }
+
+// YOUrney: a life told in chapters.
+const DEMO_CHAPTERS = [
+  { years: "2009–2014", title: "Growing up by the river", tone: "#8a7a52" },
+  { years: "2015–2021", title: "The city years", tone: "#a06490" },
+  { years: "2022–now", title: "Coming home to myself", tone: "#d4a85a", now: true }
+];
+export function GlimpseChapters() {
+  return (
+    <div className="relative pl-6 text-left">
+      <span className="absolute left-[7px] top-2 bottom-2 w-px bg-[color-mix(in_srgb,var(--gold)_45%,transparent)]" aria-hidden="true" />
+      {DEMO_CHAPTERS.map(c => (
+        <div key={c.title} className="relative mb-3 last:mb-0">
+          <span className="absolute -left-[22px] top-1.5 w-[11px] h-[11px] rounded-full" style={{ background: c.tone, boxShadow: c.now ? `0 0 10px ${c.tone}` : "none" }} aria-hidden="true" />
+          <div className="text-[10.5px] uppercase tracking-wide text-textMuted">{c.years}{c.now ? " · this chapter" : ""}</div>
+          <div className="font-serif text-[17px] text-textPrimary leading-snug">{c.title}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// A home day: today's seeds and the week so far.
+export function GlimpseToday() {
+  return (
+    <div className="space-y-4">
+      <GlimpseSeeds />
+      <GlimpseDays />
+    </div>
+  );
+}
