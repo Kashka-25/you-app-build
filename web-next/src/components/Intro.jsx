@@ -11,7 +11,7 @@ export const INTRO_SEEN = "you.intro.seen";
 export function introSeen() {
   try { return localStorage.getItem(INTRO_SEEN) === "1"; } catch { return false; }
 }
-function markSeen() {
+export function markIntroSeen() {
   try { localStorage.setItem(INTRO_SEEN, "1"); } catch { /* private window */ }
 }
 
@@ -32,7 +32,7 @@ export default function Intro({ onContinue, between = null }) {
       : { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.5, delay, ease: easeOut } };
 
   function go(mode) {
-    markSeen();
+    markIntroSeen();
     onContinue(mode);
   }
 
@@ -193,7 +193,7 @@ function ScanToOpen() {
 // In Safari on an iPhone the Share button sits in the toolbar below the
 // page, so a small note points down at it. Dismissable, and gone once YOU
 // is opened from the home screen.
-function SharePointer() {
+export function SharePointer({ lift = 0 }) {
   const reduceMotion = useReducedMotion();
   const [show, setShow] = useState(() => isIPhoneSafari() && !isInstalled());
   if (!show) return null;
@@ -203,7 +203,7 @@ function SharePointer() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 1.2, ease: easeOut }}
       className="fixed inset-x-0 z-20 flex justify-center px-4 pointer-events-none"
-      style={{ bottom: "max(env(safe-area-inset-bottom), 12px)" }}
+      style={{ bottom: `calc(max(env(safe-area-inset-bottom), 12px) + ${lift}px)` }}
     >
       <div className="pointer-events-auto flex items-center gap-2.5 rounded-full bg-forestAccent text-onAccent shadow-card pl-4 pr-1.5 py-1.5 text-bodySm">
         <motion.span
