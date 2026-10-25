@@ -11,6 +11,7 @@ import { PlaceTag } from "../wandering/PlacePicker";
 import WeeklyReflectionView from "../journal/WeeklyReflectionView";
 import ExplorationsView from "../questionnaires/ExplorationsView";
 import HighlightsView from "../journal/HighlightsView";
+import TagFilter from "../journal/TagFilter";
 import { Modal } from "../ui/Modal";
 import { AiButton } from "../ui/Premium";
 
@@ -23,6 +24,9 @@ const TABS = [
 
 // Each page is one AI call, so a scan is kept to a sensible size.
 const MAX_SCAN_PAGES = 6;
+// The latest few entries, then "See more" (Cassidy, Oct 24: to neaten the
+// page). Each tap shows this many more.
+const ENTRIES_SHOWN = 5;
 
 function niceDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -82,6 +86,7 @@ export default function Reflections() {
   const { journalEntries, loaded } = useAppData();
   const [tab, setTab] = useState("entries");
   const [openTag, setOpenTag] = useState(null);
+  const [limit, setLimit] = useState(ENTRIES_SHOWN);
   const [addOpen, setAddOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const { scanJournalPages } = useAppData();
@@ -183,10 +188,14 @@ export default function Reflections() {
         />
       ) : (
         <>
-          <TagBar entries={journalEntries} openTag={openTag} onTag={setOpenTag} />
-          {journalEntries
-            .filter(e => !openTag || (e.tags || []).some(t => tagKey(t) === openTag))
-            .map(entry => <EntryCard key={entry.id} entry={entry} onEdit={setEditingEntry} onTag={t => setOpenTag(tagKey(t))} />)}
+          <TagFilter tags={tagCounts(journalEntries)} value={openTag} onChange={t => { setOpenTag(t); setLimit(ENTRIES_SHOWN); }} />
+          <EntryList
+            entries={journalEntries.filter(e => !openTag || (e.tags || []).some(t => tagKey(t) === openTag))}
+            limit={limit}
+            onMore={() => setLimit(n => n + ENTRIES_SHOWN * 2)}
+            onEdit={setEditingEntry}
+            onTag={t => { setOpenTag(tagKey(t)); setLimit(ENTRIES_SHOWN); }}
+          />
         </>
       )}
 
@@ -219,34 +228,21 @@ export default function Reflections() {
   );
 }
 
-// The tags across the journal. Tap one to see only its entries (all your
-// #dream pages, or every #idea for the app); tap again to see everything.
-function TagBar({ entries, openTag, onTag }) {
-  const tags = tagCounts(entries);
-  if (tags.length === 0) return null;
+// The newest entries first, a few at a time.
+function EntryList({ entries, limit, onMore, onEdit, onTag }) {
+  const left = entries.length - limit;
   return (
-    <div className="mb-3">
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Tags">
-        {tags.map(([t, n]) => {
-          const on = t === openTag;
-          return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => onTag(on ? null : t)}
-              aria-pressed={on}
-              className={`text-caption px-2.5 py-1 rounded-full border ${on ? "border-forestAccent bg-forestAccent text-onAccent" : "border-borderC text-textSecondary hover:text-textPrimary"}`}
-            >
-              #{t} · {n}
-            </button>
-          );
-        })}
-      </div>
-      {openTag && (
-        <button type="button" onClick={() => onTag(null)} className="text-caption text-textSecondary underline mt-2">
-          Showing #{openTag} only. Show the whole Journal
+    <>
+      {entries.slice(0, limit).map(entry => <EntryCard key={entry.id} entry={entry} onEdit={onEdit} onTag={onTag} />)}
+      {left > 0 && (
+        <button
+          type="button"
+          onClick={onMore}
+          className="w-full min-h-[44px] rounded-full border border-borderC bg-surface1 text-bodySm text-textSecondary hover:text-textPrimary"
+        >
+          See more · {left} older {left === 1 ? "entry" : "entries"}
         </button>
       )}
-    </div>
+    </>
   );
 }

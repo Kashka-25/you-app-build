@@ -361,11 +361,13 @@ function WelcomeBack({ arcanum, course, state, onContinue }) {
           {next.status === "resting" ? `, opens ${opensLine(next.opensOn)}.` : ", ready when you are."}
         </div>
       )}
-      <div className="flex gap-2.5 mt-4">
+      {/* Stacked on narrow phones, where "Pick up where I left off" spilled
+          out of a half-width pill (Cassidy, Oct 24). */}
+      <div className="flex flex-col min-[400px]:flex-row gap-2.5 mt-4">
         {next?.status === "open" && (
-          <button onClick={onContinue} className="flex-1 min-h-[46px] rounded-full bg-forestAccent text-onAccent font-medium text-body hover:bg-forest">Pick up where I left off</button>
+          <button onClick={onContinue} className="min-[400px]:flex-[2] min-h-[46px] px-5 py-2 leading-tight rounded-full bg-forestAccent text-onAccent font-medium text-body hover:bg-forest">Pick up where I left off</button>
         )}
-        <button onClick={dismiss} className="flex-1 min-h-[46px] rounded-full border border-borderC bg-surface2 text-textPrimary text-body hover:bg-surface3">Thanks</button>
+        <button onClick={dismiss} className="min-[400px]:flex-1 min-h-[46px] px-5 py-2 leading-tight rounded-full border border-borderC bg-surface2 text-textPrimary text-body hover:bg-surface3">Thanks</button>
       </div>
     </motion.div>
   );
