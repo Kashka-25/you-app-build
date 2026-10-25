@@ -36,6 +36,7 @@ const SECTIONS = [
     title: "Who else is involved",
     body: [
       "Supabase stores the app's data and photos. Netlify serves the app itself.",
+      "So YOU works without a signal, a copy of what you've opened is also kept on your own phone or computer, and changes made offline wait there until you're back online. Signing out removes it.",
       "Maps come from OpenFreeMap, and place search from Photon (komoot). Only what you type into a place search is sent there.",
       "Feedback you send from the app goes to our private Notion workspace so we can act on it.",
       "Kronk (kronk.info), only if you connect it. YOU then keeps a key to your Kronk account so it can show your feed and post what you choose to post. Disconnect any time in Your Own Universe, and the key is handed back."
