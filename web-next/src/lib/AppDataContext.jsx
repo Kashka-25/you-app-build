@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
+import { fileEntryToProjects } from "./projects";
 import {
   XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2, normalizePillar,
   TIERS, cycleTierIndex, getValueSlots,
@@ -99,7 +100,7 @@ function itemToRow(item, userId) {
 }
 
 export function AppDataProvider({ children }) {
-  const { userId, loading: authLoading } = useAuth();
+  const { userId, loading: authLoading, prefs } = useAuth();
   const [items, setItems] = useState([]);
   const [memory, setMemory] = useState([]);
   const [moodLog, setMoodLog] = useState([]);
@@ -1522,6 +1523,7 @@ export function AppDataProvider({ children }) {
       [res.data, ...prev].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
     );
     sendIdeaEntry(res.data);
+    fileToProjects(res.data);
     return res.data;
   }
 
@@ -1534,7 +1536,15 @@ export function AppDataProvider({ children }) {
       prev.map(e => (e.id === id ? res.data : e)).sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
     );
     sendIdeaEntry(res.data);
+    fileToProjects(res.data);
     return res.data;
+  }
+
+  // With YOUr Projects on, an entry tagged with a project's name (#MyBook)
+  // is filed into that project (lib/projects.js). Quiet on failure.
+  function fileToProjects(entry) {
+    if (!prefs?.plugins?.projects || !(entry?.tags || []).length) return;
+    fileEntryToProjects(entry, userId).catch(e => console.error("[AppData] filing to projects failed:", e));
   }
 
   // The daily check-in on Home ("How are you arriving today?"), kept in
