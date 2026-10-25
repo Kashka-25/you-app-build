@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS } from "../../constants/app.const";
 import { Modal } from "../ui/Modal";
@@ -63,25 +63,31 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
     setMsText("");
   }, [open, item, defaultType, prefill]);
 
-  function addTag(e) {
-    if (e.key && e.key !== "Enter") return;
+  // Steps and tags used to need the Enter key, which phone keyboards often
+  // don't send here (Cassidy, Oct 24: "can't add steps"). Now Enter, the +
+  // button, leaving the box, or saving all keep what's been typed.
+  const isEnter = e => (e.key === "Enter" || e.keyCode === 13) && !e.nativeEvent?.isComposing;
+  function withTag(list = tags) {
     const v = tagInput.trim().replace(/^#/, "").replace(/\s+/g, "-");
-    if (!v || tags.includes(v)) return;
-    setTags([...tags, v]);
+    return v && !list.includes(v) ? [...list, v] : list;
+  }
+  function addTag() {
+    setTags(withTag());
     setTagInput("");
   }
-  function addMilestone(e) {
-    if (e.key && e.key !== "Enter") return;
+  function withMilestone(list = milestones) {
     const v = msText.trim();
-    if (!v) return;
-    setMilestones([...milestones, { text: v, done: false }]);
+    return v ? [...list, { text: v, done: false }] : list;
+  }
+  function addMilestone() {
+    setMilestones(withMilestone());
     setMsText("");
   }
 
   async function submit() {
     if (!name.trim()) return;
     setSaving(true);
-    const payload = { name: name.trim(), type, cat, subcat: subcat.trim(), note: note.trim(), tags, milestones, intention: intention.trim(), createdDate };
+    const payload = { name: name.trim(), type, cat, subcat: subcat.trim(), note: note.trim(), tags: withTag(), milestones: withMilestone(), intention: intention.trim(), createdDate };
     if (isEdit) await editItem(item.id, payload);
     else await addItem(payload);
     setSaving(false);
@@ -158,8 +164,10 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
         className={fieldClass}
         value={tagInput}
         onChange={e => setTagInput(e.target.value)}
-        onKeyDown={addTag}
-        placeholder="Type a tag, press enter"
+        onKeyDown={e => { if (isEnter(e)) { e.preventDefault(); addTag(); } }}
+        onBlur={addTag}
+        enterKeyHint="done"
+        placeholder="Type a tag"
       />
 
       <label className={labelClass}>Steps (optional)</label>
@@ -173,13 +181,28 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
           </div>
         ))}
       </div>
-      <input
-        className={fieldClass}
-        value={msText}
-        onChange={e => setMsText(e.target.value)}
-        onKeyDown={addMilestone}
-        placeholder="Break it down: add a smaller step, press enter"
-      />
+      <div className="flex gap-2 mb-3">
+        <input
+          className={`${fieldClass} !mb-0 flex-1`}
+          value={msText}
+          onChange={e => setMsText(e.target.value)}
+          onKeyDown={e => { if (isEnter(e)) { e.preventDefault(); addMilestone(); } }}
+          onBlur={addMilestone}
+          enterKeyHint="enter"
+          placeholder="Break it down: a smaller step"
+          aria-label="New step"
+        />
+        <button
+          type="button"
+          onMouseDown={e => e.preventDefault()}
+          onClick={addMilestone}
+          disabled={!msText.trim()}
+          aria-label="Add step"
+          className="w-11 flex-none rounded-sm border border-borderC bg-surface1 text-textPrimary flex items-center justify-center disabled:opacity-40"
+        >
+          <Plus size={18} strokeWidth={1.75} />
+        </button>
+      </div>
 
       <label className={labelClass}>{INTENTION_PROMPTS[type]}</label>
       <textarea

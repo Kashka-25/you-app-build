@@ -7,6 +7,7 @@ import { GlowBubble } from "../ui/GlowBubble";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
+import HabitsToday from "../home/HabitsToday";
 import { usePlugin } from "../../lib/plugins";
 import { useCourseNow } from "../course/CourseNow";
 import WelcomeHero from "../home/WelcomeHero";
@@ -28,7 +29,10 @@ export default function Home() {
     items, chapters, journalEntries, recentInsights, profile, loaded, loadRecentInsights,
     todos, weekIntentions, weekHarvests, compass, moodLog, logMood
   } = useAppData();
-  const hasIntentions = !useTodayList().isEmpty;
+  const todayList = useTodayList();
+  const hasIntentions = !todayList.isEmpty;
+  const sownIds = [...todayList.due, ...todayList.restedToday].map(x => x.item.id);
+  const hasHabits = items.some(i => i.type === "habit" && !i.done && !sownIds.includes(i.id));
   const todoOn = usePlugin("todo_list");
   const { entries: courses, tools } = useCourseNow();
   const [insightsLoaded, setInsightsLoaded] = useState(false);
@@ -68,10 +72,10 @@ export default function Home() {
   const todayMoodKey = checkIn || entryMood || null;
   const todayMood = MOODS.find(m => m.key === todayMoodKey) || null;
 
-  const nextCourse = courses.find(c => c.kind !== "resting");
-  const cta = nextCourse
-    ? { to: nextCourse.to, label: "Continue my journey" }
-    : { to: "/journey", label: isNew ? "Begin your journey" : "Open your YOUrney" };
+  // The course itself is continued from the journey card just below, so the
+  // welcome's button goes somewhere else (Cassidy, Oct 24: "Continue your
+  // journey only needs to show up once").
+  const cta = { to: "/journey", label: isNew ? "Begin your journey" : "Open your YOUrney" };
 
   const patterns = pickNoticedPatterns(recentInsights, 1);
   const question = pickReflectionQuestion(recentInsights);
@@ -123,8 +127,14 @@ export default function Home() {
 
         <TodayIntentions />
 
-        {todoOn && (
+        {hasHabits && (
           <div className={hasIntentions ? "mt-2 pt-2 border-t border-borderC" : ""}>
+            <HabitsToday skipIds={sownIds} />
+          </div>
+        )}
+
+        {todoOn && (
+          <div className={hasIntentions || hasHabits ? "mt-2 pt-2 border-t border-borderC" : ""}>
             <QuickList showLabel={hasIntentions} />
           </div>
         )}
