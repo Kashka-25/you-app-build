@@ -3,6 +3,7 @@ import { Highlighter, Sparkles, Trash2, Star } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { EmptyState } from "../ui/EmptyState";
 import ShareToKronk from "../ShareToKronk";
+import TagFilter from "./TagFilter";
 
 function niceDate(key) {
   return key ? new Date(key + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
@@ -89,20 +90,7 @@ export default function HighlightsView({ onOpenEntry }) {
 
   return (
     <div>
-      {allTags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          <button type="button" onClick={() => setTag(null)} aria-pressed={!tag}
-            className={`text-caption px-3 py-1.5 rounded-full border ${!tag ? "bg-forestAccent text-onAccent border-forestAccent" : "border-borderC text-textSecondary"}`}>
-            All
-          </button>
-          {allTags.map(t => (
-            <button type="button" key={t} onClick={() => setTag(tag === t ? null : t)} aria-pressed={tag === t}
-              className={`text-caption px-3 py-1.5 rounded-full border ${tag === t ? "bg-forestAccent text-onAccent border-forestAccent" : "border-borderC text-textSecondary"}`}>
-              #{t}
-            </button>
-          ))}
-        </div>
-      )}
+      <TagFilter tags={allTags} value={tag} onChange={setTag} />
 
       {byItem.map(({ item, list }) => (
         <section key={item.id} className="mb-5">

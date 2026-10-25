@@ -21,7 +21,7 @@ import { NorthStar } from "./Crossroads";
 import ValuesSky from "./ValuesSky";
 import { XpBar } from "../ui/XpBar";
 import ShareToKronk from "../ShareToKronk";
-import { elementColor } from "../../lib/elements";
+import { valueShade } from "../../lib/elements";
 import { findInCodex, closestValues, displayWord, validWord } from "../../lib/valueWords";
 
 // One icon per authored PRESTIGE_LEVELS stage, same order -- a small growth
@@ -96,7 +96,7 @@ export default function ValuesPanel() {
             const { pct, tier } = cycleView(v);
             return {
               name: v.name,
-              color: VALUE_ELEMENT[v.name] ? elementColor(VALUE_ELEMENT[v.name]) : (VALUE_COLORS[v.name] || "#C9A24D"),
+              color: valueShade(v.name, VALUE_ELEMENT) || VALUE_COLORS[v.name] || "#C9A24D",
               pct,
               tier: tier.name,
               tierColor: tier.color
@@ -195,7 +195,7 @@ function ValueCard({
   // A value in the Seeker's own words has no Codex entry: it gets gold,
   // a spark, and no fixed challenges (it can still generate its own).
   // Each value wears its own Element (design/yin-yang); own values keep gold.
-  const color = VALUE_ELEMENT[v.name] ? elementColor(VALUE_ELEMENT[v.name]) : (VALUE_COLORS[v.name] || "#C9A24D");
+  const color = valueShade(v.name, VALUE_ELEMENT) || VALUE_COLORS[v.name] || "#C9A24D";
   const Icon = VALUE_ICONS[v.name] || Sparkles;
   const lib = getValueEntry(v.name);
   const own = !lib;

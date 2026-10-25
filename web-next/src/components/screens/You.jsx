@@ -19,7 +19,8 @@ export default function You() {
         <PillarsPanel />
       </DropdownSection>
 
-      <DropdownSection title="Values">
+      {/* Open by default, like Pillars (Cassidy, Oct 24). */}
+      <DropdownSection title="Values" defaultOpen>
         <ValuesPanel />
       </DropdownSection>
 
