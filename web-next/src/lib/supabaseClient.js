@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { offlineFetch, setTokenSource } from "./offline";
 
 // Same Supabase project as the live vanilla app (js/config.js).
 // Values come from .env (gitignored) — see .env.example for the keys
@@ -13,4 +14,9 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Its fetch is offline-aware (lib/offline.js): reads are kept on the device
+// and writes queue up when there's no signal.
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { fetch: offlineFetch } });
+
+// The queue is sent with a fresh token, never the one it was made with.
+setTokenSource(async () => (await supabase.auth.getSession()).data.session?.access_token || null);

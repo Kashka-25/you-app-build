@@ -29,5 +29,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(err => console.error("SW registration failed:", err));
+    // Keep this build's files on the phone so YOU opens offline (sw.js).
+    navigator.serviceWorker.ready.then(reg => reg.active?.postMessage("precache")).catch(() => {});
   });
 }

@@ -230,6 +230,13 @@ export function AppDataProvider({ children }) {
   }, [userId]);
 
   useEffect(() => { if (!authLoading) load(); }, [authLoading, load]);
+  // Changes made offline have reached the server: reload so every id and
+  // total matches what's really there.
+  useEffect(() => {
+    const onSynced = () => load();
+    window.addEventListener("you:synced", onSynced);
+    return () => window.removeEventListener("you:synced", onSynced);
+  }, [load]);
 
   // ── Travel XP ledger ──
   // Keeps memory-XP rows (tagged travel:<kind>:<id>) matched to what's

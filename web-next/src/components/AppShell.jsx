@@ -10,6 +10,7 @@ import AiConsentModal from "./AiConsentModal";
 import FeedbackSheet from "./FeedbackSheet";
 import LevelUpCelebration from "./pillars/LevelUpCelebration";
 import { BetaBadge } from "./SignIn";
+import OfflineBanner from "./OfflineBanner";
 
 export default function AppShell() {
   // Remembered on this device; index.html applies it before the first paint.
@@ -63,6 +64,9 @@ export default function AppShell() {
       <div className={`w-full max-w-[640px] ${wide ? "lg:max-w-[1160px]" : ""} h-dvh relative flex flex-col overflow-hidden`}>
         <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="lg:hidden flex-none bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md">
           <TopBar onMenuClick={() => setMenuOpen(true)} />
+        </div>
+        <div className="flex-none">
+          <OfflineBanner />
         </div>
 
         <div className="flex-1 overflow-y-auto lg:pt-6 lg:px-4">
