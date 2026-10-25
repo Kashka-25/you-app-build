@@ -8,6 +8,7 @@ import { introSeen } from "./components/Intro";
 import WelcomeLab from "./components/WelcomeLab";
 import Universe from "./components/welcome/Universe";
 import KronkCallback from "./components/KronkCallback";
+import ConfirmEmail from "./components/ConfirmEmail";
 import Community from "./components/screens/Community";
 import { KRONK_CALLBACK_PATH } from "./lib/kronk";
 import Privacy from "./components/screens/Privacy";
@@ -97,6 +98,8 @@ export default function App() {
   if (pathname === "/privacy") return <Privacy />;
   // Kronk's sign-in comes back here, signed in (connecting) or not (Continue with Kronk).
   if (pathname === KRONK_CALLBACK_PATH) return <KronkCallback />;
+  // Links in account emails (confirm, reset) land here, signed in or not.
+  if (pathname === "/auth/confirm") return <ConfirmEmail />;
   // A link to share: what YOU is and how to install it, signed in or not.
   // The welcome lab: a few versions of that page, to try side by side.
   if (pathname === "/welcome" || pathname === "/welcome-lab") {
