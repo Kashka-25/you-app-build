@@ -39,18 +39,16 @@ export default function TagFilter({ tags, value, onChange, label = "Tags" }) {
 
       {open && (
         <div className="px-3 pb-3">
-          {list.length > 6 && (
-            <label className="flex items-center gap-2 mb-2.5 bg-surface2 border border-borderC rounded-sm px-2.5">
-              <Search size={14} strokeWidth={1.75} className="text-textMuted flex-none" />
-              <input
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Find a tag"
-                aria-label="Find a tag"
-                className="flex-1 min-w-0 bg-transparent py-2 text-bodySm text-textPrimary outline-none"
-              />
-            </label>
-          )}
+          <label className="flex items-center gap-2 mb-2.5 bg-surface2 border border-borderC rounded-sm px-2.5">
+            <Search size={14} strokeWidth={1.75} className="text-textMuted flex-none" />
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Find a tag"
+              aria-label="Find a tag"
+              className="flex-1 min-w-0 bg-transparent py-2 text-bodySm text-textPrimary outline-none"
+            />
+          </label>
           <div className="flex flex-wrap gap-1.5" role="group" aria-label={label}>
             {shown.map(([t, n]) => {
               const on = t === value;
