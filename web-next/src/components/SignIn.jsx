@@ -39,18 +39,31 @@ const HEADINGS = {
 };
 
 export default function SignIn({ initialMode = "signin", onExit }) {
-  const { signInWithPassword, signUp, sendPasswordReset } = useAuth();
+  const { signInWithPassword, signUp, sendPasswordReset, resendConfirmation } = useAuth();
   const [mode, setMode] = useState(initialMode); // "signin" | "signup" | "reset"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
+  // Offered once a confirmation email is in play (just signed up, or tried
+  // to sign in before confirming).
+  const [canResend, setCanResend] = useState(false);
 
   function go(next) {
     setMode(next);
     setError("");
     setInfo("");
+    setCanResend(false);
+  }
+
+  async function resend() {
+    setBusy(true);
+    setError("");
+    const { error: err } = await resendConfirmation(email.trim());
+    setBusy(false);
+    if (err) setError(err.status === 429 ? "A link was sent very recently. Give it a minute, then try again." : "Couldn't send it just now. Try again in a minute.");
+    else setInfo(`A new link is on its way to ${email.trim()}. Check Junk or Spam too.`);
   }
 
   async function submit(e) {
@@ -71,11 +84,15 @@ export default function SignIn({ initialMode = "signin", onExit }) {
     const { error: err } = await action(email.trim(), password);
     setBusy(false);
     if (err) {
-      setError(err.message);
+      if (/not confirmed/i.test(err.message)) {
+        setError("Your email isn't confirmed yet. Open the link we emailed you, or get a new one below.");
+        setCanResend(true);
+      } else setError(err.message);
       return;
     }
     if (mode === "signup") {
-      setInfo("Account created. If email confirmation is on, check your inbox — otherwise you're signed in now.");
+      setInfo(`Nearly there. We've emailed a link to ${email.trim()}. Open it to finish creating your account. It can take a few minutes, and it may land in Junk or Spam.`);
+      setCanResend(true);
     }
   }
 
@@ -119,6 +136,11 @@ export default function SignIn({ initialMode = "signin", onExit }) {
 
         {error && <div className="text-bodySm text-red-500 mb-3">{error}</div>}
         {info && <div className="text-bodySm text-sage mb-3">{info}</div>}
+        {canResend && (
+          <button type="button" onClick={resend} disabled={busy} className="w-full text-center text-bodySm text-textSecondary underline underline-offset-2 mb-3 disabled:opacity-40">
+            Send the link again
+          </button>
+        )}
 
         <button
           type="submit"

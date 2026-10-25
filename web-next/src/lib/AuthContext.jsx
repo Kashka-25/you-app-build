@@ -58,6 +58,8 @@ export function AuthProvider({ children }) {
     signInWithPassword: (email, password) =>
       supabase.auth.signInWithPassword({ email, password }),
     signUp: (email, password) => supabase.auth.signUp({ email, password }),
+    // A fresh confirmation link, for when the first one went to Junk or expired.
+    resendConfirmation: email => supabase.auth.resend({ type: "signup", email }),
     signOut: () => supabase.auth.signOut(),
     recovering,
     // The link comes back to this site's root (it must be listed under Auth
