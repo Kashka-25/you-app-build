@@ -104,6 +104,11 @@ export default function SignIn({ initialMode = "signin", onExit }) {
         <BetaBadge className="mt-2" />
       </div>
       <div className="text-bodySm text-textSecondary mb-6 text-center">{HEADINGS[mode]}</div>
+      {typeof navigator !== "undefined" && navigator.onLine === false && (
+        <div role="status" className="text-bodySm text-textPrimary bg-surface2 border border-borderC rounded-sm p-3 mb-4 text-center">
+          You're offline. Signing in needs a connection; once you're signed in, YOU works offline too.
+        </div>
+      )}
 
       <form onSubmit={submit}>
         <label className={labelClass}>Email</label>

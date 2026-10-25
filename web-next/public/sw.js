@@ -1,9 +1,17 @@
-// Minimal runtime-caching service worker. No fixed precache list since
-// Vite's build output is content-hashed per deploy — precaching a stale
-// list would itself cause the "shows old app" problem we're avoiding here.
-// v2: drops v1, which had also stored cross-origin responses (Supabase
-// data, and would have stored every map tile).
-const CACHE_NAME = "you-app-runtime-v2";
+// YOU's service worker: keeps the app itself on the phone so it opens with
+// no signal (Oct 25). Your data is kept separately, by the app, in
+// IndexedDB (src/lib/offline.js); nothing from Supabase is cached here.
+//
+// · The build writes precache.json (vite.config.js). When the page asks,
+//   every file on it is kept, and files from older builds are let go.
+// · Pages: network first, so a new deploy shows straight away; with no
+//   signal, the kept app opens on any address.
+// · /assets/ files never change once built, so they come from the cache.
+// · Google Fonts are kept too, so the type looks right offline.
+// · Everything else from elsewhere (Supabase, map tiles, place search)
+//   goes straight to the network, untouched.
+const CACHE_NAME = "you-app-v3";
+const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -11,30 +19,76 @@ self.addEventListener("install", () => {
 
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
   );
   self.clients.claim();
 });
 
-// Network-first: always try the network so new deploys show up immediately;
-// fall back to cache only when offline.
-// Only the app's own files are cached. Cross-origin requests (Supabase
-// data, map tiles, place search) go straight to the network untouched:
-// personal data shouldn't sit in a device cache, and map tiles would grow it
-// without limit.
+async function precache() {
+  const res = await fetch("/precache.json", { cache: "no-store" });
+  if (!res.ok) return;
+  const files = await res.json();
+  const cache = await caches.open(CACHE_NAME);
+  const have = new Set((await cache.keys()).map(r => new URL(r.url).pathname));
+  // One at a time-ish, and a failure only skips that file.
+  for (let i = 0; i < files.length; i += 6) {
+    await Promise.allSettled(
+      files.slice(i, i + 6)
+        .filter(f => f === "/" || !have.has(f))
+        .map(f => fetch(f, { cache: "no-cache" }).then(r => (r.ok ? cache.put(f, r) : null)))
+    );
+  }
+  // Old builds' files.
+  const keep = new Set(files);
+  for (const req of await cache.keys()) {
+    const path = new URL(req.url).pathname;
+    if (path.startsWith("/assets/") && !keep.has(path)) await cache.delete(req);
+  }
+}
+
+self.addEventListener("message", event => {
+  if (event.data === "precache") event.waitUntil(precache().catch(() => {}));
+});
+
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
-  if (new URL(event.request.url).origin !== self.location.origin) return;
+  const req = event.request;
+  if (req.method !== "GET") return;
+  const url = new URL(req.url);
+
+  if (FONT_HOSTS.includes(url.hostname)) {
+    event.respondWith(
+      caches.match(req).then(hit => hit || fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, copy));
+        return res;
+      }))
+    );
+    return;
+  }
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname === "/precache.json") return;
+
+  if (url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      caches.match(req).then(hit => hit || fetch(req).then(res => {
+        if (res.ok) { const copy = res.clone(); caches.open(CACHE_NAME).then(c => c.put(req, copy)); }
+        return res;
+      }))
+    );
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
-        return response;
+    fetch(req)
+      .then(res => {
+        if (res.ok) {
+          const copy = res.clone();
+          // Every address is the same app page, kept once under "/".
+          caches.open(CACHE_NAME).then(c => c.put(req.mode === "navigate" ? "/" : req, copy));
+        }
+        return res;
       })
-      .catch(() => caches.match(event.request))
+      .catch(async () => (await caches.match(req)) || (req.mode === "navigate" ? caches.match("/") : undefined))
   );
 });
 

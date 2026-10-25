@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
+import { clearOfflineData, pendingCount, syncQueue } from "./offline";
 
 // Same DEV_MODE pattern as the vanilla app: "bypass" for local dev,
 // "live" for real Supabase auth. Switched to "live" so real per-user data
@@ -22,16 +23,35 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (DEV_MODE === "bypass") return;
 
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setLoading(false);
-    });
+    // Opened with no signal after the hour-long sign-in token ran out:
+    // renewing it needs the internet, so the library reports no session.
+    // Carry on as the account last signed in on this device (its data is
+    // kept here, see lib/offline.js) until the signal returns.
+    function lastKnownSession() {
+      try {
+        const key = Object.keys(localStorage).find(k => /^sb-.*-auth-token$/.test(k));
+        const s = key && JSON.parse(localStorage.getItem(key));
+        return s?.user && s?.refresh_token ? s : null;
+      } catch { return null; }
+    }
+    function restore() {
+      return supabase.auth.getSession().then(({ data, error }) => {
+        if (data.session) setSession(data.session);
+        else if (error && !navigator.onLine) setSession(lastKnownSession());
+        else setSession(null);
+        setLoading(false);
+      });
+    }
+    restore();
+    // Back online: renew the token for real, then send anything waiting.
+    const onOnline = () => restore().then(() => syncQueue());
+    window.addEventListener("online", onOnline);
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => { sub.subscription.unsubscribe(); window.removeEventListener("online", onOnline); };
   }, []);
 
   const userId = DEV_MODE === "bypass" ? DEV_USER_ID : session?.user?.id ?? null;
@@ -60,7 +80,17 @@ export function AuthProvider({ children }) {
     signUp: (email, password) => supabase.auth.signUp({ email, password }),
     // A fresh confirmation link, for when the first one went to Junk or expired.
     resendConfirmation: email => supabase.auth.resend({ type: "signup", email }),
-    signOut: () => supabase.auth.signOut(),
+    // Nothing personal stays on the device after signing out, but changes
+    // still waiting to sync are only lost if the Seeker says so.
+    signOut: async () => {
+      if (await pendingCount()) {
+        await syncQueue();
+        const left = await pendingCount();
+        if (left && !window.confirm(`${left} change${left === 1 ? " hasn't" : "s haven't"} synced yet (no connection). Sign out anyway and lose ${left === 1 ? "it" : "them"}?`)) return;
+      }
+      await clearOfflineData();
+      return supabase.auth.signOut();
+    },
     recovering,
     // The link comes back to this site's root (it must be listed under Auth
     // → URL Configuration → Redirect URLs in Supabase).
