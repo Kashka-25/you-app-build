@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import { useAuth } from "../lib/AuthContext";
 import { goToKronk } from "../lib/kronk";
 
@@ -9,10 +10,22 @@ const labelClass = "text-label uppercase text-textMuted";
 export const MIN_PASSWORD = 12;
 
 // The card every signed-out screen sits in.
-export function AuthCard({ children }) {
+// onExit adds a close button that goes back (to the welcome universe).
+export function AuthCard({ children, onExit }) {
   return (
     <div className="min-h-dvh bg-black flex justify-center items-center sm:py-8 sm:px-3 font-sans">
-      <div className="w-full min-h-dvh sm:min-h-0 sm:w-[390px] bg-bg sm:border sm:border-borderC sm:rounded-[40px] overflow-hidden p-8 flex flex-col justify-center">
+      <div className="relative w-full min-h-dvh sm:min-h-0 sm:w-[390px] bg-bg sm:border sm:border-borderC sm:rounded-[40px] overflow-hidden p-8 flex flex-col justify-center">
+        {onExit && (
+          <button
+            type="button"
+            onClick={onExit}
+            aria-label="Back to the welcome"
+            className="absolute right-3 w-11 h-11 rounded-full flex items-center justify-center text-textSecondary hover:text-textPrimary"
+            style={{ top: "max(env(safe-area-inset-top), 12px)" }}
+          >
+            <X size={20} strokeWidth={1.75} />
+          </button>
+        )}
         {children}
       </div>
     </div>
@@ -25,19 +38,32 @@ const HEADINGS = {
   reset: "Forgotten your password? We'll email you a link to set a new one."
 };
 
-export default function SignIn({ initialMode = "signin" }) {
-  const { signInWithPassword, signUp, sendPasswordReset } = useAuth();
+export default function SignIn({ initialMode = "signin", onExit }) {
+  const { signInWithPassword, signUp, sendPasswordReset, resendConfirmation } = useAuth();
   const [mode, setMode] = useState(initialMode); // "signin" | "signup" | "reset"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [busy, setBusy] = useState(false);
+  // Offered once a confirmation email is in play (just signed up, or tried
+  // to sign in before confirming).
+  const [canResend, setCanResend] = useState(false);
 
   function go(next) {
     setMode(next);
     setError("");
     setInfo("");
+    setCanResend(false);
+  }
+
+  async function resend() {
+    setBusy(true);
+    setError("");
+    const { error: err } = await resendConfirmation(email.trim());
+    setBusy(false);
+    if (err) setError(err.status === 429 ? "A link was sent very recently. Give it a minute, then try again." : "Couldn't send it just now. Try again in a minute.");
+    else setInfo(`A new link is on its way to ${email.trim()}. Check Junk or Spam too.`);
   }
 
   async function submit(e) {
@@ -58,20 +84,26 @@ export default function SignIn({ initialMode = "signin" }) {
     const { error: err } = await action(email.trim(), password);
     setBusy(false);
     if (err) {
-      setError(err.message);
+      if (/not confirmed/i.test(err.message)) {
+        setError("Your email isn't confirmed yet. Open the link we emailed you, or get a new one below.");
+        setCanResend(true);
+      } else setError(err.message);
       return;
     }
     if (mode === "signup") {
-      setInfo("Account created. If email confirmation is on, check your inbox — otherwise you're signed in now.");
+      setInfo(`Nearly there. We've emailed a link to ${email.trim()}. Open it to finish creating your account. It can take a few minutes, and it may land in Junk or Spam.`);
+      setCanResend(true);
     }
   }
 
   return (
-    <AuthCard>
-      <div className="font-serif text-h1 text-textPrimary mb-1 flex items-center gap-2.5">
-        YOU <BetaBadge />
+    <AuthCard onExit={onExit}>
+      {/* The YOU logo, as on the welcome page (Cassidy, Oct 23). */}
+      <div className="flex flex-col items-center mb-5">
+        <img src="/logo-full.png" alt="YOU — Your Own Universe" width="720" height="621" className="w-full max-w-[170px] h-auto" />
+        <BetaBadge className="mt-2" />
       </div>
-      <div className="text-bodySm text-textSecondary mb-6">{HEADINGS[mode]}</div>
+      <div className="text-bodySm text-textSecondary mb-6 text-center">{HEADINGS[mode]}</div>
 
       <form onSubmit={submit}>
         <label className={labelClass}>Email</label>
@@ -104,6 +136,11 @@ export default function SignIn({ initialMode = "signin" }) {
 
         {error && <div className="text-bodySm text-red-500 mb-3">{error}</div>}
         {info && <div className="text-bodySm text-sage mb-3">{info}</div>}
+        {canResend && (
+          <button type="button" onClick={resend} disabled={busy} className="w-full text-center text-bodySm text-textSecondary underline underline-offset-2 mb-3 disabled:opacity-40">
+            Send the link again
+          </button>
+        )}
 
         <button
           type="submit"

@@ -4,8 +4,11 @@ import { useAuth } from "./lib/AuthContext";
 import SignIn, { SetNewPassword } from "./components/SignIn";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Welcome from "./components/Welcome";
-import Intro, { introSeen } from "./components/Intro";
+import { introSeen } from "./components/Intro";
+import WelcomeLab from "./components/WelcomeLab";
+import Universe from "./components/welcome/Universe";
 import KronkCallback from "./components/KronkCallback";
+import ConfirmEmail from "./components/ConfirmEmail";
 import Community from "./components/screens/Community";
 import { KRONK_CALLBACK_PATH } from "./lib/kronk";
 import Privacy from "./components/screens/Privacy";
@@ -79,7 +82,7 @@ export default function App() {
   const { userId, loading, recovering, prefs } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  // Brand-new on this device: the Intro first, then sign-up or sign-in.
+  // Brand-new on this device: the welcome universe first, then sign-up or sign-in.
   const [signInMode, setSignInMode] = useState(() => (introSeen() ? "signin" : null));
   // First run: the welcome, once per account. Dismissed in this visit even
   // if saving the preference fails, so no one gets stuck in it.
@@ -95,10 +98,14 @@ export default function App() {
   if (pathname === "/privacy") return <Privacy />;
   // Kronk's sign-in comes back here, signed in (connecting) or not (Continue with Kronk).
   if (pathname === KRONK_CALLBACK_PATH) return <KronkCallback />;
+  // Links in account emails (confirm, reset) land here, signed in or not.
+  if (pathname === "/auth/confirm") return <ConfirmEmail />;
   // A link to share: what YOU is and how to install it, signed in or not.
-  if (pathname === "/welcome") {
+  // The welcome lab: a few versions of that page, to try side by side.
+  if (pathname === "/welcome" || pathname === "/welcome-lab") {
+    const Page = pathname === "/welcome" ? Universe : WelcomeLab;
     return (
-      <Intro
+      <Page
         onContinue={mode => {
           setSignInMode(mode);
           navigate("/", { replace: true });
@@ -115,8 +122,8 @@ export default function App() {
     );
   }
   if (!userId) {
-    if (!signInMode) return <Intro onContinue={setSignInMode} />;
-    return <SignIn key={signInMode} initialMode={signInMode} />;
+    if (!signInMode) return <Universe onContinue={setSignInMode} />;
+    return <SignIn key={signInMode} initialMode={signInMode} onExit={() => setSignInMode(null)} />;
   }
   if (recovering) return <SetNewPassword />;
   if (welcoming) return <Welcome onDone={() => setWelcomeDone(true)} />;
