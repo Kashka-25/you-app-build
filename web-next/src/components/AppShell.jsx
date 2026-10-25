@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { Home as HomeIcon, NotebookPen, Compass, User, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import AddItemModal from "./pursue/AddItemModal";
 import AddMomentModal from "./journey/AddMomentModal";
 import AddActionSheet from "./AddActionSheet";
@@ -74,11 +74,11 @@ export default function AppShell() {
           className="lg:hidden absolute bottom-0 left-0 right-0 min-h-[76px] bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md border-t border-borderC flex items-center"
         >
           <NavLink to="/" end className={({ isActive }) => tabClass(isActive)}>
-            <HomeIcon size={20} strokeWidth={1.75} className="mx-auto mb-1" />
+            <TabEmblem icon="home" />
             Home
           </NavLink>
           <NavLink to="/journey" className={({ isActive }) => tabClass(isActive)}>
-            <Compass size={20} strokeWidth={1.75} className="mx-auto mb-1" />
+            <TabEmblem icon="yourney" />
             YOUrney
           </NavLink>
           <button onClick={() => setSheetOpen(true)} className="flex-1 text-center text-label text-textMuted pt-1.5">
@@ -90,11 +90,11 @@ export default function AppShell() {
           {/* The YOUrnal (Reflections screen) in the tab bar (Cassidy, Oct 18).
               CommYOUnity stays in the side menu. */}
           <NavLink to="/reflections" className={({ isActive }) => tabClass(isActive)}>
-            <NotebookPen size={20} strokeWidth={1.75} className="mx-auto mb-1" />
+            <TabEmblem icon="reflections" />
             YOUrnal
           </NavLink>
           <NavLink to="/you" className={({ isActive }) => tabClass(isActive)}>
-            <User size={20} strokeWidth={1.75} className="mx-auto mb-1" />
+            <TabEmblem icon="you" />
             YOU
           </NavLink>
         </div>
@@ -118,6 +118,20 @@ export default function AppShell() {
   );
 }
 
+// The same emblem each place wears in the side menu, so the two read as one
+// map. Resting tabs sit a little quieter; the one you're on is full colour.
+function TabEmblem({ icon }) {
+  return (
+    <img
+      src={`/images/icons/${icon}.png`}
+      alt=""
+      width="30"
+      height="30"
+      className="w-[30px] h-[30px] mx-auto mb-0.5 transition-opacity opacity-80 group-aria-[current=page]:opacity-100"
+    />
+  );
+}
+
 function tabClass(isActive) {
-  return `flex-1 text-center text-label pt-1.5 ${isActive ? "text-element" : "text-textMuted"}`;
+  return `group flex-1 text-center text-label pt-1.5 ${isActive ? "text-element" : "text-textMuted"}`;
 }
