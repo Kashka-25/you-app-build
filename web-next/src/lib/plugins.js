@@ -11,6 +11,12 @@ export const PLUGINS = [
     on: true
   },
   {
+    key: "projects",
+    title: "YOUr Projects",
+    desc: "A space of its own for the things you're making: a book, a garden, a move. Each project keeps its notes and to-dos as New, Doing or Done. Opens from the side menu.",
+    on: false
+  },
+  {
     key: "endless_feed",
     title: "Endless KommYOUnity feed",
     desc: "Your mates' posts keep loading as you scroll. Off, the feed pauses every 15 posts until you tap Show more.",

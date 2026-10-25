@@ -41,6 +41,7 @@ import CourseToolScreen from "./components/course/CourseToolScreen";
 import CodexRequests from "./components/screens/CodexRequests";
 import BuildNotes from "./components/screens/BuildNotes";
 import BetaInbox from "./components/screens/BetaInbox";
+import { ProjectsLayout, ProjectsHome, ProjectView } from "./components/projects/ProjectsSpace";
 import FindYourWay from "./components/screens/FindYourWay";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
@@ -138,6 +139,11 @@ export default function App() {
       <Route path="/sow" element={<SowScreen />} />
       <Route path="/harvest" element={<HarvestScreen />} />
       <Route path="/focus" element={<FocusScreen />} />
+      {/* YOUr Projects: its own space, outside the tab bar (lib/projects.js). */}
+      <Route element={<ProjectsLayout />}>
+        <Route path="/projects" element={<ProjectsHome />} />
+        <Route path="/projects/:id" element={<ProjectView />} />
+      </Route>
       <Route path="/my-story" element={<MyStory />} />
       <Route path="/learn/:slug/tool/:toolId" element={<CoursePlayer />} />
       <Route path="/learn/:slug/:partId" element={<CoursePlayer />} />

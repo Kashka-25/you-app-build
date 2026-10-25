@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, Map as MapIcon, MessageSquareHeart, X } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Map as MapIcon, MessageSquareHeart, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
 import KommYOUnity from "./KommYOUnity";
+import { usePlugin } from "../lib/plugins";
 
 // Journey-before-CommYOUnity is deliberate: the app is about the individual
 // first, community second. Don't reorder.
@@ -42,6 +43,7 @@ const linkClass = ({ isActive }) =>
 export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open = true }) {
   const location = useLocation();
   const { isAdmin, codexNew } = useAppData();
+  const projectsOn = usePlugin("projects");
   const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
   const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
   const onCreatorPage = CREATOR_PAGES.some(p => location.pathname.startsWith(p));
@@ -59,6 +61,14 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
             {item.label}
           </NavLink>
         ))}
+        {projectsOn && (
+          <NavLink to="/projects" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
+            <span className="w-[30px] h-[30px] flex-none rounded-full bg-[color-mix(in_srgb,var(--gold)_16%,transparent)] flex items-center justify-center" aria-hidden="true">
+              <FolderKanban size={16} strokeWidth={1.75} className="text-gold" />
+            </span>
+            YOUr Projects
+          </NavLink>
+        )}
         <NavLink to="/showcase" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
           <img src="/images/icons/showcase.png" alt="" width="30" height="30" className="w-[30px] h-[30px] flex-none" />
           Showcase
