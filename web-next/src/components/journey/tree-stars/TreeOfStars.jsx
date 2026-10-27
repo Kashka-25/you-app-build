@@ -167,7 +167,13 @@ export default function TreeOfStars() {
   // Full screen (Cassidy, Oct 25): the tree fills the screen, sized to fit
   // its height, with the details still opening underneath. Uses the
   // browser's own full screen where it's allowed, so the bars hide too.
-  const [full, setFull] = useState(false);
+  // On a phone it opens straight into the immersive view (Cassidy, Oct 28:
+  // "fit the entirety of the screen so it is an interactive experience").
+  const [full, setFull] = useState(() => typeof window !== "undefined" && window.innerWidth < 1024);
+  // The tree fills the screen's height; on a narrow phone its branches run
+  // past the sides, so the view pans sideways, starting from the trunk.
+  const panRef = useRef(null);
+  const [swipeHint, setSwipeHint] = useState(false);
   // Portrait phones are narrower than the tree's shape: it fills the width
   // and its sky and soil carry on above and below. Wider screens fit the
   // height, and the sky runs out to the sides.
@@ -187,6 +193,14 @@ export default function TreeOfStars() {
     setFull(false);
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
   }
+  useEffect(() => {
+    if (!full || !tall) return;
+    const el = panRef.current;
+    if (el) el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+    setSwipeHint(true);
+    const t = setTimeout(() => setSwipeHint(false), 3500);
+    return () => clearTimeout(t);
+  }, [full, tall]);
   useEffect(() => {
     if (!full) return;
     const onKey = e => { if (e.key === "Escape") exitFull(); };
@@ -393,8 +407,12 @@ export default function TreeOfStars() {
         </>
       )}
 
-      <div className={full ? "relative -mx-3 flex items-center justify-center" : undefined} style={full ? { minHeight: "100dvh" } : undefined}>
-      <div style={full ? { width: tall ? "100vw" : `calc(100dvh * ${SVG_W / SVG_H})` } : undefined}>
+      <div
+        ref={panRef}
+        className={full ? `relative -mx-3 flex overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${tall ? "" : "justify-center"}` : undefined}
+        style={full ? { minHeight: "100dvh" } : undefined}
+      >
+      <div className={full ? "flex-none" : undefined} style={full ? { width: `calc(100dvh * ${SVG_W / SVG_H})` } : undefined}>
       <motion.div
         className={full ? "relative overflow-hidden" : "relative rounded-card overflow-hidden border border-borderC"}
         style={full ? { background: "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%)" } : { background: "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%)", boxShadow: "inset 0 0 60px -10px rgba(0,0,0,0.6)" }}
@@ -648,6 +666,18 @@ export default function TreeOfStars() {
       </motion.div>
       </div>
       </div>
+
+      <AnimatePresence>
+        {full && swipeHint && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="pointer-events-none fixed left-1/2 -translate-x-1/2 z-50 px-3 py-1.5 rounded-full bg-black/45 backdrop-blur-sm text-caption text-[#EDE6D6]"
+            style={{ bottom: "max(env(safe-area-inset-bottom), 18px)" }}
+          >
+            Swipe sideways to explore · tap anything
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <GardenOfYou open={gardenOpen} sessions={focusSessions} onClose={() => setGardenOpen(false)} />
 

@@ -12,6 +12,7 @@ import AddItemModal from "./AddItemModal";
 import HabitDay from "./HabitDay";
 import HabitTotals from "./HabitTotals";
 import { stepKey } from "../../lib/habits";
+import { bonusHint, finishXp, nextCheckinXp } from "../../lib/xp";
 import { localDateKey as todayKey } from "../../lib/week";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
@@ -157,6 +158,20 @@ export default function ItemCard({ item }) {
           {/* Today's steps, fresh each day, and the habit's story so far. */}
           {isHabit && !item.done && <HabitDay item={item} />}
           {isHabit && <HabitTotals item={item} />}
+
+          {/* What it earns, as encouragement (Cassidy, Oct 28). */}
+          {!item.done && (
+            <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gold">
+              {isHabit ? (
+                <>
+                  <span>+{nextCheckinXp(item)} XP for today's check-in</span>
+                  {bonusHint(item) && <span className="text-textMuted">{bonusHint(item)}</span>}
+                </>
+              ) : (
+                <span>+{finishXp(item)} XP to {item.cat} when it's complete</span>
+              )}
+            </div>
+          )}
 
           {item.type === "habit" && !item.done && (
             <div className="flex gap-1.5 mt-2.5">

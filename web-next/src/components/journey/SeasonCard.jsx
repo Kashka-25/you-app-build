@@ -4,6 +4,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { GlowBubble } from "../ui/GlowBubble";
 import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
 import DrawsFrom from "../ui/DrawsFrom";
+import { Guide } from "../ui/Guide";
 
 function niceWeek(dateKey) {
   return new Date(dateKey + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" });
@@ -67,13 +68,13 @@ export default function SeasonCard() {
           </>
         ) : (
           <>
-            <div className="text-bodySm text-textSecondary">
-              Your season is the feel of your last ten weeks, read from what you lived and wrote: your weekly Harvests (the notes you keep, and what you carried forward, rested or released), your YOUrnal and your Moments. Your compass and mood can add a little colour.
-            </div>
-            <AiButton size="sm" onClick={read} busy={reading} className="mt-3">
+            <div className="text-bodySm text-textSecondary">The feel of your last ten weeks.</div>
+            <Guide className="mt-0.5">
+              Your season is read from what you lived and wrote: your weekly Harvests (the notes you keep, and what you carried forward, rested or released), your YOUrnal and your Moments. Your compass and mood can add a little colour. You'll be asked before anything is sent to AI.
+            </Guide>
+            <AiButton size="sm" onClick={read} busy={reading} className="mt-2">
               {reading ? "Reading your weeks…" : "Read my season"}
             </AiButton>
-            <div className="text-caption text-textMuted mt-1">You'll be asked before anything is sent to AI.</div>
           </>
         )}
         <DrawsFrom uses={["harvests", "journal", "moments", "values", "mood"]} className="mt-2" />

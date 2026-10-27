@@ -20,6 +20,7 @@ import { Button } from "../ui/Button";
 import { SegmentedControl } from "../ui/SegmentedControl";
 import { BACKGROUND_MODES, backgroundMode, setBackgroundMode } from "../../lib/showcase";
 import ArtistProfileCard from "../showcase/ArtistProfileCard";
+import { Guide } from "../ui/Guide";
 
 // "My YOU" — the personal identity screen (MVP Feature 1). Account-level
 // bits (sign out) live here too since there's no separate Settings screen
@@ -280,10 +281,10 @@ function AiSourcesSetting() {
   }
   return (
     <div className="mt-4 pt-4 border-t border-[color-mix(in_srgb,var(--gold)_25%,transparent)]">
-      <div className="text-bodySm text-textPrimary font-medium mb-1">What AI may read</div>
-      <div className="text-bodySm text-textSecondary mb-3">
+      <div className="text-bodySm text-textPrimary font-medium">What AI may read</div>
+      <Guide className="mb-2">
         When you ask about one thing (this entry, this dream, this photographed page), the AI reads that. Features that look across YOU, like chapters, your season and weekly reflections, only read what's switched on here.
-      </div>
+      </Guide>
       <div className="space-y-1.5" role="group" aria-label="What AI may read">
         {AI_SOURCES.map(s => {
           const checked = allowed.has(s.key);
