@@ -9,6 +9,7 @@
 -- no steps can have its own daily amount (items.daily_target, e.g.
 -- 30 minutes). `amount` is what was actually done that day, so 150 push-ups
 -- or an hour instead of 30 minutes is kept as it was.
+-- (items.user_id is text in this database, hence the ::text below.)
 alter table public.items add column if not exists daily_target jsonb;
 
 create table if not exists public.habit_logs (
@@ -30,7 +31,7 @@ create policy "habit_logs_own" on public.habit_logs
   for all using (auth.uid() = user_id)
   with check (
     auth.uid() = user_id
-    and exists (select 1 from public.items i where i.id = item_id and i.user_id = auth.uid())
+    and exists (select 1 from public.items i where i.id = item_id and i.user_id = auth.uid()::text)
   );
 
 -- ── 8. Mood as a 0–100 scale ─────────────────────────────────────────────
