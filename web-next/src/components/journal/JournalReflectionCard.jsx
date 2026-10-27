@@ -6,6 +6,7 @@ import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
 import DrawsFrom from "../ui/DrawsFrom";
+import { Guide } from "../ui/Guide";
 
 const CATEGORY_LABELS = {
   theme: "Theme", emotion: "Emotion", value: "Value", dream: "Dream", goal: "Goal",
@@ -162,11 +163,14 @@ export default function JournalReflectionCard({ entryId }) {
 
       {!insight ? (
         <>
-          <div className="text-bodySm text-textMuted mb-3">
-            {isDream
-              ? "This is tagged #dream, so YOU can read it as a dream: its symbols, its feelings, where it may touch your waking life, and what keeps coming back. Offered as possibilities, never answers."
-              : "YOU can offer a gentle, optional reflection on this entry — themes it noticed, a question to sit with. Always your call, and you can edit or remove anything it suggests."}
+          <div className="text-bodySm text-textMuted">
+            {isDream ? "Read this entry as a dream." : "A gentle, optional reflection on this entry."}
           </div>
+          <Guide className="mb-2">
+            {isDream
+              ? "It's tagged #dream, so YOU can read its symbols, its feelings, where it may touch your waking life, and what keeps coming back. Offered as possibilities, never answers."
+              : "Themes it noticed and a question to sit with. Always your call, and you can edit or remove anything it suggests."}
+          </Guide>
           <AiButton size="sm" onClick={generate} busy={loading}>
             {loading ? "Reflecting…" : isDream ? "Read this dream" : "Get a reflection"}
           </AiButton>

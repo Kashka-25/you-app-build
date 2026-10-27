@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { riseIn } from "../ui/motion";
 import { CreditChip } from "../showcase/FeaturedWords";
 import { backgroundClass } from "../../lib/showcase";
+import { MoodBadge } from "./DailyCheckIn";
 
 // The first thing on Home: a warm welcome back into the Seeker's own space,
 // over the sunrise lake, with one clear way onward. In the Cosmos the same
@@ -64,12 +65,8 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
           {subtitle}
         </p>
 
-        {mood && (
-          <div className="inline-flex self-start items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-white/70 border border-borderC dark:bg-black/30 dark:border-white/10">
-            <mood.Icon size={14} strokeWidth={1.75} className={ink} />
-            <span className={`text-bodySm font-medium ${ink}`}>Arriving {mood.label.toLowerCase()} today</span>
-          </div>
-        )}
+        {/* Today's mood face; tap it to update (DailyCheckIn.jsx). */}
+        <MoodBadge ink={ink} fallback={mood} />
 
         {cta && (
           <Link
