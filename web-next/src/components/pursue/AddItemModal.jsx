@@ -5,6 +5,7 @@ import { PILLARS } from "../../constants/app.const";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { localDateKey as todayKey } from "../../lib/week";
+import { formatAmount, newStepId } from "../../lib/habits";
 
 const INTENTION_PROMPTS = {
   habit: "What will this practice awaken in you?",
@@ -30,6 +31,12 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState([]);
   const [msText, setMsText] = useState("");
+  // Habits: an optional amount for each step (100 push-ups), or for the
+  // habit itself when it has no steps (30 minutes).
+  const [msAmount, setMsAmount] = useState("");
+  const [msUnit, setMsUnit] = useState("");
+  const [targetAmount, setTargetAmount] = useState("");
+  const [targetUnit, setTargetUnit] = useState("");
   const [milestones, setMilestones] = useState([]);
   const [intention, setIntention] = useState("");
   const [createdDate, setCreatedDate] = useState(todayKey());
@@ -48,6 +55,8 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       setMilestones(item.milestones || []);
       setIntention(item.intention || "");
       setCreatedDate(item.createdDate || todayKey());
+      setTargetAmount(item.dailyTarget?.amount ?? "");
+      setTargetUnit(item.dailyTarget?.unit || "");
     } else {
       setName(prefill?.name || "");
       setType(defaultType);
@@ -58,9 +67,13 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       setMilestones([]);
       setIntention("");
       setCreatedDate(todayKey());
+      setTargetAmount("");
+      setTargetUnit("");
     }
     setTagInput("");
     setMsText("");
+    setMsAmount("");
+    setMsUnit("");
   }, [open, item, defaultType, prefill]);
 
   // Steps and tags used to need the Enter key, which phone keyboards often
@@ -77,17 +90,30 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
   }
   function withMilestone(list = milestones) {
     const v = msText.trim();
-    return v ? [...list, { text: v, done: false }] : list;
+    if (!v) return list;
+    const step = { text: v, done: false };
+    if (type === "habit") {
+      step.id = newStepId();
+      if (msAmount !== "" && !Number.isNaN(Number(msAmount))) step.amount = Number(msAmount);
+      if (msUnit.trim()) step.unit = msUnit.trim();
+    }
+    return [...list, step];
   }
   function addMilestone() {
     setMilestones(withMilestone());
     setMsText("");
+    setMsAmount("");
+    setMsUnit("");
   }
 
   async function submit() {
     if (!name.trim()) return;
     setSaving(true);
-    const payload = { name: name.trim(), type, cat, subcat: subcat.trim(), note: note.trim(), tags: withTag(), milestones: withMilestone(), intention: intention.trim(), createdDate };
+    const steps = withMilestone();
+    const dailyTarget = type === "habit" && steps.length === 0 && targetAmount !== "" && !Number.isNaN(Number(targetAmount))
+      ? { amount: Number(targetAmount), ...(targetUnit.trim() && { unit: targetUnit.trim() }) }
+      : null;
+    const payload = { name: name.trim(), type, cat, subcat: subcat.trim(), note: note.trim(), tags: withTag(), milestones: steps, intention: intention.trim(), createdDate, dailyTarget };
     if (isEdit) await editItem(item.id, payload);
     else await addItem(payload);
     setSaving(false);
@@ -174,7 +200,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       <div className="mb-1.5">
         {milestones.map((m, i) => (
           <div key={i} className="text-bodySm text-textSecondary flex justify-between items-center py-1">
-            <span>{i + 1}. {m.text}</span>
+            <span>{i + 1}. {m.text}{m.amount != null && <span className="text-textMuted"> · {formatAmount(m.amount, m.unit)}</span>}</span>
             <button onClick={() => setMilestones(milestones.filter((_, mi) => mi !== i))} aria-label="Remove step">
               <X size={13} strokeWidth={1.75} />
             </button>
@@ -189,7 +215,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
           onKeyDown={e => { if (isEnter(e)) { e.preventDefault(); addMilestone(); } }}
           onBlur={addMilestone}
           enterKeyHint="enter"
-          placeholder="Break it down: a smaller step"
+          placeholder={type === "habit" ? "A step, e.g. Push-ups" : "Break it down: a smaller step"}
           aria-label="New step"
         />
         <button
@@ -203,6 +229,55 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
           <Plus size={18} strokeWidth={1.75} />
         </button>
       </div>
+
+      {type === "habit" && (
+        <div className="-mt-1 mb-3">
+          <div className="flex gap-2">
+            <input
+              type="number" inputMode="decimal" min="0"
+              className={`${fieldClass} !mb-0 w-24 flex-none`}
+              value={msAmount}
+              onChange={e => setMsAmount(e.target.value)}
+              placeholder="Amount"
+              aria-label="Amount for this step each day (optional)"
+            />
+            <input
+              className={`${fieldClass} !mb-0 flex-1`}
+              value={msUnit}
+              onChange={e => setMsUnit(e.target.value)}
+              placeholder="Unit, e.g. push-ups or minutes"
+              aria-label="Unit (optional)"
+            />
+          </div>
+          <div className="text-caption text-textMuted mt-1">
+            Steps start fresh each day, so tick whichever you do. An amount is optional; on the day you can change it to what you really did.
+          </div>
+        </div>
+      )}
+
+      {type === "habit" && milestones.length === 0 && !msText.trim() && (
+        <>
+          <label className={labelClass}>Each day (optional)</label>
+          <div className="flex gap-2 mb-1">
+            <input
+              type="number" inputMode="decimal" min="0"
+              className={`${fieldClass} !mb-0 w-24 flex-none`}
+              value={targetAmount}
+              onChange={e => setTargetAmount(e.target.value)}
+              placeholder="30"
+              aria-label="Daily amount (optional)"
+            />
+            <input
+              className={`${fieldClass} !mb-0 flex-1`}
+              value={targetUnit}
+              onChange={e => setTargetUnit(e.target.value)}
+              placeholder="minutes"
+              aria-label="Daily unit (optional)"
+            />
+          </div>
+          <div className="text-caption text-textMuted mb-3">For a habit without steps, like 30 minutes of reading. YOU adds it up over time.</div>
+        </>
+      )}
 
       <label className={labelClass}>{INTENTION_PROMPTS[type]}</label>
       <textarea

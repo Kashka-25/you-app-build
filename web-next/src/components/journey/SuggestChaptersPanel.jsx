@@ -3,8 +3,8 @@ import { Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
+import DrawsFrom from "../ui/DrawsFrom";
 
-const MIN_MOMENTS = 3;
 
 function niceDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -16,13 +16,16 @@ export default function SuggestChaptersPanel() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [note, setNote] = useState("");
 
   async function runSuggest() {
     setLoading(true);
     setError("");
+    setNote("");
     try {
       const result = await suggestChapters();
-      setSuggestions(result);
+      if (result.chapters.length) setSuggestions(result.chapters);
+      else setNote(result.message || "There isn't enough yet to find chapters in.");
     } catch (e) {
       // "Not now" on the consent prompt isn't a failure — say nothing.
       if (e?.code !== "consent_declined") {
@@ -43,14 +46,6 @@ export default function SuggestChaptersPanel() {
       setError("Couldn't save those chapters — try again.");
     }
     setSaving(false);
-  }
-
-  if (moments.length < MIN_MOMENTS) {
-    return (
-      <div className="rounded-card border border-dashed border-borderC bg-surface1 p-4 mb-5 text-bodySm text-textMuted">
-        Add {MIN_MOMENTS - moments.length} more {MIN_MOMENTS - moments.length === 1 ? "memory" : "memories"} to unlock AI-suggested chapters.
-      </div>
-    );
   }
 
   if (suggestions) {
@@ -81,8 +76,10 @@ export default function SuggestChaptersPanel() {
   return (
     <div className="mb-5">
       <AiButton onClick={runSuggest} busy={loading}>
-        {loading ? "Reading your timeline…" : "Suggest chapters with AI"}
+        {loading ? "Reading your story…" : "Suggest chapters with AI"}
       </AiButton>
+      <DrawsFrom uses={["moments", "journal", "harvests", "pursuits"]} className="mt-1.5" />
+      {note && <div className="text-bodySm text-textSecondary mt-2">{note}</div>}
       {error && <div className="text-bodySm text-red-500 mt-2">{error}</div>}
     </div>
   );

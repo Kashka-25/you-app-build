@@ -348,3 +348,28 @@ body {
 .you-scale:focus-visible { outline: none; }
 .you-scale:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 35%, transparent); }
 .you-scale:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 35%, transparent); }
+
+/* The mood slider (DailyCheckIn): a warm-to-fresh track and a soft thumb. */
+.mood-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgb(200, 102, 90), rgb(208, 138, 78), rgb(201, 162, 60), rgb(111, 154, 94), rgb(111, 138, 62));
+  outline: none;
+}
+.mood-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-1); border: 3px solid var(--gold);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); cursor: pointer;
+}
+.mood-range::-moz-range-thumb {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--surface-1); border: 3px solid var(--gold);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); cursor: pointer;
+}
+.mood-range:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 45%, transparent); }
+/* The face in Home's corner sits above the tab bar on phones. */
+.mood-corner { bottom: calc(76px + env(safe-area-inset-bottom) + 12px); }
+@media (min-width: 1024px) { .mood-corner { bottom: 24px; right: 24px; } }

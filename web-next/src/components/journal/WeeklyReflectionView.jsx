@@ -4,6 +4,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
+import DrawsFrom from "../ui/DrawsFrom";
 import { weekStartKey } from "../../lib/week";
 
 const SECTION_LABELS = [
@@ -125,6 +126,7 @@ export default function WeeklyReflectionView() {
           <AiLink onClick={generate} disabled={loading} className="mt-2">
             {loading ? "Regenerating…" : "Regenerate this week's reflection"}
           </AiLink>
+          <DrawsFrom uses={["journal", "pursuits", "values", "mood"]} className="mt-2" />
         </AiCard>
       ) : (
         hasEntriesThisWeek && (
