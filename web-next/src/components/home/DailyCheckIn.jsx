@@ -17,15 +17,14 @@ function skippedToday() {
 
 // "How are you arriving today?" as a 0–100 scale with a face that follows
 // it (Cassidy, Oct 27). Optional, never a gate. Once answered, the card
-// steps aside and the face sits in the corner of Home: tap it to say how
-// you are now, and each change is saved as its own entry in mood_log.
+// steps aside and the face sits in the welcome banner (MoodBadge; Oct 28):
+// tap it to say how you are now, and each change is its own mood_log entry.
 export default function DailyCheckIn() {
   const { moodLog, logMood } = useAppData();
   const today = localDateKey();
   const latest = moodLog.find(m => m.date_key === today) || null;
   const latestScore = scoreOf(latest);
   const [skipped, setSkipped] = useState(skippedToday);
-  const [open, setOpen] = useState(false);
 
   if (latestScore == null) {
     if (skipped) return null;
@@ -49,12 +48,42 @@ export default function DailyCheckIn() {
     );
   }
 
+  return null;
+}
+
+// Today's face and word, in the welcome banner. Tap to say how you are now.
+// `fallback` is a mood given with today's journal entry, shown as before
+// when there's no check-in yet.
+export function MoodBadge({ ink = "text-textPrimary", fallback = null }) {
+  const { moodLog, logMood } = useAppData();
+  const today = localDateKey();
+  const latest = moodLog.find(m => m.date_key === today) || null;
+  const score = scoreOf(latest);
+  const [open, setOpen] = useState(false);
+  if (score == null) {
+    if (!fallback) return null;
+    return (
+      <div className="inline-flex self-start items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-white/70 border border-borderC dark:bg-black/30 dark:border-white/10">
+        <fallback.Icon size={14} strokeWidth={1.75} className={ink} />
+        <span className={`text-bodySm font-medium ${ink}`}>Arriving {fallback.label.toLowerCase()} today</span>
+      </div>
+    );
+  }
+  const band = bandFor(score);
   return (
     <>
-      <CornerFace score={latestScore} onOpen={() => setOpen(true)} />
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={`Today you're arriving ${band.label.toLowerCase()}, ${score} out of 100. Tap to say how you are now.`}
+        className="inline-flex self-start items-center gap-2 mt-3 pl-1 pr-3 py-1 rounded-full bg-white/70 border border-borderC dark:bg-black/30 dark:border-white/10 active:scale-[0.98] transition"
+      >
+        <MoodFace score={score} size={30} />
+        <span className={`text-bodySm font-medium ${ink}`}>Arriving {band.label.toLowerCase()} today</span>
+      </button>
       <AnimatePresence>
         {open && (
-          <UpdateSheet score={latestScore} onClose={() => setOpen(false)} onSave={async s => { await logMood(s); setOpen(false); }} />
+          <UpdateSheet score={score} onClose={() => setOpen(false)} onSave={async s => { await logMood(s); setOpen(false); }} />
         )}
       </AnimatePresence>
     </>
@@ -109,25 +138,6 @@ function MoodScale({ start, onSave, saveLabel }) {
         {saving ? "Saving…" : saveLabel}
       </button>
     </div>
-  );
-}
-
-// Today's face, in the corner of Home, ready to be tapped again.
-function CornerFace({ score, onOpen }) {
-  const reduce = useReducedMotion();
-  const band = bandFor(score);
-  return (
-    <motion.button
-      type="button"
-      onClick={onOpen}
-      initial={reduce ? false : { opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.35, ease: easeOut }}
-      aria-label={`Today you're arriving ${band.label.toLowerCase()}, ${score} out of 100. Tap to say how you are now.`}
-      className="mood-corner fixed right-4 z-30 rounded-full bg-surface1 shadow-card p-1 active:scale-95"
-    >
-      <MoodFace score={score} size={52} />
-    </motion.button>
   );
 }
 

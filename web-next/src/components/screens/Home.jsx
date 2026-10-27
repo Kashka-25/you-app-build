@@ -169,7 +169,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="lg:col-span-12 lg:order-2">
+      <div className="lg:col-span-12 lg:order-2 empty:hidden">
         <DailyCheckIn todayMood={todayMoodKey} onPick={logMood} />
       </div>
 
