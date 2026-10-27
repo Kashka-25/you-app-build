@@ -6,7 +6,7 @@ import { useAppData } from "./AppDataContext";
 export const AI_SOURCES = [
   { key: "journal", label: "Your YOUrnal", says: "Entries you've written, so reflections, chapters and your season can see what you've been living." },
   { key: "moments", label: "Your Moments and chapters", says: "The memories you've added, with their writing, and the chapters of your story." },
-  { key: "harvests", label: "Your weekly sowing and harvests", says: "What you chose to grow each week and the notes you kept at its end. Your Season is read from these." },
+  { key: "harvests", label: "Your weekly sowing and harvests", says: "What you chose to grow each week and the notes you kept at its end." },
   { key: "pursuits", label: "Your habits, goals and dreams", says: "What you're growing and what you've completed." },
   { key: "values", label: "Your values and compass", says: "The values you hold and your True North." },
   { key: "mood", label: "Your mood check-ins", says: "How you've been arriving each day, as a score out of 100." }

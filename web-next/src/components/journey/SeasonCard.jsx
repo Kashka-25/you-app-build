@@ -9,11 +9,23 @@ function niceWeek(dateKey) {
   return new Date(dateKey + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" });
 }
 
-// The season you seem to be in, read from your recent Harvests: the notes
-// you kept and what you carried, rested and released. Read only when you
-// ask (with AI consent), and always shown with what it was read from.
+// The season you seem to be in, read from the last ten weeks of everything
+// you allow the AI to read: Harvests, YOUrnal, Moments, and (if allowed)
+// your compass and mood. Read only when you ask (with AI consent), and
+// always shown with what it was read from.
+
+// "4 harvests, 12 entries and 2 moments"
+function readFrom(based) {
+  const parts = [
+    based.harvests ? `${based.harvests} ${based.harvests === 1 ? "harvest" : "harvests"}` : null,
+    based.entries ? `${based.entries} ${based.entries === 1 ? "entry" : "entries"}` : null,
+    based.moments ? `${based.moments} ${based.moments === 1 ? "moment" : "moments"}` : null
+  ].filter(Boolean);
+  if (parts.length < 2) return parts[0] || "your recent weeks";
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
 export default function SeasonCard() {
-  const { currentSeason: season, weekHarvests, readSeason } = useAppData();
+  const { currentSeason: season, readSeason } = useAppData();
   const [reading, setReading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -47,7 +59,7 @@ export default function SeasonCard() {
               </div>
             )}
             <div className="text-caption text-textMuted mt-2">
-              Read from {based.harvests} {based.harvests === 1 ? "harvest" : "harvests"}
+              Read from {readFrom(based)}
               {based.from && ` · ${niceWeek(based.from)} – ${niceWeek(based.to)}`}
               {" · "}
               <AiLink onClick={read} disabled={reading}>{reading ? "Reading…" : "Read it again"}</AiLink>
@@ -56,19 +68,15 @@ export default function SeasonCard() {
         ) : (
           <>
             <div className="text-bodySm text-textSecondary">
-              Your season is read from your last ten weekly Harvests: the notes you keep at the end of each week, and whether you carried each pursuit forward, rested it or released it. If you allow it, your weekly reflections, your compass and your mood add a little colour.
+              Your season is the feel of your last ten weeks, read from what you lived and wrote: your weekly Harvests (the notes you keep, and what you carried forward, rested or released), your YOUrnal and your Moments. Your compass and mood can add a little colour.
             </div>
-            {weekHarvests.length > 0 ? (
-              <AiButton size="sm" onClick={read} busy={reading} className="mt-3">
-                {reading ? "Reading your harvests…" : `Read my season (${weekHarvests.length} ${weekHarvests.length === 1 ? "harvest" : "harvests"})`}
-              </AiButton>
-            ) : (
-              <div className="text-caption text-textMuted mt-2">Gather your first weekly Harvest and your season can be read from it.</div>
-            )}
+            <AiButton size="sm" onClick={read} busy={reading} className="mt-3">
+              {reading ? "Reading your weeks…" : "Read my season"}
+            </AiButton>
             <div className="text-caption text-textMuted mt-1">You'll be asked before anything is sent to AI.</div>
           </>
         )}
-        <DrawsFrom uses={["harvests", "journal", "values", "mood"]} className="mt-2" />
+        <DrawsFrom uses={["harvests", "journal", "moments", "values", "mood"]} className="mt-2" />
         {message && <div className="text-caption text-textSecondary mt-2">{message}</div>}
       </div>
     </AiCard>
