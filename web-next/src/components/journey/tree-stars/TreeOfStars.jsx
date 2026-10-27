@@ -168,6 +168,17 @@ export default function TreeOfStars() {
   // its height, with the details still opening underneath. Uses the
   // browser's own full screen where it's allowed, so the bars hide too.
   const [full, setFull] = useState(false);
+  // Portrait phones are narrower than the tree's shape: it fills the width
+  // and its sky and soil carry on above and below. Wider screens fit the
+  // height, and the sky runs out to the sides.
+  const [tall, setTall] = useState(() => typeof window !== "undefined" && window.innerWidth < window.innerHeight * (SVG_W / SVG_H));
+  useEffect(() => {
+    if (!full) return;
+    const onResize = () => setTall(window.innerWidth < window.innerHeight * (SVG_W / SVG_H));
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [full]);
   function enterFull() {
     setFull(true);
     document.documentElement.requestFullscreen?.().catch(() => {});
@@ -341,17 +352,31 @@ export default function TreeOfStars() {
   return (
     <div
       className={full ? "fixed inset-0 z-40 overflow-y-auto px-3 pb-10 font-sans" : "pt-1 pb-24 px-5"}
-      style={full ? { background: "#07071A", paddingTop: "max(env(safe-area-inset-top), 8px)" } : undefined}
+      // Immersive (Cassidy, Oct 28: "leave no screen border"): no frame, and
+      // the tree's own night and soil run on to every edge.
+      style={full ? { background: tall ? "linear-gradient(180deg, #060b08 50%, #0d0906 50%)" : "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%) top / 100% 100dvh no-repeat, #0d0906" } : undefined}
       role={full ? "dialog" : undefined}
       aria-label={full ? "Tree of YOU, full screen" : undefined}
     >
       {full ? (
-        <div className="flex items-center justify-between h-12 mb-1">
-          <span className="font-serif text-h3 text-[#EDE6D6]">Tree of YOU</span>
-          <button type="button" onClick={exitFull} aria-label="Leave full screen" className="w-11 h-11 rounded-full flex items-center justify-center text-[#EDE6D6] hover:bg-white/10">
-            <X size={20} strokeWidth={1.75} />
-          </button>
-        </div>
+        <>
+          {/* Stars across the whole sky, beside the tree as well as in it. */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0"
+            style={{
+              height: tall ? "50dvh" : "62dvh",
+              backgroundImage: "radial-gradient(1px 1px at 14% 22%, rgba(237,230,214,0.7) 50%, transparent 51%), radial-gradient(1.5px 1.5px at 62% 38%, rgba(237,230,214,0.55) 50%, transparent 51%), radial-gradient(1px 1px at 84% 12%, rgba(224,184,101,0.6) 50%, transparent 51%), radial-gradient(1px 1px at 36% 74%, rgba(237,230,214,0.4) 50%, transparent 51%)",
+              backgroundSize: "170px 170px, 230px 230px, 260px 260px, 200px 200px"
+            }}
+            aria-hidden="true"
+          />
+          <div className="fixed left-0 right-0 z-50 flex items-center justify-between px-4 pointer-events-none" style={{ top: "max(env(safe-area-inset-top), 10px)" }}>
+            <span className="font-serif text-h3 text-[#EDE6D6]/80 drop-shadow">Tree of YOU</span>
+            <button type="button" onClick={exitFull} aria-label="Leave full screen" className="pointer-events-auto w-11 h-11 rounded-full flex items-center justify-center text-[#EDE6D6] bg-black/30 backdrop-blur-sm hover:bg-black/45">
+              <X size={20} strokeWidth={1.75} />
+            </button>
+          </div>
+        </>
       ) : (
         <>
           <div className="flex items-center justify-between gap-3 mb-1">
@@ -368,10 +393,11 @@ export default function TreeOfStars() {
         </>
       )}
 
-      <div style={full ? { width: "min(100%, calc((100dvh - 64px) * 0.714))", margin: "0 auto" } : undefined}>
+      <div className={full ? "relative -mx-3 flex items-center justify-center" : undefined} style={full ? { minHeight: "100dvh" } : undefined}>
+      <div style={full ? { width: tall ? "100vw" : `calc(100dvh * ${SVG_W / SVG_H})` } : undefined}>
       <motion.div
-        className="relative rounded-card overflow-hidden border border-borderC"
-        style={{ background: "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%)", boxShadow: "inset 0 0 60px -10px rgba(0,0,0,0.6)" }}
+        className={full ? "relative overflow-hidden" : "relative rounded-card overflow-hidden border border-borderC"}
+        style={full ? { background: "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%)" } : { background: "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%)", boxShadow: "inset 0 0 60px -10px rgba(0,0,0,0.6)" }}
         animate={{ scale: storyOpen ? 0.97 : 1, filter: storyOpen ? "blur(1.5px)" : "blur(0px)" }}
         transition={{ duration: 0.5, ease: easeOut }}
       >
@@ -620,6 +646,7 @@ export default function TreeOfStars() {
         </svg>
         </motion.div>
       </motion.div>
+      </div>
       </div>
 
       <GardenOfYou open={gardenOpen} sessions={focusSessions} onClose={() => setGardenOpen(false)} />
