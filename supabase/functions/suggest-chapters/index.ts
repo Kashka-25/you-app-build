@@ -109,7 +109,8 @@ Deno.serve(async req => {
 
     const raw = await callClaude({
       system: SYSTEM,
-      maxTokens: 2500,
+      // Room for the model to think first, then the chapters (2500 ran out).
+      maxTokens: 8000,
       jsonSchema: SCHEMA,
       usage: { req, fn: "suggest-chapters" },
       messages: [{
