@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ChevronRight, Sun, Sprout, Wheat, Timer } from "lucide-react";
+import { Search, ChevronRight, Sun, Sprout, Wheat, Timer, Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { pickCurrentChapter, pickNoticedPatterns, pickReflectionQuestion } from "../../lib/compass";
 import { GlowBubble } from "../ui/GlowBubble";
@@ -8,6 +8,7 @@ import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
 import HabitsToday from "../home/HabitsToday";
+import { latestNew, useWhatsNewUnseen } from "../../lib/whatsNew";
 import { usePlugin } from "../../lib/plugins";
 import { useCourseNow } from "../course/CourseNow";
 import WelcomeHero from "../home/WelcomeHero";
@@ -34,6 +35,7 @@ export default function Home() {
   const sownIds = [...todayList.due, ...todayList.restedToday].map(x => x.item.id);
   const hasHabits = items.some(i => i.type === "habit" && !i.done && !sownIds.includes(i.id));
   const todoOn = usePlugin("todo_list");
+  const whatsNewUnseen = useWhatsNewUnseen();
   const { entries: courses, tools } = useCourseNow();
   const [insightsLoaded, setInsightsLoaded] = useState(false);
   const { userId } = useAuth();
@@ -97,6 +99,17 @@ export default function Home() {
       <div className="lg:col-span-12 lg:order-1">
         <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} art={featuredArt} artMode={artMode} onOpenArt={setOpenWork} />
       </div>
+
+      {/* A quiet hint when something new has arrived (lib/whatsNew.js). */}
+      {whatsNewUnseen && (
+        <div className="lg:col-span-12 lg:order-2">
+          <Link to="/whats-new" className="flex items-center gap-2.5 rounded-card bg-[color-mix(in_srgb,var(--gold)_14%,var(--surface-1))] border border-[color-mix(in_srgb,var(--gold)_35%,transparent)] px-4 min-h-[48px] text-bodySm text-textPrimary">
+            <Sparkles size={16} strokeWidth={1.75} className="text-gold flex-none" />
+            <span className="flex-1 min-w-0 truncate">New in YOU: <span className="font-medium">{latestNew().title}</span></span>
+            <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted flex-none" />
+          </Link>
+        </div>
+      )}
 
       <div className="lg:col-span-12 lg:order-2">
         <DailyCheckIn todayMood={todayMoodKey} onPick={logMood} />

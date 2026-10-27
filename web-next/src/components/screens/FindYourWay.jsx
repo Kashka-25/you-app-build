@@ -93,7 +93,7 @@ export default function FindYourWay() {
             </li>
           ))}
           <li>
-            <button type="button" onClick={openFeedback} className="w-full text-left flex items-start gap-3 py-3 hover:bg-surface2 -mx-2 px-2 rounded-sm">
+            <button type="button" onClick={() => openFeedback?.()} className="w-full text-left flex items-start gap-3 py-3 hover:bg-surface2 -mx-2 px-2 rounded-sm">
               <span className="w-7 h-7 rounded-full bg-[color-mix(in_srgb,var(--gold)_18%,transparent)] text-gold text-caption font-semibold flex items-center justify-center flex-none">
                 5
               </span>
