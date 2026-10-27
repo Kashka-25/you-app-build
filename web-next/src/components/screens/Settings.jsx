@@ -347,7 +347,8 @@ function PluginsSetting() {
   );
 }
 
-function PluginRow({ plugin, onChange }) {
+// Also used on What's new.
+export function PluginRow({ plugin, onChange }) {
   const on = usePlugin(plugin.key);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");

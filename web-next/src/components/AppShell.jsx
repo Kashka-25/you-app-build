@@ -21,6 +21,8 @@ export default function AppShell() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackKind, setFeedbackKind] = useState("problem");
+  const openFeedback = (kind = "problem") => { setFeedbackKind(kind); setFeedbackOpen(true); };
   // Home spreads out into a grid on a laptop; every other screen keeps its
   // readable column.
   const wide = useLocation().pathname === "/";
@@ -57,7 +59,7 @@ export default function AppShell() {
             <Plus size={17} strokeWidth={2} /> Add
           </button>
         </div>
-        <MenuContents mode={mode} onToggleMode={toggleMode} onFeedback={() => setFeedbackOpen(true)} />
+        <MenuContents mode={mode} onToggleMode={toggleMode} onFeedback={() => openFeedback()} />
       </aside>
 
       <div className="flex-1 min-w-0 flex justify-center">
@@ -70,7 +72,7 @@ export default function AppShell() {
         </div>
 
         <div className="flex-1 overflow-y-auto lg:pt-6 lg:px-4">
-          <Outlet context={{ openFeedback: () => setFeedbackOpen(true) }} />
+          <Outlet context={{ openFeedback }} />
         </div>
 
         <div
@@ -103,7 +105,7 @@ export default function AppShell() {
           </NavLink>
         </div>
 
-        <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} mode={mode} onToggleMode={toggleMode} onFeedback={() => setFeedbackOpen(true)} />
+        <SidebarMenu open={menuOpen} onClose={() => setMenuOpen(false)} mode={mode} onToggleMode={toggleMode} onFeedback={() => openFeedback()} />
       </div>
       </div>
 
@@ -111,7 +113,7 @@ export default function AppShell() {
       <AddMomentModal open={momentOpen} onClose={() => setMomentOpen(false)} />
       <AiConsentModal />
       <LevelUpCelebration />
-      <FeedbackSheet open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      <FeedbackSheet open={feedbackOpen} initialKind={feedbackKind} onClose={() => setFeedbackOpen(false)} />
       <AddActionSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, FolderKanban, Map as MapIcon, MessageSquareHeart, X } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderKanban, Map as MapIcon, MessageSquareHeart, Sparkles, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
 import KommYOUnity from "./KommYOUnity";
 import { usePlugin } from "../lib/plugins";
+import { useWhatsNewUnseen } from "../lib/whatsNew";
 
 // Journey-before-CommYOUnity is deliberate: the app is about the individual
 // first, community second. Don't reorder.
@@ -44,6 +45,7 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
   const location = useLocation();
   const { isAdmin, codexNew } = useAppData();
   const projectsOn = usePlugin("projects");
+  const whatsNewUnseen = useWhatsNewUnseen();
   const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
   const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
   const onCreatorPage = CREATOR_PAGES.some(p => location.pathname.startsWith(p));
@@ -141,6 +143,11 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
       <div className="border-t border-borderC pt-3">
         <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} mb-1`}>
           Your Own Universe
+        </NavLink>
+        <NavLink to="/whats-new" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
+          <Sparkles size={17} strokeWidth={1.75} className="text-gold" />
+          What's new
+          {whatsNewUnseen && <span className="ml-1 w-2 h-2 rounded-full bg-gold" aria-label="New things to see" />}
         </NavLink>
         <NavLink to="/find-your-way" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
           <MapIcon size={17} strokeWidth={1.75} className="text-gold" />
