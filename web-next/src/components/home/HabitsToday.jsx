@@ -86,7 +86,9 @@ function HabitRow({ habit: h, slot, today }) {
             onClick={() => setOpen(o => !o)}
             aria-expanded={open}
             aria-label={`${h.name}: ${stepsDone} of ${steps.length} steps today. ${open ? "Fold the steps away" : "Show the steps"}`}
-            className={`w-6 h-6 flex-none rounded-full border flex items-center justify-center text-[10px] font-semibold ${done ? "bg-gold border-gold text-[#19193D]" : "border-dashed border-borderC text-textMuted"}`}
+            className={`w-6 h-6 flex-none rounded-full border flex items-center justify-center text-[10px] font-semibold ${
+              stepsDone === steps.length ? "bg-gold border-gold text-[#19193D]" : stepsDone > 0 ? "border-gold text-gold" : "border-dashed border-borderC text-textMuted"
+            }`}
           >
             {stepsDone === steps.length ? <Check size={14} strokeWidth={2.5} /> : `${stepsDone}/${steps.length}`}
           </button>
