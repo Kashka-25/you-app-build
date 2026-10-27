@@ -10,6 +10,7 @@ export const PLUGINS = [
   {
     key: "todo_list",
     title: "Today's to-do list",
+    icon: "todo",
     desc: "A quick list for small things today, on Home and the Threshold. Whatever's left tonight falls away.",
     on: true
   },
@@ -19,7 +20,13 @@ export const PLUGINS = [
     icon: "projects",
     desc: "A space of its own for the things you're making: a book, a garden, a move. Each project keeps its notes and to-dos as New, Doing or Done. Opens from the side menu.",
     on: false
-  },
+  }
+];
+
+// Settings that live with the screen they change, not extras (Cassidy,
+// Oct 27: the endless feed "is less of a plugin and more of an option").
+// Kept in the same prefs, so nobody's choice changes.
+export const OPTIONS = [
   {
     key: "endless_feed",
     title: "Endless KommYOUnity feed",
@@ -30,7 +37,7 @@ export const PLUGINS = [
 
 export function usePlugin(key) {
   const { prefs } = useAuth();
-  const plugin = PLUGINS.find(p => p.key === key);
+  const plugin = [...PLUGINS, ...OPTIONS].find(p => p.key === key);
   return prefs?.plugins?.[key] ?? plugin?.on ?? true;
 }
 

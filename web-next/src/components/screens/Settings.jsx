@@ -8,7 +8,7 @@ import { PREMIUM_NAME, PREMIUM_OPEN_IN_BETA } from "../../lib/premium";
 import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle } from "../Primitives";
-import { PLUGINS, usePlugin, useSetPlugin } from "../../lib/plugins";
+import { OPTIONS, PLUGINS, usePlugin, useSetPlugin } from "../../lib/plugins";
 import { exportMyData, downloadJson, deleteMyAccount } from "../../lib/accountData";
 import { localDateKey } from "../../lib/week";
 import { Link, useNavigate } from "react-router-dom";
@@ -551,12 +551,15 @@ function KronkSetting() {
 }
 
 // Which of Kronk's four feeds KommYOUnity shows, as tabs. At least one.
+// The endless-scroll option sits here too, with the feed it changes.
 function KronkFeedChoice() {
   const { feeds, toggle } = useKronkFeeds();
+  const setPlugin = useSetPlugin();
   const [error, setError] = useState("");
   const on = v => feeds.some(f => f.value === v);
   return (
     <div className="mb-4">
+      {OPTIONS.map(o => <PluginRow key={o.key} plugin={o} onChange={v => setPlugin(o.key, v)} />)}
       <div className="text-label uppercase text-textMuted mb-1.5">Feeds in KommYOUnity</div>
       <div className="space-y-1.5" role="group" aria-label="Feeds in KommYOUnity">
         {KRONK_FEEDS.map(f => {

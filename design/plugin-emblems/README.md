@@ -13,7 +13,11 @@ Files go in `web-next/public/images/icons/` as `<name>.png` (128px, menus and
 lists) and `<name>@4x.png` (512px, headers and cards), and the plugin's entry
 in `web-next/src/lib/plugins.js` names it with `icon: "<name>"`.
 
-`projects-emblem.py` drew YOUr Projects (an open folder with a seedling).
+`projects-emblem.py` drew YOUr Projects (an open folder with a seedling), and
+`todo-emblem.py` the to-do list (a checklist with two gold ticks).
 Change the middle picture and reuse the ring, star and laurel for the next
 one. Check it beside the others with a preview like
 `projects-emblem-preview.png`, on light and dark, at 30px and 120px.
+
+Options (settings that change a screen, like the endless KommYOUnity feed)
+are not extras and don't get emblems; they live in `OPTIONS` in plugins.js.
