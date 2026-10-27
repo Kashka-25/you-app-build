@@ -7,6 +7,15 @@ import { useAuth } from "./AuthContext";
 // take the Seeker there.
 export const WHATS_NEW = [
   {
+    id: "2026-10-27c-pursyouts", // sorts after the 27th's earlier entries
+    date: "2026-10-27",
+    title: "PursYOUts, closer to hand",
+    body: "Everything you're growing now has a name and an emblem: PursYOUts. Find it on Home under your journey, in the side menu, or put it on your bottom bar in Extras. Completed ones fold away inside each Pillar. Also new: today's tasks and habits sit right by the welcome, the Tree of YOU opens full screen, and the Cosmos stars drift.",
+    icon: "pursuits",
+    to: "/pursue",
+    open: "Open PursYOUts"
+  },
+  {
     id: "2026-10-27b-extras", // sorts after the 27th's first entry, so the dot comes back
     date: "2026-10-27",
     title: "Make YOU yours with Extras",

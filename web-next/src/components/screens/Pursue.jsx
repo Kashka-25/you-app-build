@@ -12,7 +12,7 @@ import WanderingsList from "../wandering/WanderingsList";
 // Two views: the pursuits themselves, and the Wanderings that grow out of
 // Dreams. Open on Wanderings with router state { view: "wanderings" }.
 const VIEWS = [
-  { value: "pursuits", label: "Pursuits" },
+  { value: "pursuits", label: "PursYOUts" },
   { value: "wanderings", label: "Wanderings" }
 ];
 
@@ -79,12 +79,19 @@ export default function Pursue() {
   // were more than a handful of items. PILLARS gives a fixed, consistent
   // order; groups with nothing in them (given the current filter) are
   // skipped rather than shown empty.
-  const groups = PILLARS.map(cat => ({ cat, list: sorted.filter(i => i.cat === cat) })).filter(g => g.list.length > 0);
+  // On "all", each Pillar shows what's growing, with its completed
+  // pursuits folded underneath (Cassidy, Oct 25).
+  const groups = PILLARS.map(cat => {
+    const list = sorted.filter(i => i.cat === cat);
+    return filter === "all"
+      ? { cat, list: list.filter(i => !i.done), done: list.filter(i => i.done) }
+      : { cat, list, done: [] };
+  }).filter(g => g.list.length + g.done.length > 0);
 
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <SectionTitle>Your pursuits</SectionTitle>
+      <SectionTitle>Your PursYOUts</SectionTitle>
       <div className="mb-4">
         <SegmentedControl options={VIEWS} value={view} onChange={setView} />
       </div>
@@ -110,9 +117,14 @@ export default function Pursue() {
           description="Your YOUniverse awaits your intentions. Tap Add to plant something."
         />
       ) : (
-        groups.map(({ cat, list }) => (
+        groups.map(({ cat, list, done }) => (
           <DropdownSection key={cat} title={`${cat} (${list.length})`} defaultOpen>
-            <GroupNode items={list} depth={0} />
+            {list.length > 0 && <GroupNode items={list} depth={0} />}
+            {done.length > 0 && (
+              <DropdownSection title={`Completed (${done.length})`} level={1}>
+                <GroupNode items={done} depth={1} />
+              </DropdownSection>
+            )}
           </DropdownSection>
         ))
       )}

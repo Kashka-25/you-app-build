@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Brush, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, Trash2 } from "lucide-react";
+import { Brush, ChevronDown, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, Trash2 } from "lucide-react";
 import { SCALE_DEFAULT, SCALE_STOPS, applyScale, coloursAt, readScale, stopName, storeScale } from "../../lib/colourScale";
 import { Fold } from "../ui/Fold";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
@@ -364,12 +364,49 @@ export function PluginRow({ plugin, onChange }) {
     }
     setSaving(false);
   }
+  // Each extra is a tab (Cassidy, Oct 27): tap it for a one-line summary,
+  // then "Read more" for the details. Options without them show their desc.
+  const [open, setOpen] = useState(false);
+  const [more, setMore] = useState(false);
+  const foldable = Boolean(plugin.summary);
   return (
     <div className="flex items-start gap-3 py-2">
       {plugin.icon && <img src={`/images/icons/${plugin.icon}.png`} alt="" width="40" height="40" className="w-10 h-10 flex-none -ml-1" />}
       <div className="flex-1 min-w-0">
-        <div className="text-body text-textPrimary">{plugin.title}</div>
-        <div className="text-caption text-textMuted">{plugin.desc}</div>
+        {foldable ? (
+          <button type="button" onClick={() => { setOpen(o => !o); setMore(false); }} aria-expanded={open} className="w-full text-left flex items-center gap-1.5 min-h-[36px]">
+            <span className="text-body text-textPrimary">{plugin.title}</span>
+            <ChevronDown size={15} strokeWidth={1.75} className={`text-textMuted flex-none transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+          </button>
+        ) : (
+          <>
+            <div className="text-body text-textPrimary">{plugin.title}</div>
+            <div className="text-caption text-textMuted">{plugin.desc}</div>
+          </>
+        )}
+        {foldable && open && (
+          <div className="mt-0.5">
+            <p className="text-bodySm text-textSecondary m-0">{plugin.summary}</p>
+            {plugin.more?.length > 0 && (
+              <>
+                <button type="button" onClick={() => setMore(m => !m)} aria-expanded={more} className="inline-flex items-center gap-1 min-h-[32px] text-caption text-forestAccent font-medium">
+                  {more ? "Read less" : "Read more"}
+                  <ChevronDown size={13} strokeWidth={1.75} className={`transition-transform ${more ? "rotate-180" : ""}`} aria-hidden="true" />
+                </button>
+                {more && (
+                  <ul className="space-y-1.5 mt-0.5 mb-1">
+                    {plugin.more.map(line => (
+                      <li key={line} className="flex items-start gap-2 text-caption text-textSecondary">
+                        <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-gold flex-none" aria-hidden="true" />
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </div>
+        )}
         {error && <div className="text-caption text-red-500 mt-1">{error}</div>}
       </div>
       <button
