@@ -9,6 +9,7 @@ import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle } from "../Primitives";
 import { OPTIONS, PLUGINS, usePlugin, useSetPlugin } from "../../lib/plugins";
+import { AI_SOURCES, useAiSources } from "../../lib/aiSources";
 import { exportMyData, downloadJson, deleteMyAccount } from "../../lib/accountData";
 import { localDateKey } from "../../lib/week";
 import { Link, useNavigate } from "react-router-dom";
@@ -254,7 +255,60 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
       <Button variant="secondary" size="sm" disabled={saving || aiConsent === null} onClick={toggle}>
         {saving ? "Saving…" : on ? "Turn off AI reflections" : "Turn on AI reflections"}
       </Button>
+      {on && <AiSourcesSetting />}
       {on && <IncludeCoursesSetting aiConsent={aiConsent} />}
+    </div>
+  );
+}
+
+// Which parts of YOU the AI may read (Cassidy, Oct 27). Every AI feature
+// checks this on the server too, so it can't reach past what's chosen here.
+function AiSourcesSetting() {
+  const { setAiSources } = useAppData();
+  const allowed = useAiSources();
+  const [saving, setSaving] = useState(null);
+  const [error, setError] = useState("");
+  async function toggle(key) {
+    const next = allowed.has(key) ? [...allowed].filter(k => k !== key) : [...allowed, key];
+    setSaving(key);
+    setError("");
+    try { await setAiSources(next); } catch (e) {
+      console.error("[Settings] AI sources change failed:", e);
+      setError("Couldn't save that. Check your connection and try again.");
+    }
+    setSaving(null);
+  }
+  return (
+    <div className="mt-4 pt-4 border-t border-[color-mix(in_srgb,var(--gold)_25%,transparent)]">
+      <div className="text-bodySm text-textPrimary font-medium mb-1">What AI may read</div>
+      <div className="text-bodySm text-textSecondary mb-3">
+        When you ask about one thing (this entry, this dream, this photographed page), the AI reads that. Features that look across YOU, like chapters, your season and weekly reflections, only read what's switched on here.
+      </div>
+      <div className="space-y-1.5" role="group" aria-label="What AI may read">
+        {AI_SOURCES.map(s => {
+          const checked = allowed.has(s.key);
+          return (
+            <button
+              key={s.key}
+              type="button"
+              role="checkbox"
+              aria-checked={checked}
+              disabled={saving !== null}
+              onClick={() => toggle(s.key)}
+              className={`w-full flex items-start gap-3 rounded-sm border px-3 py-2 text-left ${checked ? "border-forestAccent bg-surface2" : "border-borderC"}`}
+            >
+              <span className={`mt-0.5 w-4 h-4 rounded-[4px] border flex-none flex items-center justify-center text-[11px] ${checked ? "border-forestAccent bg-forestAccent text-onAccent" : "border-borderC"}`} aria-hidden="true">
+                {checked ? "✓" : ""}
+              </span>
+              <span>
+                <span className="block text-bodySm text-textPrimary">{s.label}{saving === s.key ? " · saving…" : ""}</span>
+                <span className="block text-caption text-textMuted">{s.says}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {error && <div className="text-caption text-red-500 mt-1.5">{error}</div>}
     </div>
   );
 }

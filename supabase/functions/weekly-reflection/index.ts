@@ -8,6 +8,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
 import { requireAiConsent } from "../_shared/consent.ts";
+import { allowedSources } from "../_shared/sources.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
 import { checkDailyLimit } from "../_shared/limit.ts";
 import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
@@ -69,7 +70,13 @@ Deno.serve(async req => {
     const { data: consentRow } = await supabase.from("ai_consent").select("include_courses").eq("user_id", user.id).maybeSingle();
     const includeCourses = Boolean(consentRow?.include_courses);
 
-    const [{ data: entries }, { data: memoryEntries }, { data: values }, { data: items }, compass, { data: courseRows }] = await Promise.all([
+    // Only the parts of YOU this Seeker lets the AI read (_shared/sources.ts).
+    const allow = await allowedSources(supabase, user.id);
+    if (!allow.has("journal")) {
+      return json({ reflection: null, empty: true, weekStart, weekEnd, message: "Your weekly reflection reads your YOUrnal, which you've chosen to keep from the AI. You can change that in Your Own Universe → AI reflections." });
+    }
+
+    const [{ data: entries }, { data: memoryEntries }, { data: values }, { data: items }, compass, { data: courseRows }, { data: moods }] = await Promise.all([
       supabase
         .from("journal_entries")
         .select("id, content, mood, entry_date, tags, journal_ai_insights(summary, insights)")
@@ -77,13 +84,20 @@ Deno.serve(async req => {
         .gte("entry_date", weekStart)
         .lte("entry_date", weekEnd)
         .order("entry_date"),
-      supabase.from("memory").select("name, type, cat, date_key").eq("user_id", user.id).gte("date_key", weekStart).lte("date_key", weekEnd),
-      supabase.from("user_values").select("name, rating").eq("user_id", user.id),
-      supabase.from("items").select("name, type, cat, done").eq("user_id", user.id).in("type", ["goal", "dream"]).limit(30),
-      loadCompass(supabase, user.id),
+      allow.has("pursuits")
+        ? supabase.from("memory").select("name, type, cat, date_key").eq("user_id", user.id).gte("date_key", weekStart).lte("date_key", weekEnd)
+        : Promise.resolve({ data: [] }),
+      allow.has("values") ? supabase.from("user_values").select("name, rating").eq("user_id", user.id) : Promise.resolve({ data: [] }),
+      allow.has("pursuits")
+        ? supabase.from("items").select("name, type, cat, done").eq("user_id", user.id).in("type", ["goal", "dream"]).limit(30)
+        : Promise.resolve({ data: [] }),
+      allow.has("values") ? loadCompass(supabase, user.id) : Promise.resolve(null),
       includeCourses
         ? supabase.from("arcanum_progress").select("slug, part_id, summary, completed_on")
             .eq("user_id", user.id).gte("completed_on", weekStart).lte("completed_on", weekEnd).order("completed_on")
+        : Promise.resolve({ data: [] }),
+      allow.has("mood")
+        ? supabase.from("mood_log").select("mood, score, date_key").eq("user_id", user.id).gte("date_key", weekStart).lte("date_key", weekEnd)
         : Promise.resolve({ data: [] })
     ]);
 
@@ -98,6 +112,7 @@ Deno.serve(async req => {
     }
 
     const contextDigest = {
+      mood_this_week: (moods || []).map(m => ({ day: m.date_key, score: m.score ?? null, word: m.mood })),
       week_start: weekStart,
       week_end: weekEnd,
       entries: entries.map(e => ({

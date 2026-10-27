@@ -4,6 +4,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { PILLAR_COLORS } from "../../constants/app.const";
 import { isDueToday, localDateKey } from "../../lib/week";
 import { stepProgress } from "../ui/StepList";
+import HabitDay from "../pursue/HabitDay";
 
 const TYPE_LABEL = { habit: "Habit", goal: "Goal", dream: "Dream" };
 
@@ -93,7 +94,9 @@ export default function TodayIntentions() {
             <div className="flex-1 min-w-0">
               <div className={`text-body ${tended ? "text-textSecondary" : "text-textPrimary"}`}>{item.name}</div>
               <Thread item={item} valueName={w.value_name} />
-              <NextStep item={item} onToggle={mi => toggleMilestone(item.id, mi)} />
+              {item.type === "habit"
+                ? <HabitDay item={item} compact />
+                : <NextStep item={item} onToggle={mi => toggleMilestone(item.id, mi)} />}
               {tended && (
                 <div className="flex items-center gap-1.5 mt-1.5 text-caption" style={{ color: PILLAR_COLORS[item.cat] || "var(--forest-accent)" }}>
                   <Sprout size={13} strokeWidth={1.75} />

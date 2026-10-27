@@ -5,6 +5,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
+import DrawsFrom from "../ui/DrawsFrom";
 
 const CATEGORY_LABELS = {
   theme: "Theme", emotion: "Emotion", value: "Value", dream: "Dream", goal: "Goal",
@@ -253,6 +254,8 @@ export default function JournalReflectionCard({ entryId }) {
       )}
 
       {error && <div className="text-bodySm text-[#F0A3A3] mt-2">{error}</div>}
+      <div className="text-caption text-textMuted mt-2">Reads this entry, and for context:</div>
+      <DrawsFrom uses={["values", "pursuits", "moments", "journal"]} />
     </AiCard>
   );
 }

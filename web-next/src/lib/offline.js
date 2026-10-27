@@ -30,7 +30,7 @@ const UUID_TABLES = new Set([
   "journal_entries", "identity_visions", "todos", "week_intentions", "week_harvests", "wanderings",
   "wandering_stops", "seasons", "value_compass", "focus_sessions", "journal_highlights", "journal_ai_insights",
   "weekly_reflections", "reflections", "own_tools", "tool_uses", "value_words", "beta_feedback", "client_errors",
-  "projects", "project_notes"
+  "projects", "project_notes", "habit_logs"
 ]);
 
 // ── IndexedDB, kept tiny ────────────────────────────────────────────────

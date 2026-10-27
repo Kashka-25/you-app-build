@@ -9,6 +9,9 @@ import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import { StepList } from "../ui/StepList";
 import AddItemModal from "./AddItemModal";
+import HabitDay from "./HabitDay";
+import HabitTotals from "./HabitTotals";
+import { stepKey } from "../../lib/habits";
 import { localDateKey as todayKey } from "../../lib/week";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
@@ -38,8 +41,10 @@ function CompletionBurst() {
 export default function ItemCard({ item }) {
   const {
     completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
-    getPrestigeTier, prestigeItem, wanderings, wanderingStops, createWandering
+    getPrestigeTier, prestigeItem, wanderings, wanderingStops, createWandering,
+    habitLogs, toggleHabitStep
   } = useAppData();
+  const isHabit = item.type === "habit";
   const navigate = useNavigate();
   const [planning, setPlanning] = useState(false);
   const [planError, setPlanError] = useState("");
@@ -149,6 +154,10 @@ export default function ItemCard({ item }) {
             </button>
           )}
 
+          {/* Today's steps, fresh each day, and the habit's story so far. */}
+          {isHabit && !item.done && <HabitDay item={item} />}
+          {isHabit && <HabitTotals item={item} />}
+
           {item.type === "habit" && !item.done && (
             <div className="flex gap-1.5 mt-2.5">
               {DAY_LABELS.map((d, i) => (
@@ -176,7 +185,7 @@ export default function ItemCard({ item }) {
             </Button>
           )}
 
-          {msTotal > 0 && (
+          {msTotal > 0 && !isHabit && (
             <div className="mt-2.5">
               <div className="h-1.5 rounded-full bg-surface3 overflow-hidden">
                 <div className="h-full bg-forestAccent" style={{ width: `${msPct}%` }} />
@@ -209,8 +218,14 @@ export default function ItemCard({ item }) {
                 </div>
               )}
               <StepList
-                steps={item.milestones || []}
-                onToggle={mi => toggleMilestone(item.id, mi)}
+                steps={isHabit
+                  ? (item.milestones || []).map(m => ({ ...m, done: habitLogs.some(l => l.item_id === item.id && l.day === todayKey() && l.step === stepKey(m)) }))
+                  : item.milestones || []}
+                onToggle={mi => {
+                  if (!isHabit) return toggleMilestone(item.id, mi);
+                  const m = item.milestones[mi];
+                  return toggleHabitStep(item.id, stepKey(m), m.amount ?? null);
+                }}
                 onAdd={item.done ? null : text => addMilestone(item.id, text)}
                 onRemove={item.done ? null : mi => removeMilestone(item.id, mi)}
               />

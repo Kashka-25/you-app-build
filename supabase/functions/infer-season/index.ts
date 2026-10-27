@@ -15,6 +15,7 @@ import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
 import { checkDailyLimit } from "../_shared/limit.ts";
 import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
 import { loadCompass, COMPASS_GUIDANCE } from "../_shared/compass.ts";
+import { allowedSources } from "../_shared/sources.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -34,6 +35,19 @@ Respond with JSON only, no prose outside it and no code fence:
   "signals": ["two to four short phrases (under 8 words each) from their harvests that point to this season"]
 }`;
 
+// The week's average mood (0–100), when mood check-ins are allowed.
+const MID: Record<string, number> = { rough: 10, low: 30, okay: 50, good: 70, great: 90 };
+function weekMood(rows: { score: number | null; mood: string; date_key: string }[], weekStart: string) {
+  const end = new Date(weekStart + "T00:00:00Z");
+  end.setUTCDate(end.getUTCDate() + 7);
+  const last = end.toISOString().slice(0, 10);
+  const scores = rows
+    .filter(r => r.date_key >= weekStart && r.date_key < last)
+    .map(r => (r.score != null ? r.score : MID[r.mood]))
+    .filter((v): v is number => v != null);
+  return scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+}
+
 Deno.serve(async req => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -49,6 +63,13 @@ Deno.serve(async req => {
     const limited = await checkDailyLimit(req, corsHeaders);
     if (limited) return limited;
 
+    // Only the parts of YOU this Seeker lets the AI read (_shared/sources.ts).
+    // The season is read from the weekly harvests, so those must be allowed.
+    const allow = await allowedSources(supabase, user.id);
+    if (!allow.has("harvests")) {
+      return json({ empty: true, message: "Your Season is read from your weekly harvests, which you've chosen to keep from the AI. You can change that in Your Own Universe → AI reflections." });
+    }
+
     // Reads go through the Seeker's own session, so RLS keeps it to their rows.
     const { data: harvests } = await supabase
       .from("week_harvests")
@@ -62,18 +83,20 @@ Deno.serve(async req => {
     }
 
     const weeks = harvests.map(h => h.week_start);
-    const [{ data: intentions }, { data: reflections }, compass] = await Promise.all([
+    const [{ data: intentions }, { data: reflections }, compass, { data: moods }] = await Promise.all([
       supabase
         .from("week_intentions")
         .select("week_start, outcome, value_name, tended_dates, items(name, type, cat)")
         .eq("user_id", user.id)
         .in("week_start", weeks),
-      supabase
-        .from("weekly_reflections")
-        .select("week_start, sections")
-        .eq("user_id", user.id)
-        .in("week_start", weeks),
-      loadCompass(supabase, user.id)
+      // Weekly reflections are drawn from the YOUrnal.
+      allow.has("journal")
+        ? supabase.from("weekly_reflections").select("week_start, sections").eq("user_id", user.id).in("week_start", weeks)
+        : Promise.resolve({ data: [] }),
+      allow.has("values") ? loadCompass(supabase, user.id) : Promise.resolve(null),
+      allow.has("mood")
+        ? supabase.from("mood_log").select("score, mood, date_key").eq("user_id", user.id).gte("date_key", weeks[weeks.length - 1])
+        : Promise.resolve({ data: [] })
     ]);
 
     const digest = harvests
@@ -91,7 +114,8 @@ Deno.serve(async req => {
             days_tended: (i.tended_dates || []).length,
             chose_to: i.outcome // carried | rested | released
           })),
-          weekly_reflection: reflection?.sections?.patterns || reflection?.sections?.your_week || null
+          weekly_reflection: reflection?.sections?.patterns || reflection?.sections?.your_week || null,
+          ...(allow.has("mood") && { average_mood_out_of_100: weekMood(moods || [], h.week_start) })
         };
       });
 
@@ -120,7 +144,7 @@ ${COMPASS_GUIDANCE} Name the season from the harvests themselves, not from the c
         name: season.name.trim(),
         blurb: (season.blurb || "").trim(),
         signals: Array.isArray(season.signals) ? season.signals.filter(Boolean).slice(0, 4) : [],
-        based_on: { harvests: harvests.length, notes, from: weeks[weeks.length - 1], to: weeks[0] },
+        based_on: { harvests: harvests.length, notes, from: weeks[weeks.length - 1], to: weeks[0], sources: [...allow] },
         model: MODEL
       })
       .select()

@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { GlowBubble } from "../ui/GlowBubble";
 import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
+import DrawsFrom from "../ui/DrawsFrom";
 
 function niceWeek(dateKey) {
   return new Date(dateKey + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "short" });
@@ -55,7 +56,7 @@ export default function SeasonCard() {
         ) : (
           <>
             <div className="text-bodySm text-textSecondary">
-              Your season is read from your weekly Harvests: the notes you keep, and what you carry forward, rest or release.
+              Your season is read from your last ten weekly Harvests: the notes you keep at the end of each week, and whether you carried each pursuit forward, rested it or released it. If you allow it, your weekly reflections, your compass and your mood add a little colour.
             </div>
             {weekHarvests.length > 0 ? (
               <AiButton size="sm" onClick={read} busy={reading} className="mt-3">
@@ -67,6 +68,7 @@ export default function SeasonCard() {
             <div className="text-caption text-textMuted mt-1">You'll be asked before anything is sent to AI.</div>
           </>
         )}
+        <DrawsFrom uses={["harvests", "journal", "values", "mood"]} className="mt-2" />
         {message && <div className="text-caption text-textSecondary mt-2">{message}</div>}
       </div>
     </AiCard>
