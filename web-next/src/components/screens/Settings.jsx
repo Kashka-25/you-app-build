@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Brush, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, Trash2 } from "lucide-react";
+import { Brush, ChevronDown, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, Trash2 } from "lucide-react";
 import { SCALE_DEFAULT, SCALE_STOPS, applyScale, coloursAt, readScale, stopName, storeScale } from "../../lib/colourScale";
 import { Fold } from "../ui/Fold";
 import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
@@ -9,6 +9,7 @@ import { useAuth } from "../../lib/AuthContext";
 import { useAppData } from "../../lib/AppDataContext";
 import { BackRow, SectionTitle } from "../Primitives";
 import { OPTIONS, PLUGINS, usePlugin, useSetPlugin } from "../../lib/plugins";
+import { AI_SOURCES, useAiSources } from "../../lib/aiSources";
 import { exportMyData, downloadJson, deleteMyAccount } from "../../lib/accountData";
 import { localDateKey } from "../../lib/week";
 import { Link, useNavigate } from "react-router-dom";
@@ -254,7 +255,60 @@ function AiReflectionsSetting({ aiConsent, onChange }) {
       <Button variant="secondary" size="sm" disabled={saving || aiConsent === null} onClick={toggle}>
         {saving ? "Saving…" : on ? "Turn off AI reflections" : "Turn on AI reflections"}
       </Button>
+      {on && <AiSourcesSetting />}
       {on && <IncludeCoursesSetting aiConsent={aiConsent} />}
+    </div>
+  );
+}
+
+// Which parts of YOU the AI may read (Cassidy, Oct 27). Every AI feature
+// checks this on the server too, so it can't reach past what's chosen here.
+function AiSourcesSetting() {
+  const { setAiSources } = useAppData();
+  const allowed = useAiSources();
+  const [saving, setSaving] = useState(null);
+  const [error, setError] = useState("");
+  async function toggle(key) {
+    const next = allowed.has(key) ? [...allowed].filter(k => k !== key) : [...allowed, key];
+    setSaving(key);
+    setError("");
+    try { await setAiSources(next); } catch (e) {
+      console.error("[Settings] AI sources change failed:", e);
+      setError("Couldn't save that. Check your connection and try again.");
+    }
+    setSaving(null);
+  }
+  return (
+    <div className="mt-4 pt-4 border-t border-[color-mix(in_srgb,var(--gold)_25%,transparent)]">
+      <div className="text-bodySm text-textPrimary font-medium mb-1">What AI may read</div>
+      <div className="text-bodySm text-textSecondary mb-3">
+        When you ask about one thing (this entry, this dream, this photographed page), the AI reads that. Features that look across YOU, like chapters, your season and weekly reflections, only read what's switched on here.
+      </div>
+      <div className="space-y-1.5" role="group" aria-label="What AI may read">
+        {AI_SOURCES.map(s => {
+          const checked = allowed.has(s.key);
+          return (
+            <button
+              key={s.key}
+              type="button"
+              role="checkbox"
+              aria-checked={checked}
+              disabled={saving !== null}
+              onClick={() => toggle(s.key)}
+              className={`w-full flex items-start gap-3 rounded-sm border px-3 py-2 text-left ${checked ? "border-forestAccent bg-surface2" : "border-borderC"}`}
+            >
+              <span className={`mt-0.5 w-4 h-4 rounded-[4px] border flex-none flex items-center justify-center text-[11px] ${checked ? "border-forestAccent bg-forestAccent text-onAccent" : "border-borderC"}`} aria-hidden="true">
+                {checked ? "✓" : ""}
+              </span>
+              <span>
+                <span className="block text-bodySm text-textPrimary">{s.label}{saving === s.key ? " · saving…" : ""}</span>
+                <span className="block text-caption text-textMuted">{s.says}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      {error && <div className="text-caption text-red-500 mt-1.5">{error}</div>}
     </div>
   );
 }
@@ -364,12 +418,49 @@ export function PluginRow({ plugin, onChange }) {
     }
     setSaving(false);
   }
+  // Each extra is a tab (Cassidy, Oct 27): tap it for a one-line summary,
+  // then "Read more" for the details. Options without them show their desc.
+  const [open, setOpen] = useState(false);
+  const [more, setMore] = useState(false);
+  const foldable = Boolean(plugin.summary);
   return (
     <div className="flex items-start gap-3 py-2">
       {plugin.icon && <img src={`/images/icons/${plugin.icon}.png`} alt="" width="40" height="40" className="w-10 h-10 flex-none -ml-1" />}
       <div className="flex-1 min-w-0">
-        <div className="text-body text-textPrimary">{plugin.title}</div>
-        <div className="text-caption text-textMuted">{plugin.desc}</div>
+        {foldable ? (
+          <button type="button" onClick={() => { setOpen(o => !o); setMore(false); }} aria-expanded={open} className="w-full text-left flex items-center gap-1.5 min-h-[36px]">
+            <span className="text-body text-textPrimary">{plugin.title}</span>
+            <ChevronDown size={15} strokeWidth={1.75} className={`text-textMuted flex-none transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+          </button>
+        ) : (
+          <>
+            <div className="text-body text-textPrimary">{plugin.title}</div>
+            <div className="text-caption text-textMuted">{plugin.desc}</div>
+          </>
+        )}
+        {foldable && open && (
+          <div className="mt-0.5">
+            <p className="text-bodySm text-textSecondary m-0">{plugin.summary}</p>
+            {plugin.more?.length > 0 && (
+              <>
+                <button type="button" onClick={() => setMore(m => !m)} aria-expanded={more} className="inline-flex items-center gap-1 min-h-[32px] text-caption text-forestAccent font-medium">
+                  {more ? "Read less" : "Read more"}
+                  <ChevronDown size={13} strokeWidth={1.75} className={`transition-transform ${more ? "rotate-180" : ""}`} aria-hidden="true" />
+                </button>
+                {more && (
+                  <ul className="space-y-1.5 mt-0.5 mb-1">
+                    {plugin.more.map(line => (
+                      <li key={line} className="flex items-start gap-2 text-caption text-textSecondary">
+                        <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-gold flex-none" aria-hidden="true" />
+                        {line}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </div>
+        )}
         {error && <div className="text-caption text-red-500 mt-1">{error}</div>}
       </div>
       <button

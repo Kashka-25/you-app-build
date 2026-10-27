@@ -8,6 +8,7 @@ import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
 import HabitsToday from "../home/HabitsToday";
+import PursYOUtsCard from "../home/PursYOUtsCard";
 import { latestNew, useWhatsNewUnseen } from "../../lib/whatsNew";
 import { usePlugin } from "../../lib/plugins";
 import { useCourseNow } from "../course/CourseNow";
@@ -77,7 +78,9 @@ export default function Home() {
   // The course itself is continued from the journey card just below, so the
   // welcome's button goes somewhere else (Cassidy, Oct 24: "Continue your
   // journey only needs to show up once").
-  const cta = { to: "/journey", label: isNew ? "Begin your journey" : "Open your YOUrney" };
+  // Only someone brand new gets a button on the welcome; everyone else has
+  // Today right beside it instead.
+  const cta = isNew ? { to: "/journey", label: "Begin your journey" } : null;
 
   const patterns = pickNoticedPatterns(recentInsights, 1);
   const question = pickReflectionQuestion(recentInsights);
@@ -96,36 +99,13 @@ export default function Home() {
       className="pt-1 px-5 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-5 lg:pb-10 lg:[&>*]:h-full lg:[&>*>section]:h-full"
       style={{ paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom))" }}
     >
-      <div className="lg:col-span-12 lg:order-1">
+      <div className="lg:col-span-7 lg:order-1">
         <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} art={featuredArt} artMode={artMode} onOpenArt={setOpenWork} />
       </div>
 
-      {/* A quiet hint when something new has arrived (lib/whatsNew.js). */}
-      {whatsNewUnseen && (
-        <div className="lg:col-span-12 lg:order-2">
-          <Link to="/whats-new" className="flex items-center gap-2.5 rounded-card bg-[color-mix(in_srgb,var(--gold)_14%,var(--surface-1))] border border-[color-mix(in_srgb,var(--gold)_35%,transparent)] px-4 min-h-[48px] text-bodySm text-textPrimary">
-            <Sparkles size={16} strokeWidth={1.75} className="text-gold flex-none" />
-            <span className="flex-1 min-w-0 truncate">New in YOU: <span className="font-medium">{latestNew().title}</span></span>
-            <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted flex-none" />
-          </Link>
-        </div>
-      )}
-
-      <div className="lg:col-span-12 lg:order-2">
-        <DailyCheckIn todayMood={todayMoodKey} onPick={logMood} />
-      </div>
-
-      {featuredWords && (
-        <div className="lg:col-span-12 lg:order-2">
-          <FeaturedWords work={featuredWords} onOpen={setOpenWork} />
-        </div>
-      )}
-
-      <div className="lg:col-span-7 lg:order-3">
-        <JourneyProgressCard entries={courses} />
-      </div>
-
-      <div className={`${hasInsight ? "lg:col-span-7" : "lg:col-span-12"} lg:order-5`}>
+      {/* Today sits with the welcome (Cassidy, Oct 25: "the most used stuff
+          for ease of access"): first on a phone, beside it on a laptop. */}
+      <div className="lg:col-span-5 lg:order-1">
       <section aria-labelledby="home-today" className="rounded-card bg-surface1 shadow-card p-4">
         <div className="flex items-baseline justify-between gap-3 mb-1">
           <h2 id="home-today" className="font-serif text-h3 text-textPrimary m-0">
@@ -178,6 +158,36 @@ export default function Home() {
       </section>
       </div>
 
+      {/* A quiet hint when something new has arrived (lib/whatsNew.js). */}
+      {whatsNewUnseen && (
+        <div className="lg:col-span-12 lg:order-2">
+          <Link to="/whats-new" className="flex items-center gap-2.5 rounded-card bg-[color-mix(in_srgb,var(--gold)_14%,var(--surface-1))] border border-[color-mix(in_srgb,var(--gold)_35%,transparent)] px-4 min-h-[48px] text-bodySm text-textPrimary">
+            <Sparkles size={16} strokeWidth={1.75} className="text-gold flex-none" />
+            <span className="flex-1 min-w-0 truncate">New in YOU: <span className="font-medium">{latestNew().title}</span></span>
+            <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted flex-none" />
+          </Link>
+        </div>
+      )}
+
+      <div className="lg:col-span-12 lg:order-2">
+        <DailyCheckIn todayMood={todayMoodKey} onPick={logMood} />
+      </div>
+
+      {featuredWords && (
+        <div className="lg:col-span-12 lg:order-2">
+          <FeaturedWords work={featuredWords} onOpen={setOpenWork} />
+        </div>
+      )}
+
+      <div className="lg:col-span-7 lg:order-3">
+        <JourneyProgressCard entries={courses} />
+      </div>
+
+      <div className="lg:col-span-7 lg:order-3">
+        <PursYOUtsCard />
+      </div>
+
+
       <div className="lg:col-span-5 lg:order-4">
         <PracticeCard tool={tools[0]} />
       </div>
@@ -187,7 +197,7 @@ export default function Home() {
       </div>
 
       {hasInsight && (
-        <div className="lg:col-span-5 lg:order-6">
+        <div className="lg:col-span-12 lg:order-6">
         <section aria-label="YOUnderstanding" className="rounded-card bg-surface1 border-l-2 border-forestAccent shadow-card p-4">
           <div className="flex items-center gap-3 mb-2">
             <GlowBubble icon={Search} size={36} />

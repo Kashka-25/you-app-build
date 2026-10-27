@@ -8,6 +8,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
 import { requireAiConsent } from "../_shared/consent.ts";
+import { allowedSources } from "../_shared/sources.ts";
 import { callClaude, parseJsonResponse } from "../_shared/anthropic.ts";
 import { checkDailyLimit } from "../_shared/limit.ts";
 import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
@@ -144,9 +145,12 @@ Deno.serve(async req => {
     if (entryErr || !entry) return json({ error: "Entry not found" }, 404);
 
     const isDream = (entry.tags || []).some((t: string) => ["dream", "dreams"].includes(tagKey(t)));
+    // The entry itself was asked about; anything else it looks at for
+    // context is only what this Seeker allows (_shared/sources.ts).
+    const allow = await allowedSources(supabase, user.id);
 
     // Earlier dream readings, so recurring symbols can be noticed.
-    const { data: earlierDreams } = isDream
+    const { data: earlierDreams } = isDream && allow.has("journal")
       ? await supabase
           .from("journal_ai_insights")
           .select("dream, journal_entries!inner(entry_date)")
@@ -160,17 +164,21 @@ Deno.serve(async req => {
     const [{ data: photos }, { data: values }, { data: items }, { data: chapters }, { data: recentInsights }, compass] =
       await Promise.all([
         supabase.from("journal_photos").select("transcription").eq("entry_id", entryId).not("transcription", "is", null),
-        supabase.from("user_values").select("name, rating").eq("user_id", user.id),
-        supabase.from("items").select("name, type, cat, done").eq("user_id", user.id).in("type", ["goal", "dream"]).limit(30),
-        supabase.from("life_chapters").select("title, range_start, range_end").eq("user_id", user.id),
-        supabase
-          .from("journal_ai_insights")
-          .select("summary, insights, journal_entries!inner(entry_date)")
-          .eq("user_id", user.id)
-          .neq("entry_id", entryId)
-          .order("created_at", { ascending: false })
-          .limit(15),
-        loadCompass(supabase, user.id)
+        allow.has("values") ? supabase.from("user_values").select("name, rating").eq("user_id", user.id) : Promise.resolve({ data: [] }),
+        allow.has("pursuits")
+          ? supabase.from("items").select("name, type, cat, done").eq("user_id", user.id).in("type", ["goal", "dream"]).limit(30)
+          : Promise.resolve({ data: [] }),
+        allow.has("moments") ? supabase.from("life_chapters").select("title, range_start, range_end").eq("user_id", user.id) : Promise.resolve({ data: [] }),
+        allow.has("journal")
+          ? supabase
+              .from("journal_ai_insights")
+              .select("summary, insights, journal_entries!inner(entry_date)")
+              .eq("user_id", user.id)
+              .neq("entry_id", entryId)
+              .order("created_at", { ascending: false })
+              .limit(15)
+          : Promise.resolve({ data: [] }),
+        allow.has("values") ? loadCompass(supabase, user.id) : Promise.resolve(null)
       ]);
 
     const transcriptions = (photos || []).map(p => p.transcription).filter(Boolean);

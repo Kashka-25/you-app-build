@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Wind, RotateCcw } from "lucide-react";
+import { Check, Wind, RotateCcw } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { PILLARS } from "../../constants/app.const";
+import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
 import { BackRow, SectionTitle, DropdownSection } from "../Primitives";
 import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
@@ -12,7 +12,7 @@ import WanderingsList from "../wandering/WanderingsList";
 // Two views: the pursuits themselves, and the Wanderings that grow out of
 // Dreams. Open on Wanderings with router state { view: "wanderings" }.
 const VIEWS = [
-  { value: "pursuits", label: "Pursuits" },
+  { value: "pursuits", label: "PursYOUts" },
   { value: "wanderings", label: "Wanderings" }
 ];
 
@@ -59,6 +59,32 @@ function GroupNode({ items, depth }) {
   );
 }
 
+// Each Pillar's heading wears its colour, so it stands apart from the
+// quiet "Completed" fold beneath it (Cassidy, Oct 28).
+function PillarHeading({ cat, count }) {
+  const color = PILLAR_COLORS[cat] || "var(--gold)";
+  return (
+    <span className="flex items-center gap-2.5">
+      <span className="w-1.5 h-7 rounded-full flex-none" style={{ background: color }} aria-hidden="true" />
+      <span>{cat}</span>
+      <span
+        className="font-sans text-caption font-medium px-2 py-0.5 rounded-full"
+        style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+      >
+        {count} growing
+      </span>
+    </span>
+  );
+}
+
+function CompletedLabel({ n }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 font-sans text-caption font-medium uppercase tracking-wider text-textMuted">
+      <Check size={13} strokeWidth={2} aria-hidden="true" /> Completed · {n}
+    </span>
+  );
+}
+
 export default function Pursue() {
   const { items, releasedItems, restoreItem } = useAppData();
   const [filter, setFilter] = useState("all");
@@ -79,12 +105,19 @@ export default function Pursue() {
   // were more than a handful of items. PILLARS gives a fixed, consistent
   // order; groups with nothing in them (given the current filter) are
   // skipped rather than shown empty.
-  const groups = PILLARS.map(cat => ({ cat, list: sorted.filter(i => i.cat === cat) })).filter(g => g.list.length > 0);
+  // On "all", each Pillar shows what's growing, with its completed
+  // pursuits folded underneath (Cassidy, Oct 25).
+  const groups = PILLARS.map(cat => {
+    const list = sorted.filter(i => i.cat === cat);
+    return filter === "all"
+      ? { cat, list: list.filter(i => !i.done), done: list.filter(i => i.done) }
+      : { cat, list, done: [] };
+  }).filter(g => g.list.length + g.done.length > 0);
 
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <SectionTitle>Your pursuits</SectionTitle>
+      <SectionTitle>Your PursYOUts</SectionTitle>
       <div className="mb-4">
         <SegmentedControl options={VIEWS} value={view} onChange={setView} />
       </div>
@@ -110,9 +143,14 @@ export default function Pursue() {
           description="Your YOUniverse awaits your intentions. Tap Add to plant something."
         />
       ) : (
-        groups.map(({ cat, list }) => (
-          <DropdownSection key={cat} title={`${cat} (${list.length})`} defaultOpen>
-            <GroupNode items={list} depth={0} />
+        groups.map(({ cat, list, done }) => (
+          <DropdownSection key={cat} title={<PillarHeading cat={cat} count={list.length} />} defaultOpen>
+            {list.length > 0 && <GroupNode items={list} depth={0} />}
+            {done.length > 0 && (
+              <DropdownSection title={<CompletedLabel n={done.length} />} level={1}>
+                <GroupNode items={done} depth={1} />
+              </DropdownSection>
+            )}
           </DropdownSection>
         ))
       )}

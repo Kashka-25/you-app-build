@@ -16,6 +16,7 @@ const BOTTOM_BAR = [
 ];
 
 const MENU = [
+  { icon: "pursuits", name: "PursYOUts", to: "/pursue", says: "Everything you're growing: habits, goals and dreams, by Pillar, with what you've completed folded underneath." },
   { icon: "youniversity", name: "YOUniversity", to: "/youniversity", says: "Guided journeys and tools to work through at your own pace." },
   { icon: "community", name: <KommYOUnity />, to: "/community", says: "A calm window onto Kronk, the community space. Connect your Kronk account to join in." },
   { icon: "showcase", name: "Showcase", to: "/showcase", says: "Art and creations shared by YOUsers." },

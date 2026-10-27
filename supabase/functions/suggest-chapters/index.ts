@@ -1,130 +1,130 @@
-// Supabase Edge Function: suggest-chapters
+// suggest-chapters — proposes the chapters (eras) of a Seeker's life story.
 //
-// Takes a list of the signed-in user's life moments and asks Claude to
-// group them into named "chapters" (eras). Weekly Harvest notes, when sent,
-// are context only: they can shape a chapter's name and blurb, but only
-// moments are grouped. Returns suggestions only —
-// nothing is saved here; the app persists what the user accepts.
+// Gathers server-side from every part of YOU the Seeker allows the AI to
+// read (_shared/sources.ts; Cassidy, Oct 27: "pull from everywhere but
+// offer the privacy consent"): Moments (memories, with their own writing),
+// YOUrnal entries, weekly harvest notes, and pursuits. Only Moments are
+// grouped into chapters by title; everything else is context for where
+// eras begin and end and what they held. Returns suggestions only; the app
+// saves what the Seeker accepts.
 //
 // Deploy: supabase functions deploy suggest-chapters
-// Secret:  supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-//
-// Requires a valid Supabase session (the app's supabase.functions.invoke
-// call sends this automatically) — not a public/unauthenticated endpoint.
-
-import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
-import { logUsage } from "../_shared/usage.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders, json } from "../_shared/cors.ts";
 import { requireAiConsent } from "../_shared/consent.ts";
+import { allowedSources, SOURCE_NAMES } from "../_shared/sources.ts";
+import { callClaude } from "../_shared/anthropic.ts";
 import { checkDailyLimit } from "../_shared/limit.ts";
 import { moderate, BLOCKED_MESSAGE } from "../_shared/moderate.ts";
 
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-// Haiku is the cheap/fast tier — plenty for grouping + naming a timeline.
-// Override with a Supabase secret (ANTHROPIC_MODEL) if you want a different model.
-const MODEL = Deno.env.get("ANTHROPIC_MODEL") || "claude-haiku-4-5";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+const MAX_ENTRIES = 160;        // the most recent journal entries, as short snippets
+const SNIPPET = 220;
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
+const SYSTEM = `You help someone see their own life story reflected back to them, inside YOU, a self-love and personal-growth app. From the material below, group their life into 2–5 "chapters": meaningful, contiguous eras in order, based on real shifts you notice in what they lived and wrote, not equal slices.
+
+Each chapter needs:
+- "title": a short, grounded, evocative name (2–5 words), drawn from their own material. No clichés, therapy-speak or generic life-stage labels.
+- "range_start" and "range_end": ISO dates (YYYY-MM-DD). The last chapter may run to the most recent date.
+- "blurb": one honest, warm sentence (under 20 words) on what this era held for them.
+- "moment_titles": the exact titles of their Moments that belong in this chapter (copied verbatim), or [] if none.
+
+Every Moment belongs to exactly one chapter. Journal entries, harvest notes and pursuits are context only: use them to see where eras begin and end and what they held; never list them as moment titles and never invent events. You are a mirror, never an authority.`;
+
+const SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["chapters"],
+  properties: {
+    chapters: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "range_start", "range_end", "blurb", "moment_titles"],
+        properties: {
+          title: { type: "string" },
+          range_start: { type: "string" },
+          range_end: { type: "string" },
+          blurb: { type: "string" },
+          moment_titles: { type: "array", items: { type: "string" } }
+        }
+      }
+    }
+  }
 };
 
-function jsonResponse(body, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" }
-  });
-}
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
+Deno.serve(async req => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    if (!ANTHROPIC_API_KEY) {
-      return jsonResponse({ error: "ANTHROPIC_API_KEY is not configured on this function" }, 500);
-    }
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: req.headers.get("Authorization") || "" } }
+    });
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return json({ error: "Unauthorized" }, 401);
 
-    // Memories are reflection text: signed-in Seekers who have consented only.
     const consent = await requireAiConsent(req, corsHeaders);
     if ("response" in consent) return consent.response;
     const limited = await checkDailyLimit(req, corsHeaders);
     if (limited) return limited;
 
-    const { moments, harvests } = await req.json();
-    if (!Array.isArray(moments) || moments.length === 0) {
-      return jsonResponse({ error: "No moments provided" }, 400);
+    const allow = await allowedSources(supabase, user.id);
+    const none = Promise.resolve({ data: [] });
+    const [{ data: moments }, { data: entries }, { data: harvests }, { data: items }] = await Promise.all([
+      allow.has("moments")
+        ? supabase.from("life_moments").select("title, description, moment_date").eq("user_id", user.id).order("moment_date")
+        : none,
+      allow.has("journal")
+        ? supabase.from("journal_entries").select("content, entry_date").eq("user_id", user.id).order("entry_date", { ascending: false }).limit(MAX_ENTRIES)
+        : none,
+      allow.has("harvests")
+        ? supabase.from("week_harvests").select("week_start, note").eq("user_id", user.id).not("note", "is", null).order("week_start")
+        : none,
+      allow.has("pursuits")
+        ? supabase.from("items").select("name, type, created_date, done").eq("user_id", user.id)
+        : none
+    ]);
+
+    const used = [...allow].filter(s => ["moments", "journal", "harvests", "pursuits"].includes(s));
+    const material = {
+      moments: (moments || []).map(m => ({ date: m.moment_date, title: m.title, writing: m.description || undefined })),
+      journal_entries: (entries || [])
+        .filter(e => (e.content || "").trim())
+        .reverse()
+        .map(e => ({ date: e.entry_date, words: e.content.trim().slice(0, SNIPPET) })),
+      harvest_notes: (harvests || []).filter(h => (h.note || "").trim()).map(h => ({ week_of: h.week_start, note: h.note.trim() })),
+      pursuits: (items || []).map(i => ({ name: i.name, kind: i.type, began: i.created_date || undefined, completed: i.done || undefined }))
+    };
+    const total = material.moments.length + material.journal_entries.length + material.harvest_notes.length + material.pursuits.length;
+    if (total === 0) {
+      return json({
+        chapters: [],
+        sources: used,
+        message: used.length
+          ? "There isn't enough yet to find chapters in. Add some Moments or write in your YOUrnal, then try again."
+          : "Chapters can draw on your Moments, YOUrnal, harvests and pursuits, but you've chosen to keep all of them from the AI. You can change that in Your Own Universe → AI reflections."
+      });
     }
 
-    // A clean chronological timeline reasons better than a wall of fields.
-    const timeline = [...moments]
-      .sort((a, b) => new Date(a.moment_date) - new Date(b.moment_date))
-      .map(m => `${m.moment_date} — ${m.title}${m.description ? `: ${m.description}` : ""}`)
-      .join("\n");
-
-    const harvestLines = (Array.isArray(harvests) ? harvests : [])
-      .filter(h => h && h.week_start && String(h.note || "").trim())
-      .sort((a, b) => (a.week_start > b.week_start ? 1 : -1))
-      .map(h => `week of ${h.week_start} — ${String(h.note).trim()}`)
-      .join("\n");
-
-    const prompt = `You are helping someone see their own life story reflected back to them inside a self-love and personal-growth app called YOU. Below is a chronological timeline of real moments from their life (title and optional description per line).
-
-Group these moments into 2-5 "chapters" — meaningful, contiguous eras of their life, ordered chronologically, based on real thematic and temporal shifts you notice in the content (not arbitrary equal-sized slices). Each chapter needs:
-- "title": a short, grounded, evocative name (2-5 words). Avoid clichés, avoid therapy-speak, avoid being twee. Ground it in what's actually in their moments, not generic life-stage labels.
-- "range_start" and "range_end": ISO dates (YYYY-MM-DD) spanning the moments in that chapter. range_end may equal the most recent moment's date if the chapter is still ongoing.
-- "blurb": one honest, warm sentence (under 20 words) capturing what this era was about for them.
-- "moment_titles": the exact titles (verbatim) of the moments belonging to this chapter.
-
-Every moment must belong to exactly one chapter. Respond with ONLY a JSON array, no prose, no markdown code fences, matching this exact shape:
-[{"title": "...", "range_start": "YYYY-MM-DD", "range_end": "YYYY-MM-DD", "blurb": "...", "moment_titles": ["..."]}]
-
-Timeline:
-${timeline}${harvestLines ? `
-
-Weekly harvest notes (things they chose to remember at the end of a week). Use these only as context for naming chapters and writing blurbs that reflect what each era really held; they are not moments, never list them in moment_titles, and don't invent moments from them:
-${harvestLines}` : ""}`;
-
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 1500,
-        messages: [{ role: "user", content: prompt }]
-      })
+    const raw = await callClaude({
+      system: SYSTEM,
+      // Room for the model to think first, then the chapters (2500 ran out).
+      maxTokens: 8000,
+      jsonSchema: SCHEMA,
+      usage: { req, fn: "suggest-chapters" },
+      messages: [{
+        role: "user",
+        content: `Drawn only from what they allow the AI to read: ${used.map(s => SOURCE_NAMES[s as keyof typeof SOURCE_NAMES]).join(", ")}.\n\n${JSON.stringify(material, null, 1)}`
+      }]
     });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("Anthropic API error:", res.status, errText);
-      return jsonResponse({ error: "AI request failed", detail: errText }, 502);
-    }
-
-    const data = await res.json();
-    await logUsage({ req, fn: "suggest-chapters", data });
-    const text = data.content?.[0]?.text || "[]";
-
-    let chapters;
-    try {
-      const cleaned = text.trim()
-        .replace(/^```json\s*/i, "")
-        .replace(/^```\s*/i, "")
-        .replace(/```\s*$/i, "");
-      chapters = JSON.parse(cleaned);
-    } catch {
-      console.error("Failed to parse AI response as JSON:", text);
-      return jsonResponse({ error: "AI response wasn't valid JSON", raw: text }, 502);
-    }
-
-    // Output moderation; moment_titles are the Seeker's own words, echoed back.
-    const { value: safeChapters, stats } = moderate(chapters, ["moment_titles", "range_start", "range_end"]);
-    if (stats.blocked) return jsonResponse({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
-    return jsonResponse({ chapters: safeChapters });
+    const parsed = JSON.parse(raw) as { chapters: unknown[] };
+    // Output moderation; moment titles are the Seeker's own words, echoed back.
+    const { value: chapters, stats } = moderate(parsed.chapters || [], ["moment_titles", "range_start", "range_end"]);
+    if (stats.blocked) return json({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
+    return json({ chapters, sources: used });
   } catch (e) {
-    console.error("suggest-chapters error:", e);
-    return jsonResponse({ error: String(e) }, 500);
+    console.error("[suggest-chapters]", e);
+    return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
   }
 });

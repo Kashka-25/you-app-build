@@ -132,6 +132,7 @@ export default function AddMomentModal({ open, onClose, moment, defaults }) {
     setDeleting(true);
     try {
       await deleteMoment(moment.id);
+      setDeleting(false); // the window is reused; don't leave it stuck on Deleting…
       close();
     } catch (e) {
       console.error("[AddMomentModal] delete failed:", e);

@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
+import { newStepId } from "./habits";
+import { bandFor } from "./mood";
 import { fileEntryToProjects } from "./projects";
 import {
   XP_VALS, PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2, normalizePillar,
@@ -62,6 +64,7 @@ function dbToItem(row) {
   return {
     id: row.id, name: row.name, type: row.type, cat: normalizePillar(row.cat), subcat: row.subcat || "", note: row.note || "",
     tags: row.tags || [], intention: row.intention || "", milestones: row.milestones || [],
+    dailyTarget: row.daily_target || null,
     done: row.done, streak: row.streak || 0,
     days: row.days || [false, false, false, false, false, false, false],
     lastCheckin: row.last_checkin || null, created: row.created, createdDate: row.created_date,
@@ -91,6 +94,7 @@ function itemToRow(item, userId) {
   const row = {
     user_id: userId, name: item.name, type: item.type, cat: item.cat, subcat: item.subcat || "", note: item.note || "",
     tags: item.tags || [], intention: item.intention || "", milestones: item.milestones || [],
+    daily_target: item.dailyTarget || null,
     done: item.done, streak: item.streak || 0,
     days: item.days || [false, false, false, false, false, false, false],
     last_checkin: item.lastCheckin || null, created: item.created, created_date: item.createdDate
@@ -102,6 +106,8 @@ function itemToRow(item, userId) {
 export function AppDataProvider({ children }) {
   const { userId, loading: authLoading, prefs } = useAuth();
   const [items, setItems] = useState([]);
+  // Each habit step ticked on each day (habit_logs; lib/habits.js).
+  const [habitLogs, setHabitLogs] = useState([]);
   const [memory, setMemory] = useState([]);
   const [moodLog, setMoodLog] = useState([]);
   const [values, setValues] = useState([]);
@@ -218,6 +224,7 @@ export function AppDataProvider({ children }) {
       loadCompass();
       loadFocusSessions();
       loadHighlights();
+      loadHabitLogs();
       loadAiConsent();
       loadReflections();
       loadArcana();
@@ -320,11 +327,13 @@ export function AppDataProvider({ children }) {
     setSync("synced");
   }
 
-  async function addItem({ name, type, cat, subcat, note, tags, milestones, intention, createdDate }) {
+  async function addItem({ name, type, cat, subcat, note, tags, milestones, intention, createdDate, dailyTarget }) {
     const dateKey = createdDate || todayKey();
     const item = {
       id: "temp_" + Date.now(), name, type, cat, subcat: subcat || "", note: note || "",
-      tags: tags || [], milestones: (milestones || []).map(m => ({ text: m.text, done: false })),
+      // Habit steps keep their id and amount (lib/habits.js).
+      tags: tags || [], milestones: (milestones || []).map(m => ({ ...(m.id && { id: m.id }), text: m.text, done: false, ...(m.amount != null && m.amount !== "" && { amount: Number(m.amount) }), ...(m.unit && { unit: m.unit }) })),
+      dailyTarget: dailyTarget || null,
       done: false, streak: 0, days: [false, false, false, false, false, false, false],
       lastCheckin: null, intention: intention || "", created: niceDateFrom(dateKey), createdDate: dateKey
     };
@@ -466,6 +475,47 @@ export function AppDataProvider({ children }) {
     if (res.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: res.data.id } : m)));
   }
 
+  async function loadHabitLogs() {
+    const res = await supabase.from("habit_logs").select("*").eq("user_id", userId).order("day", { ascending: false }).limit(10000);
+    if (!res.error) setHabitLogs(res.data || []);
+  }
+
+  // Tick (or untick) one of a habit's steps for today. The day's check-in
+  // follows along: the first tick of the day checks the habit in (XP as
+  // before), and taking the last one away undoes today's check-in.
+  async function toggleHabitStep(itemId, key, amount = null) {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    const day = todayKey();
+    const slot = (new Date().getDay() + 6) % 7;
+    const existing = habitLogs.find(l => l.item_id === itemId && l.day === day && l.step === key);
+    let logs;
+    if (existing) {
+      logs = habitLogs.filter(l => l !== existing);
+      setHabitLogs(logs);
+      const res = await supabase.from("habit_logs").delete().eq("id", existing.id).eq("user_id", userId);
+      if (res.error) { setHabitLogs(habitLogs); throw res.error; }
+    } else {
+      const row = { user_id: userId, item_id: itemId, day, step: key, amount };
+      const res = await supabase.from("habit_logs").insert(row).select().single();
+      if (res.error) throw res.error;
+      logs = [res.data, ...habitLogs];
+      setHabitLogs(logs);
+    }
+    const anyToday = logs.some(l => l.item_id === itemId && l.day === day);
+    const checkedToday = item.days[slot] && item.lastCheckin === day;
+    if (anyToday && !item.days[slot]) await toggleDay(itemId, slot);
+    else if (!anyToday && checkedToday) await toggleDay(itemId, slot);
+  }
+
+  // What was actually done today: 150 push-ups, an hour instead of 30 minutes.
+  async function setHabitAmount(logId, amount) {
+    const value = amount === "" || amount == null ? null : Number(amount);
+    setHabitLogs(prev => prev.map(l => (l.id === logId ? { ...l, amount: value } : l)));
+    const res = await supabase.from("habit_logs").update({ amount: value, updated_at: new Date().toISOString() }).eq("id", logId).eq("user_id", userId);
+    if (res.error) { loadHabitLogs(); throw res.error; }
+  }
+
   async function toggleMilestone(itemId, mi) {
     const item = items.find(i => i.id === itemId);
     if (!item) return;
@@ -480,7 +530,8 @@ export function AppDataProvider({ children }) {
   async function addMilestone(itemId, text) {
     const item = items.find(i => i.id === itemId);
     if (!item) return;
-    const updated = { ...item, milestones: [...(item.milestones || []), { text, done: false }] };
+    const step = { text, done: false, ...(item.type === "habit" && { id: newStepId() }) };
+    const updated = { ...item, milestones: [...(item.milestones || []), step] };
     setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
     await saveItemRow(updated);
   }
@@ -1144,6 +1195,17 @@ export function AppDataProvider({ children }) {
     setAiConsent(res.data || { granted: false });
   }
 
+  // Which parts of YOU the AI may read (lib/aiSources.js). Enforced again
+  // server-side by every AI function (_shared/sources.ts).
+  async function setAiSources(sources) {
+    const now = new Date().toISOString();
+    const res = await supabase.from("ai_consent")
+      .upsert({ user_id: userId, granted: Boolean(aiConsent?.granted), sources, updated_at: now })
+      .select().single();
+    if (res.error) throw res.error;
+    setAiConsent(res.data);
+  }
+
   async function setAiConsentGranted(granted) {
     const now = new Date().toISOString();
     const row = granted
@@ -1550,10 +1612,14 @@ export function AppDataProvider({ children }) {
   // The daily check-in on Home ("How are you arriving today?"), kept in
   // mood_log alongside the old moon-phase log. A change of heart adds a new
   // row; the newest one for the day is the answer.
-  async function logMood(mood) {
+  // Takes a 0–100 score (the slider, Oct 27) or one of the five words; the
+  // word is always stored too, worked out from the score.
+  async function logMood(moodOrScore) {
+    const scored = typeof moodOrScore === "number";
     const row = {
       user_id: userId,
-      mood,
+      mood: scored ? bandFor(moodOrScore).key : moodOrScore,
+      ...(scored && { score: Math.round(moodOrScore) }),
       date: new Date().toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" }),
       date_key: todayKey()
     };
@@ -1839,15 +1905,13 @@ export function AppDataProvider({ children }) {
   // Anthropic key never reaches the browser) to propose named eras from
   // the current moments. Returns suggestions only; nothing is saved until
   // saveChapters is called with what the user accepts.
+  // The function gathers for itself, server-side, from only the parts of
+  // YOU the Seeker allows (Moments, YOUrnal, harvests, pursuits), so nothing
+  // is sent from here. { chapters, message, sources }.
   async function suggestChapters() {
     await withAiConsent();
-    const payload = moments.map(m => ({ title: m.title, moment_date: m.moment_date, description: m.description }));
-    // Harvest notes go along as context, so chapters reflect what each era
-    // held, not only its milestones. (All of them, not just recent weeks.)
-    const harvestRes = await supabase.from("week_harvests").select("week_start, note").eq("user_id", userId).not("note", "is", null);
-    const harvests = (harvestRes.data || []).filter(h => (h.note || "").trim());
-    const data = await invokeAi("suggest-chapters", { moments: payload, harvests });
-    return data.chapters || [];
+    const data = await invokeAi("suggest-chapters", {});
+    return { chapters: data.chapters || [], message: data.message || "", sources: data.sources || [] };
   }
 
   // Replaces the user's saved chapters wholesale with the accepted list —
@@ -1954,6 +2018,7 @@ export function AppDataProvider({ children }) {
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
+    habitLogs, toggleHabitStep, setHabitAmount,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
@@ -1967,7 +2032,7 @@ export function AppDataProvider({ children }) {
     highlights, addHighlight, updateHighlight, deleteHighlight,
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
-    aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted,
+    aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted, setAiSources,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     isAdmin, adminChecked, sendBuildNote, sendAllIdeaEntries, ideaEntryCount: journalEntries.filter(isIdeaEntry).length, entitlement, aiAllowed: canUseAi(entitlement), codexNew, recordValueWords, addOwnValue, loadCodexRequests, setCodexWordStatus,
     heldArcana, arcanaLoaded, addArcanum, redeemArcanumCode, removeArcanum, courseProgress, toolUses, completeCoursePart, skipCourseRest, saveToolUse, courseWalks, walkFor, startNewWalk, setIncludeCourses, deleteToolUse,

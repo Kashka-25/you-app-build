@@ -64,14 +64,9 @@
   --on-accent: #F4F6FB;
   --card-highlight: rgba(255, 255, 255, 0.05);
   --field-shadow: rgba(0, 0, 0, 0.35);
-  /* Starlight and nebula over the night. */
+  /* Nebula over the night. The stars are their own layers (below), so
+     they can drift. */
   --sky:
-    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.8) 50%, transparent 51%),
-    radial-gradient(1px 1px at 34% 62%, rgba(255, 255, 255, 0.55) 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 58% 28%, rgba(255, 244, 214, 0.85) 50%, transparent 51%),
-    radial-gradient(1px 1px at 76% 74%, rgba(255, 255, 255, 0.5) 50%, transparent 51%),
-    radial-gradient(1px 1px at 88% 12%, rgba(255, 255, 255, 0.7) 50%, transparent 51%),
-    radial-gradient(1px 1px at 22% 88%, rgba(255, 255, 255, 0.45) 50%, transparent 51%),
     radial-gradient(900px 520px at 85% -5%, rgba(108, 104, 182, 0.22) 0%, rgba(108, 104, 182, 0) 62%),
     radial-gradient(800px 480px at 5% 105%, rgba(31, 122, 130, 0.16) 0%, rgba(31, 122, 130, 0) 60%),
     linear-gradient(180deg, #0D0D25 0%, #0A0A1C 100%);
@@ -82,9 +77,64 @@
   background-color: var(--bg);
   background-image: var(--sky);
   background-attachment: fixed;
-  background-size: 360px 360px, 420px 420px, 380px 380px, 460px 460px, 400px 400px, 440px 440px, auto, auto, auto;
+  background-size: auto;
 }
-:root:not([data-mode="dark"]) .you-sky { background-size: auto; }
+
+/* Cosmos stars that drift gently (Cassidy, Oct 25: "move gently and
+   gracefully"). Two fixed layers behind everything, each a repeating tile
+   of a few stars, drifting slowly in different directions; one also
+   breathes a little. They belong to each sky container (isolation keeps
+   them in front of its night background and behind its content), so
+   full-screen layers like the course player keep their own solid sky.
+   Phones set to reduce motion get still stars. */
+[data-mode="dark"] .you-sky { isolation: isolate; }
+[data-mode="dark"] .you-sky::before,
+[data-mode="dark"] .you-sky::after {
+  content: "";
+  position: fixed;
+  inset: -80px;
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform;
+}
+[data-mode="dark"] .you-sky::before {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.8) 50%, transparent 51%),
+    radial-gradient(1px 1px at 34% 62%, rgba(255, 255, 255, 0.55) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 58% 28%, rgba(255, 244, 214, 0.85) 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 74%, rgba(255, 255, 255, 0.5) 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 12%, rgba(255, 255, 255, 0.7) 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 88%, rgba(255, 255, 255, 0.45) 50%, transparent 51%);
+  background-size: 360px 360px, 420px 420px, 380px 380px, 460px 460px, 400px 400px, 440px 440px;
+  animation: you-drift-a 110s ease-in-out infinite alternate, you-breathe 7s ease-in-out -3s infinite;
+}
+[data-mode="dark"] .you-sky::after {
+  background-image:
+    radial-gradient(1px 1px at 8% 44%, rgba(255, 255, 255, 0.6) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 46% 12%, rgba(224, 184, 101, 0.75) 50%, transparent 51%),
+    radial-gradient(1px 1px at 66% 52%, rgba(255, 255, 255, 0.5) 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 86%, rgba(255, 255, 255, 0.55) 50%, transparent 51%);
+  background-size: 310px 310px, 520px 520px, 390px 390px, 470px 470px;
+  animation: you-drift-b 150s ease-in-out infinite alternate, you-breathe 5s ease-in-out infinite;
+}
+@keyframes you-drift-a {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-40px, -26px, 0); }
+}
+@keyframes you-drift-b {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(34px, -38px, 0); }
+}
+/* A noticeable breath (Cassidy, Oct 28), the two layers out of step so
+   some stars brighten while others rest. */
+@keyframes you-breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-mode="dark"] .you-sky::before,
+  [data-mode="dark"] .you-sky::after { animation: none; }
+}
 
 body {
   background-color: var(--bg);
@@ -298,3 +348,28 @@ body {
 .you-scale:focus-visible { outline: none; }
 .you-scale:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 35%, transparent); }
 .you-scale:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gold) 35%, transparent); }
+
+/* The mood slider (DailyCheckIn): a warm-to-fresh track and a soft thumb. */
+.mood-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgb(200, 102, 90), rgb(208, 138, 78), rgb(201, 162, 60), rgb(111, 154, 94), rgb(111, 138, 62));
+  outline: none;
+}
+.mood-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-1); border: 3px solid var(--gold);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); cursor: pointer;
+}
+.mood-range::-moz-range-thumb {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--surface-1); border: 3px solid var(--gold);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); cursor: pointer;
+}
+.mood-range:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 45%, transparent); }
+/* The face in Home's corner sits above the tab bar on phones. */
+.mood-corner { bottom: calc(76px + env(safe-area-inset-bottom) + 12px); }
+@media (min-width: 1024px) { .mood-corner { bottom: 24px; right: 24px; } }

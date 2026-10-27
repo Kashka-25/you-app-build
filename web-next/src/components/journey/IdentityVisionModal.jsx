@@ -74,6 +74,7 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
     setDeleting(true);
     try {
       await deleteIdentityVision(vision.id);
+      setDeleting(false); // the window is reused; don't leave it stuck on Deleting…
       onClose();
     } catch (e) {
       console.error("[IdentityVisionModal] delete failed:", e);
