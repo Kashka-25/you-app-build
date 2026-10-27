@@ -7,6 +7,14 @@ import { useAuth } from "./AuthContext";
 // take the Seeker there.
 export const WHATS_NEW = [
   {
+    id: "2026-10-27b-extras", // sorts after the 27th's first entry, so the dot comes back
+    date: "2026-10-27",
+    title: "Make YOU yours with Extras",
+    body: "Open Extras in the side menu to choose what you see. Hide places you don't use from the side menu, and pick the two places either side of Add on your bottom bar. Home and YOU always stay, and new extras like YOUr Projects are switched on there too.",
+    to: "/extras",
+    open: "Open Extras"
+  },
+  {
     id: "2026-10-27-projects",
     date: "2026-10-27",
     title: "YOUr Projects",

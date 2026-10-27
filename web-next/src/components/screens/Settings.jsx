@@ -11,7 +11,7 @@ import { BackRow, SectionTitle } from "../Primitives";
 import { PLUGINS, usePlugin, useSetPlugin } from "../../lib/plugins";
 import { exportMyData, downloadJson, deleteMyAccount } from "../../lib/accountData";
 import { localDateKey } from "../../lib/week";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { KRONK_FEEDS, disconnectKronk, goToKronk, refreshKronkLink, signsInWithKronk, useKronkFeeds, useKronkLink } from "../../lib/kronk";
 import { supabase } from "../../lib/supabaseClient";
 import { FloatingLabelField } from "../ui/Input";
@@ -341,7 +341,10 @@ function PluginsSetting() {
   const setPlugin = useSetPlugin();
   return (
     <div>
-      <div className="text-bodySm text-textSecondary mb-3">Turn on only what helps. Nothing you've added is lost when you turn something off.</div>
+      <div className="text-bodySm text-textSecondary mb-3">
+        Turn on only what helps. Nothing you've added is lost when you turn something off.{" "}
+        <Link to="/extras" className="text-forestAccent underline underline-offset-2">Extras</Link> also lets you choose what shows in your side menu and bottom bar.
+      </div>
       {PLUGINS.map(p => <PluginRow key={p.key} plugin={p} onChange={on => setPlugin(p.key, on)} />)}
     </div>
   );
