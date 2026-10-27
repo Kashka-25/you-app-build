@@ -49,6 +49,10 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
     setStopId(entry?.stop_id || null);
     setTagInput("");
     setError("");
+    // The window is reused for the next entry, so it opens fresh: after a
+    // delete it used to keep saying "Deleting…" (Cassidy, Oct 27).
+    setSaving(false);
+    setDeleting(false);
     setSelection("");
     setKeeping(null);
     setPending([]);
@@ -119,6 +123,7 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
     setDeleting(true);
     try {
       await deleteJournalEntry(entry.id);
+      setDeleting(false);
       onClose();
     } catch (e) {
       console.error("[JournalEntryModal] delete failed:", e);
