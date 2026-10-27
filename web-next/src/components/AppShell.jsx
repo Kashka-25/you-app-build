@@ -11,6 +11,7 @@ import FeedbackSheet from "./FeedbackSheet";
 import LevelUpCelebration from "./pillars/LevelUpCelebration";
 import { BetaBadge } from "./SignIn";
 import OfflineBanner from "./OfflineBanner";
+import { useNavigation } from "../lib/navigation";
 
 export default function AppShell() {
   // Remembered on this device; index.html applies it before the first paint.
@@ -21,6 +22,8 @@ export default function AppShell() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  // The bar's two middle spots are the Seeker's to choose (lib/navigation.js).
+  const { bar } = useNavigation();
   const [feedbackKind, setFeedbackKind] = useState("problem");
   const openFeedback = (kind = "problem") => { setFeedbackKind(kind); setFeedbackOpen(true); };
   // Home spreads out into a grid on a laptop; every other screen keeps its
@@ -83,22 +86,16 @@ export default function AppShell() {
             <TabEmblem icon="home" />
             Home
           </NavLink>
-          <NavLink to="/journey" className={({ isActive }) => tabClass(isActive)}>
-            <TabEmblem icon="yourney" />
-            YOUrney
-          </NavLink>
+          <BarTab place={bar[0]} />
           <button onClick={() => setSheetOpen(true)} className="flex-1 text-center text-label text-textMuted pt-1.5">
             <div className="w-9 h-9 rounded-full bg-forestAccent mx-auto -mt-4 mb-1.5 flex items-center justify-center">
               <Plus size={18} strokeWidth={2} className="text-onAccent" />
             </div>
             Add
           </button>
-          {/* The YOUrnal (Reflections screen) in the tab bar (Cassidy, Oct 18).
-              CommYOUnity stays in the side menu. */}
-          <NavLink to="/reflections" className={({ isActive }) => tabClass(isActive)}>
-            <TabEmblem icon="reflections" />
-            YOUrnal
-          </NavLink>
+          {/* Home, Add and YOU stay put; the spots either side of Add are
+              YOUrney and YOUrnal until the Seeker picks others in Extras. */}
+          <BarTab place={bar[1]} />
           <NavLink to="/you" className={({ isActive }) => tabClass(isActive)}>
             <TabEmblem icon="you" />
             YOU
@@ -124,6 +121,15 @@ export default function AppShell() {
   );
 }
 
+function BarTab({ place }) {
+  return (
+    <NavLink to={place.to} end={place.end} className={({ isActive }) => tabClass(isActive)}>
+      <TabEmblem icon={place.icon} />
+      <span className="block truncate px-0.5">{place.label}</span>
+    </NavLink>
+  );
+}
+
 // The same emblem each place wears in the side menu, so the two read as one
 // map. Resting tabs sit a little quieter; the one you're on is full colour.
 function TabEmblem({ icon }) {
@@ -139,5 +145,5 @@ function TabEmblem({ icon }) {
 }
 
 function tabClass(isActive) {
-  return `group flex-1 text-center text-label pt-1.5 ${isActive ? "text-element" : "text-textMuted"}`;
+  return `group flex-1 min-w-0 text-center text-label pt-1.5 ${isActive ? "text-element" : "text-textMuted"}`;
 }

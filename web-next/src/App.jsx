@@ -42,6 +42,7 @@ import CodexRequests from "./components/screens/CodexRequests";
 import BuildNotes from "./components/screens/BuildNotes";
 import BetaInbox from "./components/screens/BetaInbox";
 import WhatsNew from "./components/screens/WhatsNew";
+import Extras from "./components/screens/Extras";
 import { ProjectsLayout, ProjectsHome, ProjectView } from "./components/projects/ProjectsSpace";
 import FindYourWay from "./components/screens/FindYourWay";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
@@ -192,6 +193,7 @@ export default function App() {
         <Route path="/build-notes" element={<BuildNotes />} />
         <Route path="/tester-inbox" element={<BetaInbox />} />
         <Route path="/whats-new" element={<WhatsNew />} />
+        <Route path="/extras" element={<Extras />} />
         <Route path="/find-your-way" element={<FindYourWay />} />
       </Route>
     </Routes>

@@ -20,6 +20,7 @@ const MENU = [
   { icon: "community", name: <KommYOUnity />, to: "/community", says: "A calm window onto Kronk, the community space. Connect your Kronk account to join in." },
   { icon: "showcase", name: "Showcase", to: "/showcase", says: "Art and creations shared by YOUsers." },
   { icon: "light-dark", name: "Nature or Cosmos", says: "The switch at the bottom of the menu: earthy light, or the night sky." },
+  { name: "Extras", to: "/extras", says: "Make YOU yours: add extras like YOUr Projects, hide places from this menu, and choose what sits on your bottom bar." },
   { name: "Your Own Universe", to: "/settings", says: "Your settings: your profile, colours, what's switched on, and your data." }
 ];
 
@@ -107,7 +108,7 @@ export default function FindYourWay() {
         </ol>
       </Card>
 
-      <Card title="The bar at the bottom" lead="Always there on your phone. These are the places you'll use most.">
+      <Card title="The bar at the bottom" lead="Always there on your phone. Home, Add and YOU stay put; the other two are yours to choose in Extras.">
         {BOTTOM_BAR.map(p => <Place key={p.name} place={p} />)}
       </Card>
 
