@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Guide } from "../../ui/Guide";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Maximize2, Plus, X } from "lucide-react";
 import { PILLAR_ICONS } from "../../../constants/pillarIcons";
 import { VALUE_ICONS, getValueEntry } from "../../../constants/valueLibrary";
 import { useAppData } from "../../../lib/AppDataContext";
@@ -164,6 +164,26 @@ function PortalSwirl({ origin, direction = "in" }) {
 }
 
 export default function TreeOfStars() {
+  // Full screen (Cassidy, Oct 25): the tree fills the screen, sized to fit
+  // its height, with the details still opening underneath. Uses the
+  // browser's own full screen where it's allowed, so the bars hide too.
+  const [full, setFull] = useState(false);
+  function enterFull() {
+    setFull(true);
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }
+  function exitFull() {
+    setFull(false);
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  }
+  useEffect(() => {
+    if (!full) return;
+    const onKey = e => { if (e.key === "Escape") exitFull(); };
+    const onChange = () => { if (!document.fullscreenElement) setFull(false); };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("fullscreenchange", onChange); };
+  }, [full]);
   const { pillars, values, identityVisions, valueChallenges, reflections, level, focusSessions } = useAppData();
   // The garden: focus sessions growing around the trunk. Tapping it zooms
   // the view down into the soil, then opens the garden up close.
@@ -319,14 +339,36 @@ export default function TreeOfStars() {
   }, []);
 
   return (
-    <div className="pt-1 pb-24 px-5">
-      <div className="font-serif text-h2 font-medium mb-1">Tree of YOU</div>
-      <Guide className="mb-3">
-        Your Pillars are the roots, your Values the branches, bearing fruit as they ripen. The canopy
-        reaches into the stars: the versions of yourself you're growing toward. Tap anything to trace
-        what feeds it.
-      </Guide>
+    <div
+      className={full ? "fixed inset-0 z-40 overflow-y-auto px-3 pb-10 font-sans" : "pt-1 pb-24 px-5"}
+      style={full ? { background: "#07071A", paddingTop: "max(env(safe-area-inset-top), 8px)" } : undefined}
+      role={full ? "dialog" : undefined}
+      aria-label={full ? "Tree of YOU, full screen" : undefined}
+    >
+      {full ? (
+        <div className="flex items-center justify-between h-12 mb-1">
+          <span className="font-serif text-h3 text-[#EDE6D6]">Tree of YOU</span>
+          <button type="button" onClick={exitFull} aria-label="Leave full screen" className="w-11 h-11 rounded-full flex items-center justify-center text-[#EDE6D6] hover:bg-white/10">
+            <X size={20} strokeWidth={1.75} />
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <div className="font-serif text-h2 font-medium">Tree of YOU</div>
+            <button type="button" onClick={enterFull} className="inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-full border border-borderC text-caption text-textSecondary hover:text-textPrimary">
+              <Maximize2 size={14} strokeWidth={1.75} /> Full screen
+            </button>
+          </div>
+          <Guide className="mb-3">
+            Your Pillars are the roots, your Values the branches, bearing fruit as they ripen. The canopy
+            reaches into the stars: the versions of yourself you're growing toward. Tap anything to trace
+            what feeds it.
+          </Guide>
+        </>
+      )}
 
+      <div style={full ? { width: "min(100%, calc((100dvh - 64px) * 0.714))", margin: "0 auto" } : undefined}>
       <motion.div
         className="relative rounded-card overflow-hidden border border-borderC"
         style={{ background: "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%)", boxShadow: "inset 0 0 60px -10px rgba(0,0,0,0.6)" }}
@@ -578,6 +620,7 @@ export default function TreeOfStars() {
         </svg>
         </motion.div>
       </motion.div>
+      </div>
 
       <GardenOfYou open={gardenOpen} sessions={focusSessions} onClose={() => setGardenOpen(false)} />
 

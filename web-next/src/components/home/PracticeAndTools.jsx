@@ -42,7 +42,7 @@ export function PracticeCard({ tool }) {
 const TOOLS = [
   { to: "/reflections", label: "Journal", note: "Write it down", image: "/images/home/tool-journal.webp" },
   { to: "/focus", label: "Focus", note: "One thing, fully", image: "/images/home/tool-focus.webp" },
-  { to: "/pursue", label: "Pursuits", note: "What you're growing", image: "/images/home/tool-pursuits.webp" },
+  { to: "/pursue", label: "PursYOUts", note: "What you're growing", image: "/images/home/tool-pursuits.webp" },
   { to: "/youniversity", label: "YOUniversity", note: "Guided journeys", image: "/images/home/tool-youniversity.webp" }
 ];
 

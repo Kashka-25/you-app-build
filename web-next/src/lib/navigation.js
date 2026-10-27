@@ -13,6 +13,8 @@ export const PLACES = [
   { key: "home", to: "/", end: true, label: "Home", icon: "home", locked: true },
   { key: "yourney", to: "/journey", label: "YOUrney", icon: "yourney" },
   { key: "yournal", to: "/reflections", label: "YOUrnal", icon: "reflections" },
+  // "PursYOUts" is a trial name (Cassidy, Oct 27); the page is /pursue.
+  { key: "pursuits", to: "/pursue", label: "PursYOUts", icon: "pursuits" },
   { key: "youniversity", to: "/youniversity", label: "YOUniversity", icon: "youniversity" },
   { key: "community", to: "/community", label: "KommYOUnity", icon: "community" },
   { key: "you", to: "/you", label: "YOU", icon: "you", locked: true },

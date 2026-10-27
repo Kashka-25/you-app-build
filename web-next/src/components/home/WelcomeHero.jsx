@@ -71,13 +71,15 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
           </div>
         )}
 
-        <Link
-          to={cta.to}
-          className="mt-4 self-start inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-forestAccent text-onAccent font-medium text-body shadow-card hover:bg-forest active:scale-[0.98] transition"
-        >
-          {cta.label}
-          <ArrowRight size={17} strokeWidth={2} />
-        </Link>
+        {cta && (
+          <Link
+            to={cta.to}
+            className="mt-4 self-start inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-forestAccent text-onAccent font-medium text-body shadow-card hover:bg-forest active:scale-[0.98] transition"
+          >
+            {cta.label}
+            <ArrowRight size={17} strokeWidth={2} />
+          </Link>
+        )}
       </div>
     </motion.section>
   );

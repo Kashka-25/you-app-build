@@ -12,12 +12,25 @@ export const PLUGINS = [
     title: "Today's to-do list",
     icon: "todo",
     desc: "A quick list for small things today, on Home and the Threshold. Whatever's left tonight falls away.",
+    summary: "A light list for the small things you want to do today.",
+    more: [
+      "It sits in Today on Home and on the Threshold. Type a thing, tick it off, and break it into steps if it helps.",
+      "It's for small, one-off things that aren't part of what you're growing: no Pillars, no XP, no streaks.",
+      "Whatever's left at night falls away, so nothing piles up as overdue. Tomorrow starts clear."
+    ],
     on: true
   },
   {
     key: "projects",
     title: "YOUr Projects",
     icon: "projects",
+    summary: "A space for the things you're making, each with its own to-do list.",
+    more: [
+      "Make a project for anything with its own running list: a book, a garden, a business, a move overseas.",
+      "Each one keeps notes and to-dos as New, Doing or Done, with search, so nothing gets lost.",
+      "Tag a YOUrnal entry with a project's name (for My Book, #MyBook) and it files itself into that project.",
+      "It opens as its own calm space from the side menu, and works offline like the rest of YOU."
+    ],
     desc: "A space of its own for the things you're making: a book, a garden, a move. Each project keeps its notes and to-dos as New, Doing or Done. Opens from the side menu.",
     on: false
   }
