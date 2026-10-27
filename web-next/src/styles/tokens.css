@@ -106,7 +106,7 @@
     radial-gradient(1px 1px at 88% 12%, rgba(255, 255, 255, 0.7) 50%, transparent 51%),
     radial-gradient(1px 1px at 22% 88%, rgba(255, 255, 255, 0.45) 50%, transparent 51%);
   background-size: 360px 360px, 420px 420px, 380px 380px, 460px 460px, 400px 400px, 440px 440px;
-  animation: you-drift-a 110s ease-in-out infinite alternate;
+  animation: you-drift-a 110s ease-in-out infinite alternate, you-breathe 7s ease-in-out -3s infinite;
 }
 [data-mode="dark"] .you-sky::after {
   background-image:
@@ -115,7 +115,7 @@
     radial-gradient(1px 1px at 66% 52%, rgba(255, 255, 255, 0.5) 50%, transparent 51%),
     radial-gradient(1px 1px at 92% 86%, rgba(255, 255, 255, 0.55) 50%, transparent 51%);
   background-size: 310px 310px, 520px 520px, 390px 390px, 470px 470px;
-  animation: you-drift-b 150s ease-in-out infinite alternate, you-breathe 9s ease-in-out infinite;
+  animation: you-drift-b 150s ease-in-out infinite alternate, you-breathe 5s ease-in-out infinite;
 }
 @keyframes you-drift-a {
   from { transform: translate3d(0, 0, 0); }
@@ -125,8 +125,10 @@
   from { transform: translate3d(0, 0, 0); }
   to { transform: translate3d(34px, -38px, 0); }
 }
+/* A noticeable breath (Cassidy, Oct 28), the two layers out of step so
+   some stars brighten while others rest. */
 @keyframes you-breathe {
-  0%, 100% { opacity: 0.7; }
+  0%, 100% { opacity: 0.35; }
   50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {

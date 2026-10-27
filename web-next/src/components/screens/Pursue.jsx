@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Wind, RotateCcw } from "lucide-react";
+import { Check, Wind, RotateCcw } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { PILLARS } from "../../constants/app.const";
+import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
 import { BackRow, SectionTitle, DropdownSection } from "../Primitives";
 import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
@@ -56,6 +56,32 @@ function GroupNode({ items, depth }) {
         </DropdownSection>
       ))}
     </>
+  );
+}
+
+// Each Pillar's heading wears its colour, so it stands apart from the
+// quiet "Completed" fold beneath it (Cassidy, Oct 28).
+function PillarHeading({ cat, count }) {
+  const color = PILLAR_COLORS[cat] || "var(--gold)";
+  return (
+    <span className="flex items-center gap-2.5">
+      <span className="w-1.5 h-7 rounded-full flex-none" style={{ background: color }} aria-hidden="true" />
+      <span>{cat}</span>
+      <span
+        className="font-sans text-caption font-medium px-2 py-0.5 rounded-full"
+        style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+      >
+        {count} growing
+      </span>
+    </span>
+  );
+}
+
+function CompletedLabel({ n }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 font-sans text-caption font-medium uppercase tracking-wider text-textMuted">
+      <Check size={13} strokeWidth={2} aria-hidden="true" /> Completed · {n}
+    </span>
   );
 }
 
@@ -118,10 +144,10 @@ export default function Pursue() {
         />
       ) : (
         groups.map(({ cat, list, done }) => (
-          <DropdownSection key={cat} title={`${cat} (${list.length})`} defaultOpen>
+          <DropdownSection key={cat} title={<PillarHeading cat={cat} count={list.length} />} defaultOpen>
             {list.length > 0 && <GroupNode items={list} depth={0} />}
             {done.length > 0 && (
-              <DropdownSection title={`Completed (${done.length})`} level={1}>
+              <DropdownSection title={<CompletedLabel n={done.length} />} level={1}>
                 <GroupNode items={done} depth={1} />
               </DropdownSection>
             )}
