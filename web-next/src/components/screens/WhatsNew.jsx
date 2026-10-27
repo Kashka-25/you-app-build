@@ -20,8 +20,13 @@ function NewCard({ item }) {
   const needsSwitch = item.plugin && !pluginOn;
   return (
     <article className="rounded-card bg-surface1 shadow-card p-4">
-      <div className="text-label uppercase text-gold mb-1">{niceDate(item.date)}</div>
-      <h3 className="font-serif text-h3 text-textPrimary m-0 mb-1">{item.title}</h3>
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="text-label uppercase text-gold mb-1">{niceDate(item.date)}</div>
+          <h3 className="font-serif text-h3 text-textPrimary m-0 mb-1">{item.title}</h3>
+        </div>
+        {item.icon && <img src={`/images/icons/${item.icon}@4x.png`} alt="" width="64" height="64" className="w-16 h-16 flex-none -mt-1 -mr-1" />}
+      </div>
       <p className="text-bodySm text-textSecondary m-0">{item.body}</p>
       {(needsSwitch || item.to) && (
         <div className="mt-3">

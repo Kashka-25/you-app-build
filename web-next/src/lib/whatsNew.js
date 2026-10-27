@@ -12,6 +12,7 @@ export const WHATS_NEW = [
     title: "YOUr Projects",
     body: "A space of its own for the things you're making: a book, a garden, a move. Each project keeps its notes and to-dos as New, Doing or Done. Tag a YOUrnal entry with a project's name and it lands there too.",
     plugin: "projects",
+    icon: "projects",
     to: "/projects",
     open: "Open YOUr Projects"
   },
