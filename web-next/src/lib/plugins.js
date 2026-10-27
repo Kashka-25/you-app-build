@@ -3,6 +3,9 @@ import { useAuth } from "./AuthContext";
 // Optional parts of YOU each Seeker can switch on or off in Your Own
 // Universe. Kept per account (auth prefs). `on` is the default for anyone
 // who hasn't chosen, so existing Seekers keep what they had.
+// `icon`: every extra has its own emblem in the YOU art style (Cassidy,
+// Oct 27), in public/images/icons as <name>.png (128px) and <name>@4x.png.
+// See design/plugin-emblems for how they're drawn.
 export const PLUGINS = [
   {
     key: "todo_list",
@@ -13,6 +16,7 @@ export const PLUGINS = [
   {
     key: "projects",
     title: "YOUr Projects",
+    icon: "projects",
     desc: "A space of its own for the things you're making: a book, a garden, a move. Each project keeps its notes and to-dos as New, Doing or Done. Opens from the side menu.",
     on: false
   },

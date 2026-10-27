@@ -363,6 +363,7 @@ export function PluginRow({ plugin, onChange }) {
   }
   return (
     <div className="flex items-start gap-3 py-2">
+      {plugin.icon && <img src={`/images/icons/${plugin.icon}.png`} alt="" width="40" height="40" className="w-10 h-10 flex-none -ml-1" />}
       <div className="flex-1 min-w-0">
         <div className="text-body text-textPrimary">{plugin.title}</div>
         <div className="text-caption text-textMuted">{plugin.desc}</div>

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, ChevronRight, FolderKanban, MoreHorizontal, Plus, Search, Trash2, X, Archive, BookOpen } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, MoreHorizontal, Plus, Search, Trash2, X, Archive, BookOpen } from "lucide-react";
 import { ProjectsProvider, useProjects, STATUSES, COLOURS, colourCss } from "../../lib/projects";
 import { usePlugin } from "../../lib/plugins";
 
@@ -45,7 +45,7 @@ function SwitchedOff() {
     <>
       <TopRow back="/" backLabel="YOU" />
       <div className="rounded-card bg-surface1 shadow-card p-5 mt-6 text-center">
-        <FolderKanban size={28} strokeWidth={1.5} className="mx-auto text-gold mb-2" />
+        <img src="/images/icons/projects@4x.png" alt="" width="96" height="96" className="w-24 h-24 mx-auto mb-2" />
         <h1 className="font-serif text-h2 text-textPrimary mb-1">YOUr Projects is switched off</h1>
         <p className="text-bodySm text-textSecondary mb-4">Switch it on in Your Own Universe, under Make YOU yours. Anything you made before is still here.</p>
         <Link to="/settings" className="inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-forestAccent text-onAccent font-medium">
@@ -73,7 +73,10 @@ export function ProjectsHome() {
   return (
     <>
       <TopRow back="/" backLabel="YOU" />
-      <h1 className="font-serif text-h1 text-textPrimary mb-1">YOUr Projects</h1>
+      <div className="flex items-center gap-3 mb-1">
+        <img src="/images/icons/projects@4x.png" alt="" width="56" height="56" className="w-14 h-14 flex-none" />
+        <h1 className="font-serif text-h1 text-textPrimary m-0">YOUr Projects</h1>
+      </div>
       <p className="text-bodySm text-textSecondary mb-5">The things you're making, each with its own list of notes and to-dos.</p>
 
       {error && <div className="text-bodySm text-red-500 mb-3">{error}</div>}
@@ -101,7 +104,7 @@ export function ProjectsHome() {
 
           {projects.length === 0 && !adding && (
             <div className="rounded-card border border-dashed border-borderC bg-surface1 p-5 text-center">
-              <FolderKanban size={26} strokeWidth={1.5} className="mx-auto text-gold mb-2" />
+              <img src="/images/icons/projects@4x.png" alt="" width="88" height="88" className="w-[88px] h-[88px] mx-auto mb-2" />
               <p className="text-body text-textPrimary mb-1">Start your first project</p>
               <p className="text-bodySm text-textSecondary">A book, a garden, a business, a move. Anything with its own running list.</p>
             </div>

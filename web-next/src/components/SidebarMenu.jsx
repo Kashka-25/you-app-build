@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, FolderKanban, Map as MapIcon, MessageSquareHeart, Sparkles, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Map as MapIcon, MessageSquareHeart, Sparkles, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
@@ -65,9 +65,7 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
         ))}
         {projectsOn && (
           <NavLink to="/projects" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
-            <span className="w-[30px] h-[30px] flex-none rounded-full bg-[color-mix(in_srgb,var(--gold)_16%,transparent)] flex items-center justify-center" aria-hidden="true">
-              <FolderKanban size={16} strokeWidth={1.75} className="text-gold" />
-            </span>
+            <img src="/images/icons/projects.png" alt="" width="30" height="30" className="w-[30px] h-[30px] flex-none" />
             YOUr Projects
           </NavLink>
         )}
