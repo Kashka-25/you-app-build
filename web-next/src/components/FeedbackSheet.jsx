@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Lightbulb, LifeBuoy, X } from "lucide-react";
@@ -21,9 +21,11 @@ const PROMPTS = {
   love: "What's working for you?"
 };
 
-export default function FeedbackSheet({ open, onClose }) {
+// `initialKind` picks the starting choice (What's new opens it on "An idea").
+export default function FeedbackSheet({ open, onClose, initialKind = "problem" }) {
   const { pathname } = useLocation();
-  const [kind, setKind] = useState("problem");
+  const [kind, setKind] = useState(initialKind);
+  useEffect(() => { if (open) setKind(initialKind); }, [open, initialKind]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
