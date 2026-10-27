@@ -106,7 +106,7 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
                         {p.icon
                           ? <img src={`/images/icons/${p.icon}.png`} alt="" width="26" height="26" className="w-[26px] h-[26px] flex-none" />
                           : <span className="w-[26px] h-[26px] flex-none rounded-full bg-[color-mix(in_srgb,var(--gold)_16%,transparent)] flex items-center justify-center" aria-hidden="true"><Puzzle size={13} strokeWidth={1.75} className="text-gold" /></span>}
-                        <span className="flex-1 min-w-0 text-bodySm text-textPrimary truncate">{p.title}</span>
+                        <span className="flex-1 min-w-0 text-bodySm leading-snug text-textPrimary">{p.title}</span>
                         <button
                           type="button"
                           disabled={adding === p.key}
