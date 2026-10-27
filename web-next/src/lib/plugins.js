@@ -34,6 +34,12 @@ export function usePlugin(key) {
   return prefs?.plugins?.[key] ?? plugin?.on ?? true;
 }
 
+// Every extra with whether it's on, for lists (the side menu's Hidden fold).
+export function usePluginStates() {
+  const { prefs } = useAuth();
+  return PLUGINS.map(p => ({ ...p, isOn: prefs?.plugins?.[p.key] ?? p.on }));
+}
+
 export function useSetPlugin() {
   const { prefs, setPrefs } = useAuth();
   return (key, on) => setPrefs({ plugins: { ...(prefs?.plugins || {}), [key]: on } });
