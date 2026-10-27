@@ -1,25 +1,17 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, Map as MapIcon, MessageSquareHeart, Sparkles, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Map as MapIcon, MessageSquareHeart, Puzzle, Sparkles, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
 import KommYOUnity from "./KommYOUnity";
-import { usePlugin } from "../lib/plugins";
+import { useNavigation } from "../lib/navigation";
 import { useWhatsNewUnseen } from "../lib/whatsNew";
 
-// Journey-before-CommYOUnity is deliberate: the app is about the individual
-// first, community second. Don't reorder.
-// Each place has its emblem from the YOU art set (public/images/icons).
-const SITEMAP = [
-  { to: "/", label: "Home", end: true, icon: "home" },
-  { to: "/journey", label: "YOUrney", icon: "yourney" },
-  { to: "/reflections", label: "YOUrnal", icon: "reflections" },
-  { to: "/youniversity", label: "YOUniversity", icon: "youniversity" },
-  { to: "/community", label: <KommYOUnity />, icon: "community" },
-  { to: "/you", label: "YOU", icon: "you" }
-];
+// The places listed come from lib/navigation.js, in its fixed order, minus
+// any the Seeker has hidden in Extras (Home and YOU always stay). Each
+// place has its emblem from the YOU art set (public/images/icons).
 
 // Pages that exist but aren't built yet, folded away so the menu stays
 // clean. Move one up into SITEMAP when it's real.
@@ -44,7 +36,7 @@ const linkClass = ({ isActive }) =>
 export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open = true }) {
   const location = useLocation();
   const { isAdmin, codexNew } = useAppData();
-  const projectsOn = usePlugin("projects");
+  const { menu } = useNavigation();
   const whatsNewUnseen = useWhatsNewUnseen();
   const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
   const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
@@ -57,22 +49,12 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
   return (
     <>
       <nav aria-label="Main" className="flex-1 overflow-y-auto">
-        {SITEMAP.map(item => (
-          <NavLink key={item.to} to={item.to} end={item.end} onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
+        {menu.map(item => (
+          <NavLink key={item.key} to={item.to} end={item.end} onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
             <img src={`/images/icons/${item.icon}.png`} alt="" width="30" height="30" className="w-[30px] h-[30px] flex-none" />
-            {item.label}
+            {item.key === "community" ? <KommYOUnity /> : item.label}
           </NavLink>
         ))}
-        {projectsOn && (
-          <NavLink to="/projects" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
-            <img src="/images/icons/projects.png" alt="" width="30" height="30" className="w-[30px] h-[30px] flex-none" />
-            YOUr Projects
-          </NavLink>
-        )}
-        <NavLink to="/showcase" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5`}>
-          <img src="/images/icons/showcase.png" alt="" width="30" height="30" className="w-[30px] h-[30px] flex-none" />
-          Showcase
-        </NavLink>
 
         <button
           type="button"
@@ -141,6 +123,10 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
       <div className="border-t border-borderC pt-3">
         <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} mb-1`}>
           Your Own Universe
+        </NavLink>
+        <NavLink to="/extras" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
+          <Puzzle size={17} strokeWidth={1.75} className="text-gold" />
+          Extras
         </NavLink>
         <NavLink to="/whats-new" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
           <Sparkles size={17} strokeWidth={1.75} className="text-gold" />
