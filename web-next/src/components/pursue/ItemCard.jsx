@@ -167,7 +167,7 @@ export default function ItemCard({ item }) {
                   <span>+{nextCheckinXp(habitStreak(item).before)} XP for today's check-in</span>
                   <span className="text-textMuted">{bonusHint(habitStreak(item).before)}</span>
                   {habitStreak(item).now + habitStreak(item).before > 0 && (
-                    <span className="text-textMuted">{Math.max(habitStreak(item).now, habitStreak(item).before)} days in a row</span>
+                    <span className="text-textMuted">{Math.max(habitStreak(item).now, habitStreak(item).before)} {Math.max(habitStreak(item).now, habitStreak(item).before) === 1 ? "day" : "days"} in a row</span>
                   )}
                 </>
               ) : (

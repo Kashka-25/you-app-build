@@ -121,7 +121,7 @@ function HabitRow({ habit: h, slot, today }) {
           <span className="flex-none text-[11px] font-medium text-gold" title="What today's check-in earns">+{nextCheckinXp(streak.before)} XP</span>
         )}
         {Math.max(streak.now, streak.before) > 0 && (
-          <span className="flex-none inline-flex items-center gap-1 text-caption text-textSecondary" title={`${Math.max(streak.now, streak.before)} days in a row`}>
+          <span className="flex-none inline-flex items-center gap-1 text-caption text-textSecondary" title={`${Math.max(streak.now, streak.before)} ${Math.max(streak.now, streak.before) === 1 ? "day" : "days"} in a row`}>
             <Flame size={12} strokeWidth={1.75} className="text-gold" aria-hidden="true" />
             {Math.max(streak.now, streak.before)}
           </span>

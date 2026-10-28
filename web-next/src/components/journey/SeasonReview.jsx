@@ -23,6 +23,9 @@ export default function SeasonReview() {
   const { hemisphere, chosen, setHemisphere } = useHemisphere();
   const review = latestReview(hemisphere);
   const stats = useMemo(() => seasonStats(data, review.from, review.to), [data, review.from, review.to]);
+  // Nothing in this stretch yet (often a season from before they joined):
+  // say so gently instead of a page of zeros.
+  const quiet = !stats.entries && !stats.moments && !stats.habitDays && !stats.xp && stats.moodAvg == null;
   const saved = seasons.find(s => s.based_on?.turning === review.turning) || null;
   const [step, setStep] = useState(0);
   const [reading, setReading] = useState(false);
@@ -71,15 +74,18 @@ export default function SeasonReview() {
     // 2. What you lived
     <div key="lived">
       <div className="text-label uppercase tracking-[0.2em] opacity-80 mb-3">What you lived</div>
+      {quiet ? <Quiet /> : <>
       <Big n={stats.entries} label={stats.entries === 1 ? "YOUrnal entry" : "YOUrnal entries"} sub={stats.words ? `${stats.words.toLocaleString()} words` : null} />
       <Big n={stats.moments} label={stats.moments === 1 ? "moment kept" : "moments kept"} sub={stats.momentTitles.join(" · ") || null} />
       <Big n={stats.habitDays} label="days you tended a habit" sub={stats.bestTotal ? `including ${stats.bestTotal.text}` : null} />
       {stats.focusMinutes > 0 && <Big n={Math.round(stats.focusMinutes / 60 * 10) / 10} label="hours of focus" />}
+      </>}
     </div>,
 
     // 3. How you felt and grew
     <div key="felt">
       <div className="text-label uppercase tracking-[0.2em] opacity-80 mb-3">How you felt, and what grew</div>
+      {quiet ? <Quiet /> : <>
       {stats.moodAvg != null ? (
         <div className="flex items-center gap-4 mb-5">
           <MoodFace score={stats.moodAvg} size={72} />
@@ -94,6 +100,7 @@ export default function SeasonReview() {
       <Big n={stats.xp} label="XP grown" sub={stats.topPillar ? `most of it in ${stats.topPillar.name}` : null} />
       {stats.completed.length > 0 && <Big n={stats.completed.length} label={stats.completed.length === 1 ? "pursuit completed" : "pursuits completed"} sub={stats.completed.slice(0, 3).join(" · ")} />}
       {stats.topTags.length > 0 && <div className="text-bodySm opacity-85 mt-2">You wrote most about {stats.topTags.map(t => `#${t}`).join(", ")}.</div>}
+      </>}
     </div>,
 
     // 4. YOU's reading
@@ -209,6 +216,15 @@ function Part({ label, text }) {
     <div className="mt-4">
       <div className="text-label uppercase tracking-[0.15em] opacity-75 mb-0.5">{label}</div>
       <div className="text-body opacity-95">{text}</div>
+    </div>
+  );
+}
+
+function Quiet() {
+  return (
+    <div>
+      <p className="font-serif text-h2 leading-snug m-0">This stretch is still unwritten in YOU.</p>
+      <p className="text-body opacity-85 mt-3">Your story here began later, or this season was a quiet one. Whatever you write, keep and tend from now on will be part of the next review.</p>
     </div>
   );
 }
