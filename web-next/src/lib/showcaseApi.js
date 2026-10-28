@@ -41,6 +41,17 @@ export async function loadLiveWorks(limit = 60) {
   return withArtistsAndImages(data || []);
 }
 
+/** The signed-in artist's own pieces, every status, newest first. */
+export async function loadMyWorks(userId) {
+  const { data, error } = await supabase
+    .from("showcase_works")
+    .select(WORK_FIELDS)
+    .eq("user_id", userId)
+    .order("submitted_at", { ascending: false });
+  if (error) throw error;
+  return withArtistsAndImages(data || []);
+}
+
 /** The viewer's own collection: { [workId]: { contributed, created_at } }. */
 export async function loadMySaves() {
   const { data, error } = await supabase.from("showcase_saves").select("work_id,contributed,created_at");

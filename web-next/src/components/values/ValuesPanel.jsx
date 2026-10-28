@@ -16,6 +16,7 @@ import { Button } from "../ui/Button";
 import { DropdownSection } from "../Primitives";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { AiButton, AiCard } from "../ui/Premium";
+import DrawsFrom from "../ui/DrawsFrom";
 import TrueNorthCard from "./TrueNorthCard";
 import { NorthStar } from "./Crossroads";
 import ValuesSky from "./ValuesSky";
@@ -347,6 +348,7 @@ function ValueCard({
               <AiButton size="sm" full onClick={handleGenerate} busy={generating} className="mt-3">
                 {generating ? "Writing new challenges…" : "Generate more challenges"}
               </AiButton>
+              <DrawsFrom uses={["journal", "pursuits", "values"]} className="mt-1.5" />
               {genError && <div className="text-caption text-red-500 mt-1.5">{genError}</div>}
 
               <button
