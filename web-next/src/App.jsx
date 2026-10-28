@@ -21,6 +21,7 @@ import You from "./components/screens/You";
 import Pursue from "./components/screens/Pursue";
 import Empatherapy from "./components/screens/Empatherapy";
 import ShowcaseGallery from "./components/screens/ShowcaseGallery";
+import YOUriginSpace from "./components/screens/YOUriginSpace";
 import ShowcaseReview from "./components/screens/ShowcaseReview";
 import Reflections from "./components/screens/Reflections";
 import Legacy from "./components/screens/Legacy";
@@ -192,6 +193,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/codex-requests" element={<CodexRequests />} />
         <Route path="/showcase" element={<ShowcaseGallery />} />
+        <Route path="/yourigin" element={<YOUriginSpace />} />
         <Route path="/showcase-review" element={<ShowcaseReview />} />
         <Route path="/build-notes" element={<BuildNotes />} />
         <Route path="/tester-inbox" element={<BetaInbox />} />

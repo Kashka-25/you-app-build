@@ -12,6 +12,7 @@ import WeeklyReflectionView from "../journal/WeeklyReflectionView";
 import ExplorationsView from "../questionnaires/ExplorationsView";
 import HighlightsView from "../journal/HighlightsView";
 import TagFilter from "../journal/TagFilter";
+import DreamPatternsCard from "../journal/DreamPatternsCard";
 import { Modal } from "../ui/Modal";
 import { AiButton } from "../ui/Premium";
 
@@ -189,6 +190,9 @@ export default function Reflections() {
       ) : (
         <>
           <TagFilter tags={tagCounts(journalEntries)} value={openTag} onChange={t => { setOpenTag(t); setLimit(ENTRIES_SHOWN); }} />
+          {["dream", "dreams"].includes(openTag) && (
+            <DreamPatternsCard dreamCount={journalEntries.filter(e => (e.tags || []).some(t => ["dream", "dreams"].includes(tagKey(t)))).length} />
+          )}
           <EntryList
             entries={journalEntries.filter(e => !openTag || (e.tags || []).some(t => tagKey(t) === openTag))}
             limit={limit}

@@ -1,5 +1,5 @@
 import { useAuth } from "./AuthContext";
-import { usePlugin } from "./plugins";
+import { usePluginStates } from "./plugins";
 
 // The places in YOU, and each Seeker's own choice of which show in the side
 // menu and the bottom bar (Cassidy, Oct 27). Home and YOU are always there;
@@ -19,6 +19,7 @@ export const PLACES = [
   { key: "community", to: "/community", label: "KommYOUnity", icon: "community" },
   { key: "you", to: "/you", label: "YOU", icon: "you", locked: true },
   { key: "projects", to: "/projects", label: "YOUr Projects", icon: "projects", plugin: "projects" },
+  { key: "yourigin", to: "/yourigin", label: "YOUrigin", icon: "yourigin", plugin: "yourigin" },
   { key: "showcase", to: "/showcase", label: "Showcase", icon: "showcase" }
 ];
 
@@ -26,12 +27,12 @@ export const DEFAULT_BAR = ["yourney", "yournal"];
 
 export function useNavigation() {
   const { prefs, setPrefs } = useAuth();
-  const projectsOn = usePlugin("projects");
+  const pluginsOn = new Set(usePluginStates().filter(p => p.isOn).map(p => p.key));
   const nav = prefs?.nav || {};
   const hidden = new Set(nav.hidden || []);
 
   // A place belonging to an extra only exists while that extra is on.
-  const available = PLACES.filter(p => !p.plugin || (p.plugin === "projects" && projectsOn));
+  const available = PLACES.filter(p => !p.plugin || pluginsOn.has(p.plugin));
   const byKey = key => available.find(p => p.key === key);
 
   const menu = available.filter(p => p.locked || !hidden.has(p.key));

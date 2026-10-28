@@ -1081,6 +1081,22 @@ export function AppDataProvider({ children }) {
     return data;
   }
 
+  // ── Dream patterns ──
+  // One reading across every #dream entry (read-my-dreams), kept in
+  // dream_patterns and loaded when the dream view opens.
+  async function loadDreamPatterns() {
+    const res = await supabase.from("dream_patterns").select("*").eq("user_id", userId).maybeSingle();
+    if (res.error) { console.error("[AppData] loadDreamPatterns failed:", res.error); return null; }
+    return res.data || null;
+  }
+
+  async function readDreamPatterns() {
+    await withAiConsent();
+    const data = await invokeAi("read-my-dreams", {});
+    if (data?.empty) return { empty: true, message: data.message };
+    return { empty: false, patterns: data.patterns };
+  }
+
   // ── Seasons ──
   // Read by the infer-season Edge Function from recent Harvests, only when
   // asked. Newest row = the current season; earlier readings are kept.
@@ -2036,6 +2052,9 @@ export function AppDataProvider({ children }) {
       ...(lib?.challenges || []).map(c => c.text),
       ...valueChallenges.filter(c => c.value_name === valueName).map(c => c.text)
     ];
+    // Personal only with a yes (Cassidy, Oct 27): asked once here; "not now"
+    // still writes challenges, from the value alone.
+    await ensureAiConsent();
     const data = await invokeAi("suggest-value-challenges", {
         valueName,
         tagline: lib?.tagline || "",
@@ -2075,6 +2094,7 @@ export function AppDataProvider({ children }) {
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted, setAiSources,
+    loadDreamPatterns, readDreamPatterns,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     isAdmin, adminChecked, sendBuildNote, sendAllIdeaEntries, ideaEntryCount: journalEntries.filter(isIdeaEntry).length, entitlement, aiAllowed: canUseAi(entitlement), codexNew, recordValueWords, addOwnValue, loadCodexRequests, setCodexWordStatus,
     heldArcana, arcanaLoaded, addArcanum, redeemArcanumCode, removeArcanum, courseProgress, toolUses, completeCoursePart, skipCourseRest, saveToolUse, courseWalks, walkFor, startNewWalk, setIncludeCourses, deleteToolUse,
