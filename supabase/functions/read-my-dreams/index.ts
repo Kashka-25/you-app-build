@@ -150,7 +150,7 @@ Deno.serve(async req => {
 
     const raw = await callClaude({
       system: SYSTEM,
-      maxTokens: 3000,
+      maxTokens: 8000,
       usage: { req, fn: "read-my-dreams" },
       jsonSchema: SCHEMA,
       messages: [{
