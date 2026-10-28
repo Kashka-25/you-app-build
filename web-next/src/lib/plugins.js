@@ -33,6 +33,20 @@ export const PLUGINS = [
     ],
     desc: "A space of its own for the things you're making: a book, a garden, a move. Each project keeps its notes and to-dos as New, Doing or Done. Opens from the side menu.",
     on: false
+  },
+  {
+    key: "yourigin",
+    title: "YOUrigin",
+    icon: "yourigin",
+    summary: "For creators: share your art and words from YOUrigin into YOU's Showcase.",
+    more: [
+      "YOUrigin is YOU's sister app for creators. Sign in there with this same account and your artist profile is shared between the two.",
+      "From any piece in YOUrigin, tap Share to YOU and choose words or an image, where it may appear (Home background, Featured words or the Gallery), and an optional ask for support.",
+      "Every piece is looked at before it goes live. This page shows where each of yours stands: waiting, live or not this time.",
+      "Edit a piece in YOUrigin and it waits for a fresh look. Manage everything you've shared under YOUrigin's Shared."
+    ],
+    desc: "For creators: share your art and words from YOUrigin into Showcase, and see where each piece stands. Opens from the side menu.",
+    on: false
   }
 ];
 
