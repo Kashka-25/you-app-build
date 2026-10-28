@@ -22,6 +22,7 @@ import { useAuth } from "../../lib/AuthContext";
 import { useShowcase } from "../../lib/showcaseApi";
 import { backgroundMode, pickFeatured } from "../../lib/showcase";
 import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
+import { latestReview, nudgeDue, useHemisphere } from "../../lib/seasons";
 
 // Home answers three things, in this order: how am I arriving, where am I
 // on my path, and what's one step I can take. Everything reads data that's
@@ -158,6 +159,9 @@ export default function Home() {
       </section>
       </div>
 
+      {/* When the year turns, YOU invites a Season review (lib/seasons.js). */}
+      <SeasonNudge />
+
       {/* A quiet hint when something new has arrived (lib/whatsNew.js). */}
       {whatsNewUnseen && (
         <div className="lg:col-span-12 lg:order-2">
@@ -221,6 +225,33 @@ export default function Home() {
         onSavedChange={showcase.setSaved}
         onClose={() => setOpenWork(null)}
       />
+    </div>
+  );
+}
+
+// "Winter has ended. Your Winter review is ready." Shown for three weeks
+// after a solstice or equinox, until the review is done.
+function SeasonNudge() {
+  const { seasons } = useAppData();
+  const { hemisphere } = useHemisphere();
+  const review = latestReview(hemisphere);
+  if (!nudgeDue(review, seasons)) return null;
+  return (
+    <div className="lg:col-span-12 lg:order-2">
+      <Link
+        to="/season-review"
+        className="flex items-center gap-3 rounded-card px-4 py-3 text-[#FFF8EE] shadow-card"
+        style={{ background: "linear-gradient(120deg, #8D7AB0 0%, #4C5F7A 55%, #2A1C12 100%)" }}
+      >
+        <Sparkles size={20} strokeWidth={1.5} className="flex-none" />
+        <span className="flex-1 min-w-0">
+          <span className="block font-serif text-h3 leading-tight">
+            {review.kind === "equinox" ? "The equinox has come" : `${review.ending} has ended`}
+          </span>
+          <span className="block text-caption opacity-85">{review.title} is ready: a look back at {review.kind === "equinox" ? "the last six months" : "the season"}.</span>
+        </span>
+        <ChevronRight size={18} strokeWidth={1.75} className="flex-none opacity-80" />
+      </Link>
     </div>
   );
 }

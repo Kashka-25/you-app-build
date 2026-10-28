@@ -41,6 +41,7 @@ import CourseToolScreen from "./components/course/CourseToolScreen";
 import CodexRequests from "./components/screens/CodexRequests";
 import BuildNotes from "./components/screens/BuildNotes";
 import BetaInbox from "./components/screens/BetaInbox";
+import SeasonReview from "./components/journey/SeasonReview";
 import WhatsNew from "./components/screens/WhatsNew";
 import Extras from "./components/screens/Extras";
 import { ProjectsLayout, ProjectsHome, ProjectView } from "./components/projects/ProjectsSpace";
@@ -141,6 +142,8 @@ export default function App() {
       <Route path="/sow" element={<SowScreen />} />
       <Route path="/harvest" element={<HarvestScreen />} />
       <Route path="/focus" element={<FocusScreen />} />
+      {/* The Season review: a full-screen story (lib/seasons.js). */}
+      <Route path="/season-review" element={<SeasonReview />} />
       {/* YOUr Projects: its own space, outside the tab bar (lib/projects.js). */}
       <Route element={<ProjectsLayout />}>
         <Route path="/projects" element={<ProjectsHome />} />

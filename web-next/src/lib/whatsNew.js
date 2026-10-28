@@ -7,6 +7,22 @@ import { useAuth } from "./AuthContext";
 // take the Seeker there.
 export const WHATS_NEW = [
   {
+    id: "2026-10-28b-seasons",
+    date: "2026-10-28",
+    title: "Season reviews and Look back",
+    body: "When the year turns at a solstice or equinox, YOU invites you to look back on the season just ended: what you lived, how you felt, what grew, and YOU's reading of it. The equinoxes look back six months, at light and shadow. Any time, Look back over the last two weeks, a month, or since a date.",
+    to: "/season-review",
+    open: "See your latest review"
+  },
+  {
+    id: "2026-10-28a-streaks",
+    date: "2026-10-28",
+    title: "Streaks and steps earn more",
+    body: "Every 7 days in a row on a habit adds a +5 XP bonus, and every 30 days in a row another +10. A habit with steps shares its XP between them, so each tick counts.",
+    to: "/",
+    open: "See your habits"
+  },
+  {
     id: "2026-10-27c-pursyouts", // sorts after the 27th's earlier entries
     date: "2026-10-27",
     title: "PursYOUts, closer to hand",

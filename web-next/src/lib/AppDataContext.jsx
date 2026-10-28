@@ -1090,9 +1090,11 @@ export function AppDataProvider({ children }) {
     setSeasons(res.data || []);
   }
 
-  async function readSeason() {
+  // opts: { from, to, kind: "season" | "equinox" | "lookback", turning, title }
+  // for a Season review or a Look back; nothing for the current season.
+  async function readSeason(opts = {}) {
     await withAiConsent();
-    const data = await invokeAi("infer-season", {});
+    const data = await invokeAi("infer-season", opts);
     if (data?.empty) return { empty: true, message: data.message };
     setSeasons(prev => [data.season, ...prev]);
     return { empty: false, season: data.season };
@@ -2066,7 +2068,7 @@ export function AppDataProvider({ children }) {
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
-    seasons, currentSeason: seasons[0] || null, readSeason, aiUsageThisMonth,
+    seasons, currentSeason: seasons.find(s => s.based_on?.kind !== "lookback") || null, readSeason, aiUsageThisMonth,
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
     focusSessions, saveFocusSession, saveFocusNote,
     highlights, addHighlight, updateHighlight, deleteHighlight,
