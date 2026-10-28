@@ -7,6 +7,24 @@ import { useAuth } from "./AuthContext";
 // take the Seeker there.
 export const WHATS_NEW = [
   {
+    id: "2026-10-28-yourigin",
+    date: "2026-10-28",
+    title: "YOUrigin, for creators",
+    body: "Make art or write? Switch on YOUrigin to share pieces from YOU's sister app into Showcase, and see here whether each one is waiting, live or not this time.",
+    plugin: "yourigin",
+    icon: "yourigin",
+    to: "/yourigin",
+    open: "Open YOUrigin"
+  },
+  {
+    id: "2026-10-28-dreams",
+    date: "2026-10-28",
+    title: "Patterns across your dreams",
+    body: "Tap #dream in your YOUrnal and ask for a reading across every dream you've recorded: the symbols and feelings that keep returning, and how they've shifted. Value challenges can now fit your own life too, from what you let AI read.",
+    to: "/reflections",
+    open: "Open YOUrnal"
+  },
+  {
     id: "2026-10-27c-pursyouts", // sorts after the 27th's earlier entries
     date: "2026-10-27",
     title: "PursYOUts, closer to hand",
