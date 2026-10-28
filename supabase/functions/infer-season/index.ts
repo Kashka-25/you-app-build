@@ -1,5 +1,10 @@
 // infer-season — names the season a Seeker seems to be in ("Season of
-// Letting Go"), from the last ten weeks of every part of YOU they allow the
+// Letting Go"). By default it reads the last ten weeks; it can also read a
+// chosen stretch (body: { from, to, kind, turning, title }):
+//   · kind "season": a Season review of the three months a solstice or
+//     equinox just closed; "equinox": the deeper six-month review, with
+//     light and shadow; "lookback": any window the Seeker picks.
+// It reads every part of YOU they allow the
 // AI to read (_shared/sources.ts; Cassidy, Oct 27: "draw from all relevant
 // sources to make an accurate season"):
 //   · weekly Harvests: the notes kept, and what was carried, rested and
@@ -28,7 +33,7 @@ const WEEKS_BACK = 10;
 const MAX_ENTRIES = 60;
 const SNIPPET = 280;
 
-const SYSTEM_PROMPT = `You are part of YOU, a self-love and personal-growth app that treats a life as a living story. You name the "season" a person seems to be in over roughly the last ten weeks, from their own material: weekly Harvests (notes they chose to keep at the end of a week, and whether they carried each pursuit forward, rested it or released it), journal entries, the moments they marked, and, when given, their mood week by week and their compass.
+const SYSTEM_PROMPT = `You are part of YOU, a self-love and personal-growth app that treats a life as a living story. You name the "season" a person seems to be in over the stretch of time given, from their own material: weekly Harvests (notes they chose to keep at the end of a week, and whether they carried each pursuit forward, rested it or released it), journal entries, the moments they marked, and, when given, their mood week by week and their compass.
 
 Give most weight to what they chose and wrote themselves (harvest notes, journal entries, moments). Mood and the compass add colour only.
 
@@ -40,8 +45,16 @@ Respond with JSON only, no prose outside it and no code fence:
 {
   "name": "Season of …",
   "blurb": "one or two sentences (under 40 words) on why, grounded in their words and choices",
-  "signals": ["two to four short phrases (under 8 words each) from their own material that point to this season"]
+  "signals": ["two to four short phrases (under 8 words each) from their own material that point to this season"],
+  "grew": "one sentence (under 30 words) on what grew in them or their life over this stretch",
+  "carry": "one gentle question or intention (under 25 words) to carry into what comes next"
 }`;
+
+// The deeper review at an equinox, a balance point of the year.
+const EQUINOX_GUIDANCE = `This is an Equinox review: six months, at a point of balance between light and dark. Also include:
+  "light": "one or two sentences (under 35 words) on what brought light: joy, growth, connection",
+  "shadow": "one or two sentences (under 35 words) on what was heavy or asked for care, said tenderly and without judgement",
+  "balance": "one sentence (under 25 words) on what to keep in balance going forward"`;
 
 // The Monday that starts the week holding `date` (YYYY-MM-DD).
 function mondayOf(date: string) {
@@ -74,31 +87,36 @@ Deno.serve(async req => {
 
     // Only the parts of YOU this Seeker lets the AI read.
     const allow = await allowedSources(supabase, user.id);
+    const body = await req.json().catch(() => ({}));
+    const isDate = (v: unknown) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+    const kind: string = ["season", "equinox", "lookback"].includes(body.kind) ? body.kind : "current";
     const since = new Date();
     since.setUTCDate(since.getUTCDate() - WEEKS_BACK * 7);
-    const from = mondayOf(since.toISOString().slice(0, 10));
+    const from = isDate(body.from) ? body.from : mondayOf(since.toISOString().slice(0, 10));
+    // `to` is the day after the last one read.
+    const to = isDate(body.to) ? body.to : new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     const none = Promise.resolve({ data: [] });
 
     // Reads go through the Seeker's own session, so RLS keeps it to their rows.
     const [{ data: harvests }, { data: intentions }, { data: entries }, { data: reflections }, { data: moments }, { data: moods }, compass] = await Promise.all([
       allow.has("harvests")
-        ? supabase.from("week_harvests").select("week_start, note").eq("user_id", user.id).gte("week_start", from).order("week_start")
+        ? supabase.from("week_harvests").select("week_start, note").eq("user_id", user.id).gte("week_start", from).lt("week_start", to).order("week_start")
         : none,
       allow.has("harvests")
-        ? supabase.from("week_intentions").select("week_start, outcome, value_name, tended_dates, items(name, type, cat)").eq("user_id", user.id).gte("week_start", from)
+        ? supabase.from("week_intentions").select("week_start, outcome, value_name, tended_dates, items(name, type, cat)").eq("user_id", user.id).gte("week_start", from).lt("week_start", to)
         : none,
       allow.has("journal")
-        ? supabase.from("journal_entries").select("content, entry_date").eq("user_id", user.id).gte("entry_date", from).order("entry_date", { ascending: false }).limit(MAX_ENTRIES)
+        ? supabase.from("journal_entries").select("content, entry_date").eq("user_id", user.id).gte("entry_date", from).lt("entry_date", to).order("entry_date", { ascending: false }).limit(MAX_ENTRIES)
         : none,
       // Weekly reflections are drawn from the YOUrnal.
       allow.has("journal")
-        ? supabase.from("weekly_reflections").select("week_start, sections").eq("user_id", user.id).gte("week_start", from)
+        ? supabase.from("weekly_reflections").select("week_start, sections").eq("user_id", user.id).gte("week_start", from).lt("week_start", to)
         : none,
       allow.has("moments")
-        ? supabase.from("life_moments").select("title, description, moment_date").eq("user_id", user.id).gte("moment_date", from).order("moment_date")
+        ? supabase.from("life_moments").select("title, description, moment_date").eq("user_id", user.id).gte("moment_date", from).lt("moment_date", to).order("moment_date")
         : none,
       allow.has("mood")
-        ? supabase.from("mood_log").select("score, mood, date_key").eq("user_id", user.id).gte("date_key", from)
+        ? supabase.from("mood_log").select("score, mood, date_key").eq("user_id", user.id).gte("date_key", from).lt("date_key", to)
         : none,
       allow.has("values") ? loadCompass(supabase, user.id) : Promise.resolve(null)
     ]);
@@ -115,7 +133,7 @@ Deno.serve(async req => {
       return json({
         empty: true,
         message: used.length
-          ? "There isn't enough from the last ten weeks yet. Gather a weekly harvest, write in your YOUrnal or add a Moment, and your season can be read."
+          ? "There isn't enough from that stretch of time yet. Gather a weekly harvest, write in your YOUrnal or add a Moment, and it can be read."
           : "Your Season reads your harvests, YOUrnal and Moments, but you've chosen to keep them from the AI. You can change that in Your Own Universe → AI reflections."
       });
     }
@@ -152,9 +170,11 @@ Deno.serve(async req => {
     const raw = await callClaude({
       // The compass only helps name what the season means for the direction
       // they chose; the season itself comes from what they lived and wrote.
-      system: compass ? `${SYSTEM_PROMPT}
-
-${COMPASS_GUIDANCE} Name the season from their own material, not from the compass.` : SYSTEM_PROMPT,
+      system: [
+        SYSTEM_PROMPT,
+        kind === "equinox" ? EQUINOX_GUIDANCE : "",
+        compass ? `${COMPASS_GUIDANCE} Name the season from their own material, not from the compass.` : ""
+      ].filter(Boolean).join("\n\n"),
       model: MODEL,
       fallbacks: true,
       // Opus 5.5 always thinks first; this leaves room for that plus the short JSON.
@@ -162,10 +182,10 @@ ${COMPASS_GUIDANCE} Name the season from their own material, not from the compas
       usage: { req, fn: "infer-season" },
       messages: [{
         role: "user",
-        content: `Drawn only from what they allow the AI to read: ${used.map(s => SOURCE_NAMES[s]).join(", ")}.\n\n${JSON.stringify(compass ? { recent_weeks: digest, compass } : { recent_weeks: digest }, null, 2)}`
+        content: `${body.title ? `${body.title}. ` : ""}From ${from} to ${to}. Drawn only from what they allow the AI to read: ${used.map(s => SOURCE_NAMES[s]).join(", ")}.\n\n${JSON.stringify(compass ? { recent_weeks: digest, compass } : { recent_weeks: digest }, null, 2)}`
       }]
     });
-    const { value: season, stats } = moderate(parseJsonResponse<{ name: string; blurb: string; signals?: string[] }>(raw));
+    const { value: season, stats } = moderate(parseJsonResponse<{ name: string; blurb: string; signals?: string[]; grew?: string; carry?: string; light?: string; shadow?: string; balance?: string }>(raw));
     if (stats.blocked) return json({ error: "moderated", message: BLOCKED_MESSAGE }, 422);
     if (!season?.name) return json({ error: "The season couldn't be read just now." }, 502);
 
@@ -181,9 +201,17 @@ ${COMPASS_GUIDANCE} Name the season from their own material, not from the compas
           notes: (harvests || []).filter(h => (h.note || "").trim()).length,
           entries: (entries || []).length,
           moments: (moments || []).length,
-          from: weeks[0],
-          to: weeks[weeks.length - 1],
-          sources: used
+          from: kind === "current" ? weeks[0] : from,
+          to: kind === "current" ? weeks[weeks.length - 1] : to,
+          sources: used,
+          kind,
+          ...(isDate(body.turning) && { turning: body.turning }),
+          ...(body.title && { title: String(body.title).slice(0, 80) }),
+          review: {
+            grew: season.grew || null,
+            carry: season.carry || null,
+            ...(kind === "equinox" && { light: season.light || null, shadow: season.shadow || null, balance: season.balance || null })
+          }
         },
         model: MODEL
       })

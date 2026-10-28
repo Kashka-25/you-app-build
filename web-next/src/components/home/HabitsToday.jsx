@@ -35,7 +35,8 @@ export default function HabitsToday({ skipIds = [] }) {
 // that opens to tick them; Cassidy, Oct 28), its cycle, and what today's
 // check-in earns.
 function HabitRow({ habit: h, slot, today }) {
-  const { toggleDay, habitLogs, toggleHabitStep } = useAppData();
+  const { toggleDay, habitLogs, toggleHabitStep, habitStreak } = useAppData();
+  const streak = habitStreak(h);
   const [open, setOpen] = useState(false);
   const steps = dailySteps(h);
   const multi = !(steps.length === 1 && steps[0].key === "habit");
@@ -45,7 +46,7 @@ function HabitRow({ habit: h, slot, today }) {
   const stepsDone = multi ? steps.filter(s => logsToday.some(l => l.step === s.key)).length : 0;
   // A little "+3 XP" rises from the tick the moment the day is checked in.
   const reduce = useReducedMotion();
-  const earned = useRef(nextCheckinXp(h));
+  const earned = useRef(nextCheckinXp(streak.before));
   const wasDone = useRef(done);
   const [pop, setPop] = useState(null);
   useEffect(() => {
@@ -56,7 +57,7 @@ function HabitRow({ habit: h, slot, today }) {
       return () => clearTimeout(t);
     }
     wasDone.current = done;
-    if (!done) earned.current = nextCheckinXp(h);
+    if (!done) earned.current = nextCheckinXp(streak.before);
   }, [done]);
   const tick = () => (logsToday.length > 0 || !done
     ? toggleHabitStep(h.id, "habit", steps[0].amount)
@@ -117,12 +118,12 @@ function HabitRow({ habit: h, slot, today }) {
           </Link>
         )}
         {!done && (
-          <span className="flex-none text-[11px] font-medium text-gold" title="What today's check-in earns">+{nextCheckinXp(h)} XP</span>
+          <span className="flex-none text-[11px] font-medium text-gold" title="What today's check-in earns">+{nextCheckinXp(streak.before)} XP</span>
         )}
-        {h.streak > 0 && (
-          <span className="flex-none inline-flex items-center gap-1 text-caption text-textSecondary" title={`${h.streak} of 7 this cycle`}>
+        {Math.max(streak.now, streak.before) > 0 && (
+          <span className="flex-none inline-flex items-center gap-1 text-caption text-textSecondary" title={`${Math.max(streak.now, streak.before)} days in a row`}>
             <Flame size={12} strokeWidth={1.75} className="text-gold" aria-hidden="true" />
-            {h.streak}/7
+            {Math.max(streak.now, streak.before)}
           </span>
         )}
         {!multi && <HabitDay item={h} compact />}

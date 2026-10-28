@@ -43,7 +43,7 @@ export default function ItemCard({ item }) {
   const {
     completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
     getPrestigeTier, prestigeItem, wanderings, wanderingStops, createWandering,
-    habitLogs, toggleHabitStep
+    habitLogs, toggleHabitStep, habitStreak
   } = useAppData();
   const isHabit = item.type === "habit";
   const navigate = useNavigate();
@@ -164,8 +164,11 @@ export default function ItemCard({ item }) {
             <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gold">
               {isHabit ? (
                 <>
-                  <span>+{nextCheckinXp(item)} XP for today's check-in</span>
-                  {bonusHint(item) && <span className="text-textMuted">{bonusHint(item)}</span>}
+                  <span>+{nextCheckinXp(habitStreak(item).before)} XP for today's check-in</span>
+                  <span className="text-textMuted">{bonusHint(habitStreak(item).before)}</span>
+                  {habitStreak(item).now + habitStreak(item).before > 0 && (
+                    <span className="text-textMuted">{Math.max(habitStreak(item).now, habitStreak(item).before)} days in a row</span>
+                  )}
                 </>
               ) : (
                 <span>+{finishXp(item)} XP to {item.cat} when it's complete</span>
