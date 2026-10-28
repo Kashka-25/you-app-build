@@ -119,7 +119,7 @@ Generate exactly 5 new challenges. Each needs:
     const raw = await callClaude({
       system: "You write challenges for YOU, a self-love and personal-growth app. You are a mirror and a guide, never an authority.",
       messages: [{ role: "user", content: prompt }],
-      maxTokens: 1200,
+      maxTokens: 4000,
       usage: { req, fn: "suggest-value-challenges" },
       jsonSchema: SCHEMA
     });
