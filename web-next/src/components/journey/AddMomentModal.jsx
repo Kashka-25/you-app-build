@@ -206,7 +206,7 @@ export default function AddMomentModal({ open, onClose, moment, defaults }) {
           </button>
         )}
       </div>
-      <input ref={fileInput} type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
+      <input ref={fileInput} type="file" accept="image/*,.heic,.heif" multiple onChange={handleFiles} className="hidden" />
       <div className="text-caption text-textMuted mb-3">
         {preparing > 0
           ? "Preparing photos…"

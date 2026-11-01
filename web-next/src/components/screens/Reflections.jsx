@@ -159,7 +159,7 @@ export default function Reflections() {
       </div>
       <div className="text-bodySm text-textSecondary mt-2 mb-4">Your journal — just for you.</div>
 
-      <input ref={scanInput} type="file" accept="image/*" multiple className="hidden" onChange={handleScan} />
+      <input ref={scanInput} type="file" accept="image/*,.heic,.heif" multiple className="hidden" onChange={handleScan} />
       {savedNote && (
         <div role="status" className="text-bodySm text-textPrimary bg-surface1 border border-borderC rounded-sm p-3 mb-4">{savedNote}</div>
       )}

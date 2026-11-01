@@ -521,6 +521,36 @@ export function AppDataProvider({ children }) {
     else if (!anyToday && checkedToday) await toggleDay(itemId, slot, { base });
   }
 
+  // A day that was done but never logged (Cassidy, Oct 27): one of the last
+  // six days, ticked from the habit's week row. It earns the plain check-in
+  // XP for that day (no streak bonus, so catching up can't farm bonuses) and
+  // counts toward days in a row from then on. Tapping it again takes it back.
+  async function logPastDay(itemId, day) {
+    const item = items.find(i => i.id === itemId);
+    if (!item || day >= todayKey()) return;
+    const slot = (new Date(day + "T00:00:00").getDay() + 6) % 7;
+    const logs = habitLogs.filter(l => l.item_id === itemId && l.day === day);
+    let days = [...item.days];
+    if (logs.length) {
+      setHabitLogs(prev => prev.filter(l => !logs.includes(l)));
+      const res = await supabase.from("habit_logs").delete().in("id", logs.map(l => l.id)).eq("user_id", userId);
+      if (res.error) { setHabitLogs(habitLogs); throw res.error; }
+      await setStepXp(item, "catchup", day, 0);
+      days[slot] = false;
+    } else {
+      // Done the old way (a check-in with no log): already counted, leave it.
+      if (habitDays(item, memory, habitLogs).has(day)) return;
+      const res = await supabase.from("habit_logs").insert({ user_id: userId, item_id: itemId, day, step: "habit", amount: dailySteps(item)[0]?.amount ?? null }).select().single();
+      if (res.error) throw res.error;
+      setHabitLogs(prev => [res.data, ...prev]);
+      await setStepXp(item, "catchup", day, CHECKIN_XP);
+      days[slot] = true;
+    }
+    const updated = { ...item, days, streak: days.filter(Boolean).length };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
+  }
+
   // One memory row per step per day carries that step's XP; unticking sets
   // it to 0 and ticking again restores it, so it can never be earned twice.
   async function setStepXp(item, key, day, xp) {
@@ -2079,7 +2109,7 @@ export function AppDataProvider({ children }) {
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
-    habitLogs, toggleHabitStep, setHabitAmount, habitStreak,
+    habitLogs, toggleHabitStep, setHabitAmount, habitStreak, logPastDay,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
