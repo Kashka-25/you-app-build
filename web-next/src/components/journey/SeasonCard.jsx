@@ -4,6 +4,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { GlowBubble } from "../ui/GlowBubble";
 import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
 import DrawsFrom from "../ui/DrawsFrom";
+import LookBack from "./LookBack";
 import { Guide } from "../ui/Guide";
 
 function niceWeek(dateKey) {
@@ -78,6 +79,7 @@ export default function SeasonCard() {
           </>
         )}
         <DrawsFrom uses={["harvests", "journal", "moments", "values", "mood"]} className="mt-2" />
+        <LookBack />
         {message && <div className="text-caption text-textSecondary mt-2">{message}</div>}
       </div>
     </AiCard>

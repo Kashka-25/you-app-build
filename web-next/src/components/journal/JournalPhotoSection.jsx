@@ -131,7 +131,7 @@ export default function JournalPhotoSection({ entryId }) {
       <label className="block text-label uppercase text-textMuted mb-1.5">Photos of handwritten pages</label>
       {photos.map(photo => <PhotoCard key={photo.id} entryId={entryId} photo={photo} />)}
 
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFile} />
+      <input ref={fileInputRef} type="file" accept="image/*,.heic,.heif" capture="environment" className="hidden" onChange={handleFile} />
       <Button variant="secondary" size="sm" icon={Camera} onClick={() => fileInputRef.current?.click()} disabled={uploading}>
         {uploading ? "Uploading…" : "Add a photo"}
       </Button>

@@ -12,7 +12,7 @@ import AddItemModal from "./AddItemModal";
 import HabitDay from "./HabitDay";
 import HabitTotals from "./HabitTotals";
 import { stepKey } from "../../lib/habits";
-import { bonusHint, finishXp, nextCheckinXp } from "../../lib/xp";
+import { bonusHint, finishXp, habitDays, nextCheckinXp } from "../../lib/xp";
 import { localDateKey as todayKey } from "../../lib/week";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
@@ -39,13 +39,24 @@ function CompletionBurst() {
   );
 }
 
+// Six days back to today, oldest first, labelled with their weekday letter.
+function lastSevenDays() {
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return { key: todayKey(d), label: DAY_LABELS[(d.getDay() + 6) % 7], date: d.toLocaleDateString(undefined, { day: "numeric", month: "short" }) };
+  });
+}
+
 export default function ItemCard({ item }) {
   const {
     completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
     getPrestigeTier, prestigeItem, wanderings, wanderingStops, createWandering,
-    habitLogs, toggleHabitStep
+    habitLogs, toggleHabitStep, habitStreak, logPastDay, memory
   } = useAppData();
   const isHabit = item.type === "habit";
+  const today = todayKey();
+  const doneDays = isHabit ? habitDays(item, memory, habitLogs) : null;
   const navigate = useNavigate();
   const [planning, setPlanning] = useState(false);
   const [planError, setPlanError] = useState("");
@@ -164,8 +175,11 @@ export default function ItemCard({ item }) {
             <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gold">
               {isHabit ? (
                 <>
-                  <span>+{nextCheckinXp(item)} XP for today's check-in</span>
-                  {bonusHint(item) && <span className="text-textMuted">{bonusHint(item)}</span>}
+                  <span>+{nextCheckinXp(habitStreak(item).before)} XP for today's check-in</span>
+                  <span className="text-textMuted">{bonusHint(habitStreak(item).before)}</span>
+                  {habitStreak(item).now + habitStreak(item).before > 0 && (
+                    <span className="text-textMuted">{Math.max(habitStreak(item).now, habitStreak(item).before)} {Math.max(habitStreak(item).now, habitStreak(item).before) === 1 ? "day" : "days"} in a row</span>
+                  )}
                 </>
               ) : (
                 <span>+{finishXp(item)} XP to {item.cat} when it's complete</span>
@@ -173,18 +187,29 @@ export default function ItemCard({ item }) {
             </div>
           )}
 
+          {/* The last seven real days, today on the right. A missed day can be
+              tapped in afterwards (Cassidy, Oct 27); today is ticked above. */}
           {item.type === "habit" && !item.done && (
-            <div className="flex gap-1.5 mt-2.5">
-              {DAY_LABELS.map((d, i) => (
-                <div key={i} className="text-center">
-                  <button
-                    onClick={() => toggleDay(item.id, i)}
-                    className={`w-5 h-5 rounded-full border ${item.days[i] ? "bg-gold border-gold" : "border-borderC"}`}
-                    aria-label={`Toggle ${d} check-in`}
-                  />
-                  <div className="text-[9px] text-textMuted mt-0.5">{d}</div>
-                </div>
-              ))}
+            <div className="mt-2.5">
+              <div className="flex gap-1.5">
+                {lastSevenDays().map(({ key, label, date }) => {
+                  const isToday = key === today;
+                  const done = doneDays.has(key);
+                  return (
+                    <div key={key} className="text-center">
+                      <button
+                        type="button"
+                        disabled={isToday}
+                        onClick={() => logPastDay(item.id, key).catch(e => console.error("[ItemCard] past day failed:", e))}
+                        className={`w-5 h-5 rounded-full border ${done ? "bg-gold border-gold" : "border-borderC"} ${isToday ? "ring-1 ring-offset-1 ring-gold/50 ring-offset-surface1" : "hover:border-gold"}`}
+                        aria-label={isToday ? `Today: ${done ? "done" : "not yet"}` : `${label} ${date}: ${done ? "done, tap to take it back" : "tap if you did it"}`}
+                      />
+                      <div className={`text-[9px] mt-0.5 ${isToday ? "text-gold font-semibold" : "text-textMuted"}`}>{label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="text-[10px] text-textMuted mt-1">Forgot a day? Tap it to fill it in.</div>
             </div>
           )}
 

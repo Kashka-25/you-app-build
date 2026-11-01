@@ -8,6 +8,19 @@ import { useAuth } from "./AuthContext";
 // See design/plugin-emblems for how they're drawn.
 export const PLUGINS = [
   {
+    key: "focus",
+    title: "Focus",
+    icon: "focus",
+    summary: "Timed sessions for one thing, fully, that tend what you're growing.",
+    more: [
+      "Start a session from the side menu, or tap the timer beside anything you've sown for today.",
+      "A session for something you're growing counts as tending it, and each one plants a little in your week's garden on Harvest.",
+      "Leave the screen and a small bar keeps time for you; YOU lets you know when it's done."
+    ],
+    desc: "Timed sessions for one thing, fully. Opens from the side menu, and from the timer beside what you've sown for today.",
+    on: false
+  },
+  {
     key: "todo_list",
     title: "Today's to-do list",
     icon: "todo",

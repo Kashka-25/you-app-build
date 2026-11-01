@@ -2,14 +2,15 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ChevronRight, GraduationCap } from "lucide-react";
 import { ProgressRing } from "../ui/ProgressRing";
 
-// The stairway under the moon, across the top of the card.
+// The stairway under the moon, across the top of the card. Called "Your
+// path" so "journey" only ever means YOUrney, the life story (Cassidy, Nov 1).
 function PathBanner({ id, to }) {
   return (
     <div className="relative h-[132px] -mx-4 -mt-4 mb-4 overflow-hidden">
       <img src="/images/home/journey-stairs.webp" alt="" width="703" height="373" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover object-[center_45%] dark:brightness-[0.7]" />
       <div className="absolute inset-0 bg-gradient-to-t from-surface1 via-surface1/40 to-transparent dark:from-black/70 dark:via-black/20" />
       <div className="absolute inset-x-4 bottom-2 flex items-end justify-between gap-3">
-        <h2 id={id} className="font-serif text-h2 text-textPrimary dark:text-cream m-0">Your journey</h2>
+        <h2 id={id} className="font-serif text-h2 text-textPrimary dark:text-cream m-0">Your path</h2>
         {to && (
           <Link to={to} className="inline-flex items-center gap-1 text-caption text-textSecondary dark:text-cream/90 hover:underline min-h-[32px]">
             View all <ChevronRight size={14} strokeWidth={1.75} />
@@ -35,7 +36,7 @@ export default function JourneyProgressCard({ entries }) {
             <GraduationCap size={20} strokeWidth={1.75} aria-hidden="true" />
           </span>
           <div className="flex-1 min-w-0">
-            <p className="text-body text-textPrimary m-0">Begin a guided journey</p>
+            <p className="text-body text-textPrimary m-0">Begin a guided path</p>
             <p className="text-bodySm text-textSecondary m-0 mt-0.5">YOUniversity holds paths for real change, one small part at a time.</p>
             <Link to="/youniversity" className="mt-3 inline-flex items-center gap-2 min-h-[44px] px-4 rounded-full bg-forestAccent text-onAccent text-bodySm font-medium hover:bg-forest">
               Explore YOUniversity <ArrowRight size={15} strokeWidth={2} />

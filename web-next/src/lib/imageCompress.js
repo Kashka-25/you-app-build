@@ -1,5 +1,6 @@
 // Memory photos are converted on the device before upload, whatever they
-// came in as (JPEG, PNG, WebP, GIF, and HEIC where the browser can open it):
+// came in as (JPEG, PNG, WebP, GIF, and HEIC: where the browser can't open
+// an iPhone HEIC itself, it's turned into a JPEG here first; Cassidy, Oct 28):
 // - resized so the long edge is at most MAX_EDGE (sharp on a phone or a
 //   laptop, far smaller than a camera original);
 // - re-encoded as WebP (roughly 25-35% smaller than JPEG at the same
@@ -40,6 +41,15 @@ function toBlob(canvas, type, quality) {
 // touch more quality keeps fine pen strokes crisp.
 export const JOURNAL_PAGE = { maxEdge: 1568, quality: 0.85 };
 
+const isHeic = file => /heic|heif/i.test(file.type + file.name);
+
+// The converter is large, so it's only fetched when a HEIC actually arrives.
+async function heicToJpeg(file) {
+  const { default: heic2any } = await import("heic2any");
+  const out = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
+  return Array.isArray(out) ? out[0] : out;
+}
+
 // Returns { blob, ext, width, height, originalBytes }. Throws an Error with
 // a friendly `.friendly` message when the file can't be opened.
 export async function compressImage(file, { maxEdge = MAX_EDGE, quality = QUALITY } = {}) {
@@ -47,9 +57,14 @@ export async function compressImage(file, { maxEdge = MAX_EDGE, quality = QUALIT
   try {
     source = await decode(file);
   } catch {
+    if (isHeic(file)) {
+      try { source = await decode(await heicToJpeg(file)); } catch { /* friendly message below */ }
+    }
+  }
+  if (!source) {
     const err = new Error("decode_failed");
-    err.friendly = /heic|heif/i.test(file.type + file.name)
-      ? "This photo is in HEIC format, which this browser can't open. Try choosing it from your phone, or save it as a JPEG first."
+    err.friendly = isHeic(file)
+      ? "This HEIC photo couldn't be converted. Try saving it as a JPEG first."
       : "That file couldn't be opened as a photo.";
     throw err;
   }

@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
-import { newStepId } from "./habits";
+import { newStepId, dailySteps } from "./habits";
+import { CHECKIN_XP, streakBonus, stepShares, habitDays, streakEnding, streakBefore } from "./xp";
 import { bandFor } from "./mood";
 import { fileEntryToProjects } from "./projects";
 import {
@@ -409,7 +410,10 @@ export function AppDataProvider({ children }) {
   // incrementally, so it can never drift from actual completions -- and
   // since there are exactly 7 slots, streak can only reach 7 when every day
   // is checked, which is exactly the prestige trigger.
-  async function toggleDay(id, dayIndex) {
+  // `base` is the check-in's own XP: 3, or 0 for a habit with steps, whose
+  // 3 XP is shared between its steps (toggleHabitStep). The streak bonus
+  // (+5 every 7 days in a row, +10 every 30; lib/xp.js) comes with it.
+  async function toggleDay(id, dayIndex, { base = CHECKIN_XP } = {}) {
     const item = items.find(i => i.id === id);
     if (!item) return;
     const today = todayKey();
@@ -441,8 +445,9 @@ export function AppDataProvider({ children }) {
 
     const days = [...item.days]; days[dayIndex] = true;
     const streak = days.filter(Boolean).length;
-    const bonus = streak > 0 && streak % STREAK_BONUS_INTERVAL === 0 ? STREAK_BONUS_XP : 0;
-    const totalXp = 3 + bonus;
+    const done = habitDays(item, memory, habitLogs);
+    done.add(today);
+    const totalXp = base + streakBonus(streakEnding(done, today));
     const updated = { ...item, days, streak, lastCheckin: today };
     const entry = { name: checkinName, type: "habit", xp: totalXp, date: niceDate(), date_key: today, cat: item.cat, tags: item.tags || [] };
     setItems(prev => prev.map(i => (i.id === id ? updated : i)));
@@ -502,10 +507,75 @@ export function AppDataProvider({ children }) {
       logs = [res.data, ...habitLogs];
       setHabitLogs(logs);
     }
+    // A habit with steps: each step earns its share of the day's 3 XP.
+    const steps = dailySteps(item);
+    const stepped = key !== "habit";
+    if (stepped) {
+      const share = stepShares(steps.length)[Math.max(0, steps.findIndex(s => s.key === key))] || 0;
+      await setStepXp(item, key, day, existing ? 0 : share);
+    }
     const anyToday = logs.some(l => l.item_id === itemId && l.day === day);
     const checkedToday = item.days[slot] && item.lastCheckin === day;
-    if (anyToday && !item.days[slot]) await toggleDay(itemId, slot);
-    else if (!anyToday && checkedToday) await toggleDay(itemId, slot);
+    const base = stepped ? 0 : CHECKIN_XP;
+    if (anyToday && !item.days[slot]) await toggleDay(itemId, slot, { base });
+    else if (!anyToday && checkedToday) await toggleDay(itemId, slot, { base });
+  }
+
+  // A day that was done but never logged (Cassidy, Oct 27): one of the last
+  // six days, ticked from the habit's week row. It earns the plain check-in
+  // XP for that day (no streak bonus, so catching up can't farm bonuses) and
+  // counts toward days in a row from then on. Tapping it again takes it back.
+  async function logPastDay(itemId, day) {
+    const item = items.find(i => i.id === itemId);
+    if (!item || day >= todayKey()) return;
+    const slot = (new Date(day + "T00:00:00").getDay() + 6) % 7;
+    const logs = habitLogs.filter(l => l.item_id === itemId && l.day === day);
+    let days = [...item.days];
+    if (logs.length) {
+      setHabitLogs(prev => prev.filter(l => !logs.includes(l)));
+      const res = await supabase.from("habit_logs").delete().in("id", logs.map(l => l.id)).eq("user_id", userId);
+      if (res.error) { setHabitLogs(habitLogs); throw res.error; }
+      await setStepXp(item, "catchup", day, 0);
+      days[slot] = false;
+    } else {
+      // Done the old way (a check-in with no log): already counted, leave it.
+      if (habitDays(item, memory, habitLogs).has(day)) return;
+      const res = await supabase.from("habit_logs").insert({ user_id: userId, item_id: itemId, day, step: "habit", amount: dailySteps(item)[0]?.amount ?? null }).select().single();
+      if (res.error) throw res.error;
+      setHabitLogs(prev => [res.data, ...prev]);
+      await setStepXp(item, "catchup", day, CHECKIN_XP);
+      days[slot] = true;
+    }
+    const updated = { ...item, days, streak: days.filter(Boolean).length };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
+  }
+
+  // One memory row per step per day carries that step's XP; unticking sets
+  // it to 0 and ticking again restores it, so it can never be earned twice.
+  async function setStepXp(item, key, day, xp) {
+    const name = `${item.name} (step ${key} · ${day})`;
+    const existing = memory.find(m => m.name === name);
+    if (existing) {
+      setMemory(prev => prev.map(m => (m === existing ? { ...m, xp } : m)));
+      if (existing.id) await supabase.from("memory").update({ xp }).eq("id", existing.id).eq("user_id", userId);
+      return;
+    }
+    if (!xp) return;
+    const entry = { name, type: "habit", xp, date: niceDate(), date_key: day, cat: item.cat, tags: item.tags || [] };
+    setMemory(prev => [entry, ...prev]);
+    const res = await supabase.from("memory").insert({
+      user_id: userId, name, type: "habit", xp, date: entry.date, date_key: day, cat: item.cat, tags: entry.tags
+    }).select().single();
+    if (res.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: res.data.id } : m)));
+  }
+
+  // Days in a row: { before } (ending yesterday) and { now } (ending today,
+  // 0 if today isn't done yet).
+  function habitStreak(item) {
+    const done = habitDays(item, memory, habitLogs);
+    const today = todayKey();
+    return { before: streakBefore(done, today), now: streakEnding(done, today) };
   }
 
   // What was actually done today: 150 push-ups, an hour instead of 30 minutes.
@@ -1066,9 +1136,11 @@ export function AppDataProvider({ children }) {
     setSeasons(res.data || []);
   }
 
-  async function readSeason() {
+  // opts: { from, to, kind: "season" | "equinox" | "lookback", turning, title }
+  // for a Season review or a Look back; nothing for the current season.
+  async function readSeason(opts = {}) {
     await withAiConsent();
-    const data = await invokeAi("infer-season", {});
+    const data = await invokeAi("infer-season", opts);
     if (data?.empty) return { empty: true, message: data.message };
     setSeasons(prev => [data.season, ...prev]);
     return { empty: false, season: data.season };
@@ -2037,7 +2109,7 @@ export function AppDataProvider({ children }) {
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
-    habitLogs, toggleHabitStep, setHabitAmount,
+    habitLogs, toggleHabitStep, setHabitAmount, habitStreak, logPastDay,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
@@ -2045,7 +2117,7 @@ export function AppDataProvider({ children }) {
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
     weekIntentions, sowWeek, toggleTended, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
-    seasons, currentSeason: seasons[0] || null, readSeason, aiUsageThisMonth,
+    seasons, currentSeason: seasons.find(s => s.based_on?.kind !== "lookback") || null, readSeason, aiUsageThisMonth,
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
     focusSessions, saveFocusSession, saveFocusNote,
     highlights, addHighlight, updateHighlight, deleteHighlight,
