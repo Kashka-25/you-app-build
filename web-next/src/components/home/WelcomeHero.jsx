@@ -106,10 +106,10 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
 // The scroll is painted (images/home/featured-scroll.webp): rolls and sprigs
 // solid, the sheet between them a see-through wash. It keeps its painted,
 // landscape shape (stretching the sheet to fit long pieces made it a tall
-// box), and the words size themselves to fit the sheet instead. The credit
-// sits just under the scroll, like a caption. Opens in full with a way to
+// box), and the words size themselves to fit the sheet instead, with who
+// it's by written at the foot of the sheet. Opens in full with a way to
 // support the writer.
-const SHEET = { top: "20%", bottom: "18%", left: "12.5%", right: "13.5%" };
+const SHEET = { top: "19%", bottom: "19.5%", left: "12.5%", right: "13.5%" };
 
 // Shorter pieces are written larger; long ones smaller, so any piece fits.
 function wordsSize(text) {
@@ -117,7 +117,7 @@ function wordsSize(text) {
   if (n <= 70) return "text-[19px] lg:text-[23px]";
   if (n <= 120) return "text-[17.5px] lg:text-[21px]";
   if (n <= 170) return "text-[16px] lg:text-[19px]";
-  return "text-[13.5px] lg:text-[16px]";
+  return "text-[13px] lg:text-[16px]";
 }
 
 function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
@@ -138,18 +138,20 @@ function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
           style={{ backgroundImage: "url(/images/home/featured-scroll.webp)", backgroundSize: "100% 100%" }}
         />
         <span className="absolute flex flex-col items-center justify-center overflow-hidden" style={SHEET}>
-          {work.title && (
+          {work.title ? (
             <span className={`flex items-center gap-1.5 font-serif text-[13px] lg:text-[15px] tracking-[0.06em] uppercase text-[#7A6024] dark:text-gold ${glow}`}>
               <Feather size={11} strokeWidth={1.75} aria-hidden="true" /> {work.title}
             </span>
+          ) : (
+            <Feather size={13} strokeWidth={1.75} className={`text-[#7A6024] dark:text-gold`} aria-hidden="true" />
           )}
-          <span className={`block font-serif italic leading-[1.3] mt-1 whitespace-pre-line line-clamp-6 ${wordsSize(work.body)} ${ink} ${glow}`}>
+          <span className={`block font-serif italic leading-[1.3] mt-1 whitespace-pre-line line-clamp-5 ${wordsSize(work.body)} ${ink} ${glow}`}>
             {work.body}
           </span>
+          <span className={`block text-[11px] lg:text-caption mt-1.5 ${inkSoft} ${glow} group-hover:underline underline-offset-2`}>
+            {creditLine(name, work.credits)} · read and support
+          </span>
         </span>
-      </span>
-      <span className={`block text-caption mt-1.5 ${inkSoft} ${glow} group-hover:underline underline-offset-2`}>
-        {work.title ? "" : "Featured words · "}{creditLine(name, work.credits)} · read and support
       </span>
     </button>
   );
