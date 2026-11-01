@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Plus, BookOpen, ScanText, Highlighter } from "lucide-react";
+import { Plus, BookOpen, ScanText, Highlighter, Lock, LockOpen } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/EmptyState";
@@ -14,6 +14,8 @@ import DreamPatternsCard from "../journal/DreamPatternsCard";
 import { Modal } from "../ui/Modal";
 import { AiButton } from "../ui/Premium";
 import YOUnderstanding from "../journal/YOUnderstanding";
+import MoodLine from "../journal/MoodLine";
+import { JournalLockScreen, JournalLockSettings, useJournalLock } from "../journal/JournalLock";
 
 const TABS = [
   { value: "entries", label: "Journal" },
@@ -100,6 +102,10 @@ export default function Reflections() {
   const [scan, setScan] = useState(null);
   const [scanNote, setScanNote] = useState("");
   const [scanHidden, setScanHidden] = useState(false);
+  // The optional lock (lib/journalLock.js): while it's on and closed, the
+  // lock screen stands in for the whole page.
+  const lock = useJournalLock();
+  const [lockSettings, setLockSettings] = useState(false);
 
   // Photos of handwritten pages become one entry: converted small, read by
   // AI (after consent), then opened so the words can be checked.
@@ -145,6 +151,14 @@ export default function Reflections() {
     savedTimer.current = setTimeout(() => setSavedNote(""), 5000);
   }
 
+  if (lock.locked) {
+    return (
+      <div className="pt-1 pb-24 px-5">
+        <JournalLockScreen onUnlocked={lock.refresh} />
+      </div>
+    );
+  }
+
   return (
     <div className="pt-1 pb-24 px-5">
       <YOUnderstanding onWrite={() => { setTab("entries"); setAddOpen(true); }} />
@@ -162,6 +176,15 @@ export default function Reflections() {
           className="absolute inset-0 w-full h-full object-cover object-[center_35%] dark:brightness-[0.62] dark:saturate-[0.85]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#FBF7F0] via-[#FBF7F0]/70 via-40% to-transparent dark:from-[#0B0B1F] dark:via-[#0B0B1F]/70" />
+        <button
+          type="button"
+          onClick={() => setLockSettings(true)}
+          aria-label={lock.isSet ? "YOUrnal lock: on. Lock now, change the PIN or turn it off" : "Lock YOUrnal with a PIN"}
+          className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-full bg-white/70 dark:bg-black/35 border border-borderC dark:border-white/15 text-caption text-textPrimary dark:text-cream backdrop-blur-sm"
+        >
+          {lock.isSet ? <Lock size={14} strokeWidth={1.75} /> : <LockOpen size={14} strokeWidth={1.75} />}
+          {lock.isSet ? "Locked" : "Add a lock"}
+        </button>
         <div className="relative flex flex-col justify-end min-h-[168px] p-4 pt-16">
           <h1 id="yournal-title" className="font-serif text-[30px] leading-tight text-textPrimary dark:text-cream m-0">YOUrnal</h1>
           <p className="text-bodySm text-textSecondary dark:text-[color-mix(in_srgb,var(--cream)_88%,transparent)] m-0">Your journal, just for you.</p>
@@ -206,6 +229,7 @@ export default function Reflections() {
         />
       ) : (
         <>
+          <MoodLine onOpenEntry={setEditingEntry} />
           <TagFilter tags={tagCounts(journalEntries)} value={openTag} onChange={t => { setOpenTag(t); setLimit(ENTRIES_SHOWN); }} />
           {["dream", "dreams"].includes(openTag) && (
             <DreamPatternsCard dreamCount={journalEntries.filter(e => (e.tags || []).some(t => ["dream", "dreams"].includes(tagKey(t)))).length} />
@@ -220,6 +244,7 @@ export default function Reflections() {
         </>
       )}
 
+      <JournalLockSettings open={lockSettings} onClose={() => setLockSettings(false)} onChanged={lock.refresh} />
       <JournalEntryModal open={addOpen} onClose={() => setAddOpen(false)} onSaved={handleSaved} />
       <JournalEntryModal
         open={Boolean(editingEntry)}

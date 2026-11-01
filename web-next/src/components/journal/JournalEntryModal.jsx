@@ -11,6 +11,7 @@ import { scoreOf } from "../../lib/mood";
 import { stopsCoveringDate } from "../../lib/wandering";
 import PlacePicker from "../wandering/PlacePicker";
 import KeepHighlight from "./KeepHighlight";
+import Dictate from "./Dictate";
 
 const labelClass = "block text-label uppercase text-textMuted mb-1.5";
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
@@ -203,6 +204,9 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
         onChange={e => setContent(e.target.value)}
         onSelect={onSelect}
       />
+
+      {/* Spoken words join the end of the entry, a phrase at a time. */}
+      <Dictate onText={said => said && setContent(c => (c && !/\s$/.test(c) ? `${c} ${said}` : `${c}${said}`))} />
 
       {keeping ? (
         <KeepHighlight text={keeping} entryTags={tags} onKeep={keepHighlight} onCancel={() => setKeeping(null)} />
