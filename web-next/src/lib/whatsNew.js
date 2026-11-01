@@ -7,6 +7,16 @@ import { useAuth } from "./AuthContext";
 // take the Seeker there.
 export const WHATS_NEW = [
   {
+    id: "2026-11-01-home",
+    date: "2026-11-01",
+    title: "A calmer Home",
+    body: "The welcome now carries the featured piece from Showcase, words and art together. Check in first, then Today. Tap your mood face to see the week you've had. Your path holds your YOUniversity course, and More of YOU opens YOUrney, Mirror, Showcase and Wanderings. Focus is now an extra: switch it on in Extras whenever you want it.",
+    plugin: "focus",
+    icon: "focus",
+    to: "/extras",
+    open: "Open Extras"
+  },
+  {
     id: "2026-10-28b-seasons",
     date: "2026-10-28",
     title: "Season reviews and Look back",

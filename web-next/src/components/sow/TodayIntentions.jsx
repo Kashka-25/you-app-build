@@ -5,6 +5,7 @@ import { PILLAR_COLORS } from "../../constants/app.const";
 import { isDueToday, localDateKey } from "../../lib/week";
 import { stepProgress } from "../ui/StepList";
 import HabitDay from "../pursue/HabitDay";
+import { usePlugin } from "../../lib/plugins";
 
 const TYPE_LABEL = { habit: "Habit", goal: "Goal", dream: "Dream" };
 
@@ -69,6 +70,7 @@ export function useTodayList() {
 // looks like.
 export default function TodayIntentions() {
   const { toggleTended, restIntentionToday, toggleMilestone } = useAppData();
+  const focusOn = usePlugin("focus");
   const today = localDateKey();
   const { due, restedToday, isEmpty } = useTodayList();
 
@@ -104,14 +106,14 @@ export default function TodayIntentions() {
                 </div>
               )}
             </div>
-            <Link
+            {focusOn && <Link
               to={`/focus?intention=${w.id}`}
               aria-label={`Tend "${item.name}" with a focus session`}
               title="Tend with focus"
               className="flex-none w-11 h-11 -my-1.5 rounded-full flex items-center justify-center text-forestAccent hover:bg-surface3"
             >
               <Timer size={18} strokeWidth={1.75} />
-            </Link>
+            </Link>}
             {!tended && (
               <button
                 onClick={() => restIntentionToday(w.id)}

@@ -141,6 +141,58 @@ function MoodScale({ start, onSave, saveLabel }) {
   );
 }
 
+// Where the moods go (Cassidy, Oct 24): today's check-ins with their times,
+// and the week as one face a day (the day's last check-in).
+function MoodHistory() {
+  const { moodLog } = useAppData();
+  const today = localDateKey();
+  const todays = moodLog.filter(m => m.date_key === today && scoreOf(m) != null);
+  const week = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const key = localDateKey(d);
+    const last = moodLog.find(m => m.date_key === key && scoreOf(m) != null);
+    return { key, label: d.toLocaleDateString(undefined, { weekday: "narrow" }), name: d.toLocaleDateString(undefined, { weekday: "long" }), score: scoreOf(last) };
+  });
+  const time = m => (m.inserted_at ? new Date(m.inserted_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : "");
+
+  return (
+    <div className="mt-3 pt-3 border-t border-borderC">
+      {todays.length > 1 && (
+        <>
+          <div className="text-label uppercase text-textMuted mb-1.5">Today</div>
+          <ul className="flex flex-wrap gap-x-3 gap-y-1.5 mb-3 m-0 p-0 list-none">
+            {[...todays].reverse().map(m => (
+              <li key={m.id} className="inline-flex items-center gap-1.5 text-caption text-textSecondary">
+                <MoodFace score={scoreOf(m)} size={20} />
+                {bandFor(scoreOf(m)).label} <span className="text-textMuted">{time(m)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <div className="text-label uppercase text-textMuted mb-1.5">This week</div>
+      <ul className="grid grid-cols-7 gap-1 m-0 p-0 list-none">
+        {week.map(d => (
+          <li
+            key={d.key}
+            className="flex flex-col items-center gap-0.5"
+            aria-label={d.score == null ? `${d.name}: no check-in` : `${d.name}: ${bandFor(d.score).label.toLowerCase()}, ${d.score} out of 100`}
+          >
+            {d.score == null
+              ? <span className="w-6 h-6 rounded-full border border-dashed border-borderC" aria-hidden="true" />
+              : <MoodFace score={d.score} size={24} />}
+            <span className={`text-[10px] ${d.key === today ? "text-gold font-semibold" : "text-textMuted"}`} aria-hidden="true">{d.label}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-caption text-textMuted m-0 mt-2.5">
+        Your moods stay private. They shape your weekly reflection and your Season reviews.
+      </p>
+    </div>
+  );
+}
+
 function UpdateSheet({ score, onClose, onSave }) {
   const reduce = useReducedMotion();
   useEffect(() => {
@@ -165,7 +217,7 @@ function UpdateSheet({ score, onClose, onSave }) {
         exit={reduce ? { opacity: 0 } : { y: 40, opacity: 0 }}
         transition={{ duration: 0.25, ease: easeOut }}
         onClick={e => e.stopPropagation()}
-        className="w-full sm:w-[380px] bg-surface2 rounded-t-card sm:rounded-card shadow-card p-5"
+        className="w-full sm:w-[380px] max-h-[90dvh] overflow-y-auto bg-surface2 rounded-t-card sm:rounded-card shadow-card p-5"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 20px)" }}
       >
         <div className="flex items-center justify-between mb-2">
@@ -176,6 +228,7 @@ function UpdateSheet({ score, onClose, onSave }) {
         </div>
         <MoodScale start={score} onSave={onSave} saveLabel="Save how I am now" />
         <Link to="/reflections" onClick={onClose} className="block text-center mt-2 text-caption text-forestAccent min-h-[32px]">Write about it in your YOUrnal</Link>
+        <MoodHistory />
       </motion.div>
     </motion.div>
   );

@@ -5,8 +5,20 @@ import { supabase } from "./supabaseClient";
 // sized; the full original never leaves the artist's device. Images sit in
 // a private bucket and are shown through short-lived signed links.
 
-const WORK_FIELDS =
+const BASE_FIELDS =
   "id,user_id,kind,title,body,image_path,image_width,image_height,alt_text,placements,save_mode,suggested_amount,status,review_note,reviewed_at,live_at,featured_at,submitted_at,kronk_post_url,created_at,credits:showcase_credits(id,role,name,url,kronk_handle,artist_user_id,position)";
+// words_scroll (Nov 1): whether featured words with their own image sit on
+// the scroll. Until that column exists in a database, ask without it.
+let WORK_FIELDS = `${BASE_FIELDS},words_scroll`;
+
+async function selectWorks(build) {
+  let res = await build(supabase.from("showcase_works").select(WORK_FIELDS));
+  if (res.error?.code === "42703" && WORK_FIELDS !== BASE_FIELDS) {
+    WORK_FIELDS = BASE_FIELDS;
+    res = await build(supabase.from("showcase_works").select(WORK_FIELDS));
+  }
+  return res;
+}
 
 async function withArtistsAndImages(works) {
   const userIds = [...new Set(works.map(w => w.user_id))];
@@ -25,29 +37,26 @@ async function withArtistsAndImages(works) {
     ...w,
     credits: [...(w.credits || [])].sort((a, b) => a.position - b.position),
     artist: artists[w.user_id] || null,
-    imageUrl: w.image_path ? urls[w.image_path] || null : null
+    imageUrl: w.image_path ? urls[w.image_path] || null : null,
+    words_scroll: w.words_scroll ?? true
   }));
 }
 
 /** Live pieces, newest feature first. */
 export async function loadLiveWorks(limit = 60) {
-  const { data, error } = await supabase
-    .from("showcase_works")
-    .select(WORK_FIELDS)
+  const { data, error } = await selectWorks(q => q
     .eq("status", "live")
     .order("featured_at", { ascending: false })
-    .limit(limit);
+    .limit(limit));
   if (error) throw error;
   return withArtistsAndImages(data || []);
 }
 
 /** The signed-in artist's own pieces, every status, newest first. */
 export async function loadMyWorks(userId) {
-  const { data, error } = await supabase
-    .from("showcase_works")
-    .select(WORK_FIELDS)
+  const { data, error } = await selectWorks(q => q
     .eq("user_id", userId)
-    .order("submitted_at", { ascending: false });
+    .order("submitted_at", { ascending: false }));
   if (error) throw error;
   return withArtistsAndImages(data || []);
 }
@@ -100,7 +109,7 @@ export async function saveArtistProfile(userId, p) {
 /** Every piece (admins see all of them under RLS) with its reports. */
 export async function loadReviewQueue() {
   const [worksRes, reportsRes] = await Promise.all([
-    supabase.from("showcase_works").select(WORK_FIELDS).order("submitted_at", { ascending: false }).limit(200),
+    selectWorks(q => q.order("submitted_at", { ascending: false }).limit(200)),
     supabase.from("showcase_reports").select("id,work_id,reason,created_at").order("created_at", { ascending: false })
   ]);
   if (worksRes.error) throw worksRes.error;

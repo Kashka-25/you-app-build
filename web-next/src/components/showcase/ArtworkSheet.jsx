@@ -72,7 +72,7 @@ export default function ArtworkSheet({ work, saved, onSavedChange, onClose }) {
 
   return (
     <Modal open onClose={onClose} title={work.title || (work.kind === "image" ? "Artwork" : "Featured words")}>
-      {work.kind === "image" && work.imageUrl && (
+      {work.imageUrl && (
         <div className="relative -mx-1 mb-3 rounded-card overflow-hidden bg-surface3">
           <img
             src={work.imageUrl}
