@@ -1,7 +1,8 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Feather } from "lucide-react";
-import { riseIn } from "../ui/motion";
+import { easeOut, riseIn } from "../ui/motion";
 import { CreditChip } from "../showcase/FeaturedWords";
 import { backgroundClass, creditLine } from "../../lib/showcase";
 import { MoodBadge } from "./DailyCheckIn";
@@ -104,55 +105,82 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
 
 // The featured words on a scroll laid over the picture (Cassidy, Nov 1).
 // The scroll is painted (images/home/featured-scroll.webp): rolls and sprigs
-// solid, the sheet between them a see-through wash. It keeps its painted,
-// landscape shape (stretching the sheet to fit long pieces made it a tall
-// box), and the words size themselves to fit the sheet instead, with who
-// it's by written at the foot of the sheet. Opens in full with a way to
-// support the writer.
-const SHEET = { top: "19%", bottom: "19.5%", left: "12.5%", right: "13.5%" };
-
-// Shorter pieces are written larger; long ones smaller, so any piece fits.
-function wordsSize(text) {
-  const n = (text || "").length;
-  if (n <= 70) return "text-[19px] lg:text-[23px]";
-  if (n <= 120) return "text-[17.5px] lg:text-[21px]";
-  if (n <= 170) return "text-[16px] lg:text-[19px]";
-  return "text-[13px] lg:text-[16px]";
-}
+// solid, the sheet between them a see-through wash. It's drawn as a border
+// image sized to the painting's own proportions, so at rest it looks just as
+// painted; only the sheet grows when a long piece is unrolled. A piece shows
+// its title and three lines, ending in "…" if there's more: tap the words to
+// unroll it, tap again to roll it back. Who it's by is written at the foot,
+// with "read and support" opening it in full.
+const SCROLL = {
+  borderStyle: "solid",
+  borderWidth: "38px 33px 34px 28px",
+  borderImage: "url(/images/home/featured-scroll.webp) 93 81 83 69 fill / 38px 33px 34px 28px stretch"
+};
 
 function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
   const name = work.artist?.display_name || "An artist";
+  const offered = creditLine("", work.credits);
   const glow = "[text-shadow:0_0_10px_rgba(251,247,240,0.95),0_0_2px_rgba(251,247,240,0.9)] dark:[text-shadow:0_0_10px_rgba(11,11,31,0.95),0_0_2px_rgba(11,11,31,0.9)]";
+  const reduce = useReducedMotion();
+  const body = useRef(null);
+  const [open, setOpen] = useState(false);
+  const [more, setMore] = useState(false);
+
+  // Is there more than three lines' worth? (Checked while rolled up.)
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = body.current;
+      if (el && !open) setMore(el.scrollHeight > el.clientHeight + 2);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [work.body, open]);
+
   return (
-    <button
-      type="button"
-      onClick={() => onOpen(work)}
-      aria-label={`Featured words${work.title ? `: ${work.title}` : ""}, by ${name}. Open to read in full and support them.`}
-      className="self-center w-[calc(100%+1rem)] -mx-2 max-w-[26rem] text-center active:scale-[0.99] transition group"
+    <motion.div
+      layout={!reduce}
+      transition={{ duration: 0.35, ease: easeOut }}
+      className="relative self-center w-[calc(100%+1rem)] -mx-2 max-w-[26rem] text-center drop-shadow-[0_6px_14px_rgba(74,58,18,0.2)]"
+      style={{ padding: SCROLL.borderWidth }}
     >
-      <span className="relative block w-full drop-shadow-[0_6px_14px_rgba(74,58,18,0.2)]" style={{ aspectRatio: "754 / 540" }}>
-        {/* The scroll itself, a little softer in the Cosmos. */}
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 bg-no-repeat dark:[filter:brightness(0.78)_saturate(0.9)]"
-          style={{ backgroundImage: "url(/images/home/featured-scroll.webp)", backgroundSize: "100% 100%" }}
-        />
-        <span className="absolute flex flex-col items-center justify-center overflow-hidden" style={SHEET}>
-          {work.title ? (
-            <span className={`flex items-center gap-1.5 font-serif font-bold text-[14px] lg:text-[16px] tracking-[0.06em] uppercase text-[#6A4F16] dark:text-[#F1C76A] ${glow}`}>
-              <Feather size={11} strokeWidth={1.75} aria-hidden="true" /> {work.title}
-            </span>
-          ) : (
-            <Feather size={13} strokeWidth={1.75} className={`text-[#7A6024] dark:text-gold`} aria-hidden="true" />
-          )}
-          <span className={`block font-serif italic leading-[1.3] mt-1 whitespace-pre-line line-clamp-5 ${wordsSize(work.body)} ${ink} ${glow}`}>
+      {/* The scroll itself, a little softer in the Cosmos. */}
+      <span aria-hidden="true" style={SCROLL} className="absolute inset-0 dark:[filter:brightness(0.78)_saturate(0.9)]" />
+      <motion.div layout={!reduce ? "position" : false} className="relative px-1 py-1">
+        {work.title ? (
+          <div className={`flex items-center justify-center gap-1.5 font-serif font-bold text-[17px] lg:text-[19px] leading-tight tracking-[0.05em] uppercase text-[#6A4F16] dark:text-[#F1C76A] ${glow}`}>
+            <Feather size={13} strokeWidth={2} aria-hidden="true" /> {work.title}
+          </div>
+        ) : (
+          <Feather size={14} strokeWidth={1.75} className="mx-auto text-[#7A6024] dark:text-gold" aria-hidden="true" />
+        )}
+        <button
+          type="button"
+          onClick={() => more && setOpen(o => !o)}
+          aria-expanded={more ? open : undefined}
+          aria-label={more ? (open ? "Roll the piece back up" : "Unroll the whole piece") : undefined}
+          className={`block w-full mt-1.5 ${more ? "cursor-pointer" : "cursor-default"}`}
+        >
+          <span
+            ref={body}
+            className={`font-serif italic text-[17px] lg:text-[20px] leading-[1.32] whitespace-pre-line ${open ? "block" : "line-clamp-3"} ${ink} ${glow}`}
+          >
             {work.body}
           </span>
-          <span className={`block text-[11px] lg:text-caption mt-1.5 ${inkSoft} ${glow} group-hover:underline underline-offset-2`}>
-            {creditLine(name, work.credits)} · read and support
-          </span>
-        </span>
-      </span>
-    </button>
+        </button>
+        <div className={`mt-1.5 text-[12px] lg:text-caption ${inkSoft} ${glow}`}>
+          By <span className={`font-semibold ${ink}`}>{name}</span>
+          {offered && <> · {offered.replace(/^Offered/, "offered")}</>}
+          {" · "}
+          <button
+            type="button"
+            onClick={() => onOpen(work)}
+            className="underline underline-offset-2 decoration-[color-mix(in_srgb,var(--gold)_60%,transparent)] hover:text-textPrimary dark:hover:text-cream"
+          >
+            read and support
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
