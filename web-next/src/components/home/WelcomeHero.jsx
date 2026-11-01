@@ -111,6 +111,10 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
 // its title and three lines, ending in "…" if there's more: tap the words to
 // unroll it, tap again to roll it back. Who it's by is written at the foot,
 // with "read and support" opening it in full.
+//
+// A piece shared from YOUrigin with its own image can ask for no scroll
+// (words_scroll false): then the words sit straight on the image, on a soft
+// glow of parchment (midnight in the Cosmos) that keeps them readable.
 const SCROLL = {
   borderStyle: "solid",
   borderWidth: "38px 33px 34px 28px",
@@ -125,6 +129,7 @@ function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
   const body = useRef(null);
   const [open, setOpen] = useState(false);
   const [more, setMore] = useState(false);
+  const onScroll = !(work.imageUrl && work.words_scroll === false);
 
   // Is there more than three lines' worth? (Checked while rolled up.)
   useLayoutEffect(() => {
@@ -141,11 +146,16 @@ function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
     <motion.div
       layout={!reduce}
       transition={{ duration: 0.35, ease: easeOut }}
-      className="relative self-center w-[calc(100%+1rem)] -mx-2 max-w-[26rem] text-center drop-shadow-[0_6px_14px_rgba(74,58,18,0.2)]"
-      style={{ padding: SCROLL.borderWidth }}
+      className={`relative self-center text-center ${onScroll ? "w-[calc(100%+1rem)] -mx-2 max-w-[26rem] drop-shadow-[0_6px_14px_rgba(74,58,18,0.2)]" : "w-full max-w-[24rem] px-6 py-5"}`}
+      style={onScroll ? { padding: SCROLL.borderWidth } : undefined}
     >
-      {/* The scroll itself, a little softer in the Cosmos. */}
-      <span aria-hidden="true" style={SCROLL} className="absolute inset-0 dark:[filter:brightness(0.78)_saturate(0.9)]" />
+      {onScroll ? (
+        // The scroll itself, a little softer in the Cosmos.
+        <span aria-hidden="true" style={SCROLL} className="absolute inset-0 dark:[filter:brightness(0.78)_saturate(0.9)]" />
+      ) : (
+        // No scroll: a soft glow behind the words, fading into the image.
+        <span aria-hidden="true" className="absolute inset-0 rounded-[50%] bg-[radial-gradient(closest-side,rgba(251,247,240,0.7),rgba(251,247,240,0.4)_55%,transparent)] dark:bg-[radial-gradient(closest-side,rgba(11,11,31,0.7),rgba(11,11,31,0.4)_55%,transparent)]" />
+      )}
       <motion.div layout={!reduce ? "position" : false} className="relative px-1 py-1">
         {work.title ? (
           <div className={`flex items-center justify-center gap-1.5 font-serif font-bold text-[17px] lg:text-[19px] leading-tight tracking-[0.05em] uppercase text-[#6A4F16] dark:text-[#F1C76A] ${glow}`}>

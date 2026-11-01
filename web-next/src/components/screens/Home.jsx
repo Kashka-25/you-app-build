@@ -218,11 +218,19 @@ function SeasonNudge() {
 
 // On a local dev copy only: /?preview-words=154 shows one of Cassidy's own
 // lines (constants/mementos.js) as the featured words, to see a real piece
-// on the welcome without touching the live Showcase.
+// on the welcome without touching the live Showcase. Add
+// &preview-image=tool-wanderings (a file in /images/home, .webp) to give it
+// an image, and &preview-scroll=0 to show it without the scroll.
 function previewWords() {
   if (!import.meta.env.DEV) return null;
-  const id = Number(new URLSearchParams(window.location.search).get("preview-words"));
+  const q = new URLSearchParams(window.location.search);
+  const id = Number(q.get("preview-words"));
   const m = id && MEMENTOS.find(x => x.id === id && x.kind === "creator");
   if (!m) return null;
-  return { id: `preview-${m.id}`, title: m.source || null, body: m.text, artist: { display_name: m.author }, credits: [] };
+  const image = q.get("preview-image");
+  return {
+    id: `preview-${m.id}`, title: m.source || null, body: m.text, artist: { display_name: m.author }, credits: [],
+    imageUrl: image && /^[\w-]+$/.test(image) ? `/images/home/${image}.webp` : null,
+    words_scroll: q.get("preview-scroll") !== "0"
+  };
 }
