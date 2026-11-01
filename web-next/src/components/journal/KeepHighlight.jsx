@@ -8,14 +8,15 @@ const fieldClass = "w-full bg-surface2 border border-borderC rounded-sm px-3 py-
 // Keeping some words from an entry: trim them if you like, tag them, link
 // them to a dream, and choose whether they may return as a memento.
 // onKeep receives the highlight's fields; the caller decides when it's
-// saved (straight away, or once a new entry exists).
-export default function KeepHighlight({ text: initial, entryTags = [], onKeep, onCancel }) {
+// saved (straight away, or once a new entry exists). Given an `existing`
+// highlight it opens filled in and edits it instead (Cassidy, Oct 28).
+export default function KeepHighlight({ text: initial, existing = null, entryTags = [], onKeep, onCancel }) {
   const { items, highlights } = useAppData();
-  const [text, setText] = useState(initial);
-  const [tags, setTags] = useState([]);
+  const [text, setText] = useState(existing?.text ?? initial);
+  const [tags, setTags] = useState(existing?.tags || []);
   const [tagInput, setTagInput] = useState("");
-  const [itemId, setItemId] = useState("");
-  const [asMemento, setAsMemento] = useState(true);
+  const [itemId, setItemId] = useState(existing?.item_id || "");
+  const [asMemento, setAsMemento] = useState(existing ? Boolean(existing.as_memento) : true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -51,7 +52,7 @@ export default function KeepHighlight({ text: initial, entryTags = [], onKeep, o
     <div className="rounded-card border border-gold/50 bg-surface1 p-3.5 mb-3">
       <div className="flex items-center gap-2 text-label uppercase text-textSecondary mb-2">
         <Highlighter size={13} strokeWidth={1.75} className="text-gold" />
-        Keep as a highlight
+        {existing ? "Edit this highlight" : "Keep as a highlight"}
       </div>
       <textarea
         rows={3} value={text} onChange={e => setText(e.target.value)} maxLength={600}
@@ -106,7 +107,7 @@ export default function KeepHighlight({ text: initial, entryTags = [], onKeep, o
       <div className="flex gap-2">
         <Button type="button" variant="secondary" size="sm" className="flex-1" onClick={onCancel}>Cancel</Button>
         <Button type="button" size="sm" className="flex-1" onClick={keep} disabled={saving || !text.trim()}>
-          {saving ? "Keeping…" : "Keep it"}
+          {saving ? "Saving…" : existing ? "Save changes" : "Keep it"}
         </Button>
       </div>
     </div>

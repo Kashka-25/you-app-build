@@ -1664,10 +1664,25 @@ export function AppDataProvider({ children }) {
     await supabase.from("todos").delete().eq("id", id).eq("user_id", userId);
   }
 
-  async function addJournalEntry({ content, mood, entryDate, tags, stopId }) {
-    const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey(), tags: tags || [] };
+  // An entry's mood is the 0–100 scale (Cassidy, Nov 2): mood_score keeps the
+  // number, mood its band's word for everything that reads the five moods.
+  // Until a database has mood_score, the entry saves without it.
+  const entryMood = moodScore => (moodScore == null
+    ? { mood: null, mood_score: null }
+    : { mood: bandFor(moodScore).key, mood_score: Math.round(moodScore) });
+  async function writeEntry(run, fields) {
+    let res = await run(fields);
+    if (res.error && ["PGRST204", "42703"].includes(res.error.code) && "mood_score" in fields) {
+      const { mood_score, ...rest } = fields;
+      res = await run(rest);
+    }
+    return res;
+  }
+
+  async function addJournalEntry({ content, moodScore, entryDate, tags, stopId }) {
+    const row = { user_id: userId, content, ...entryMood(moodScore), entry_date: entryDate || todayKey(), tags: tags || [] };
     if (stopId !== undefined) row.stop_id = stopId;
-    const res = await supabase.from("journal_entries").insert(row).select().single();
+    const res = await writeEntry(r => supabase.from("journal_entries").insert(r).select().single(), row);
     if (res.error) throw res.error;
     setJournalEntries(prev =>
       [res.data, ...prev].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
@@ -1677,10 +1692,10 @@ export function AppDataProvider({ children }) {
     return res.data;
   }
 
-  async function editJournalEntry(id, { content, mood, entryDate, tags, stopId }) {
-    const updates = { content, mood: mood || null, entry_date: entryDate, tags: tags || [], updated_at: new Date().toISOString() };
+  async function editJournalEntry(id, { content, moodScore, entryDate, tags, stopId }) {
+    const updates = { content, ...entryMood(moodScore), entry_date: entryDate, tags: tags || [], updated_at: new Date().toISOString() };
     if (stopId !== undefined) updates.stop_id = stopId;
-    const res = await supabase.from("journal_entries").update(updates).eq("id", id).eq("user_id", userId).select().single();
+    const res = await writeEntry(u => supabase.from("journal_entries").update(u).eq("id", id).eq("user_id", userId).select().single(), updates);
     if (res.error) throw res.error;
     setJournalEntries(prev =>
       prev.map(e => (e.id === id ? res.data : e)).sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
@@ -1836,7 +1851,7 @@ export function AppDataProvider({ children }) {
     }
     if (texts.length) {
       entry = await editJournalEntry(entry.id, {
-        content: texts.join("\n\n"), mood: null, entryDate: entry.entry_date, tags: []
+        content: texts.join("\n\n"), moodScore: null, entryDate: entry.entry_date, tags: []
       });
     }
     return { entry, transcribed: texts.length, pages, failure };
