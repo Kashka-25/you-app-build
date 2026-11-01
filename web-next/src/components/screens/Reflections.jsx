@@ -34,11 +34,13 @@ function niceDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// One entry, as a row on the journal's single sheet (Cassidy, Nov 2: "super
+// easy on the eye"): the date, a few lines, and its tags as quiet words.
 function EntryCard({ entry, onEdit, onTag }) {
   const { highlights } = useAppData();
   const keptCount = highlights.filter(h => h.entry_id === entry.id).length;
   return (
-    <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
+    <div className="px-4 py-3.5">
       <button onClick={() => onEdit(entry)} className="block w-full text-left">
         <div className="flex items-center justify-between mb-1.5 gap-3">
           <span className="text-caption text-textMuted">{niceDate(entry.entry_date)}</span>
@@ -52,19 +54,19 @@ function EntryCard({ entry, onEdit, onTag }) {
           )}
         </div>
         {entry.content
-          ? <div className="text-bodySm text-textPrimary whitespace-pre-wrap line-clamp-4">{entry.content}</div>
+          ? <div className="text-bodySm leading-relaxed text-textPrimary whitespace-pre-wrap line-clamp-3">{entry.content}</div>
           : <div className="text-bodySm text-textMuted italic">Scanned pages, not transcribed yet. Tap to open.</div>}
         <PlaceTag stopId={entry.stop_id} className="mt-1.5" />
       </button>
       {entry.tags?.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2">
+        <div className="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-1.5">
           {entry.tags.map(t => (
             <button
               key={t}
               type="button"
               onClick={() => onTag(t)}
               aria-label={`Show entries tagged ${t}`}
-              className="text-caption bg-surface3 text-textSecondary px-2 py-0.5 rounded-full hover:text-textPrimary"
+              className="text-caption text-textMuted hover:text-textPrimary min-h-[28px]"
             >
               #{t}
             </button>
@@ -278,17 +280,17 @@ export default function Reflections() {
 function EntryList({ entries, limit, onMore, onEdit, onTag }) {
   const left = entries.length - limit;
   return (
-    <>
+    <div className="rounded-card border border-borderC bg-surface1 divide-y divide-borderC overflow-hidden">
       {entries.slice(0, limit).map(entry => <EntryCard key={entry.id} entry={entry} onEdit={onEdit} onTag={onTag} />)}
       {left > 0 && (
         <button
           type="button"
           onClick={onMore}
-          className="w-full min-h-[44px] rounded-full border border-borderC bg-surface1 text-bodySm text-textSecondary hover:text-textPrimary"
+          className="w-full min-h-[48px] text-bodySm text-textSecondary hover:text-textPrimary"
         >
           See more · {left} older {left === 1 ? "entry" : "entries"}
         </button>
       )}
-    </>
+    </div>
   );
 }

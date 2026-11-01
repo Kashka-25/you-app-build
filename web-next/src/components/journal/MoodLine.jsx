@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { bandFor, moodColour, scoreOf } from "../../lib/mood";
 import { addDaysKey, localDateKey } from "../../lib/week";
@@ -7,7 +8,8 @@ import { addDaysKey, localDateKey } from "../../lib/week";
 // mood, one point a day (the day's average), for the last two weeks, month
 // or three months. The line is quiet ink; each point wears its mood's colour
 // (the same warm-to-fresh scale as the faces) and its height says the same,
-// so colour is never the only cue. Tap a point for that day.
+// so colour is never the only cue. Tap a point for that day. It folds away
+// under one quiet line, like Tags, until it's opened (Cassidy, Nov 2).
 const RANGES = [
   { days: 14, label: "2 weeks" },
   { days: 30, label: "Month" },
@@ -26,6 +28,7 @@ export default function MoodLine({ onOpenEntry }) {
   const { moodLog, journalEntries } = useAppData();
   const [days, setDays] = useState(30);
   const [picked, setPicked] = useState(null);
+  const [open, setOpen] = useState(false);
   const box = useRef(null);
   const [width, setWidth] = useState(320);
 
@@ -35,7 +38,7 @@ export default function MoodLine({ onOpenEntry }) {
     const ro = new ResizeObserver(([e]) => setWidth(Math.max(240, Math.round(e.contentRect.width))));
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [open]);
 
   const today = localDateKey();
   const from = addDaysKey(today, -(days - 1));
@@ -74,9 +77,21 @@ export default function MoodLine({ onOpenEntry }) {
   const pick = picked && points.find(p => p.key === picked);
 
   return (
-    <section aria-labelledby="mood-line-title" className="rounded-card bg-surface1 shadow-card p-4 mb-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="mood-line-title" className="font-serif text-h3 text-textPrimary m-0">Your moods</h2>
+    <section aria-labelledby="mood-line-title" className="mb-3 rounded-card border border-borderC bg-surface1">
+      <h2 id="mood-line-title" className="m-0">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          className="w-full flex items-center gap-1.5 px-3 min-h-[44px] text-left text-bodySm text-textSecondary font-normal"
+        >
+          <ChevronDown size={15} strokeWidth={1.75} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+          Your moods <span className="text-textMuted">· mostly {bandFor(average).label.toLowerCase()}</span>
+        </button>
+      </h2>
+      {open && (
+      <div className="px-3 pb-3">
+      <div className="flex justify-end">
         <div className="flex gap-1" role="group" aria-label="How far back">
           {RANGES.map(r => (
             <button
@@ -91,7 +106,7 @@ export default function MoodLine({ onOpenEntry }) {
           ))}
         </div>
       </div>
-      <p className="text-caption text-textMuted m-0 mt-0.5">
+      <p className="text-caption text-textMuted m-0 mt-1">
         Check-ins and entries, one point a day. Mostly <span className="text-textSecondary font-medium">{bandFor(average).label.toLowerCase()}</span> across {days === 14 ? "these two weeks" : days === 30 ? "this month" : "these three months"}.
       </p>
 
@@ -149,6 +164,9 @@ export default function MoodLine({ onOpenEntry }) {
           </div>
         )}
       </div>
+
+      </div>
+      )}
 
       {/* The same, as words, for screen readers. */}
       <ul className="sr-only">
