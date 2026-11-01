@@ -20,7 +20,8 @@ export const PLACES = [
   { key: "you", to: "/you", label: "YOU", icon: "you", locked: true },
   { key: "projects", to: "/projects", label: "YOUr Projects", icon: "projects", plugin: "projects" },
   { key: "yourigin", to: "/yourigin", label: "YOUrigin", icon: "yourigin", plugin: "yourigin" },
-  { key: "showcase", to: "/showcase", label: "Showcase", icon: "showcase" }
+  { key: "showcase", to: "/showcase", label: "Showcase", icon: "showcase" },
+  { key: "focus", to: "/focus", label: "Focus", icon: "focus", plugin: "focus" }
 ];
 
 export const DEFAULT_BAR = ["yourney", "yournal"];

@@ -1,55 +1,45 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ChevronRight, Sun, Sprout, Wheat, Timer, Sparkles } from "lucide-react";
+import { ChevronRight, Sun, Sprout, Wheat, Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { pickCurrentChapter, pickNoticedPatterns, pickReflectionQuestion } from "../../lib/compass";
-import { GlowBubble } from "../ui/GlowBubble";
+import { pickCurrentChapter } from "../../lib/compass";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
 import HabitsToday from "../home/HabitsToday";
 import PursYOUtsCard from "../home/PursYOUtsCard";
-import { latestNew, useWhatsNewUnseen } from "../../lib/whatsNew";
 import { usePlugin } from "../../lib/plugins";
 import { useCourseNow } from "../course/CourseNow";
 import WelcomeHero from "../home/WelcomeHero";
 import DailyCheckIn from "../home/DailyCheckIn";
 import JourneyProgressCard from "../home/JourneyProgressCard";
 import { PracticeCard, QuickTools } from "../home/PracticeAndTools";
-import FeaturedWords from "../showcase/FeaturedWords";
 import ArtworkSheet from "../showcase/ArtworkSheet";
 import { useAuth } from "../../lib/AuthContext";
 import { useShowcase } from "../../lib/showcaseApi";
 import { backgroundMode, pickFeatured } from "../../lib/showcase";
 import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 import { latestReview, nudgeDue, useHemisphere } from "../../lib/seasons";
+import { MEMENTOS } from "../../constants/mementos";
 
 // Home answers three things, in this order: how am I arriving, where am I
 // on my path, and what's one step I can take. Everything reads data that's
 // already loaded (see lib/compass.js), so opening Home never calls AI.
 export default function Home() {
   const {
-    items, chapters, journalEntries, recentInsights, profile, loaded, loadRecentInsights,
-    todos, weekIntentions, weekHarvests, compass, moodLog, logMood
+    items, chapters, journalEntries, profile, loaded,
+    todos, weekIntentions, weekHarvests, compass, moodLog
   } = useAppData();
   const todayList = useTodayList();
   const hasIntentions = !todayList.isEmpty;
   const sownIds = [...todayList.due, ...todayList.restedToday].map(x => x.item.id);
   const hasHabits = items.some(i => i.type === "habit" && !i.done && !sownIds.includes(i.id));
   const todoOn = usePlugin("todo_list");
-  const whatsNewUnseen = useWhatsNewUnseen();
   const { entries: courses, tools } = useCourseNow();
-  const [insightsLoaded, setInsightsLoaded] = useState(false);
   const { userId } = useAuth();
   const showcase = useShowcase(userId);
   const [openWork, setOpenWork] = useState(null);
   const [artMode] = useState(backgroundMode);
-
-  useEffect(() => {
-    if (!loaded || insightsLoaded) return;
-    setInsightsLoaded(true);
-    loadRecentInsights().catch(e => console.error("[Home] loadRecentInsights failed:", e));
-  }, [loaded, insightsLoaded, loadRecentInsights]);
 
   if (!loaded) {
     return (
@@ -83,14 +73,11 @@ export default function Home() {
   // Today right beside it instead.
   const cta = isNew ? { to: "/journey", label: "Begin your journey" } : null;
 
-  const patterns = pickNoticedPatterns(recentInsights, 1);
-  const question = pickReflectionQuestion(recentInsights);
-  const hasInsight = patterns.length > 0 || question;
   const tendedDays = tendedDaysThisWeek(weekIntentions);
   const sownThisWeek = weekIntentions.some(w => w.week_start === weekStartKey());
   const offerSow = needsSowing(weekIntentions);
   const featuredArt = pickFeatured(showcase.works, "home_background");
-  const featuredWords = pickFeatured(showcase.works, "featured_words");
+  const featuredWords = previewWords() || pickFeatured(showcase.works, "featured_words");
 
   return (
     // Phones: one column, in the order the questions are asked. Laptops: a
@@ -101,7 +88,14 @@ export default function Home() {
       style={{ paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom))" }}
     >
       <div className="lg:col-span-7 lg:order-1">
-        <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} art={featuredArt} artMode={artMode} onOpenArt={setOpenWork} />
+        <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} art={featuredArt} words={featuredWords} artMode={artMode} onOpenArt={setOpenWork} />
+      </div>
+
+      {/* Arriving comes first (Cassidy, Nov 1): until today's check-in, it
+          sits right under the welcome; once answered it steps aside and
+          Today moves up. On a laptop it keeps its own row below. */}
+      <div className="lg:col-span-12 lg:order-2 empty:hidden">
+        <DailyCheckIn />
       </div>
 
       {/* Today sits with the welcome (Cassidy, Oct 25: "the most used stuff
@@ -110,9 +104,9 @@ export default function Home() {
       <section aria-labelledby="home-today" className="rounded-card bg-surface1 shadow-card p-4">
         <div className="flex items-baseline justify-between gap-3 mb-1">
           <h2 id="home-today" className="font-serif text-h3 text-textPrimary m-0">
-            <Link to="/threshold" className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-2">
               <Sun size={16} strokeWidth={1.75} className="text-gold" aria-hidden="true" /> Today
-            </Link>
+            </span>
           </h2>
           {sownThisWeek && tendedDays > 0 && (
             <span className="text-caption text-textSecondary">Tended {tendedDays} {tendedDays === 1 ? "day" : "days"} this week</span>
@@ -132,12 +126,6 @@ export default function Home() {
             <QuickList showLabel={hasIntentions} />
           </div>
         )}
-
-        <Link to="/focus" className="flex items-center gap-2.5 min-h-[44px] text-bodySm text-forestAccent mt-3 pt-3 border-t border-borderC">
-          <Timer size={16} strokeWidth={1.75} />
-          <span className="flex-1">{hasIntentions ? "A focus session for something else" : "Start a focus session"}</span>
-          <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
-        </Link>
 
         {harvestDue(weekIntentions, weekHarvests) && (
           <Link to="/harvest" className="flex items-center gap-2.5 min-h-[44px] text-bodySm text-textPrimary mt-2 pt-2 border-t border-borderC">
@@ -162,56 +150,28 @@ export default function Home() {
       {/* When the year turns, YOU invites a Season review (lib/seasons.js). */}
       <SeasonNudge />
 
-      {/* A quiet hint when something new has arrived (lib/whatsNew.js). */}
-      {whatsNewUnseen && (
-        <div className="lg:col-span-12 lg:order-2">
-          <Link to="/whats-new" className="flex items-center gap-2.5 rounded-card bg-[color-mix(in_srgb,var(--gold)_14%,var(--surface-1))] border border-[color-mix(in_srgb,var(--gold)_35%,transparent)] px-4 min-h-[48px] text-bodySm text-textPrimary">
-            <Sparkles size={16} strokeWidth={1.75} className="text-gold flex-none" />
-            <span className="flex-1 min-w-0 truncate">New in YOU: <span className="font-medium">{latestNew().title}</span></span>
-            <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted flex-none" />
-          </Link>
-        </div>
-      )}
 
-      <div className="lg:col-span-12 lg:order-2 empty:hidden">
-        <DailyCheckIn todayMood={todayMoodKey} onPick={logMood} />
+      {/* PursYOUts first, then the path and its practice (Cassidy, Nov 1). */}
+      <div className="lg:col-span-7 lg:order-3">
+        <PursYOUtsCard />
       </div>
-
-      {featuredWords && (
-        <div className="lg:col-span-12 lg:order-2">
-          <FeaturedWords work={featuredWords} onOpen={setOpenWork} />
-        </div>
-      )}
 
       <div className="lg:col-span-7 lg:order-3">
         <JourneyProgressCard entries={courses} />
       </div>
 
-      <div className="lg:col-span-7 lg:order-3">
-        <PursYOUtsCard />
-      </div>
-
-
+      {/* The practice sits right under the path it comes from (Cassidy, Nov 1). */}
       <div className="lg:col-span-5 lg:order-4">
         <PracticeCard tool={tools[0]} />
       </div>
+
+
+
 
       <div className="lg:col-span-12 lg:order-7">
         <QuickTools />
       </div>
 
-      {hasInsight && (
-        <div className="lg:col-span-12 lg:order-6">
-        <section aria-label="YOUnderstanding" className="rounded-card bg-surface1 border-l-2 border-forestAccent shadow-card p-4">
-          <div className="flex items-center gap-3 mb-2">
-            <GlowBubble icon={Search} size={36} />
-            <span className="text-label uppercase text-forestAccent">YOUnderstanding</span>
-          </div>
-          {patterns.length > 0 && <div className="font-serif text-body text-textPrimary italic mb-2.5">{patterns[0].text}</div>}
-          {question && <div className="text-bodySm text-textSecondary">{question}</div>}
-        </section>
-        </div>
-      )}
 
       {isNew && todos.length === 0 && !hasIntentions && (
         <p className="lg:col-span-12 lg:order-8 rounded-card border border-dashed border-borderC bg-surface1 p-4 text-bodySm text-textMuted m-0">
@@ -254,4 +214,15 @@ function SeasonNudge() {
       </Link>
     </div>
   );
+}
+
+// On a local dev copy only: /?preview-words=154 shows one of Cassidy's own
+// lines (constants/mementos.js) as the featured words, to see a real piece
+// on the welcome without touching the live Showcase.
+function previewWords() {
+  if (!import.meta.env.DEV) return null;
+  const id = Number(new URLSearchParams(window.location.search).get("preview-words"));
+  const m = id && MEMENTOS.find(x => x.id === id && x.kind === "creator");
+  if (!m) return null;
+  return { id: `preview-${m.id}`, title: m.source || null, body: m.text, artist: { display_name: m.author }, credits: [] };
 }

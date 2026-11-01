@@ -36,26 +36,26 @@ export function PracticeCard({ tool }) {
   );
 }
 
-// Each everyday place has its own card from the YOU set: the open book,
-// the sun over the leaves, the winding path, the moon in the lotus.
-// The art shows whole, with the name written underneath.
+// Doors Home doesn't already open (Cassidy, Nov 1): Journal, Focus,
+// PursYOUts and YOUniversity are on Home's cards and the tab bar, so these
+// lead somewhere new, each with its own painting from the YOU set.
 const TOOLS = [
-  { to: "/reflections", label: "Journal", note: "Write it down", image: "/images/home/tool-journal.webp" },
-  { to: "/focus", label: "Focus", note: "One thing, fully", image: "/images/home/tool-focus.webp" },
-  { to: "/pursue", label: "PursYOUts", note: "What you're growing", image: "/images/home/tool-pursuits.webp" },
-  { to: "/youniversity", label: "YOUniversity", note: "Guided journeys", image: "/images/home/tool-youniversity.webp" }
+  { to: "/journey", label: "YOUrney", note: "Your life story", image: "/images/home/tool-yourney.webp" },
+  { to: "/mirror", label: "Mirror", note: "This year, and a year ago", image: "/images/home/tool-mirror.webp" },
+  { to: "/showcase", label: "Showcase", note: "Art from YOUsers", image: "/images/home/tool-showcase.webp" },
+  { to: "/pursue", state: { view: "wanderings" }, label: "Wanderings", note: "Places you'll go", image: "/images/home/tool-wanderings.webp" }
 ];
 
-// The everyday places, one tap away.
+// The other places, one tap away.
 export function QuickTools() {
   return (
     <section aria-labelledby="home-tools">
-      <h2 id="home-tools" className="font-serif text-h3 text-textPrimary m-0 mb-2.5 px-0.5">Your tools</h2>
+      <h2 id="home-tools" className="font-serif text-h3 text-textPrimary m-0 mb-2.5 px-0.5">More of YOU</h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
         {TOOLS.map(t => (
-          <Link key={t.to} to={t.to} className="group block rounded-card overflow-hidden bg-surface1 shadow-card active:scale-[0.98] transition">
+          <Link key={t.label} to={t.to} state={t.state} className="group block rounded-card overflow-hidden bg-surface1 shadow-card active:scale-[0.98] transition">
             <div className="relative aspect-[4/3] overflow-hidden">
-              <img src={t.image} alt="" width="520" height="370" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 dark:brightness-[0.8]" />
+              <img src={t.image} alt="" width="640" height="480" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 dark:brightness-[0.8]" />
             </div>
             <div className="px-3 py-2.5">
               <div className="font-serif text-h3 text-textPrimary leading-tight">{t.label}</div>

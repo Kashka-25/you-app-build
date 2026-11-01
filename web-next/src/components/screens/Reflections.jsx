@@ -15,6 +15,7 @@ import TagFilter from "../journal/TagFilter";
 import DreamPatternsCard from "../journal/DreamPatternsCard";
 import { Modal } from "../ui/Modal";
 import { AiButton } from "../ui/Premium";
+import YOUnderstanding from "../journal/YOUnderstanding";
 
 const TABS = [
   { value: "entries", label: "Journal" },
@@ -146,6 +147,7 @@ export default function Reflections() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
+      <YOUnderstanding onWrite={() => { setTab("entries"); setAddOpen(true); }} />
       <div className="flex justify-between items-center gap-3 mt-4">
         <h1 className="font-serif text-h2 font-medium m-0">YOUrnal</h1>
         {tab === "entries" && (
