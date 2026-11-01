@@ -8,10 +8,11 @@ import { MoodBadge } from "./DailyCheckIn";
 
 // The first thing on Home: a warm welcome back into the Seeker's own space,
 // over the sunrise lake (painted for it, Nov 1: calm sky up top for the
-// featured words, a light foot for the greeting), with one clear way onward. In the Cosmos the same
-// lake is inverted into its night self (light and dark swapped, colours
-// kept by turning the hue back round), so it belongs to the dark (Cassidy,
-// Oct 18). The scrim keeps the words readable over any part of the image.
+// featured words, a light foot for the greeting), with one clear way onward.
+// In the Cosmos it becomes dusk, not a negative (Cassidy, Nov 1: the full
+// colour flip was "too tacky"): the painting keeps its own colours, dimmed,
+// under an indigo night sky that deepens to midnight where the greeting
+// sits. The scrim keeps the words readable over any part of the image.
 //
 // The welcome is also where Showcase is featured (Cassidy, Nov 1): featured
 // words are set right over the picture, large and centred, so the piece is
@@ -29,7 +30,7 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
   return (
     <motion.section {...riseIn} aria-labelledby="home-welcome" className="relative rounded-card overflow-hidden shadow-card">
       {/* Nature: the sunrise over the lake, words in dark ink on a parchment
-          fade. Cosmos: the lake inverted, words in cream over a night fade. */}
+          fade. Cosmos: the same lake at dusk, words in cream over midnight. */}
       {background ? (
         <img
           src={background.imageUrl}
@@ -48,7 +49,7 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
           height="800"
           decoding="async"
           fetchpriority="high"
-          className="absolute inset-0 w-full h-full object-cover object-[center_20%] dark:[filter:invert(1)_hue-rotate(180deg)_saturate(1.15)]"
+          className="absolute inset-0 w-full h-full object-cover object-[center_20%] dark:[filter:brightness(0.86)_saturate(0.95)]"
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-[#FBF7F0] via-[#FBF7F0]/75 via-30% to-transparent to-60% dark:hidden" />
@@ -58,8 +59,13 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
           <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
         </>
       ) : (
-        // A night fade in the Cosmos's own midnight, so the words sit on calm dark.
-        <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-[#0B0B1F] via-[#0B0B1F]/70 via-30% to-transparent to-60%" />
+        // Dusk: indigo sky laid over the painting (multiplied, so the sun and
+        // gold still glow through), then the Cosmos's midnight from below.
+        <>
+          <div className="absolute inset-0 hidden dark:block mix-blend-multiply bg-[linear-gradient(to_bottom,#4E4A9A_0%,#8678B4_38%,#B48E9E_58%,#5C4A72_100%)]" />
+          <div className="absolute inset-0 hidden dark:block bg-[radial-gradient(ellipse_at_50%_56%,rgba(255,190,110,0.28),transparent_42%)]" />
+          <div className="absolute inset-0 hidden dark:block bg-gradient-to-t from-[#0B0B1F] via-[#0B0B1F]/75 via-30% to-transparent to-65%" />
+        </>
       )}
 
       {/* An artwork on its own is credited in the corner; featured words carry their credit with them. */}
@@ -116,10 +122,12 @@ function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
       type="button"
       onClick={() => onOpen(work)}
       aria-label={`Featured words${work.title ? `: ${work.title}` : ""}, by ${name}. Open to read in full and support them.`}
-      style={SCROLL}
       className="relative self-center w-full max-w-[24rem] text-center drop-shadow-[0_6px_14px_rgba(74,58,18,0.18)] active:scale-[0.99] transition group"
+      style={{ padding: SCROLL.borderWidth }}
     >
-      <span className="block px-1 py-1">
+      {/* The scroll on its own layer, a little softer in the Cosmos. */}
+      <span aria-hidden="true" style={SCROLL} className="absolute inset-0 dark:[filter:brightness(0.78)_saturate(0.9)]" />
+      <span className="relative block px-1 py-1">
         <span className={`inline-flex items-center gap-1.5 text-label uppercase tracking-[0.14em] text-[#7A6024] dark:text-gold ${glow}`}>
           <Feather size={12} strokeWidth={1.75} aria-hidden="true" /> Featured words
         </span>
