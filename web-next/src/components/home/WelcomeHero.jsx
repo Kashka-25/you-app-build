@@ -71,7 +71,7 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
       {/* An artwork on its own is credited in the corner; featured words carry their credit with them. */}
       {background && !words && <CreditChip work={art} onOpen={onOpenArt} />}
 
-      <div className={`relative flex flex-col p-5 lg:p-10 ${words ? "justify-between gap-6 min-h-[460px] lg:min-h-[440px]" : "justify-end min-h-[300px] lg:min-h-[360px]"}`}>
+      <div className={`relative flex flex-col p-5 lg:p-10 ${words ? "justify-between gap-5 min-h-[420px] lg:min-h-[440px]" : "justify-end min-h-[300px] lg:min-h-[360px]"}`}>
         {words && <FeaturedPiece work={words} ink={ink} inkSoft={inkSoft} onOpen={onOpenArt} />}
 
         <div className="flex flex-col">
@@ -104,15 +104,21 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
 
 // The featured words on a scroll laid over the picture (Cassidy, Nov 1).
 // The scroll is painted (images/home/featured-scroll.webp): rolls and sprigs
-// solid, the sheet between them a see-through wash. It's drawn as a border
-// image, so the rolls keep their size while the sheet stretches to fit two
-// lines or five. Credited, and opening in full with a way to support the
-// writer.
-const SCROLL = {
-  borderStyle: "solid",
-  borderWidth: "40px 35px 36px 30px",
-  borderImage: "url(/images/home/featured-scroll.webp) 93 81 83 69 fill / 40px 35px 36px 30px stretch"
-};
+// solid, the sheet between them a see-through wash. It keeps its painted,
+// landscape shape (stretching the sheet to fit long pieces made it a tall
+// box), and the words size themselves to fit the sheet instead. The credit
+// sits just under the scroll, like a caption. Opens in full with a way to
+// support the writer.
+const SHEET = { top: "20%", bottom: "18%", left: "12.5%", right: "13.5%" };
+
+// Shorter pieces are written larger; long ones smaller, so any piece fits.
+function wordsSize(text) {
+  const n = (text || "").length;
+  if (n <= 70) return "text-[19px] lg:text-[23px]";
+  if (n <= 120) return "text-[17.5px] lg:text-[21px]";
+  if (n <= 170) return "text-[16px] lg:text-[19px]";
+  return "text-[13.5px] lg:text-[16px]";
+}
 
 function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
   const name = work.artist?.display_name || "An artist";
@@ -122,22 +128,28 @@ function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
       type="button"
       onClick={() => onOpen(work)}
       aria-label={`Featured words${work.title ? `: ${work.title}` : ""}, by ${name}. Open to read in full and support them.`}
-      className="relative self-center w-full max-w-[24rem] text-center drop-shadow-[0_6px_14px_rgba(74,58,18,0.18)] active:scale-[0.99] transition group"
-      style={{ padding: SCROLL.borderWidth }}
+      className="self-center w-[calc(100%+1rem)] -mx-2 max-w-[26rem] text-center active:scale-[0.99] transition group"
     >
-      {/* The scroll on its own layer, a little softer in the Cosmos. */}
-      <span aria-hidden="true" style={SCROLL} className="absolute inset-0 dark:[filter:brightness(0.78)_saturate(0.9)]" />
-      <span className="relative block px-1 py-1">
-        <span className={`inline-flex items-center gap-1.5 text-label uppercase tracking-[0.14em] text-[#7A6024] dark:text-gold ${glow}`}>
-          <Feather size={12} strokeWidth={1.75} aria-hidden="true" /> Featured words
+      <span className="relative block w-full drop-shadow-[0_6px_14px_rgba(74,58,18,0.2)]" style={{ aspectRatio: "754 / 540" }}>
+        {/* The scroll itself, a little softer in the Cosmos. */}
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 bg-no-repeat dark:[filter:brightness(0.78)_saturate(0.9)]"
+          style={{ backgroundImage: "url(/images/home/featured-scroll.webp)", backgroundSize: "100% 100%" }}
+        />
+        <span className="absolute flex flex-col items-center justify-center overflow-hidden" style={SHEET}>
+          {work.title && (
+            <span className={`flex items-center gap-1.5 font-serif text-[13px] lg:text-[15px] tracking-[0.06em] uppercase text-[#7A6024] dark:text-gold ${glow}`}>
+              <Feather size={11} strokeWidth={1.75} aria-hidden="true" /> {work.title}
+            </span>
+          )}
+          <span className={`block font-serif italic leading-[1.3] mt-1 whitespace-pre-line line-clamp-6 ${wordsSize(work.body)} ${ink} ${glow}`}>
+            {work.body}
+          </span>
         </span>
-        {work.title && <span className={`block font-serif text-h3 mt-1 ${ink} ${glow}`}>{work.title}</span>}
-        <span className={`block font-serif italic text-[20px] lg:text-[23px] leading-snug mt-1.5 whitespace-pre-line line-clamp-5 ${ink} ${glow}`}>
-          {work.body}
-        </span>
-        <span className={`block text-caption mt-2 ${inkSoft} ${glow} group-hover:underline underline-offset-2`}>
-          {creditLine(name, work.credits)} · read and support
-        </span>
+      </span>
+      <span className={`block text-caption mt-1.5 ${inkSoft} ${glow} group-hover:underline underline-offset-2`}>
+        {work.title ? "" : "Featured words · "}{creditLine(name, work.credits)} · read and support
       </span>
     </button>
   );
