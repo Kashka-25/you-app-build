@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 import { clearOfflineData, pendingCount, syncQueue } from "./offline";
+import { clearAllLocks } from "./journalLock";
 
 // Same DEV_MODE pattern as the vanilla app: "bypass" for local dev,
 // "live" for real Supabase auth. Switched to "live" so real per-user data
@@ -89,6 +90,7 @@ export function AuthProvider({ children }) {
         if (left && !window.confirm(`${left} change${left === 1 ? " hasn't" : "s haven't"} synced yet (no connection). Sign out anyway and lose ${left === 1 ? "it" : "them"}?`)) return;
       }
       await clearOfflineData();
+      clearAllLocks();
       return supabase.auth.signOut();
     },
     recovering,

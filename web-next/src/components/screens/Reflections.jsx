@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Plus, BookOpen, ScanText, Highlighter } from "lucide-react";
+import { Plus, BookOpen, ScanText, Highlighter, Lock, LockOpen } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/EmptyState";
@@ -14,6 +14,8 @@ import DreamPatternsCard from "../journal/DreamPatternsCard";
 import { Modal } from "../ui/Modal";
 import { AiButton } from "../ui/Premium";
 import YOUnderstanding from "../journal/YOUnderstanding";
+import MoodLine from "../journal/MoodLine";
+import { JournalLockScreen, JournalLockSettings, useJournalLock } from "../journal/JournalLock";
 
 const TABS = [
   { value: "entries", label: "Journal" },
@@ -32,11 +34,13 @@ function niceDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// One entry, as a row on the journal's single sheet (Cassidy, Nov 2: "super
+// easy on the eye"): the date, a few lines, and its tags as quiet words.
 function EntryCard({ entry, onEdit, onTag }) {
   const { highlights } = useAppData();
   const keptCount = highlights.filter(h => h.entry_id === entry.id).length;
   return (
-    <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
+    <div className="px-4 py-3.5">
       <button onClick={() => onEdit(entry)} className="block w-full text-left">
         <div className="flex items-center justify-between mb-1.5 gap-3">
           <span className="text-caption text-textMuted">{niceDate(entry.entry_date)}</span>
@@ -50,19 +54,19 @@ function EntryCard({ entry, onEdit, onTag }) {
           )}
         </div>
         {entry.content
-          ? <div className="text-bodySm text-textPrimary whitespace-pre-wrap line-clamp-4">{entry.content}</div>
+          ? <div className="text-bodySm leading-relaxed text-textPrimary whitespace-pre-wrap line-clamp-3">{entry.content}</div>
           : <div className="text-bodySm text-textMuted italic">Scanned pages, not transcribed yet. Tap to open.</div>}
         <PlaceTag stopId={entry.stop_id} className="mt-1.5" />
       </button>
       {entry.tags?.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2">
+        <div className="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-1.5">
           {entry.tags.map(t => (
             <button
               key={t}
               type="button"
               onClick={() => onTag(t)}
               aria-label={`Show entries tagged ${t}`}
-              className="text-caption bg-surface3 text-textSecondary px-2 py-0.5 rounded-full hover:text-textPrimary"
+              className="text-caption text-textMuted hover:text-textPrimary min-h-[28px]"
             >
               #{t}
             </button>
@@ -100,6 +104,10 @@ export default function Reflections() {
   const [scan, setScan] = useState(null);
   const [scanNote, setScanNote] = useState("");
   const [scanHidden, setScanHidden] = useState(false);
+  // The optional lock (lib/journalLock.js): while it's on and closed, the
+  // lock screen stands in for the whole page.
+  const lock = useJournalLock();
+  const [lockSettings, setLockSettings] = useState(false);
 
   // Photos of handwritten pages become one entry: converted small, read by
   // AI (after consent), then opened so the words can be checked.
@@ -145,6 +153,14 @@ export default function Reflections() {
     savedTimer.current = setTimeout(() => setSavedNote(""), 5000);
   }
 
+  if (lock.locked) {
+    return (
+      <div className="pt-1 pb-24 px-5">
+        <JournalLockScreen onUnlocked={lock.refresh} />
+      </div>
+    );
+  }
+
   return (
     <div className="pt-1 pb-24 px-5">
       <YOUnderstanding onWrite={() => { setTab("entries"); setAddOpen(true); }} />
@@ -162,6 +178,15 @@ export default function Reflections() {
           className="absolute inset-0 w-full h-full object-cover object-[center_35%] dark:brightness-[0.62] dark:saturate-[0.85]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#FBF7F0] via-[#FBF7F0]/70 via-40% to-transparent dark:from-[#0B0B1F] dark:via-[#0B0B1F]/70" />
+        <button
+          type="button"
+          onClick={() => setLockSettings(true)}
+          aria-label={lock.isSet ? "YOUrnal lock: on. Lock now, change the PIN or turn it off" : "Lock YOUrnal with a PIN"}
+          className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-full bg-white/70 dark:bg-black/35 border border-borderC dark:border-white/15 text-caption text-textPrimary dark:text-cream backdrop-blur-sm"
+        >
+          {lock.isSet ? <Lock size={14} strokeWidth={1.75} /> : <LockOpen size={14} strokeWidth={1.75} />}
+          {lock.isSet ? "Locked" : "Add a lock"}
+        </button>
         <div className="relative flex flex-col justify-end min-h-[168px] p-4 pt-16">
           <h1 id="yournal-title" className="font-serif text-[30px] leading-tight text-textPrimary dark:text-cream m-0">YOUrnal</h1>
           <p className="text-bodySm text-textSecondary dark:text-[color-mix(in_srgb,var(--cream)_88%,transparent)] m-0">Your journal, just for you.</p>
@@ -206,6 +231,7 @@ export default function Reflections() {
         />
       ) : (
         <>
+          <MoodLine onOpenEntry={setEditingEntry} />
           <TagFilter tags={tagCounts(journalEntries)} value={openTag} onChange={t => { setOpenTag(t); setLimit(ENTRIES_SHOWN); }} />
           {["dream", "dreams"].includes(openTag) && (
             <DreamPatternsCard dreamCount={journalEntries.filter(e => (e.tags || []).some(t => ["dream", "dreams"].includes(tagKey(t)))).length} />
@@ -220,6 +246,7 @@ export default function Reflections() {
         </>
       )}
 
+      <JournalLockSettings open={lockSettings} onClose={() => setLockSettings(false)} onChanged={lock.refresh} />
       <JournalEntryModal open={addOpen} onClose={() => setAddOpen(false)} onSaved={handleSaved} />
       <JournalEntryModal
         open={Boolean(editingEntry)}
@@ -253,17 +280,17 @@ export default function Reflections() {
 function EntryList({ entries, limit, onMore, onEdit, onTag }) {
   const left = entries.length - limit;
   return (
-    <>
+    <div className="rounded-card border border-borderC bg-surface1 divide-y divide-borderC overflow-hidden">
       {entries.slice(0, limit).map(entry => <EntryCard key={entry.id} entry={entry} onEdit={onEdit} onTag={onTag} />)}
       {left > 0 && (
         <button
           type="button"
           onClick={onMore}
-          className="w-full min-h-[44px] rounded-full border border-borderC bg-surface1 text-bodySm text-textSecondary hover:text-textPrimary"
+          className="w-full min-h-[48px] text-bodySm text-textSecondary hover:text-textPrimary"
         >
           See more · {left} older {left === 1 ? "entry" : "entries"}
         </button>
       )}
-    </>
+    </div>
   );
 }
