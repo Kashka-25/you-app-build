@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { Highlighter, Sparkles, Trash2, Star } from "lucide-react";
+import { Highlighter, Pencil, Sparkles, Trash2, Star } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { EmptyState } from "../ui/EmptyState";
 import ShareToKronk from "../ShareToKronk";
 import TagFilter from "./TagFilter";
+import KeepHighlight from "./KeepHighlight";
 
 function niceDate(key) {
   return key ? new Date(key + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
@@ -11,9 +12,12 @@ function niceDate(key) {
 
 // Every highlight kept from the journal: gathered under the dream it feeds
 // (so dream ideas collect in one place), then the rest. Filter by tag.
+// The pencil opens a highlight to change its words, tags, dream or memento
+// choice (Cassidy, Oct 28).
 export default function HighlightsView({ onOpenEntry }) {
   const { highlights, items, journalEntries, updateHighlight, deleteHighlight } = useAppData();
   const [tag, setTag] = useState(null);
+  const [editingId, setEditingId] = useState(null);
 
   const allTags = useMemo(() => [...new Set(highlights.flatMap(h => h.tags || []))].sort(), [highlights]);
   const shown = tag ? highlights.filter(h => (h.tags || []).includes(tag)) : highlights;
@@ -39,6 +43,20 @@ export default function HighlightsView({ onOpenEntry }) {
 
   const card = h => {
     const entry = journalEntries.find(e => e.id === h.entry_id);
+    if (editingId === h.id) {
+      return (
+        <KeepHighlight
+          key={h.id}
+          existing={h}
+          entryTags={entry?.tags || []}
+          onKeep={async f => {
+            await updateHighlight(h.id, { text: f.text, tags: f.tags, item_id: f.itemId, as_memento: f.asMemento });
+            setEditingId(null);
+          }}
+          onCancel={() => setEditingId(null)}
+        />
+      );
+    }
     return (
       <div key={h.id} className="rounded-card bg-surface1 shadow-card p-4 mb-2.5">
         <div className="font-serif italic text-[18px] leading-snug text-textPrimary">“{h.text}”</div>
@@ -73,6 +91,14 @@ export default function HighlightsView({ onOpenEntry }) {
             className={`w-10 h-10 flex-none rounded-full flex items-center justify-center border ${h.as_memento ? "border-gold text-gold bg-[color-mix(in_srgb,var(--gold)_12%,transparent)]" : "border-borderC text-textMuted"}`}
           >
             <Sparkles size={16} strokeWidth={1.75} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditingId(h.id)}
+            aria-label="Edit this highlight"
+            className="w-10 h-10 flex-none rounded-full flex items-center justify-center text-textMuted hover:text-textPrimary"
+          >
+            <Pencil size={16} strokeWidth={1.75} />
           </button>
           <button
             type="button"
