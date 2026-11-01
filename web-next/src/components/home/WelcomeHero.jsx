@@ -139,7 +139,7 @@ function FeaturedPiece({ work, ink, inkSoft, onOpen }) {
         />
         <span className="absolute flex flex-col items-center justify-center overflow-hidden" style={SHEET}>
           {work.title ? (
-            <span className={`flex items-center gap-1.5 font-serif text-[13px] lg:text-[15px] tracking-[0.06em] uppercase text-[#7A6024] dark:text-gold ${glow}`}>
+            <span className={`flex items-center gap-1.5 font-serif font-bold text-[14px] lg:text-[16px] tracking-[0.06em] uppercase text-[#6A4F16] dark:text-[#F1C76A] ${glow}`}>
               <Feather size={11} strokeWidth={1.75} aria-hidden="true" /> {work.title}
             </span>
           ) : (
