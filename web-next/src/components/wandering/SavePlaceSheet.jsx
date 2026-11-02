@@ -7,6 +7,7 @@ import PlaceSearch from "./PlaceSearch";
 import { compressImage } from "../../lib/imageCompress";
 import { currentPosition, photoPlace, reversePlace } from "../../lib/wandering";
 import { localDateKey } from "../../lib/week";
+import { isOffline } from "../../lib/placeOutbox";
 
 const MAX_PHOTOS = 6;
 const field = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
@@ -31,8 +32,20 @@ export default function SavePlaceSheet({ open, onClose, place: given = null, onS
   const photoInput = useRef(null);
   const placePhotoInput = useRef(null);
 
+  const [offline, setOffline] = useState(isOffline());
+  useEffect(() => {
+    const on = () => setOffline(isOffline());
+    window.addEventListener("online", on);
+    window.addEventListener("offline", on);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", on); };
+  }, []);
+
   useEffect(() => {
     if (!open) return;
+    // Fetch the photo reader now, while there's signal, so it's on the
+    // phone if the signal goes.
+    if (!isOffline()) import("exifr").catch(() => {});
+    setOffline(isOffline());
     setPlace(given);
     setFinding(null);
     setFindError("");
@@ -107,6 +120,11 @@ export default function SavePlaceSheet({ open, onClose, place: given = null, onS
 
   return (
     <Modal open={open} title="Save a place" onClose={onClose} layer={layer}>
+      {offline && (
+        <div className="text-bodySm text-textSecondary bg-surface3 rounded-sm p-3 mb-3" role="status">
+          No signal here. Save it anyway: it keeps on your phone, and the photos upload and the spot gets its name when you're back online.
+        </div>
+      )}
       <span className={label}>Where</span>
       {place ? (
         <div className="rounded-card border border-gold/60 bg-[color-mix(in_srgb,var(--gold)_8%,var(--surface-1))] p-3 mb-4">

@@ -13,6 +13,9 @@ import {
 import { getValueEntry } from "../constants/valueLibrary";
 import { callCostUsd } from "./aiCost";
 import { compressImage, JOURNAL_PAGE } from "./imageCompress";
+import { holdPlace, heldPlaces, releasePlace, isOffline } from "./placeOutbox";
+import { reversePlace } from "./wandering";
+import { pendingCount } from "./offline";
 import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
 import { markerXp, DAILY_FOCUS_XP_CAP } from "./focus";
 import { mementoForHour } from "../constants/mementos";
@@ -1033,8 +1036,61 @@ export function AppDataProvider({ children }) {
     }).select().single();
     if (res.error) throw res.error;
     setWanderingStops(prev => [...prev, res.data]);
-    return addMoment({ title: title || place.name, momentDate, description, photos, stopId: res.data.id });
+    // No signal: the memory saves now without its photos, and the photos
+    // (and the spot's name, if it's only coordinates) wait on the phone.
+    const later = isOffline() || place.unnamed;
+    if (!later) return addMoment({ title: title || place.name, momentDate, description, photos, stopId: res.data.id });
+    const moment = await addMoment({ title: title || place.name, momentDate, description, photos: isOffline() ? [] : photos, stopId: res.data.id });
+    await holdPlace({
+      momentId: moment.id, userId, stopId: res.data.id,
+      photos: isOffline() ? photos.map(p => ({ blob: p.blob, ext: p.ext })) : [],
+      unnamed: place.unnamed ? { lat: place.lat, lng: place.lng, name: place.name } : null
+    });
+    return moment;
   }
+
+  // Once the signal is back and the offline queue has gone out, finish the
+  // places saved without it: upload their photos and name the spots that
+  // were only coordinates (unless they've been named since).
+  const finishingPlaces = useRef(false);
+  // The latest lists and editMoment, for work that finishes later.
+  const latest = useRef({});
+  const finishPlaces = useCallback(async () => {
+    if (!userId || finishingPlaces.current || isOffline()) return;
+    finishingPlaces.current = true;
+    try {
+      const held = await heldPlaces(userId);
+      if (!held.length) return;
+      for (let i = 0; i < 20 && (await pendingCount()) > 0; i++) await new Promise(r => setTimeout(r, 1500));
+      for (const h of held) {
+        const moment = latest.current.moments.find(m => m.id === h.momentId);
+        if (!moment) { await releasePlace(h.momentId); continue; }
+        let title = moment.title;
+        if (h.unnamed) {
+          const stop = latest.current.wanderingStops.find(s => s.id === h.stopId);
+          if (stop && stop.place_name === h.unnamed.name) {
+            const named = await reversePlace(h.unnamed.lat, h.unnamed.lng);
+            if (!named.unnamed) {
+              await supabase.from("wandering_stops").update({ place_name: named.name, place_detail: named.detail || null, country_code: named.countryCode || null }).eq("id", stop.id).eq("user_id", userId);
+              setWanderingStops(prev => prev.map(s => (s.id === stop.id ? { ...s, place_name: named.name, place_detail: named.detail || null } : s)));
+              if (title === h.unnamed.name) title = named.name;
+            }
+          }
+        }
+        if (h.photos.length || title !== moment.title) {
+          await latest.current.editMoment(moment.id, {
+            title, momentDate: moment.moment_date, description: moment.description,
+            photoOrder: h.photos.length ? [...momentPhotoPaths(moment).map(path => ({ path })), ...h.photos] : undefined
+          });
+        }
+        await releasePlace(h.momentId);
+      }
+    } catch (e) {
+      console.error("[places] couldn't finish a place saved offline:", e);
+    } finally {
+      finishingPlaces.current = false;
+    }
+  }, [userId]);
 
   async function updateWanderingStop(id, updates) {
     const before = wanderingStops;
@@ -2151,6 +2207,15 @@ export function AppDataProvider({ children }) {
     setValueChallenges(prev => [...prev, ...(res.data || [])]);
     return res.data || [];
   }
+
+  latest.current = { moments, wanderingStops, editMoment };
+  useEffect(() => {
+    if (!loaded) return;
+    finishPlaces();
+    const back = () => setTimeout(finishPlaces, 4000);
+    window.addEventListener("online", back);
+    return () => window.removeEventListener("online", back);
+  }, [loaded, finishPlaces]);
 
   const value = {
     userId, loaded, sync, items: activeItems, releasedItems, memory, moodLog, logMood, values, profile, moments, chapters, valueChallenges, journalEntries,

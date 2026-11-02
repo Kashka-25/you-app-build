@@ -17,8 +17,9 @@ const fold = t => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase
 // The name of the spot at a point (Cassidy, Nov 2: saving a place where you
 // are). Photon's reverse lookup: only the coordinates leave the device.
 // Falls back to the nearest town, then to plain coordinates.
+export const UNNAMED_PLACE = "A place I've been";
 export async function reversePlace(lat, lng, signal) {
-  const fallback = { name: "A place I've been", detail: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, countryCode: null, lat, lng };
+  const fallback = { name: UNNAMED_PLACE, detail: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, countryCode: null, lat, lng, unnamed: true };
   try {
     const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}&limit=1&lang=en`, { signal });
     if (!res.ok) return fallback;
