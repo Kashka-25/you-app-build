@@ -231,8 +231,12 @@ export default function Reflections() {
         />
       ) : (
         <>
-          <MoodLine onOpenEntry={setEditingEntry} />
-          <TagFilter tags={tagCounts(journalEntries)} value={openTag} onChange={t => { setOpenTag(t); setLimit(ENTRIES_SHOWN); }} />
+          {/* Your moods and Tags as two tiles side by side; whichever is
+              open takes the full width beneath. */}
+          <div className="grid grid-cols-2 gap-2.5 mb-3">
+            <MoodLine onOpenEntry={setEditingEntry} />
+            <TagFilter tile tags={tagCounts(journalEntries)} value={openTag} onChange={t => { setOpenTag(t); setLimit(ENTRIES_SHOWN); }} />
+          </div>
           {["dream", "dreams"].includes(openTag) && (
             <DreamPatternsCard dreamCount={journalEntries.filter(e => (e.tags || []).some(t => ["dream", "dreams"].includes(tagKey(t)))).length} />
           )}

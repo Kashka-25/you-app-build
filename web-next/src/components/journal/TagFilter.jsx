@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Hash, Search, X } from "lucide-react";
 
 // The tags, folded away under one line, with a search inside (Cassidy,
 // Oct 24: "make the tabs collapsible and searchable"). `tags` is
 // [[name, count]] or [name]; `value` is the tag showing, or null for all.
-export default function TagFilter({ tags, value, onChange, label = "Tags" }) {
+// `tile`: folded, it's a small card beside Your moods (Cassidy, Nov 2), with
+// a gold # and the most used tags; open, it takes the full width.
+export default function TagFilter({ tags, value, onChange, label = "Tags", tile = false }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   if (tags.length === 0) return null;
@@ -13,8 +15,26 @@ export default function TagFilter({ tags, value, onChange, label = "Tags" }) {
   const q = query.trim().replace(/^#/, "").toLowerCase();
   const shown = q ? list.filter(([t]) => t.toLowerCase().includes(q)) : list;
 
+  if (tile && !open) {
+    return (
+      <div className="h-full rounded-card bg-surface1 shadow-card">
+        <button type="button" onClick={() => setOpen(true)} aria-expanded={false} className="block w-full h-full p-3 text-left">
+          <span className="flex items-start justify-between mb-2">
+            <span className="w-9 h-9 rounded-full flex items-center justify-center bg-[color-mix(in_srgb,var(--gold)_18%,transparent)] text-[#7A6024] dark:text-gold">
+              <Hash size={17} strokeWidth={2} />
+            </span>
+            <ChevronDown size={16} strokeWidth={1.75} className="text-textMuted mt-1" />
+          </span>
+          <span className="block font-serif text-[17px] leading-tight text-textPrimary">{label}</span>
+          <span className="block text-caption text-textMuted">{value ? `Showing #${value}` : `${list.length} ${list.length === 1 ? "theme" : "themes"}`}</span>
+          <span className="block text-[11px] text-textMuted truncate mt-1">{list.slice(0, 3).map(([t]) => `#${t}`).join("  ")}</span>
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="mb-3 rounded-card border border-borderC bg-surface1">
+    <div className={tile ? "col-span-2 rounded-card bg-surface1 shadow-card" : "mb-3 rounded-card border border-borderC bg-surface1"}>
       <div className="flex items-center gap-2 px-3 min-h-[44px]">
         <button
           type="button"
