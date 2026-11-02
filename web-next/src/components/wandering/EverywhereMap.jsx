@@ -8,6 +8,7 @@ import { useAppData } from "../../lib/AppDataContext";
 import { localDateKey } from "../../lib/week";
 import { stopDateLabel, isExact, reversePlace } from "../../lib/wandering";
 import SavePlaceSheet from "./SavePlaceSheet";
+import { PhotoCarousel } from "../ui/PhotoCarousel";
 import { STYLE_URL, applyPalette } from "./mapStyle";
 
 // One colour per Wandering's route, in the same family as the Story of
@@ -56,7 +57,9 @@ export default function EverywhereMap({ onClose, year = null }) {
         .sort((a, b) => a.position - b.position);
       if (!been.length) return;
       const color = ROUTE_COLORS[wi % ROUTE_COLORS.length];
-      if (been.length > 1) routes.push({ wandering: w, color, coords: been.map(s => [s.lng, s.lat]) });
+      // Saved places aren't a journey, so they get no route line between them.
+      const journey = Boolean(w.item_id) || w.title !== "Places I've been";
+      if (journey && been.length > 1) routes.push({ wandering: w, color, coords: been.map(s => [s.lng, s.lat]) });
       been.forEach(s => places.push({ stop: s, wandering: w, color, memories: memoryCount[s.id] || 0 }));
     });
     const countries = [...new Set(places.map(p => p.stop.country_code).filter(Boolean))].map(c => regionName(c)).filter(Boolean).sort();
@@ -180,6 +183,13 @@ export default function EverywhereMap({ onClose, year = null }) {
 
   const { places, countries, placeCount, wanderingCount } = data;
 
+  // What was lived at the selected place: its memories (photos first) and
+  // the YOUrnal entries written there (Cassidy, Nov 2).
+  const here = selected ? {
+    moments: moments.filter(m => m.stop_id === selected.stop.id),
+    entries: journalEntries.filter(e => e.stop_id === selected.stop.id)
+  } : null;
+
   // Saving a place from the map: the + button opens the sheet; a held finger
   // names the spot under it first and opens the sheet with it chosen.
   const [saveOpen, setSaveOpen] = useState(false);
@@ -231,7 +241,7 @@ export default function EverywhereMap({ onClose, year = null }) {
       </div>
 
       {selected && (
-        <div className="absolute left-3 right-3 bottom-10 rounded-card p-4 shadow-cardDark" style={{ background: "#131331", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="absolute left-3 right-3 bottom-10 max-h-[62vh] overflow-y-auto rounded-card p-4 shadow-cardDark" style={{ background: "#131331", border: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="flex items-start gap-2.5">
             <MapPin size={18} strokeWidth={1.75} className="flex-none mt-0.5" style={{ color: selected.color }} />
             <div className="flex-1 min-w-0">
@@ -242,11 +252,9 @@ export default function EverywhereMap({ onClose, year = null }) {
                 {selected.stop.arrive && isExact(selected.stop) && ` · ${new Date(selected.stop.arrive + "T00:00:00").toLocaleDateString("en-AU", { month: "long", year: "numeric" })}`}
               </div>
               {selected.stop.arrive && <div className="text-caption" style={{ color: "#8A88AE" }}>{stopDateLabel(selected.stop)}</div>}
-              <div className="text-caption mt-0.5" style={{ color: "#8A88AE" }}>
-                {selected.memories > 0
-                  ? `${selected.memories} ${selected.memories === 1 ? "memory" : "memories"} from here`
-                  : "Nothing pinned here yet"}
-              </div>
+              {selected.memories === 0 && (
+                <div className="text-caption mt-0.5" style={{ color: "#8A88AE" }}>Nothing pinned here yet</div>
+              )}
               <Link to={`/wandering/${selected.wandering.id}`} className="inline-block mt-2 text-bodySm underline" style={{ color: "var(--gold)" }}>
                 Open the wandering →
               </Link>
@@ -255,6 +263,31 @@ export default function EverywhereMap({ onClose, year = null }) {
               <X size={16} strokeWidth={1.75} />
             </button>
           </div>
+
+          {(here.moments.length > 0 || here.entries.length > 0) && (
+            <div className="mt-3 space-y-3">
+              {here.moments.map(m => (
+                <div key={m.id}>
+                  {m.photo_urls?.length > 0 && <PhotoCarousel urls={m.photo_urls} className="h-44" />}
+                  <div className="mt-1.5 flex items-baseline justify-between gap-2">
+                    <span className="font-serif text-body text-cream">{m.title}</span>
+                    <span className="flex-none text-caption" style={{ color: "#8A88AE" }}>
+                      {new Date(m.moment_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  </div>
+                  {m.description && <p className="text-bodySm m-0 mt-0.5 whitespace-pre-line" style={{ color: "#B8B5D6" }}>{m.description}</p>}
+                </div>
+              ))}
+              {here.entries.map(e => (
+                <div key={e.id} className="border-l-2 pl-2.5" style={{ borderColor: "rgba(201,162,77,0.6)" }}>
+                  <div className="text-caption" style={{ color: "#8A88AE" }}>
+                    YOUrnal · {new Date(e.entry_date + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                  </div>
+                  <p className="text-bodySm m-0 mt-0.5 line-clamp-4 whitespace-pre-line" style={{ color: "#B8B5D6" }}>{e.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

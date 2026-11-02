@@ -1020,10 +1020,15 @@ export function AppDataProvider({ children }) {
   // Wandering of their own, "Places I've been", made the first time; the
   // stop is dated to the memory, and the memory is pinned to it.
   const PLACES_TITLE = "Places I've been";
-  async function savePlaceMemory({ place, momentDate, title, description, photos = [] }) {
-    let home = wanderings.find(w => !w.item_id && w.title === PLACES_TITLE);
+  const WISH_TITLE = "Places I'd love to go";
+  // A place of its own (no Dream, no trip), dated to the day it was lived:
+  // used by Save a place and by "Where was this?" on any memory or entry.
+  // `wish` makes it a place you'd love to go instead (Places I'd love to go).
+  async function addOwnPlace(place, dateKey, { wish = false } = {}) {
+    const title = wish ? WISH_TITLE : PLACES_TITLE;
+    let home = wanderings.find(w => !w.item_id && w.title === title);
     if (!home) {
-      const res = await supabase.from("wanderings").insert({ user_id: userId, item_id: null, title: PLACES_TITLE }).select().single();
+      const res = await supabase.from("wanderings").insert({ user_id: userId, item_id: null, title }).select().single();
       if (res.error) throw res.error;
       home = res.data;
       setWanderings(prev => [...prev, home]);
@@ -1032,10 +1037,19 @@ export function AppDataProvider({ children }) {
     const res = await supabase.from("wandering_stops").insert({
       user_id: userId, wandering_id: home.id, position: siblings.length,
       place_name: place.name, place_detail: place.detail || null, country_code: place.countryCode || null,
-      lat: place.lat, lng: place.lng, kind: "visit", arrive: momentDate, depart: momentDate
+      lat: place.lat, lng: place.lng, kind: "visit",
+      arrive: wish ? null : dateKey, depart: wish ? null : dateKey,
+      note: place.note || null
     }).select().single();
     if (res.error) throw res.error;
     setWanderingStops(prev => [...prev, res.data]);
+    if (place.unnamed && !wish) await holdPlace({ momentId: `stop:${res.data.id}`, userId, stopId: res.data.id, photos: [], unnamed: { lat: place.lat, lng: place.lng, name: place.name } });
+    return res.data;
+  }
+
+  async function savePlaceMemory({ place, momentDate, title, description, photos = [] }) {
+    const stop = await addOwnPlace({ ...place, unnamed: false }, momentDate);
+    const res = { data: stop };
     // No signal: the memory saves now without its photos, and the photos
     // (and the spot's name, if it's only coordinates) wait on the phone.
     const later = isOffline() || place.unnamed;
@@ -1063,9 +1077,10 @@ export function AppDataProvider({ children }) {
       if (!held.length) return;
       for (let i = 0; i < 20 && (await pendingCount()) > 0; i++) await new Promise(r => setTimeout(r, 1500));
       for (const h of held) {
-        const moment = latest.current.moments.find(m => m.id === h.momentId);
-        if (!moment) { await releasePlace(h.momentId); continue; }
-        let title = moment.title;
+        const stopOnly = String(h.momentId).startsWith("stop:");
+        const moment = stopOnly ? null : latest.current.moments.find(m => m.id === h.momentId);
+        if (!stopOnly && !moment) { await releasePlace(h.momentId); continue; }
+        let title = moment?.title;
         if (h.unnamed) {
           const stop = latest.current.wanderingStops.find(s => s.id === h.stopId);
           if (stop && stop.place_name === h.unnamed.name) {
@@ -1073,11 +1088,11 @@ export function AppDataProvider({ children }) {
             if (!named.unnamed) {
               await supabase.from("wandering_stops").update({ place_name: named.name, place_detail: named.detail || null, country_code: named.countryCode || null }).eq("id", stop.id).eq("user_id", userId);
               setWanderingStops(prev => prev.map(s => (s.id === stop.id ? { ...s, place_name: named.name, place_detail: named.detail || null } : s)));
-              if (title === h.unnamed.name) title = named.name;
+              if (moment && title === h.unnamed.name) title = named.name;
             }
           }
         }
-        if (h.photos.length || title !== moment.title) {
+        if (moment && (h.photos.length || title !== moment.title)) {
           await latest.current.editMoment(moment.id, {
             title, momentDate: moment.moment_date, description: moment.description,
             photoOrder: h.photos.length ? [...momentPhotoPaths(moment).map(path => ({ path })), ...h.photos] : undefined
@@ -2235,7 +2250,7 @@ export function AppDataProvider({ children }) {
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
     focusSessions, saveFocusSession, saveFocusNote,
     highlights, addHighlight, updateHighlight, deleteHighlight,
-    wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, savePlaceMemory, updateWanderingStop, removeWanderingStop,
+    wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, savePlaceMemory, addOwnPlace, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted, setAiSources,
     loadDreamPatterns, readDreamPatterns,
