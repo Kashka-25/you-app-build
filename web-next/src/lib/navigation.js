@@ -7,24 +7,26 @@ import { usePluginStates } from "./plugins";
 // any place that has an emblem. Kept per account (prefs.nav), so it
 // follows them to every device.
 //
-// Journey-before-KommYOUnity is deliberate: the app is about the individual
-// first, community second. Don't reorder.
+// The simple core first (Cassidy, Nov 3), then the places that come with
+// an extra, which only exist while that extra is on. The individual comes
+// before community on purpose: don't move KommYOUnity up.
 export const PLACES = [
   { key: "home", to: "/", end: true, label: "Home", icon: "home", locked: true },
-  { key: "yourney", to: "/journey", label: "YOUrney", icon: "yourney" },
   { key: "yournal", to: "/reflections", label: "YOUrnal", icon: "reflections" },
+  { key: "yourney", to: "/journey", label: "YOUrney", icon: "yourney" },
   // "PursYOUts" is a trial name (Cassidy, Oct 27); the page is /pursue.
   { key: "pursuits", to: "/pursue", label: "PursYOUts", icon: "pursuits" },
-  { key: "youniversity", to: "/youniversity", label: "YOUniversity", icon: "youniversity" },
-  { key: "community", to: "/community", label: "KommYOUnity", icon: "community" },
   { key: "you", to: "/you", label: "YOU", icon: "you", locked: true },
+  { key: "youniversity", to: "/youniversity", label: "YOUniversity", icon: "youniversity", plugin: "youniversity" },
+  { key: "community", to: "/community", label: "KommYOUnity", icon: "community", plugin: "community" },
+  { key: "showcase", to: "/showcase", label: "Showcase", icon: "showcase", plugin: "showcase" },
   { key: "projects", to: "/projects", label: "YOUr Projects", icon: "projects", plugin: "projects" },
   { key: "yourigin", to: "/yourigin", label: "YOUrigin", icon: "yourigin", plugin: "yourigin" },
-  { key: "showcase", to: "/showcase", label: "Showcase", icon: "showcase" },
   { key: "focus", to: "/focus", label: "Focus", icon: "focus", plugin: "focus" }
 ];
 
-export const DEFAULT_BAR = ["yourney", "yournal"];
+// Home, YOUrnal, [Add], PursYOUts, YOU: the places used every day.
+export const DEFAULT_BAR = ["yournal", "pursuits"];
 
 export function useNavigation() {
   const { prefs, setPrefs } = useAuth();

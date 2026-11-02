@@ -50,7 +50,6 @@ import FindYourWay from "./components/screens/FindYourWay";
 // Loaded on demand: the map library is large, and only a Wandering needs it.
 const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
 import { ParkedScreen } from "./components/Primitives";
-import { thresholdOnOpen } from "./lib/week";
 import { useSectionElement } from "./lib/elements";
 import { applyScale, readScale, storeScale, watchMode } from "./lib/colourScale";
 
@@ -69,14 +68,14 @@ function useColourScale(fromAccount) {
   }, [fromAccount?.light, fromAccount?.dark]);
 }
 
-// Opening the app lands on the Threshold first — once per session, only
-// when arriving at Home (a deep link goes where it points), and only if
-// the Seeker hasn't switched it off in My YOU.
-function useThresholdOnOpen(ready) {
+// With the Threshold extra on (Nov 3: an extra, off to start), opening the
+// app lands on the Threshold first — once per session, only when arriving
+// at Home (a deep link goes where it points).
+function useThresholdOnOpen(ready, on) {
   const navigate = useNavigate();
   const location = useLocation();
   useEffect(() => {
-    if (!ready || location.pathname !== "/" || !thresholdOnOpen()) return;
+    if (!ready || !on || location.pathname !== "/") return;
     let seen = false;
     try { seen = sessionStorage.getItem(THRESHOLD_SEEN) === "1"; } catch { /* ignore */ }
     if (!seen) navigate("/threshold", { replace: true });
@@ -95,7 +94,7 @@ export default function App() {
   const welcoming = Boolean(userId) && !recovering && !prefs?.welcomed && !welcomeDone;
   // "See the welcome again" in Your Own Universe turns the preference off.
   useEffect(() => { if (prefs?.welcomed === false) setWelcomeDone(false); }, [prefs?.welcomed]);
-  useThresholdOnOpen(!loading && Boolean(userId) && !recovering && !welcoming);
+  useThresholdOnOpen(!loading && Boolean(userId) && !recovering && !welcoming, Boolean(prefs?.plugins?.threshold));
   useSectionElement();
   useColourScale(prefs?.colour_scale);
 

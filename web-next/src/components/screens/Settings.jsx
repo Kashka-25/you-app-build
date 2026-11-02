@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Brush, ChevronDown, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sun, Trash2 } from "lucide-react";
+import { Brush, ChevronDown, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Trash2 } from "lucide-react";
 import { SCALE_DEFAULT, SCALE_STOPS, applyScale, coloursAt, readScale, stopName, storeScale } from "../../lib/colourScale";
 import { Fold } from "../ui/Fold";
-import { thresholdOnOpen, setThresholdOnOpen } from "../../lib/week";
 import { AI_USER_MONTHLY_USD } from "../../lib/aiCost";
 import { PREMIUM_NAME, PREMIUM_OPEN_IN_BETA } from "../../lib/premium";
 import { useAuth } from "../../lib/AuthContext";
@@ -22,47 +21,59 @@ import { BACKGROUND_MODES, backgroundMode, setBackgroundMode } from "../../lib/s
 import ArtistProfileCard from "../showcase/ArtistProfileCard";
 import { Guide } from "../ui/Guide";
 
-// "My YOU" — the personal identity screen (MVP Feature 1). Account-level
-// bits (sign out) live here too since there's no separate Settings screen
-// yet, not because they belong to the same concept long-term.
+// Settings, kept simple for the beta (Cassidy, Nov 3): your name, then just
+// Extras, Colours and Your data. An extra's own settings (Kronk, featured
+// art, the artist profile) only appear once that extra is switched on.
 export default function Settings() {
   const { signOut } = useAuth();
   const { loaded, aiConsent, setAiConsentGranted } = useAppData();
+  const communityOn = usePlugin("community");
+  const showcaseOn = usePlugin("showcase");
+  const youriginOn = usePlugin("yourigin");
 
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <SectionTitle>Your Own Universe</SectionTitle>
+      <SectionTitle>Settings</SectionTitle>
 
       {!loaded ? <div className="text-body text-textSecondary">Loading…</div> : <ProfileCard />}
 
       {/* Everything else folds away, one tidy row each (Cassidy, Oct 18). */}
       <div className="mt-5">
-        <Fold ai title="AI reflections" hint={`${PREMIUM_NAME}${PREMIUM_OPEN_IN_BETA ? " · free in the beta" : ""} · ${aiConsent?.granted ? "on" : "off"}`}>
-          <AiReflectionsSetting aiConsent={aiConsent} onChange={setAiConsentGranted} />
-        </Fold>
-        <Fold icon={Puzzle} title="Make YOU yours" hint="Turn optional parts on or off">
+        <Fold icon={Puzzle} title="Extras" hint="Add the parts you'd like: YOUniversity, KommYOUnity and more">
           <PluginsSetting />
-        </Fold>
-        <Fold icon={Sun} title="Opening YOU" hint="Land on the Threshold, or straight on Home">
-          <ThresholdSetting />
         </Fold>
         <Fold image="/images/icons/light-dark.png" title="Colours" hint="Slide Nature and the Cosmos to your own shades">
           <ColourScaleSetting />
         </Fold>
-        <Fold icon={Palette} title="Featured art on Home" hint="Artists' pieces in the welcome">
-          <ShowcaseBackgroundSetting />
-        </Fold>
-        <Fold icon={Brush} title="Your artist profile" hint="How you're credited in the Showcase">
-          <ArtistProfileCard />
-        </Fold>
-        <Fold icon={KronkMark} title="Kronk" hint="KommYOUnity, your feeds, signing in with Kronk">
-          <KronkSetting />
-        </Fold>
-        <Fold icon={ShieldCheck} title="Your data" hint="Download everything, or delete your account">
+        <Fold icon={ShieldCheck} title="Your data" hint="What AI may read, download everything, or delete your account">
+          <div className="text-label uppercase text-textMuted mb-2">AI reflections · {PREMIUM_NAME}{PREMIUM_OPEN_IN_BETA ? " · free in the beta" : ""}</div>
+          <AiReflectionsSetting aiConsent={aiConsent} onChange={setAiConsentGranted} />
+          <div className="border-t border-borderC my-4" />
           <YourDataSetting />
         </Fold>
       </div>
+
+      {(communityOn || showcaseOn || youriginOn) && (
+        <div className="mt-5">
+          <div className="text-label uppercase text-textMuted px-0.5 mb-1.5">For your extras</div>
+          {communityOn && (
+            <Fold icon={KronkMark} title="Kronk" hint="KommYOUnity, your feeds, signing in with Kronk">
+              <KronkSetting />
+            </Fold>
+          )}
+          {showcaseOn && (
+            <Fold icon={Palette} title="Featured art on Home" hint="Artists' pieces in the welcome">
+              <ShowcaseBackgroundSetting />
+            </Fold>
+          )}
+          {(showcaseOn || youriginOn) && (
+            <Fold icon={Brush} title="Your artist profile" hint="How you're credited in the Showcase">
+              <ArtistProfileCard />
+            </Fold>
+          )}
+        </div>
+      )}
 
       <ReplayWelcome />
 
@@ -346,30 +357,6 @@ function IncludeCoursesSetting({ aiConsent }) {
   );
 }
 
-// Escape hatch for the Threshold. Per device for now (localStorage), so it
-// needs no migration; move to the profile if it should follow the Seeker.
-function ThresholdSetting() {
-  const [on, setOn] = useState(thresholdOnOpen);
-
-  function toggle() {
-    setThresholdOnOpen(!on);
-    setOn(!on);
-  }
-
-  return (
-    <div>
-      <div className="text-bodySm text-textSecondary mb-3">
-        {on
-          ? "On. When you open YOU, you'll land on today first, with a portal into the rest."
-          : "Off. YOU opens straight to Home. The Threshold is still a tap away from the Today card."}
-      </div>
-      <Button variant="secondary" size="sm" onClick={toggle}>
-        {on ? "Open straight to Home" : "Open on the Threshold"}
-      </Button>
-    </div>
-  );
-}
-
 // Artists' pieces can fill the welcome on Home. Remembered on this device.
 function ShowcaseBackgroundSetting() {
   const [mode, setMode] = useState(backgroundMode);
@@ -397,8 +384,8 @@ function PluginsSetting() {
   return (
     <div>
       <div className="text-bodySm text-textSecondary mb-3">
-        Turn on only what helps. Nothing you've added is lost when you turn something off.{" "}
-        <Link to="/extras" className="text-forestAccent underline underline-offset-2">Extras</Link> also lets you choose what shows in your side menu and bottom bar.
+        YOU starts simple. Add only what helps; nothing you've made is lost when you turn something off.{" "}
+        <Link to="/extras" className="text-forestAccent underline underline-offset-2">Arrange your menu and bottom bar</Link>
       </div>
       {PLUGINS.map(p => <PluginRow key={p.key} plugin={p} onChange={on => setPlugin(p.key, on)} />)}
     </div>
