@@ -8,7 +8,7 @@ import { VALUE_ICONS, getValueEntry } from "../../../constants/valueLibrary";
 import { useAppData } from "../../../lib/AppDataContext";
 import {
   INNER_PILLARS, OUTER_PILLARS, VALUE_COLORS, VALUE_PILLAR, VALUE_PILLAR2, TIERS,
-  getTier, getPrestigeStage, prestigeRequirement, PILLAR_COLORS
+  getTier, getPrestigeStage, prestigeRequirement, PILLAR_COLORS, LEVELS
 } from "../../../constants/app.const";
 import { easeOut } from "../../ui/motion";
 import IdentityVisionModal from "../IdentityVisionModal";
@@ -40,9 +40,28 @@ const BRANCH_BASE_Y = 360, BRANCH_ARCH = 150, BRANCH_MARGIN_X = 80;
 const STORY_ORB = { x: TRUNK_X, y: 58 };
 const CONSTELLATION_ORB = { x: SVG_W - 92, y: 62 };
 const MAX_FRUIT = 8;
-// The painted backdrop (sky, trunk, soil), drawn to this scene's 800 × 1120
-// layout. Until it exists the scene draws its own.
-const PAINTED_TREE = "/images/journey/tree-of-you.webp";
+// Cassidy's painted tree grows with the Seeker (Nov 2): one painting for
+// each of the eight levels, Seedling to Elder, all drawn to this scene's
+// 800 × 1120 layout. Each tier records where its trunk opens into light
+// (`top`), the half-width of that crown (`crown`) and of its flared base
+// (`base`), so branches and roots always leave the tree where it really
+// is, and how far its glowing painted roots are softened (`dim`) so the
+// Pillars' own roots read over them (Cassidy: "decrease their opacity").
+// From tier 3 the trunk is lit gold, so branches take that lit bark; from
+// tier 4 the painting has its own root web, so the Pillars run through it
+// as glowing veins rather than drawn root wood.
+const TREE_TIERS = [
+  { top: 483, crown: 10, base: 26, dim: 0 },
+  { top: 461, crown: 14, base: 38, dim: 0.12 },
+  { top: 444, crown: 26, base: 52, dim: 0.24, lit: true },
+  { top: 403, crown: 34, base: 70, dim: 0.36, lit: true, paintedRoots: true },
+  { top: 404, crown: 30, base: 88, dim: 0.44, lit: true, paintedRoots: true },
+  { top: 386, crown: 40, base: 100, dim: 0.52, lit: true, paintedRoots: true },
+  { top: 353, crown: 48, base: 118, dim: 0.58, lit: true, paintedRoots: true },
+  { top: 301, crown: 54, base: 136, dim: 0.64, lit: true, paintedRoots: true }
+];
+const treeImage = n => `/images/journey/tree-tier-${n + 1}.webp`;
+const TREE_SEEN = "you.tree.tier";
 
 // Spread n items across an arch, sampling the middle of each slot so a
 // small canopy (two or three values) sits up and out rather than drooping
@@ -57,16 +76,20 @@ const FRUIT_COLORS = ["#E0A458", "#D9764A", "#C9A24D", "#B85F6E", "#8FA05E"];
 
 // Each branch leaves the trunk's crown a little to its own side, the way a
 // real tree divides, and curves up and out to its value.
-function branchCurve(tipX, tipY) {
+function branchCurve(tipX, tipY, tier) {
   const lean = Math.max(-1, Math.min(1, (tipX - TRUNK_X) / 300));
-  const x0 = TRUNK_X + lean * 9, y0 = TRUNK_TOP_Y + 26;
-  return [[x0, y0], [x0 + lean * 18, TRUNK_TOP_Y - 70], [tipX - (tipX - TRUNK_X) * 0.12, tipY + 120], [tipX, tipY]];
+  const top = tier?.top ?? TRUNK_TOP_Y;
+  const x0 = TRUNK_X + lean * (tier?.crown ?? 9) * 0.85, y0 = top + 26;
+  // A tall tree's crown sits nearer the canopy, so its boughs spread more than they climb.
+  const rise = Math.min(70, Math.max(10, top - tipY - 60));
+  return [[x0, y0], [x0 + lean * 18, top - rise], [tipX - (tipX - TRUNK_X) * 0.12, tipY + Math.min(120, Math.max(40, top - tipY))], [tipX, tipY]];
 }
 
 // Roots leave the trunk's flared base across its width, dip, then reach.
-function rootCurve(tipX, tipY) {
+function rootCurve(tipX, tipY, tier) {
   const dx = tipX - TRUNK_X;
-  const x0 = TRUNK_X + Math.max(-26, Math.min(26, dx * 0.12));
+  const spread = tier?.base ?? 26;
+  const x0 = TRUNK_X + Math.max(-spread, Math.min(spread, dx * 0.12 * (spread / 26)));
   return [[x0, GROUND_Y - 8], [TRUNK_X + dx * 0.3, GROUND_Y + 40], [tipX - dx * 0.3, tipY - 50], [tipX, tipY]];
 }
 
@@ -466,14 +489,30 @@ export default function TreeOfStars() {
   }
   const drift = depth => `translate(${-tilt.x * (3 + depth * 5)} ${-tilt.y * (2 + depth * 3)})`;
 
-  // Cassidy's painted tree, when it's been added: it takes the place of the
-  // drawn soil and trunk, and everything living is laid over it.
+  // The painting for the Seeker's level takes the place of the drawn soil
+  // and trunk; everything living is laid over it.
+  // On a local dev copy, /journey?tree-tier=5 shows any tier, to check them all.
+  const forcedTier = import.meta.env.DEV ? Number(new URLSearchParams(window.location.search).get("tree-tier")) - 1 : -1;
+  const tierIndex = forcedTier >= 0 && forcedTier < TREE_TIERS.length
+    ? forcedTier
+    : Math.max(0, Math.min(TREE_TIERS.length - 1, LEVELS.findIndex(l => l.name === level?.name)));
   const [painted, setPainted] = useState(false);
+  const [grewFrom, setGrewFrom] = useState(null);
+  const tier = painted ? TREE_TIERS[tierIndex] : null;
   useEffect(() => {
+    setPainted(false);
     const img = new Image();
-    img.onload = () => setPainted(true);
-    img.src = PAINTED_TREE;
-  }, []);
+    img.onload = () => {
+      setPainted(true);
+      // Grown since this tree was last seen here: the old tree gives way to
+      // the new one, once.
+      let seen = null;
+      try { seen = Number(localStorage.getItem(TREE_SEEN)); } catch { /* private mode */ }
+      if (Number.isInteger(seen) && seen >= 0 && seen < tierIndex) setGrewFrom(seen);
+      try { localStorage.setItem(TREE_SEEN, String(tierIndex)); } catch { /* fine */ }
+    };
+    img.src = treeImage(tierIndex);
+  }, [tierIndex]);
 
   return (
     <div
@@ -555,6 +594,16 @@ export default function TreeOfStars() {
               <stop offset="55%" stopColor="#7a4a2e" />
               <stop offset="100%" stopColor="#613627" />
             </linearGradient>
+            <linearGradient id="tosRootDim" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#25100c" stopOpacity="0" />
+              <stop offset="12%" stopColor="#25100c" stopOpacity="1" />
+              <stop offset="100%" stopColor="#1a0b08" stopOpacity="1" />
+            </linearGradient>
+            <linearGradient id="tosBoughLit" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor="#d59a55" />
+              <stop offset="50%" stopColor="#b5773f" />
+              <stop offset="100%" stopColor="#8a5530" />
+            </linearGradient>
             <linearGradient id="tosRootWood" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#7a4a2e" />
               <stop offset="100%" stopColor="#3d2216" />
@@ -584,7 +633,30 @@ export default function TreeOfStars() {
             </radialGradient>
           </defs>
 
-          {painted && <image href={PAINTED_TREE} x={0} y={0} width={SVG_W} height={SVG_H} preserveAspectRatio="xMidYMid slice" />}
+          {painted && <image href={treeImage(tierIndex)} x={0} y={0} width={SVG_W} height={SVG_H} preserveAspectRatio="xMidYMid slice" />}
+          {painted && grewFrom != null && (
+            <motion.image
+              href={treeImage(grewFrom)} x={0} y={0} width={SVG_W} height={SVG_H} preserveAspectRatio="xMidYMid slice"
+              initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 3.2, delay: 0.8, ease: "easeInOut" }}
+            />
+          )}
+          {painted && grewFrom != null && (
+            <motion.g
+              pointerEvents="none"
+              initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 1, 0] }}
+              transition={{ duration: 7, times: [0, 0.18, 0.75, 1], ease: "easeInOut" }}
+            >
+              <text x={TRUNK_X} y={GROUND_Y + 120} textAnchor="middle" fontSize="34" fill="#F7EEDC" fontFamily="Cormorant Garamond, Georgia, serif" style={{ paintOrder: "stroke", stroke: "#1a0b08", strokeWidth: 6, strokeOpacity: 0.55 }}>
+                Your tree has grown
+              </text>
+              <text x={TRUNK_X} y={GROUND_Y + 156} textAnchor="middle" fontSize="18" fill="#E8C877" fontFamily="DM Sans, sans-serif" letterSpacing="0.12em" style={{ paintOrder: "stroke", stroke: "#1a0b08", strokeWidth: 5, strokeOpacity: 0.55 }}>
+                {(LEVELS[tierIndex]?.name || "").toUpperCase()}
+              </text>
+            </motion.g>
+          )}
+          {tier?.dim > 0 && (
+            <rect x={0} y={GROUND_Y - 10} width={SVG_W} height={SVG_H - GROUND_Y + 10} fill="url(#tosRootDim)" style={{ opacity: tier.dim }} pointerEvents="none" />
+          )}
 
           {/* The sky: a faint nebula, then stars at three depths (over the
               painting, which has its own, only the nearest sparkles) */}
@@ -614,7 +686,7 @@ export default function TreeOfStars() {
           {/* Roots (Pillars) */}
           {roots.map((r, i) => {
             const isMember = active ? active.pils.has(r.name) : false;
-            const curve = rootCurve(r.x, r.y);
+            const curve = rootCurve(r.x, r.y, tier);
             const shown = active ? (isMember ? 1 : 0.12) : 1;
             const grow = { duration: 1.1, ease: easeOut, delay: 0.05 * i };
             return (
@@ -627,17 +699,17 @@ export default function TreeOfStars() {
                   className="transition-opacity duration-500"
                 />
                 {/* the root itself: wood, thick at the trunk, fine at the tip */}
-                <motion.path
+                {!tier?.paintedRoots && <motion.path
                   d={limbShape(curve, 14 + r.growth * 10, 2.6)}
                   fill="url(#tosRootWood)" stroke="#2a150c" strokeOpacity={0.5} strokeWidth={0.6}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: shown * 0.92 }}
                   transition={{ opacity: grow }}
-                />
+                />}
                 {/* a vein of light running through it */}
                 <motion.path
                   d={curveD(curve)} fill="none" stroke={r.color} strokeLinecap="round"
-                  strokeWidth={1.2 + r.growth * 1.6 + (active && isMember ? 0.8 : 0)}
+                  strokeWidth={(tier?.paintedRoots ? 2.4 : 1.2) + r.growth * 1.6 + (active && isMember ? 0.8 : 0)}
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: shown * 0.85 }}
                   transition={{ pathLength: grow, opacity: { duration: 0.4 } }}
@@ -661,7 +733,7 @@ export default function TreeOfStars() {
           {/* Branches (Values) */}
           {branches.map((b, i) => {
             const isMember = active ? active.vals.has(b.name) : false;
-            const curve = branchCurve(b.x, b.y);
+            const curve = branchCurve(b.x, b.y, tier);
             const base = b.resting ? 10 : 16 + b.tierIndex * 3 + Math.min(b.prestige, 4) * 1.2;
             const shown = active ? (isMember ? 1 : 0.1) : b.resting ? 0.7 : 1;
             const grow = { duration: 1.1, ease: easeOut, delay: 0.3 + 0.05 * i };
@@ -670,7 +742,7 @@ export default function TreeOfStars() {
                 {/* the bough: the painting's own bark, a resting one weathered silver */}
                 <motion.path
                   d={limbShape(curve, base, 4)}
-                  fill={b.resting ? "#8f8a80" : "url(#tosBough)"}
+                  fill={b.resting ? "#8f8a80" : tier?.lit ? "url(#tosBoughLit)" : "url(#tosBough)"}
                   stroke={b.resting ? "#5f5b54" : "#3d2216"} strokeOpacity={0.55} strokeWidth={0.7}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: shown * 0.97 }}
