@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, X } from "lucide-react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS } from "../../constants/app.const";
 import { Modal } from "../ui/Modal";
@@ -13,6 +13,13 @@ const INTENTION_PROMPTS = {
   dream: "What does this dream mean to your soul?"
 };
 
+const TYPES = [
+  { value: "habit", label: "Habit", hint: "Something you do again and again, like a morning walk." },
+  { value: "goal", label: "Goal", hint: "Something you'll finish, with steps along the way." },
+  { value: "dream", label: "Dream", hint: "A wish for your life, big or far away." }
+];
+const PLACEHOLDERS = { habit: "Morning meditation", goal: "Finish my first song", dream: "Live by the sea" };
+
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
 
@@ -20,6 +27,9 @@ const labelClass = "text-label uppercase text-textMuted";
 // either way, prefilled and pointed at editItem when an `item` is passed in
 // (same pattern as AddMomentModal/IdentityVisionModal). `prefill` seeds a
 // new pursuit (e.g. a dream planted from Freeing the Dream).
+// A new pursuit starts quick (Cassidy, Nov 2): name, type and life area, and
+// "More" for steps, amounts, tags, note, sub-category, date and intention.
+// Editing opens with everything showing.
 export default function AddItemModal({ open, onClose, defaultType = "habit", item, prefill }) {
   const { addItem, editItem, deleteItem } = useAppData();
   const isEdit = Boolean(item);
@@ -42,6 +52,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
   const [createdDate, setCreatedDate] = useState(todayKey());
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [more, setMore] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -70,6 +81,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       setTargetAmount("");
       setTargetUnit("");
     }
+    setMore(Boolean(item) || Boolean(prefill?.note));
     setTagInput("");
     setMsText("");
     setMsAmount("");
@@ -121,6 +133,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
   }
 
   async function handleDelete() {
+    if (!window.confirm(`Delete "${item.name}" for good? Its steps and history go with it.`)) return;
     setDeleting(true);
     await deleteItem(item.id);
     setDeleting(false);
@@ -133,26 +146,47 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       <input
         className={fieldClass}
         value={name}
+        autoFocus={!isEdit}
         onChange={e => setName(e.target.value)}
-        placeholder="Morning meditation"
+        onKeyDown={e => { if (isEnter(e) && !more) { e.preventDefault(); submit(); } }}
+        placeholder={PLACEHOLDERS[type]}
       />
 
-      <div className="flex gap-3">
-        <div className="flex-1">
-          <label className={labelClass}>Type</label>
-          <select className={fieldClass} value={type} onChange={e => setType(e.target.value)}>
-            <option value="habit">Habit</option>
-            <option value="goal">Goal</option>
-            <option value="dream">Dream</option>
-          </select>
-        </div>
-        <div className="flex-1">
-          <label className={labelClass}>Life area</label>
-          <select className={fieldClass} value={cat} onChange={e => setCat(e.target.value)}>
-            {PILLARS.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
+      <div className={labelClass}>Type</div>
+      <div className="flex gap-2 mt-1 mb-3" role="radiogroup" aria-label="Type">
+        {TYPES.map(t => (
+          <button
+            key={t.value}
+            type="button"
+            role="radio"
+            aria-checked={type === t.value}
+            onClick={() => setType(t.value)}
+            className={`flex-1 min-h-[44px] rounded-full border text-bodySm transition ${
+              type === t.value ? "bg-forestAccent border-forestAccent text-onAccent font-medium" : "border-borderC bg-surface1 text-textSecondary"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
+      <p className="text-caption text-textMuted -mt-1.5 mb-3">{TYPES.find(t => t.value === type)?.hint}</p>
+
+      <label className={labelClass}>Life area</label>
+      <select className={fieldClass} value={cat} onChange={e => setCat(e.target.value)}>
+        {PILLARS.map(p => <option key={p} value={p}>{p}</option>)}
+      </select>
+
+      {!more && (
+        <button
+          type="button"
+          onClick={() => setMore(true)}
+          className="w-full flex items-center justify-center gap-1.5 min-h-[44px] mb-3 rounded-full border border-dashed border-borderC text-bodySm text-textSecondary hover:text-textPrimary"
+        >
+          More: {type === "habit" ? "steps, daily amount" : "steps"}, tags, note <ChevronDown size={15} strokeWidth={1.75} />
+        </button>
+      )}
+
+      {more && <>
 
       <label className={labelClass}>Sub-category (optional)</label>
       <input
@@ -286,10 +320,11 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
         value={intention}
         onChange={e => setIntention(e.target.value)}
       />
+      </>}
 
       <div className="flex gap-3">
         <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
-        <Button variant="primary" className="flex-1" onClick={submit} disabled={saving || deleting}>
+        <Button variant="primary" className="flex-1" onClick={submit} disabled={saving || deleting || !name.trim()}>
           {saving ? "Saving…" : isEdit ? "Save changes" : "Plant it"}
         </Button>
       </div>

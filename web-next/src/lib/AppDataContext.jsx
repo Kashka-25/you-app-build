@@ -606,6 +606,16 @@ export function AppDataProvider({ children }) {
     await saveItemRow(updated);
   }
 
+  // All of a pursuit's steps at once, from the step editor (renamed, moved,
+  // amounts changed). Steps keep their ids, so habit days stay with them.
+  async function setMilestones(itemId, milestones) {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    const updated = { ...item, milestones };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
+  }
+
   async function removeMilestone(itemId, mi) {
     const item = items.find(i => i.id === itemId);
     if (!item) return;
@@ -2123,7 +2133,7 @@ export function AppDataProvider({ children }) {
     identityVisions, todos,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
-    addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
+    addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone, setMilestones,
     habitLogs, toggleHabitStep, setHabitAmount, habitStreak, logPastDay,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
