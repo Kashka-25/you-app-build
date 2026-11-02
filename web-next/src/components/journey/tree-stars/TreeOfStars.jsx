@@ -55,14 +55,47 @@ function archPos(i, n, baseX, width, baseY, arch) {
 // Fruit deepens in colour with each prestige cycle.
 const FRUIT_COLORS = ["#E0A458", "#D9764A", "#C9A24D", "#B85F6E", "#8FA05E"];
 
-function branchPath(tipX, tipY) {
-  return `M ${TRUNK_X} ${TRUNK_TOP_Y + 20} C ${TRUNK_X} ${TRUNK_TOP_Y - 60}, ${tipX} ${tipY + 140}, ${tipX} ${tipY}`;
+// Each branch leaves the trunk's crown a little to its own side, the way a
+// real tree divides, and curves up and out to its value.
+function branchCurve(tipX, tipY) {
+  const lean = Math.max(-1, Math.min(1, (tipX - TRUNK_X) / 300));
+  const x0 = TRUNK_X + lean * 9, y0 = TRUNK_TOP_Y + 26;
+  return [[x0, y0], [x0 + lean * 18, TRUNK_TOP_Y - 70], [tipX - (tipX - TRUNK_X) * 0.12, tipY + 120], [tipX, tipY]];
 }
 
-function rootPath(tipX, tipY) {
+// Roots leave the trunk's flared base across its width, dip, then reach.
+function rootCurve(tipX, tipY) {
   const dx = tipX - TRUNK_X;
-  return `M ${TRUNK_X + dx * 0.04} ${GROUND_Y - 6} C ${TRUNK_X + dx * 0.25} ${GROUND_Y + 50}, `
-       + `${tipX - dx * 0.35} ${tipY - 40}, ${tipX} ${tipY}`;
+  const x0 = TRUNK_X + Math.max(-26, Math.min(26, dx * 0.12));
+  return [[x0, GROUND_Y - 8], [TRUNK_X + dx * 0.3, GROUND_Y + 40], [tipX - dx * 0.3, tipY - 50], [tipX, tipY]];
+}
+
+const curveD = ([a, b, c, d]) => `M ${a[0]} ${a[1]} C ${b[0]} ${b[1]}, ${c[0]} ${c[1]}, ${d[0]} ${d[1]}`;
+
+function bezier([a, b, c, d], t) {
+  const u = 1 - t;
+  const k = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
+  return [k[0] * a[0] + k[1] * b[0] + k[2] * c[0] + k[3] * d[0], k[0] * a[1] + k[1] * b[1] + k[2] * c[1] + k[3] * d[1]];
+}
+
+// A limb with real thickness: wide where it leaves the trunk, narrowing to
+// the tip, with a gentle swell so it reads as wood rather than a line
+// (Cassidy, Nov 2: "more cohesive with the image").
+function limbShape(curve, w0, w1) {
+  const n = 28, left = [], right = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const [x, y] = bezier(curve, t);
+    const [x2, y2] = bezier(curve, Math.min(1, t + 0.01));
+    const [x1, y1] = bezier(curve, Math.max(0, t - 0.01));
+    let nx = -(y2 - y1), ny = x2 - x1;
+    const len = Math.hypot(nx, ny) || 1;
+    nx /= len; ny /= len;
+    const w = (w0 + (w1 - w0) * Math.pow(t, 0.7)) * (1 + 0.06 * Math.sin(t * 9)) / 2;
+    left.push(`${(x + nx * w).toFixed(1)} ${(y + ny * w).toFixed(1)}`);
+    right.push(`${(x - nx * w).toFixed(1)} ${(y - ny * w).toFixed(1)}`);
+  }
+  return `M ${left.join(" L ")} L ${right.reverse().join(" L ")} Z`;
 }
 
 // A trunk that tapers from a wide base to a narrower crown.
@@ -93,7 +126,8 @@ function Leaves({ x, y, n, color }) {
       <ellipse
         key={i} cx={lx} cy={ly} rx={9} ry={20}
         transform={`rotate(${deg} ${lx} ${ly})`}
-        fill={i % 3 === 0 ? "#9BAF7E" : color} opacity={i % 3 === 0 ? 0.6 : 0.5}
+        style={{ fill: i % 4 === 0 ? "#D9A85A" : `color-mix(in srgb, ${color} ${i % 2 ? 45 : 30}%, #5E6B3A)` }}
+        opacity={i % 4 === 0 ? 0.55 : 0.85}
       />
     );
   }
@@ -516,6 +550,15 @@ export default function TreeOfStars() {
               <stop offset="50%" stopColor="#6b4a2f" />
               <stop offset="100%" stopColor="#3a2a1d" />
             </linearGradient>
+            <linearGradient id="tosBough" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor="#945a37" />
+              <stop offset="55%" stopColor="#7a4a2e" />
+              <stop offset="100%" stopColor="#613627" />
+            </linearGradient>
+            <linearGradient id="tosRootWood" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7a4a2e" />
+              <stop offset="100%" stopColor="#3d2216" />
+            </linearGradient>
             <radialGradient id="tosFruitShine" cx="35%" cy="30%" r="70%">
               <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
               <stop offset="45%" stopColor="#ffffff" stopOpacity="0.08" />
@@ -571,22 +614,34 @@ export default function TreeOfStars() {
           {/* Roots (Pillars) */}
           {roots.map((r, i) => {
             const isMember = active ? active.pils.has(r.name) : false;
+            const curve = rootCurve(r.x, r.y);
+            const shown = active ? (isMember ? 1 : 0.12) : 1;
+            const grow = { duration: 1.1, ease: easeOut, delay: 0.05 * i };
             return (
               <g key={r.name + "-root"}>
-              <path
-                d={rootPath(r.x, r.y)} fill="none" stroke={r.color} strokeLinecap="round"
-                strokeWidth={8 + r.growth * 10} filter="url(#tosBlur)"
-                opacity={active ? (isMember ? 0.5 : 0) : 0.18 + r.growth * 0.22}
-                className="transition-opacity duration-500"
-              />
-              <motion.path
-                d={rootPath(r.x, r.y)}
-                fill="none" stroke={r.color} strokeLinecap="round"
-                strokeWidth={2.5 + r.growth * 4 + (active && isMember ? 1.5 : 0)}
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: active ? (isMember ? 0.95 : 0.08) : 0.55 }}
-                transition={{ pathLength: { duration: 1.1, ease: easeOut, delay: 0.05 * i }, opacity: { duration: 0.4 } }}
-              />
+                {/* the soil glowing around it, in the Pillar's colour */}
+                <path
+                  d={curveD(curve)} fill="none" stroke={r.color} strokeLinecap="round"
+                  strokeWidth={10 + r.growth * 12} filter="url(#tosBlur)"
+                  opacity={active ? (isMember ? 0.45 : 0) : 0.14 + r.growth * 0.2}
+                  className="transition-opacity duration-500"
+                />
+                {/* the root itself: wood, thick at the trunk, fine at the tip */}
+                <motion.path
+                  d={limbShape(curve, 14 + r.growth * 10, 2.6)}
+                  fill="url(#tosRootWood)" stroke="#2a150c" strokeOpacity={0.5} strokeWidth={0.6}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: shown * 0.92 }}
+                  transition={{ opacity: grow }}
+                />
+                {/* a vein of light running through it */}
+                <motion.path
+                  d={curveD(curve)} fill="none" stroke={r.color} strokeLinecap="round"
+                  strokeWidth={1.2 + r.growth * 1.6 + (active && isMember ? 0.8 : 0)}
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: shown * 0.85 }}
+                  transition={{ pathLength: grow, opacity: { duration: 0.4 } }}
+                />
               </g>
             );
           })}
@@ -606,29 +661,38 @@ export default function TreeOfStars() {
           {/* Branches (Values) */}
           {branches.map((b, i) => {
             const isMember = active ? active.vals.has(b.name) : false;
-            const width = b.resting ? 2 : 2.5 + b.tierIndex * 1.8 + Math.min(b.prestige, 4) * 0.6;
-            const shown = active ? (isMember ? 1 : 0.08) : b.resting ? 0.55 : 1;
-            const grow = { pathLength: { duration: 1.1, ease: easeOut, delay: 0.3 + 0.05 * i }, opacity: { duration: 0.4 } };
+            const curve = branchCurve(b.x, b.y);
+            const base = b.resting ? 10 : 16 + b.tierIndex * 3 + Math.min(b.prestige, 4) * 1.2;
+            const shown = active ? (isMember ? 1 : 0.1) : b.resting ? 0.7 : 1;
+            const grow = { duration: 1.1, ease: easeOut, delay: 0.3 + 0.05 * i };
             return (
               <g key={b.name + "-branch"}>
-                {/* bark */}
+                {/* the bough: the painting's own bark, a resting one weathered silver */}
                 <motion.path
-                  d={branchPath(b.x, b.y)} fill="none" strokeLinecap="round"
-                  stroke={b.resting ? "#8f8a80" : "#3a2a1d"}
-                  strokeWidth={width + 3 + (active && isMember ? 1.2 : 0)}
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: shown * 0.9 }}
-                  transition={grow}
+                  d={limbShape(curve, base, 4)}
+                  fill={b.resting ? "#8f8a80" : "url(#tosBough)"}
+                  stroke={b.resting ? "#5f5b54" : "#3d2216"} strokeOpacity={0.55} strokeWidth={0.7}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: shown * 0.97 }}
+                  transition={{ opacity: grow }}
                 />
-                {/* the living colour running through it; a resting branch is bare silver */}
+                {/* light catching its upper edge, as on the trunk */}
+                {!b.resting && (
+                  <motion.path
+                    d={curveD(curve)} fill="none" stroke="#da8c55" strokeLinecap="round"
+                    strokeWidth={1} transform="translate(-1.5 -1)"
+                    initial={{ opacity: 0 }} animate={{ opacity: shown * 0.35 }} transition={{ opacity: grow }}
+                  />
+                )}
+                {/* the value's colour running through it, like the trunk's gold vines */}
                 <motion.path
-                  d={branchPath(b.x, b.y)} fill="none" strokeLinecap="round"
+                  d={curveD(curve)} fill="none" strokeLinecap="round"
                   stroke={b.resting ? "#D6D0C4" : b.color}
-                  strokeDasharray={b.resting ? "5 6" : undefined}
-                  strokeWidth={Math.max(1.2, width * 0.45)}
+                  strokeDasharray={b.resting ? "4 7" : undefined}
+                  strokeWidth={b.resting ? 1 : 1.4 + b.tierIndex * 0.35 + (active && isMember ? 0.8 : 0)}
                   initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: shown * (b.resting ? 0.5 : 0.85) }}
-                  transition={grow}
+                  animate={{ pathLength: 1, opacity: shown * (b.resting ? 0.45 : 0.8) }}
+                  transition={{ pathLength: grow, opacity: { duration: 0.4 } }}
                 />
               </g>
             );
