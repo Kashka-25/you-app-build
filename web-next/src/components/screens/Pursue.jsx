@@ -76,7 +76,7 @@ function PillarHeading({ cat, count }) {
   return (
     <span className="flex items-center gap-2.5">
       <span className="w-1.5 h-7 rounded-full flex-none" style={{ background: color }} aria-hidden="true" />
-      <span>{cat}</span>
+      <span className="font-bold">{cat}</span>
       {count > 0 && (
         <span
           className="font-sans text-caption font-medium px-2 py-0.5 rounded-full"
