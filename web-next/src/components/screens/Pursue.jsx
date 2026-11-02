@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Check, Wind, RotateCcw, Plus, Sprout, Wheat, ChevronRight } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { Check, Wind, RotateCcw, Plus, Sparkles, Moon } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
 import { DropdownSection } from "../Primitives";
 import { Button } from "../ui/Button";
 import AddItemModal from "../pursue/AddItemModal";
-import { tendedDaysThisWeek, needsSowing, harvestDue, isSunday, weekStartKey } from "../../lib/week";
+import { useActivePursuits } from "../../lib/activePursuits";
 import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
 import { SegmentedControl } from "../ui/SegmentedControl";
@@ -69,19 +69,22 @@ function GroupNode({ items, depth }) {
 }
 
 // Each Pillar's heading wears its colour, so it stands apart from the
-// quiet "Completed" fold beneath it (Cassidy, Oct 28).
+// quiet "Completed" fold beneath it (Cassidy, Oct 28). Active pursuits sit
+// at the top of the page, so a Pillar counts only what's resting in it.
 function PillarHeading({ cat, count }) {
   const color = PILLAR_COLORS[cat] || "var(--gold)";
   return (
     <span className="flex items-center gap-2.5">
       <span className="w-1.5 h-7 rounded-full flex-none" style={{ background: color }} aria-hidden="true" />
       <span>{cat}</span>
-      <span
-        className="font-sans text-caption font-medium px-2 py-0.5 rounded-full"
-        style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
-      >
-        {count} growing
-      </span>
+      {count > 0 && (
+        <span
+          className="font-sans text-caption font-medium px-2 py-0.5 rounded-full"
+          style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+        >
+          {count} resting
+        </span>
+      )}
     </span>
   );
 }
@@ -98,6 +101,7 @@ export default function Pursue() {
   const { items, releasedItems, restoreItem } = useAppData();
   const [filter, setFilter] = useState("all");
   const [adding, setAdding] = useState(false);
+  const { isActive } = useActivePursuits();
   const location = useLocation();
   const [view, setView] = useState(location.state?.view || "pursuits");
   useEffect(() => {
@@ -117,8 +121,12 @@ export default function Pursue() {
   // skipped rather than shown empty.
   // On "all", each Pillar shows what's growing, with its completed
   // pursuits folded underneath (Cassidy, Oct 25).
+  // Active pursuits sit together at the top, highlighted (Cassidy, Nov 2);
+  // everything else rests in its Pillar below until it's activated.
+  const active = sorted.filter(i => isActive(i));
+  const resting = sorted.some(i => !i.done && !isActive(i));
   const groups = PILLARS.map(cat => {
-    const list = sorted.filter(i => i.cat === cat);
+    const list = sorted.filter(i => i.cat === cat && !isActive(i));
     return filter === "all"
       ? { cat, list: list.filter(i => !i.done), done: list.filter(i => i.done) }
       : { cat, list, done: [] };
@@ -148,8 +156,6 @@ export default function Pursue() {
         </div>
       </section>
 
-      <ThisWeek />
-
       <div className="mb-4">
         <SegmentedControl options={VIEWS} value={view} onChange={setView} />
       </div>
@@ -177,7 +183,25 @@ export default function Pursue() {
           description="Your YOUniverse awaits your intentions. Tap Add to plant something."
         />
       ) : (
-        groups.map(({ cat, list, done }) => (
+        <>
+        {active.length > 0 && (
+          <section aria-labelledby="pursue-active" className="mb-5">
+            <h2 id="pursue-active" className="flex items-center gap-2 font-serif text-h3 text-textPrimary m-0 mb-2">
+              <Sparkles size={16} strokeWidth={1.75} className="text-gold" aria-hidden="true" /> Active
+              <span className="font-sans text-caption text-textMuted">{active.length}</span>
+            </h2>
+            {active.map(item => <ItemCard key={item.id} item={item} />)}
+          </section>
+        )}
+        {resting && (
+          <>
+            <h2 className="flex items-center gap-2 font-serif text-h3 text-textPrimary m-0 mb-1">
+              <Moon size={15} strokeWidth={1.75} className="text-textMuted" aria-hidden="true" /> Resting
+            </h2>
+            <p className="text-caption text-textMuted m-0 mb-2">Here until you're ready: tap Activate on any of them.</p>
+          </>
+        )}
+        {groups.map(({ cat, list, done }) => (
           <DropdownSection key={cat} title={<PillarHeading cat={cat} count={list.length} />} defaultOpen>
             {list.length > 0 && <GroupNode items={list} depth={0} />}
             {done.length > 0 && (
@@ -186,7 +210,8 @@ export default function Pursue() {
               </DropdownSection>
             )}
           </DropdownSection>
-        ))
+        ))}
+        </>
       )}
 
       {releasedItems.length > 0 && (
@@ -199,43 +224,6 @@ export default function Pursue() {
 
       <AddItemModal open={adding} onClose={() => setAdding(false)} defaultType={["habit", "goal", "dream"].includes(filter) ? filter : "habit"} />
     </div>
-  );
-}
-
-// The week's ritual, on hand all week (Cassidy, Nov 2): what's sown and how
-// many days it was tended, with the way to Sow, or to Harvest when it's due.
-// Home still nudges at the weekend.
-function ThisWeek() {
-  const { weekIntentions, weekHarvests } = useAppData();
-  const sown = weekIntentions.filter(w => w.week_start === weekStartKey()).length;
-  const tended = tendedDaysThisWeek(weekIntentions);
-  const harvest = harvestDue(weekIntentions, weekHarvests);
-  const sow = needsSowing(weekIntentions);
-  const row = "flex items-center gap-2.5 min-h-[44px] text-bodySm";
-
-  return (
-    <section aria-labelledby="pursue-week" className="rounded-card bg-surface1 shadow-card px-4 py-2.5 mb-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 id="pursue-week" className="font-serif text-h3 text-textPrimary m-0">This week</h2>
-        {sown > 0 && (
-          <span className="text-caption text-textSecondary">{sown} sown · tended {tended} {tended === 1 ? "day" : "days"}</span>
-        )}
-      </div>
-      {harvest && (
-        <Link to="/harvest" className={`${row} text-textPrimary border-b border-borderC`}>
-          <Wheat size={16} strokeWidth={1.75} className="text-gold flex-none" />
-          <span className="flex-1">{isSunday() ? "Harvest this week" : "Harvest last week"}: see what grew</span>
-          <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
-        </Link>
-      )}
-      <Link to="/sow" className={`${row} text-forestAccent`}>
-        <Sprout size={16} strokeWidth={1.75} className="flex-none" />
-        <span className="flex-1">
-          {sow ? (isSunday() ? "Sow next week: what do you want to grow?" : "Sow your week: choose what to tend") : "Change what you've sown"}
-        </span>
-        <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
-      </Link>
-    </section>
   );
 }
 

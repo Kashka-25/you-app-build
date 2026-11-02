@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Check, Flame, RotateCcw, ChevronDown, Award, Star, Target, Sparkles, Pencil, MapPin, Trash2, Flag } from "lucide-react";
+import { Check, Flame, RotateCcw, ChevronDown, Award, Star, Target, Sparkles, Pencil, MapPin, Trash2, Flag, Moon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppData } from "../../lib/AppDataContext";
 import { DAY_LABELS, TIERS, PILLAR_COLORS } from "../../constants/app.const";
@@ -15,6 +15,7 @@ import { todaySlot } from "../home/HabitsToday";
 import { dailySteps, stepKey } from "../../lib/habits";
 import { bonusHint, finishXp, habitDays, nextCheckinXp } from "../../lib/xp";
 import { localDateKey as todayKey } from "../../lib/week";
+import { useActivePursuits } from "../../lib/activePursuits";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
 
@@ -54,7 +55,9 @@ function lastSevenDays() {
 // and how it's going. Open: today's steps, the week, totals, notes, and the
 // things done less often (edit, mark complete, delete). Habits count real
 // days in a row only; the old weekly cycle and its "start fresh" are
-// retired, and Prestige already earned stays as a quiet mark.
+// retired, and Prestige already earned stays as a quiet mark. An active
+// pursuit is highlighted in gold; a resting one is quieter, with Activate
+// right on it (lib/activePursuits.js).
 export default function ItemCard({ item }) {
   const {
     completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
@@ -66,6 +69,9 @@ export default function ItemCard({ item }) {
   const reduce = useReducedMotion();
   const doneDays = isHabit ? habitDays(item, memory, habitLogs) : null;
   const navigate = useNavigate();
+  const { isActive, setActive } = useActivePursuits();
+  const active = isActive(item);
+  const toggleActive = () => setActive(item, !active).catch(e => console.error("[ItemCard] active failed:", e));
   const [open, setOpen] = useState(false);
   const [planning, setPlanning] = useState(false);
   const [planError, setPlanError] = useState("");
@@ -150,7 +156,9 @@ export default function ItemCard({ item }) {
       className={`rounded-card shadow-card mb-2.5 relative overflow-hidden transition-colors duration-500 ${
         item.done
           ? "bg-gradient-to-br from-surface1 to-[color-mix(in_srgb,var(--gold)_16%,var(--surface-1))] border border-gold/40"
-          : "bg-surface1"
+          : active
+            ? "bg-surface1 border border-gold/60 shadow-[0_6px_18px_color-mix(in_srgb,var(--gold)_16%,transparent)]"
+            : "bg-surface1 opacity-90"
       }`}
     >
       {/* The Pillar's colour down the left edge. */}
@@ -210,6 +218,16 @@ export default function ItemCard({ item }) {
           </span>
           <ChevronDown size={18} strokeWidth={1.75} className={`flex-none text-textMuted transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
         </button>
+        {!item.done && !active && (
+          <button
+            type="button"
+            onClick={toggleActive}
+            aria-label={`Make "${item.name}" active`}
+            className="flex-none inline-flex items-center gap-1 min-h-[32px] px-2.5 rounded-full border border-gold/60 text-caption text-[#7A6024] dark:text-gold hover:bg-[color-mix(in_srgb,var(--gold)_12%,transparent)]"
+          >
+            <Sparkles size={12} strokeWidth={1.75} /> Activate
+          </button>
+        )}
       </div>
 
       <AnimatePresence initial={false}>
@@ -351,6 +369,13 @@ export default function ItemCard({ item }) {
                 <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 min-h-[36px] text-textSecondary hover:text-textPrimary">
                   <Pencil size={14} strokeWidth={1.75} /> Edit
                 </button>
+                {!item.done && (
+                  <button type="button" onClick={toggleActive} className="inline-flex items-center gap-1.5 min-h-[36px] text-textSecondary hover:text-textPrimary">
+                    {active
+                      ? <><Moon size={14} strokeWidth={1.75} /> Let it rest</>
+                      : <><Sparkles size={14} strokeWidth={1.75} className="text-gold" /> Make active</>}
+                  </button>
+                )}
                 {item.done ? (
                   <button type="button" onClick={() => unachieveItem(item.id)} className="inline-flex items-center gap-1.5 min-h-[36px] text-textSecondary hover:text-textPrimary">
                     <RotateCcw size={14} strokeWidth={1.75} /> Move back to growing

@@ -21,6 +21,7 @@ import { backgroundMode, pickFeatured } from "../../lib/showcase";
 import { tendedDaysThisWeek, needsSowing, isSunday, weekStartKey, harvestDue, localDateKey as todayKey } from "../../lib/week";
 import { latestReview, nudgeDue, useHemisphere } from "../../lib/seasons";
 import { MEMENTOS } from "../../constants/mementos";
+import { useActivePursuits } from "../../lib/activePursuits";
 
 // Home answers three things, in this order: how am I arriving, where am I
 // on my path, and what's one step I can take. Everything reads data that's
@@ -33,7 +34,8 @@ export default function Home() {
   const todayList = useTodayList();
   const hasIntentions = !todayList.isEmpty;
   const sownIds = [...todayList.due, ...todayList.restedToday].map(x => x.item.id);
-  const hasHabits = items.some(i => i.type === "habit" && !i.done && !sownIds.includes(i.id));
+  const { isActive } = useActivePursuits();
+  const hasHabits = items.some(i => i.type === "habit" && isActive(i) && !sownIds.includes(i.id));
   const todoOn = usePlugin("todo_list");
   const { entries: courses, tools } = useCourseNow();
   const { userId } = useAuth();

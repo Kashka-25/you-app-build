@@ -7,6 +7,7 @@ import HabitDay from "../pursue/HabitDay";
 import { dailySteps } from "../../lib/habits";
 import { localDateKey } from "../../lib/week";
 import { nextCheckinXp } from "../../lib/xp";
+import { useActivePursuits } from "../../lib/activePursuits";
 
 // Today's slot in a habit's week of check-ins (M T W T F S S).
 export const todaySlot = () => (new Date().getDay() + 6) % 7;
@@ -20,7 +21,9 @@ export default function HabitsToday({ skipIds = [] }) {
   const { items } = useAppData();
   const today = localDateKey();
   const slot = todaySlot();
-  const habits = items.filter(i => i.type === "habit" && !i.done && !skipIds.includes(i.id));
+  const { isActive } = useActivePursuits();
+  // Resting habits wait on PursYOUts (Cassidy, Nov 2).
+  const habits = items.filter(i => i.type === "habit" && isActive(i) && !skipIds.includes(i.id));
   if (habits.length === 0) return null;
 
   return (
