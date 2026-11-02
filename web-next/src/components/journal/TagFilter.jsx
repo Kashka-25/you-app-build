@@ -18,16 +18,14 @@ export default function TagFilter({ tags, value, onChange, label = "Tags", tile 
   if (tile && !open) {
     return (
       <div className="h-full rounded-card bg-surface1 shadow-card">
-        <button type="button" onClick={() => setOpen(true)} aria-expanded={false} className="block w-full h-full p-3 text-left">
-          <span className="flex items-start justify-between mb-2">
-            <span className="w-9 h-9 rounded-full flex items-center justify-center bg-[color-mix(in_srgb,var(--gold)_18%,transparent)] text-[#7A6024] dark:text-gold">
-              <Hash size={17} strokeWidth={2} />
-            </span>
-            <ChevronDown size={16} strokeWidth={1.75} className="text-textMuted mt-1" />
+        <button type="button" onClick={() => setOpen(true)} aria-expanded={false} className="w-full flex items-center gap-2 px-2.5 min-h-[44px] text-left">
+          <span className="w-[26px] h-[26px] flex-none rounded-full flex items-center justify-center bg-[color-mix(in_srgb,var(--gold)_18%,transparent)] text-[#7A6024] dark:text-gold">
+            <Hash size={14} strokeWidth={2} />
           </span>
-          <span className="block font-serif text-[17px] leading-tight text-textPrimary">{label}</span>
-          <span className="block text-caption text-textMuted">{value ? `Showing #${value}` : `${list.length} ${list.length === 1 ? "theme" : "themes"}`}</span>
-          <span className="block text-[11px] text-textMuted truncate mt-1">{list.slice(0, 3).map(([t]) => `#${t}`).join("  ")}</span>
+          <span className="flex-1 min-w-0 text-bodySm text-textPrimary truncate">
+            {value ? `#${value}` : label} <span className="text-textMuted">· {list.length}</span>
+          </span>
+          <ChevronDown size={15} strokeWidth={1.75} className="flex-none text-textMuted" />
         </button>
       </div>
     );

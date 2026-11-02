@@ -77,7 +77,6 @@ export default function MoodLine({ onOpenEntry }) {
   });
   const average = Math.round(points.reduce((a, p) => a + p.score, 0) / points.length);
   const pick = picked && points.find(p => p.key === picked);
-  const recent = points.slice(-7);
 
   return (
     <section aria-labelledby="mood-line-title" className={`rounded-card bg-surface1 shadow-card ${open ? "col-span-2" : ""}`}>
@@ -86,23 +85,12 @@ export default function MoodLine({ onOpenEntry }) {
           type="button"
           onClick={() => setOpen(o => !o)}
           aria-expanded={open}
-          className={`w-full text-left font-normal p-3 ${open ? "flex items-center gap-2.5" : "block"}`}
+          aria-label={`Your moods, mostly ${bandFor(average).label.toLowerCase()}. ${open ? "Fold away" : "Open"}`}
+          className="w-full flex items-center gap-2 px-2.5 min-h-[44px] text-left font-normal"
         >
-          <span className={`flex items-start justify-between ${open ? "flex-none" : "mb-2"}`}>
-            <MoodFace score={average} size={36} />
-            {!open && <ChevronDown size={16} strokeWidth={1.75} className="text-textMuted mt-1" />}
-          </span>
-          <span className="block flex-1 min-w-0">
-            <span className="block font-serif text-[17px] leading-tight text-textPrimary">Your moods</span>
-            <span className="block text-caption text-textMuted">Mostly {bandFor(average).label.toLowerCase()}</span>
-            {/* The last few days with a mood, oldest first. */}
-            {!open && (
-              <span className="flex gap-1 mt-1.5" aria-hidden="true">
-                {recent.map(p => <span key={p.key} className="w-2 h-2 rounded-full" style={{ background: moodColour(p.score) }} />)}
-              </span>
-            )}
-          </span>
-          {open && <ChevronDown size={16} strokeWidth={1.75} className="flex-none text-textMuted rotate-180" />}
+          <MoodFace score={average} size={26} />
+          <span className="flex-1 min-w-0 text-bodySm text-textPrimary truncate">Your moods</span>
+          <ChevronDown size={15} strokeWidth={1.75} className={`flex-none text-textMuted transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
       </h2>
       {open && (
