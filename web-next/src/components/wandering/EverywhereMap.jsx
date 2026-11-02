@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { X, MapPin, Globe2, Plus, Loader2 } from "lucide-react";
+import { X, MapPin, Globe2, Plus, Loader2, Star, Check } from "lucide-react";
 import { useEscape } from "../ui/useEscape";
 import { useAppData } from "../../lib/AppDataContext";
 import { localDateKey } from "../../lib/week";
@@ -34,7 +34,9 @@ const regionName = (() => {
 // Legacy): stops that began that year, exact or approximate.
 export default function EverywhereMap({ onClose, year = null }) {
   useEscape(true, onClose);
-  const { wanderings, wanderingStops, moments, journalEntries, items, releasedItems } = useAppData();
+  const { wanderings, wanderingStops, moments, journalEntries, items, releasedItems, wishVisited, wishToDream } = useAppData();
+  const navigate = useNavigate();
+  const [wishBusy, setWishBusy] = useState(false);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const [selected, setSelected] = useState(null);
@@ -48,7 +50,11 @@ export default function EverywhereMap({ onClose, year = null }) {
     const routes = [];
     const places = [];
     const doneDreams = new Set([...items, ...releasedItems].filter(i => i.done).map(i => i.id));
+    // Places you'd love to go glow apart from the places you've been.
+    const wishHome = new Set(wanderings.filter(w => !w.item_id && w.title === "Places I'd love to go").map(w => w.id));
+    const wishes = wanderingStops.filter(s => wishHome.has(s.wandering_id)).map(s => ({ stop: s, wandering: wanderings.find(w => w.id === s.wandering_id), wish: true }));
     ordered.forEach((w, wi) => {
+      if (wishHome.has(w.id)) return;
       const travelled = doneDreams.has(w.item_id);
       const been = wanderingStops
         .filter(s => s.wandering_id === w.id && (year
@@ -64,7 +70,7 @@ export default function EverywhereMap({ onClose, year = null }) {
     });
     const countries = [...new Set(places.map(p => p.stop.country_code).filter(Boolean))].map(c => regionName(c)).filter(Boolean).sort();
     const placeCount = new Set(places.map(p => `${p.stop.place_name}|${p.stop.lat.toFixed(2)}|${p.stop.lng.toFixed(2)}`)).size;
-    return { routes, places, countries, placeCount, wanderingCount: new Set(places.map(p => p.wandering.id)).size };
+    return { routes, places, wishes, countries, placeCount, wanderingCount: new Set(places.map(p => p.wandering.id)).size };
   }, [wanderings, wanderingStops, moments, journalEntries, items, releasedItems, today, year]);
 
   useEffect(() => {
@@ -123,6 +129,27 @@ export default function EverywhereMap({ onClose, year = null }) {
           }))
         }
       });
+      // Places you'd love to go: a faint gold ring, not yet lit.
+      map.addSource("wishes", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: data.wishes.map((p, i) => ({ type: "Feature", properties: { i, name: p.stop.place_name }, geometry: { type: "Point", coordinates: [p.stop.lng, p.stop.lat] } }))
+        }
+      });
+      map.addLayer({
+        id: "wishes-ring", type: "circle", source: "wishes",
+        paint: { "circle-color": "rgba(201,162,77,0.12)", "circle-radius": 7, "circle-stroke-color": "#C9A24D", "circle-stroke-width": 1.5, "circle-stroke-opacity": 0.85 }
+      });
+      map.addLayer({
+        id: "wishes-label", type: "symbol", source: "wishes", minzoom: 2.5,
+        layout: { "text-field": ["get", "name"], "text-size": 11, "text-offset": [0, 1.3], "text-anchor": "top", "text-font": ["Noto Sans Regular"] },
+        paint: { "text-color": "#C9A24D", "text-halo-color": "#07071A", "text-halo-width": 1.2 }
+      });
+      map.on("click", "wishes-ring", e => {
+        const i = e.features?.[0]?.properties?.i;
+        if (i != null) setSelected(data.wishes[i]);
+      });
       // A soft halo that widens with each memory, then a bright core.
       map.addLayer({
         id: "places-glow", type: "circle", source: "places",
@@ -164,7 +191,7 @@ export default function EverywhereMap({ onClose, year = null }) {
         const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
         map.fitBounds(b, { padding: { top: 180, bottom: 140, left: 60, right: 60 }, maxZoom: 9, animate: !reduce, duration: 700 });
       });
-      ["places-core", "places-glow"].forEach(layer => {
+      ["places-core", "places-glow", "wishes-ring"].forEach(layer => {
         map.on("mouseenter", layer, () => { map.getCanvas().style.cursor = "pointer"; });
         map.on("mouseleave", layer, () => { map.getCanvas().style.cursor = ""; });
       });
@@ -181,11 +208,28 @@ export default function EverywhereMap({ onClose, year = null }) {
     return () => { map.remove(); mapRef.current = null; };
   }, [data]);
 
-  const { places, countries, placeCount, wanderingCount } = data;
+  const { places, wishes, countries, placeCount, wanderingCount } = data;
+
+  async function wishAction(kind) {
+    setWishBusy(true);
+    try {
+      if (kind === "dream") {
+        const w = await wishToDream(selected.stop);
+        onClose();
+        navigate(`/wandering/${w.id}`);
+        return;
+      }
+      await wishVisited(selected.stop, localDateKey());
+      setSelected(null);
+    } catch (e) {
+      console.error("[EverywhereMap] wish action failed:", e);
+    }
+    setWishBusy(false);
+  }
 
   // What was lived at the selected place: its memories (photos first) and
   // the YOUrnal entries written there (Cassidy, Nov 2).
-  const here = selected ? {
+  const here = selected && !selected.wish ? {
     moments: moments.filter(m => m.stop_id === selected.stop.id),
     entries: journalEntries.filter(e => e.stop_id === selected.stop.id)
   } : null;
@@ -229,6 +273,9 @@ export default function EverywhereMap({ onClose, year = null }) {
             {countries.length > 0 && (
               <div className="text-caption mt-1" style={{ color: "#8A88AE" }}>{countries.join(" · ")}</div>
             )}
+            {wishes.length > 0 && (
+              <div className="text-caption mt-1 text-gold">○ {wishes.length} {wishes.length === 1 ? "place" : "places"} you'd love to go</div>
+            )}
           </>
         ) : (
           <div className="pointer-events-auto text-bodySm mt-2 max-w-[38ch]" style={{ color: "#B8B5D6" }}>
@@ -240,7 +287,32 @@ export default function EverywhereMap({ onClose, year = null }) {
         )}
       </div>
 
-      {selected && (
+      {selected?.wish && (
+        <div className="absolute left-3 right-3 bottom-10 rounded-card p-4 shadow-cardDark" style={{ background: "#131331", border: "1px solid rgba(201,162,77,0.45)" }}>
+          <div className="flex items-start gap-2.5">
+            <Star size={18} strokeWidth={1.75} className="flex-none mt-0.5 text-gold" />
+            <div className="flex-1 min-w-0">
+              <div className="text-caption uppercase tracking-wide text-gold">A place you'd love to go</div>
+              <div className="font-serif text-h3 text-cream">{selected.stop.place_name}</div>
+              {selected.stop.place_detail && <div className="text-caption" style={{ color: "#8A88AE" }}>{selected.stop.place_detail}</div>}
+              {selected.stop.note && <p className="text-bodySm italic m-0 mt-1.5" style={{ color: "#B8B5D6" }}>{selected.stop.note}</p>}
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button type="button" disabled={wishBusy} onClick={() => wishAction("dream")} className="inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full bg-gold text-[#19193D] text-bodySm font-medium disabled:opacity-60">
+                  <Star size={14} strokeWidth={2} /> Make it a Dream
+                </button>
+                <button type="button" disabled={wishBusy} onClick={() => wishAction("been")} className="inline-flex items-center gap-1.5 min-h-[38px] px-3.5 rounded-full border text-bodySm disabled:opacity-60" style={{ borderColor: "rgba(255,255,255,0.2)", color: "#EDE6D6" }}>
+                  <Check size={14} strokeWidth={2} /> I've been here now
+                </button>
+              </div>
+            </div>
+            <button onClick={() => setSelected(null)} aria-label="Close" style={{ color: "#8A88AE" }}>
+              <X size={16} strokeWidth={1.75} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {selected && !selected.wish && (
         <div className="absolute left-3 right-3 bottom-10 max-h-[62vh] overflow-y-auto rounded-card p-4 shadow-cardDark" style={{ background: "#131331", border: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="flex items-start gap-2.5">
             <MapPin size={18} strokeWidth={1.75} className="flex-none mt-0.5" style={{ color: selected.color }} />
