@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import AddItemModal from "./pursue/AddItemModal";
 import AddMomentModal from "./journey/AddMomentModal";
 import AddActionSheet from "./AddActionSheet";
+import SavePlaceSheet from "./wandering/SavePlaceSheet";
 import TopBar from "./TopBar";
 import SidebarMenu, { MenuContents } from "./SidebarMenu";
 import AiConsentModal from "./AiConsentModal";
@@ -19,6 +20,7 @@ export default function AppShell() {
   const [addOpen, setAddOpen] = useState(false);
   const [addType, setAddType] = useState("habit");
   const [momentOpen, setMomentOpen] = useState(false);
+  const [placeOpen, setPlaceOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -116,7 +118,9 @@ export default function AppShell() {
         onClose={() => setSheetOpen(false)}
         onSelectPursue={type => { setAddType(type); setAddOpen(true); }}
         onSelectMoment={() => setMomentOpen(true)}
+        onSelectPlace={() => setPlaceOpen(true)}
       />
+      <SavePlaceSheet open={placeOpen} onClose={() => setPlaceOpen(false)} />
     </div>
   );
 }

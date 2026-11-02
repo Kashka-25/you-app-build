@@ -1012,6 +1012,30 @@ export function AppDataProvider({ children }) {
     return res.data;
   }
 
+  // A place and its memory in one go (Cassidy, Nov 2: standing somewhere
+  // beautiful, it should be simple). Places saved this way gather in one
+  // Wandering of their own, "Places I've been", made the first time; the
+  // stop is dated to the memory, and the memory is pinned to it.
+  const PLACES_TITLE = "Places I've been";
+  async function savePlaceMemory({ place, momentDate, title, description, photos = [] }) {
+    let home = wanderings.find(w => !w.item_id && w.title === PLACES_TITLE);
+    if (!home) {
+      const res = await supabase.from("wanderings").insert({ user_id: userId, item_id: null, title: PLACES_TITLE }).select().single();
+      if (res.error) throw res.error;
+      home = res.data;
+      setWanderings(prev => [...prev, home]);
+    }
+    const siblings = wanderingStops.filter(s => s.wandering_id === home.id);
+    const res = await supabase.from("wandering_stops").insert({
+      user_id: userId, wandering_id: home.id, position: siblings.length,
+      place_name: place.name, place_detail: place.detail || null, country_code: place.countryCode || null,
+      lat: place.lat, lng: place.lng, kind: "visit", arrive: momentDate, depart: momentDate
+    }).select().single();
+    if (res.error) throw res.error;
+    setWanderingStops(prev => [...prev, res.data]);
+    return addMoment({ title: title || place.name, momentDate, description, photos, stopId: res.data.id });
+  }
+
   async function updateWanderingStop(id, updates) {
     const before = wanderingStops;
     setWanderingStops(prev => prev.map(s => (s.id === id ? { ...s, ...updates } : s)));
@@ -2146,7 +2170,7 @@ export function AppDataProvider({ children }) {
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
     focusSessions, saveFocusSession, saveFocusNote,
     highlights, addHighlight, updateHighlight, deleteHighlight,
-    wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
+    wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, savePlaceMemory, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted, setAiSources,
     loadDreamPatterns, readDreamPatterns,

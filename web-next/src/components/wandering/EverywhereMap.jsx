@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { X, MapPin, Globe2 } from "lucide-react";
+import { X, MapPin, Globe2, Plus, Loader2 } from "lucide-react";
 import { useEscape } from "../ui/useEscape";
 import { useAppData } from "../../lib/AppDataContext";
 import { localDateKey } from "../../lib/week";
-import { stopDateLabel, isExact } from "../../lib/wandering";
+import { stopDateLabel, isExact, reversePlace } from "../../lib/wandering";
+import SavePlaceSheet from "./SavePlaceSheet";
 import { STYLE_URL, applyPalette } from "./mapStyle";
 
 // One colour per Wandering's route, in the same family as the Story of
@@ -76,6 +77,20 @@ export default function EverywhereMap({ onClose, year = null }) {
       renderWorldCopies: true
     });
     map.touchZoomRotate.disableRotation();
+    // Hold a finger on the map (or right-click) to drop a pin and save that
+    // place (Cassidy, Nov 2). A move or second finger cancels the hold.
+    let hold = null;
+    const cancelHold = () => { clearTimeout(hold); hold = null; };
+    map.on("touchstart", e => {
+      cancelHold();
+      if (e.originalEvent.touches.length !== 1) return;
+      const at = e.lngLat;
+      hold = setTimeout(() => { hold = null; dropPin(at); }, 600);
+    });
+    map.on("touchmove", cancelHold);
+    map.on("touchend", cancelHold);
+    map.on("dragstart", cancelHold);
+    map.on("contextmenu", e => dropPin(e.lngLat));
     // Top right, tucked under the header, so a place's card never covers it.
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("error", e => { if (e?.error?.status >= 400) setLoadError(true); });
@@ -165,6 +180,22 @@ export default function EverywhereMap({ onClose, year = null }) {
 
   const { places, countries, placeCount, wanderingCount } = data;
 
+  // Saving a place from the map: the + button opens the sheet; a held finger
+  // names the spot under it first and opens the sheet with it chosen.
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [pin, setPin] = useState(null);
+  const [naming, setNaming] = useState(false);
+  async function dropPin({ lat, lng }) {
+    setSelected(null);
+    setNaming(true);
+    try {
+      setPin(await reversePlace(lat, lng));
+      setSaveOpen(true);
+    } finally {
+      setNaming(false);
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-[70] font-sans" style={{ background: "#07071A" }}>
       {/* MapLibre sets position: relative on its container, so the map
@@ -191,8 +222,7 @@ export default function EverywhereMap({ onClose, year = null }) {
           </>
         ) : (
           <div className="pointer-events-auto text-bodySm mt-2 max-w-[38ch]" style={{ color: "#B8B5D6" }}>
-            No places yet. When a wandering's first day arrives, its places start to glow here.{" "}
-            <Link to="/pursue" className="underline" style={{ color: "var(--gold)" }}>Plan one from a Dream →</Link>
+            No places yet. Save one below, or hold your finger on the map where you've been.
           </div>
         )}
         {loadError && (
@@ -227,6 +257,27 @@ export default function EverywhereMap({ onClose, year = null }) {
           </div>
         </div>
       )}
+
+      {!selected && (
+        <div className="absolute left-0 right-0 bottom-8 flex flex-col items-center gap-1.5 pointer-events-none">
+          <button
+            type="button"
+            onClick={() => { setPin(null); setSaveOpen(true); }}
+            className="pointer-events-auto inline-flex items-center gap-2 min-h-[46px] px-5 rounded-full bg-gold text-[#19193D] font-medium text-body shadow-cardDark"
+          >
+            {naming ? <Loader2 size={17} className="animate-spin" /> : <Plus size={17} strokeWidth={2.25} />}
+            {naming ? "Finding that spot…" : "Save a place"}
+          </button>
+          <span className="text-caption" style={{ color: "#8A88AE" }}>or hold your finger on the map to drop a pin</span>
+        </div>
+      )}
+
+      <SavePlaceSheet
+        open={saveOpen}
+        place={pin}
+        layer="z-[80]"
+        onClose={() => { setSaveOpen(false); setPin(null); }}
+      />
 
       {places.length === 0 && (
         <Globe2 aria-hidden="true" size={56} strokeWidth={1} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20 text-cream pointer-events-none" />

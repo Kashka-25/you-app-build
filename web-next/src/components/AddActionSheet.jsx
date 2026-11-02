@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sprout, Sun, BookOpen, Repeat, Target, Star, Image, ArrowLeft, ChevronRight, X } from "lucide-react";
+import { Sprout, Sun, BookOpen, Repeat, Target, Star, Image, ArrowLeft, ChevronRight, X, MapPin } from "lucide-react";
 import { fadeIn, sheetIn } from "./ui/motion";
 import { Button } from "./ui/Button";
 import { useEscape } from "./ui/useEscape";
@@ -14,7 +14,7 @@ import { usePlugin } from "../lib/plugins";
 const TOP = [
   { key: "pursuit", icon: Sprout, title: "Pursuit", desc: "A habit, goal, or dream" },
   { key: "today", icon: Sun, title: "Today", desc: "A small thing for today" },
-  { key: "journal", icon: BookOpen, title: "Journal", desc: "Whatever's on your mind" }
+  { key: "journal", icon: BookOpen, title: "Journal", desc: "Words, a memory, or a place" }
 ];
 
 const PURSUITS = [
@@ -34,7 +34,7 @@ const JOURNAL_KINDS = [
 const fieldClass =
   "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field mb-3";
 
-export default function AddActionSheet({ open, onClose, onSelectPursue, onSelectMoment }) {
+export default function AddActionSheet({ open, onClose, onSelectPursue, onSelectMoment, onSelectPlace }) {
   const { addJournalEntry, addTodo, journalEntries } = useAppData();
   // Tags on the quick add (Cassidy, Oct 19), suggesting the Seeker's most used.
   const [tags, setTags] = useState([]);
@@ -80,6 +80,12 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
   function pickMoment() {
     onClose();
     onSelectMoment();
+    setTimeout(reset, 250);
+  }
+
+  function pickPlace() {
+    onClose();
+    onSelectPlace();
     setTimeout(reset, 250);
   }
 
@@ -174,6 +180,17 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
                   </>
                 ) : (
                   <>
+                    {/* A memory with photos, or a place you're at (Cassidy,
+                        Nov 2), one tap from here: the three-choice rule
+                        keeps them under Journal rather than beside it. */}
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <button type="button" onClick={pickMoment} className="flex items-center justify-center gap-1.5 min-h-[44px] rounded-full border border-borderC bg-surface1 text-bodySm text-textPrimary">
+                        <Image size={15} strokeWidth={1.75} className="text-forestAccent" /> A memory
+                      </button>
+                      <button type="button" onClick={pickPlace} className="flex items-center justify-center gap-1.5 min-h-[44px] rounded-full border border-gold/60 bg-[color-mix(in_srgb,var(--gold)_10%,var(--surface-1))] text-bodySm text-textPrimary">
+                        <MapPin size={15} strokeWidth={1.75} className="text-gold" /> Save a place
+                      </button>
+                    </div>
                     <div className="flex gap-2 mb-3" role="radiogroup" aria-label="Kind of entry">
                       {JOURNAL_KINDS.map(k => (
                         <button
@@ -204,13 +221,6 @@ export default function AddActionSheet({ open, onClose, onSelectPursue, onSelect
                     <Button variant="primary" className="w-full" disabled={!text.trim() || saving} onClick={save}>
                       {saving ? "Saving…" : "Save"}
                     </Button>
-                    <button
-                      onClick={pickMoment}
-                      className="w-full flex items-center justify-center gap-1.5 text-bodySm text-textSecondary mt-3"
-                    >
-                      <Image size={15} strokeWidth={1.75} />
-                      Add a memory with a photo instead
-                    </button>
                   </>
                 )}
               </>
