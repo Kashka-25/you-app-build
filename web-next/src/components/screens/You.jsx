@@ -1,31 +1,38 @@
+import { useState } from "react";
 import { useAppData } from "../../lib/AppDataContext";
-import { SectionTitle, Pill, ExploreLink, DropdownSection } from "../Primitives";
+import { useRealm } from "../../lib/rpg";
+import { SectionTitle, ExploreLink } from "../Primitives";
 import ValuesPanel from "../values/ValuesPanel";
-import PillarsPanel from "../pillars/PillarsPanel";
-import { GlowBubble } from "../ui/GlowBubble";
+import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
+import Realm from "../rpg/Realm";
+import RpgQuests from "../rpg/RpgQuests";
 
+// YOU is your character now (Cassidy, Nov 1): the Realm takes the place of
+// the Pillars and Values sections. The Pillars live on as the character's
+// stats and upgrades; Values keep their whole panel in their own tab.
 export default function You() {
-  const { level } = useAppData();
+  const { profile } = useAppData();
+  const realm = useRealm();
+  const [dream, setDream] = useState({ open: false, pillar: null });
 
   return (
     <div className="pt-1 pb-24 px-5">
       <SectionTitle>You</SectionTitle>
-      <GlowBubble size={88} className="mx-auto mb-3" />
-      <div className="text-center mb-5">
-        <Pill>{level.name} — companion presence</Pill>
-      </div>
+      <Realm
+        realm={realm}
+        fallbackName={profile?.name}
+        onFreeDream={pillar => setDream({ open: true, pillar })}
+        quests={({ openTab }) => <RpgQuests onOpenValues={() => openTab("values")} />}
+        values={<ValuesPanel />}
+      />
 
-      <DropdownSection title="Pillars" defaultOpen>
-        <PillarsPanel />
-      </DropdownSection>
+      <QuestionnaireFlow
+        open={dream.open}
+        onClose={() => setDream(d => ({ ...d, open: false }))}
+        questionnaire="freeing_dream"
+        pillar={dream.pillar}
+      />
 
-      {/* Open by default, like Pillars (Cassidy, Oct 24). */}
-      <DropdownSection title="Values" defaultOpen>
-        <ValuesPanel />
-      </DropdownSection>
-
-      {/* The avatar upgrade station (attribute-driven upgrades from Pillar/Value
-          XP) is still a design conversation; hidden for the beta. */}
       <div className="mt-6">
         <ExploreLink to="/mirror" label="the mirror" sub="this year so far, and this week one year ago" />
         <ExploreLink to="/legacy" label="legacy" sub="your life, year by year" />

@@ -29,6 +29,7 @@ import Mirror from "./components/screens/Mirror";
 import MyStory from "./components/screens/MyStory";
 import Settings from "./components/screens/Settings";
 import Styleguide from "./components/screens/Styleguide";
+import RpgPreview from "./components/rpg/RpgPreview";
 import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
 import SowScreen from "./components/sow/SowScreen";
 import HarvestScreen from "./components/sow/HarvestScreen";
@@ -101,6 +102,8 @@ export default function App() {
 
   // Readable before signing up, so it's checked before the auth gate.
   if (pathname === "/privacy") return <Privacy />;
+  // The life RPG with sample numbers, for local work only.
+  if (import.meta.env.DEV && pathname === "/rpg-preview") return <RpgPreview />;
   // Kronk's sign-in comes back here, signed in (connecting) or not (Continue with Kronk).
   if (pathname === KRONK_CALLBACK_PATH) return <KronkCallback />;
   // Links in account emails (confirm, reset) land here, signed in or not.
