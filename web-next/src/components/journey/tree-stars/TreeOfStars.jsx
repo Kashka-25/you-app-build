@@ -32,8 +32,10 @@ import { GardenBloom, GardenSeed } from "../../focus/FocusFlower";
 
 const SVG_W = 800, SVG_H = 1120;
 const TRUNK_X = SVG_W / 2;
-const GROUND_Y = 720;          // soil line
-const TRUNK_TOP_Y = 560;       // where branches leave the trunk
+// Lined up with Cassidy's painted tree (Nov 2): its grass meets the soil
+// about two-thirds down, and its trunk opens into light at 44%.
+const GROUND_Y = 750;          // soil line
+const TRUNK_TOP_Y = 480;       // where branches leave the trunk
 const BRANCH_BASE_Y = 360, BRANCH_ARCH = 150, BRANCH_MARGIN_X = 80;
 const STORY_ORB = { x: TRUNK_X, y: 58 };
 const CONSTELLATION_ORB = { x: SVG_W - 92, y: 62 };
@@ -284,7 +286,7 @@ export default function TreeOfStars() {
       const p = byName[name] || { name, xp: 0, color: "#9a8870" };
       const growth = p.xp / maxXp;
       const offsets = [-125, -45, 45, 125];
-      return { ...p, inner: true, growth, x: TRUNK_X + offsets[i] * (0.8 + growth * 0.3), y: GROUND_Y + 230 + growth * 140 };
+      return { ...p, inner: true, growth, x: TRUNK_X + offsets[i] * (0.8 + growth * 0.3), y: GROUND_Y + 190 + growth * 150 };
     });
     const outer = OUTER_PILLARS.map((name, i) => {
       const p = byName[name] || { name, xp: 0, color: "#9a8870" };
@@ -444,7 +446,7 @@ export default function TreeOfStars() {
       className={full ? "fixed inset-0 z-40 overflow-y-auto px-3 pb-10 font-sans" : "pt-1 pb-24 px-5"}
       // Immersive (Cassidy, Oct 28: "leave no screen border"): no frame, and
       // the tree's own night and soil run on to every edge.
-      style={full ? { background: tall ? "linear-gradient(180deg, #060b08 50%, #0d0906 50%)" : "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%) top / 100% 100dvh no-repeat, #0d0906" } : undefined}
+      style={full ? { background: tall ? (painted ? "linear-gradient(180deg, #0c0b22 50%, #25100c 50%)" : "linear-gradient(180deg, #060b08 50%, #0d0906 50%)") : "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%) top / 100% 100dvh no-repeat, #0d0906" } : undefined}
       role={full ? "dialog" : undefined}
       aria-label={full ? "Tree of YOU, full screen" : undefined}
     >
@@ -541,12 +543,13 @@ export default function TreeOfStars() {
 
           {painted && <image href={PAINTED_TREE} x={0} y={0} width={SVG_W} height={SVG_H} preserveAspectRatio="xMidYMid slice" />}
 
-          {/* The sky: a faint nebula, then stars at three depths */}
-          <g transform={drift(0)} style={{ transition: "transform 600ms ease-out" }}>
+          {/* The sky: a faint nebula, then stars at three depths (over the
+              painting, which has its own, only the nearest sparkles) */}
+          {!painted && <g transform={drift(0)} style={{ transition: "transform 600ms ease-out" }}>
             <ellipse cx={SVG_W * 0.3} cy={170} rx={260} ry={110} fill="url(#tosNebulaA)" />
             <ellipse cx={SVG_W * 0.72} cy={240} rx={220} ry={90} fill="url(#tosNebulaB)" />
-          </g>
-          {bgStars.map((layer, d) => (
+          </g>}
+          {bgStars.map((layer, d) => (painted && d < 2) ? null : (
             <g key={d} transform={drift(d)} style={{ transition: "transform 600ms ease-out" }}>
               {layer.map((s, i) => d === 2
                 ? <Sparkle key={i} x={s.x} y={s.y} r={s.r * 2.6} color="#F3EAD6" opacity={s.o} />
@@ -556,7 +559,7 @@ export default function TreeOfStars() {
 
           {/* Soil — the unseen: shadow as nourishment, not threat */}
           {!painted && <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y} L ${SVG_W} ${SVG_H} L 0 ${SVG_H} Z`} fill="url(#tosSoil)" />}
-          <ellipse cx={TRUNK_X} cy={GROUND_Y - 4} rx={SVG_W * 0.55} ry={60} fill="url(#tosHorizon)" />
+          {!painted && <ellipse cx={TRUNK_X} cy={GROUND_Y - 4} rx={SVG_W * 0.55} ry={60} fill="url(#tosHorizon)" />}
           {!painted && <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y}`} fill="none" stroke="#6b4a2f" strokeWidth={1.5} opacity={0.5} />}
           <text x={24} y={GROUND_Y + 30} fontSize="11" fill="#EDE6D6" opacity={0.35} fontFamily="DM Sans, sans-serif" style={{ letterSpacing: "0.08em" }}>
             OUTER ROOTS SPREAD WIDE
