@@ -1,18 +1,27 @@
-import { useEffect, useState } from "react";
-import { X, Highlighter } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { X, Highlighter, CalendarDays, Pencil } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
-import { MoodSelector } from "../ui/Input";
+import { MoodDial } from "../home/DailyCheckIn";
 import JournalPhotoSection from "./JournalPhotoSection";
 import JournalReflectionCard from "./JournalReflectionCard";
-import { localDateKey as todayKey } from "../../lib/week";
+import { localDateKey as todayKey, addDaysKey } from "../../lib/week";
+import { scoreOf } from "../../lib/mood";
 import { stopsCoveringDate } from "../../lib/wandering";
 import PlacePicker from "../wandering/PlacePicker";
 import KeepHighlight from "./KeepHighlight";
+import Dictate from "./Dictate";
 
 const labelClass = "block text-label uppercase text-textMuted mb-1.5";
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
+
+// "Today", "Yesterday", or the date in words.
+function dayLabel(key) {
+  if (key === todayKey()) return "Today";
+  if (key === addDaysKey(todayKey(), -1)) return "Yesterday";
+  return new Date(key + "T00:00:00").toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+}
 
 // Add and edit share one form, same pattern as AddMomentModal — prefilled
 // and pointed at editJournalEntry when an `entry` is passed in. On a
@@ -21,30 +30,38 @@ const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 p
 // edit mode, since photos/AI reflection both need a real entry_id to attach
 // to and can't exist before the first save.
 // `notice` (optional) is shown at the top, e.g. "check the words" after a scan.
+//
+// Writing comes first (Cassidy, Nov 2): the page opens ready to type, the
+// date is a small chip to change it, and the mood is the same 0–100 scale
+// as the Home check-in, optional, underneath.
 export default function JournalEntryModal({ open, onClose, onSaved, entry, notice }) {
-  const { addJournalEntry, editJournalEntry, deleteJournalEntry, wanderingStops, highlights, addHighlight } = useAppData();
+  const { addJournalEntry, editJournalEntry, deleteJournalEntry, wanderingStops, highlights, addHighlight, updateHighlight } = useAppData();
   const isEdit = Boolean(entry);
 
   const [content, setContent] = useState("");
-  const [mood, setMood] = useState(null);
+  const [moodScore, setMoodScore] = useState(null);
   const [entryDate, setEntryDate] = useState(todayKey());
+  const [pickingDate, setPickingDate] = useState(false);
+  const dateInput = useRef(null);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [stopId, setStopId] = useState(null);
-  // Highlights: the selected words, the one being kept, and (for a new
-  // entry) those waiting for the entry to be saved first.
+  // Highlights: the selected words, the one being kept, the one being
+  // edited, and (for a new entry) those waiting for the entry to be saved.
   const [selection, setSelection] = useState("");
   const [keeping, setKeeping] = useState(null);
+  const [editing, setEditing] = useState(null);
   const [pending, setPending] = useState([]);
 
   useEffect(() => {
     if (!open) return;
     setContent(entry?.content || "");
-    setMood(entry?.mood || null);
+    setMoodScore(scoreOf(entry));
     setEntryDate(entry?.entry_date || todayKey());
+    setPickingDate(false);
     setTags(entry?.tags || []);
     setStopId(entry?.stop_id || null);
     setTagInput("");
@@ -55,8 +72,13 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
     setDeleting(false);
     setSelection("");
     setKeeping(null);
+    setEditing(null);
     setPending([]);
   }, [open, entry]);
+
+  useEffect(() => {
+    if (pickingDate) dateInput.current?.showPicker?.();
+  }, [pickingDate]);
 
   function onSelect(e) {
     const { selectionStart: a, selectionEnd: b, value } = e.target;
@@ -68,6 +90,16 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
     else setPending(p => [...p, fields]);
     setKeeping(null);
     setSelection("");
+  }
+
+  // Editing a kept highlight: saved straight away once the entry exists.
+  async function saveEdited(fields) {
+    if (editing.id) {
+      await updateHighlight(editing.id, { text: fields.text, tags: fields.tags, item_id: fields.itemId, as_memento: fields.asMemento });
+    } else {
+      setPending(p => p.map(h => (h === editing.pendingOf ? fields : h)));
+    }
+    setEditing(null);
   }
 
   const kept = isEdit ? highlights.filter(h => h.entry_id === entry.id) : pending;
@@ -105,10 +137,10 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
     const place = stopId || stopsCoveringDate(wanderingStops, entryDate).length > 0 || entry?.stop_id ? stopId : undefined;
     try {
       if (isEdit) {
-        const saved = await editJournalEntry(entry.id, { content: content.trim(), mood, entryDate, tags: allTags, stopId: place });
+        const saved = await editJournalEntry(entry.id, { content: content.trim(), moodScore, entryDate, tags: allTags, stopId: place });
         onSaved ? onSaved(saved) : onClose();
       } else {
-        const saved = await addJournalEntry({ content: content.trim(), mood, entryDate, tags: allTags, stopId: place });
+        const saved = await addJournalEntry({ content: content.trim(), moodScore, entryDate, tags: allTags, stopId: place });
         for (const h of pending) await addHighlight({ ...h, entryId: saved.id, entryDate });
         onSaved ? onSaved(saved, { wasNew: true }) : onClose();
       }
@@ -135,30 +167,46 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
   return (
     <Modal open={open} title={isEdit ? "Edit entry" : "New journal entry"} onClose={onClose}>
       {notice && <div className="text-bodySm text-textSecondary bg-surface3 rounded-sm p-3 mb-3">{notice}</div>}
-      <label className={labelClass}>Date</label>
-      <input
-        type="date"
-        className={`${fieldClass} mb-3`}
-        value={entryDate}
-        max={todayKey()}
-        onChange={e => setEntryDate(e.target.value)}
-      />
 
-      <PlacePicker dateKey={entryDate} value={stopId} onChange={setStopId} autoSelect={!isEdit} />
+      {/* The day it's for: a small chip, a date picker only when asked. */}
+      <div className="flex items-center gap-2 mb-2">
+        {pickingDate ? (
+          <input
+            ref={dateInput}
+            type="date"
+            aria-label="The day this entry is for"
+            className="bg-surface1 border border-borderC rounded-full px-3 py-1.5 text-bodySm text-textPrimary outline-none focus:border-forestAccent"
+            value={entryDate}
+            max={todayKey()}
+            onChange={e => e.target.value && setEntryDate(e.target.value)}
+            onBlur={() => setPickingDate(false)}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setPickingDate(true)}
+            aria-label={`${dayLabel(entryDate)}. Change the day this entry is for`}
+            className="inline-flex items-center gap-1.5 min-h-[32px] px-3 rounded-full bg-surface1 border border-borderC text-bodySm text-textPrimary hover:border-forestAccent"
+          >
+            <CalendarDays size={14} strokeWidth={1.75} className="text-textMuted" />
+            {dayLabel(entryDate)}
+          </button>
+        )}
+      </div>
 
-      <label className={labelClass}>How are you feeling? (optional)</label>
-      <MoodSelector value={mood} onChange={setMood} className="mb-3" />
-
-      <label className={labelClass}>What's on your mind</label>
       <textarea
         autoFocus={!isEdit}
-        rows={7}
-        className={`${fieldClass} mb-3`}
-        placeholder="Write whatever feels true right now…"
+        rows={8}
+        aria-label="What's on your mind"
+        className={`${fieldClass} mb-3 font-serif text-[18px] leading-relaxed`}
+        placeholder="What's on your mind? Write whatever feels true right now…"
         value={content}
         onChange={e => setContent(e.target.value)}
         onSelect={onSelect}
       />
+
+      {/* Spoken words join the end of the entry, a phrase at a time. */}
+      <Dictate onText={said => said && setContent(c => (c && !/\s$/.test(c) ? `${c} ${said}` : `${c}${said}`))} />
 
       {keeping ? (
         <KeepHighlight text={keeping} entryTags={tags} onKeep={keepHighlight} onCancel={() => setKeeping(null)} />
@@ -182,13 +230,49 @@ export default function JournalEntryModal({ open, onClose, onSaved, entry, notic
           <div className={labelClass}>Kept from this entry</div>
           <div className="space-y-1.5">
             {kept.map((h, i) => (
-              <div key={h.id || i} className="font-serif italic text-[16px] leading-snug text-textPrimary border-l-2 border-gold pl-2.5">
-                “{h.text}”
-              </div>
+              editing && (editing.id ? editing.id === h.id : editing.pendingOf === h) ? (
+                <KeepHighlight key={h.id || i} existing={{ ...h, item_id: h.item_id ?? h.itemId, as_memento: h.as_memento ?? h.asMemento }} entryTags={tags} onKeep={saveEdited} onCancel={() => setEditing(null)} />
+              ) : (
+                <button
+                  key={h.id || i}
+                  type="button"
+                  onClick={() => setEditing(h.id ? { id: h.id } : { pendingOf: h })}
+                  aria-label={`Edit the highlight “${h.text}”`}
+                  className="group w-full flex items-start gap-2 text-left font-serif italic text-[16px] leading-snug text-textPrimary border-l-2 border-gold pl-2.5"
+                >
+                  <span className="flex-1">“{h.text}”</span>
+                  <Pencil size={13} strokeWidth={1.75} className="flex-none mt-1 text-textMuted group-hover:text-gold" aria-hidden="true" />
+                </button>
+              )
             ))}
           </div>
         </div>
       )}
+
+      {/* How you're feeling: optional, the same scale as the Home check-in. */}
+      <div className="mb-3">
+        <div className="flex items-baseline justify-between">
+          <span className={labelClass}>How are you feeling? (optional)</span>
+          {moodScore != null && (
+            <button type="button" onClick={() => setMoodScore(null)} className="text-caption text-textMuted underline underline-offset-2 min-h-[28px]">
+              Clear
+            </button>
+          )}
+        </div>
+        {moodScore == null ? (
+          <button
+            type="button"
+            onClick={() => setMoodScore(50)}
+            className="w-full min-h-[44px] rounded-sm border border-dashed border-borderC text-bodySm text-textSecondary hover:border-forestAccent hover:text-textPrimary"
+          >
+            Add how you're feeling
+          </button>
+        ) : (
+          <MoodDial score={moodScore} onChange={setMoodScore} compact label="How you're feeling" />
+        )}
+      </div>
+
+      <PlacePicker dateKey={entryDate} value={stopId} onChange={setStopId} autoSelect={!isEdit} />
 
       <label className={labelClass}>Tags / themes (optional)</label>
       <div className="flex flex-wrap gap-1.5 mb-1.5">

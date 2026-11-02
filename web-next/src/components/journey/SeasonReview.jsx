@@ -82,6 +82,25 @@ export default function SeasonReview() {
       </>}
     </div>,
 
+    // Where you went, when you saved places this season.
+    ...(stats.places.length ? [
+      <div key="places">
+        <div className="text-label uppercase tracking-[0.2em] opacity-80 mb-3">Where you went</div>
+        <div className="font-serif text-[44px] leading-none">{stats.places.length}</div>
+        <div className="text-body opacity-90 mb-4">{stats.places.length === 1 ? "place you kept" : "places you kept"}</div>
+        <div className="grid grid-cols-2 gap-2.5">
+          {stats.places.slice(0, 6).map(p => (
+            <div key={p.id} className="relative aspect-[4/3] rounded-card overflow-hidden bg-black/25">
+              {p.photo && <img src={p.photo} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <div className="absolute left-2 right-2 bottom-1.5 text-bodySm font-medium text-white leading-tight">{p.name}</div>
+            </div>
+          ))}
+        </div>
+        {stats.places.length > 6 && <div className="text-caption opacity-80 mt-2">and {stats.places.length - 6} more on your world map</div>}
+      </div>
+    ] : []),
+
     // 3. How you felt and grew
     <div key="felt">
       <div className="text-label uppercase tracking-[0.2em] opacity-80 mb-3">How you felt, and what grew</div>

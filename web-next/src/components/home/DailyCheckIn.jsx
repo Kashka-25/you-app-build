@@ -90,12 +90,56 @@ export function MoodBadge({ ink = "text-textPrimary", fallback = null }) {
   );
 }
 
+// The face, its word and the 0–100 slider, shared with YOUrnal entries.
+// `compact` sets the face beside the slider instead of above it.
+export function MoodDial({ score, onChange, compact = false, label = "How you're arriving" }) {
+  const band = bandFor(score);
+  const slider = (
+    <>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="1"
+        value={score}
+        onChange={e => onChange(Number(e.target.value))}
+        aria-label={`${label}, from 0 to 100`}
+        aria-valuetext={`${band.label}, ${score} out of 100`}
+        className={`mood-range w-full ${compact ? "" : "mt-3"}`}
+      />
+      <div className="flex justify-between text-[10px] uppercase tracking-wide text-textMuted mt-0.5" aria-hidden="true">
+        <span>Low</span><span>Steady</span><span>Energised</span>
+      </div>
+    </>
+  );
+  if (compact) {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col items-center flex-none w-16">
+          <MoodFace score={score} size={52} />
+          <div className="text-caption text-textPrimary font-medium mt-0.5">{band.label}</div>
+        </div>
+        <div className="flex-1 min-w-0">{slider}</div>
+      </div>
+    );
+  }
+  return (
+    <>
+      <div className="flex flex-col items-center">
+        <MoodFace score={score} size={104} />
+        <div className="mt-1 text-body text-textPrimary font-medium">{band.label}</div>
+        <div className="text-caption text-textMuted">{score} out of 100</div>
+      </div>
+      {slider}
+    </>
+  );
+}
+
 // The slider, the face and the word, with a save button.
 function MoodScale({ start, onSave, saveLabel }) {
   const [score, setScore] = useState(start);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const band = bandFor(score);
 
   async function save() {
     setSaving(true);
@@ -109,25 +153,7 @@ function MoodScale({ start, onSave, saveLabel }) {
 
   return (
     <div className="relative">
-      <div className="flex flex-col items-center">
-        <MoodFace score={score} size={104} />
-        <div className="mt-1 text-body text-textPrimary font-medium">{band.label}</div>
-        <div className="text-caption text-textMuted">{score} out of 100</div>
-      </div>
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="1"
-        value={score}
-        onChange={e => setScore(Number(e.target.value))}
-        aria-label="How you're arriving, from 0 to 100"
-        aria-valuetext={`${band.label}, ${score} out of 100`}
-        className="mood-range w-full mt-3"
-      />
-      <div className="flex justify-between text-[10px] uppercase tracking-wide text-textMuted mt-0.5" aria-hidden="true">
-        <span>Low</span><span>Steady</span><span>Energised</span>
-      </div>
+      <MoodDial score={score} onChange={setScore} />
       {error && <div className="text-caption text-red-500 mt-2">{error}</div>}
       <button
         type="button"

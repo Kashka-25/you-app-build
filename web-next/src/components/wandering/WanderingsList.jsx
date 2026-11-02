@@ -1,10 +1,12 @@
 import { lazy, Suspense, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe2, MapPin, Plus, ChevronRight, Star, Sparkles } from "lucide-react";
+import { Globe2, MapPin, Plus, ChevronRight, Star, Sparkles, ImagePlus } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { wanderingStatus, wanderingWhenLabel } from "../../lib/wandering";
 
 // Loaded on demand: the map library only downloads when the world opens.
+import SavePlaceSheet from "./SavePlaceSheet";
+import BackfillPlaces from "./BackfillPlaces";
 const EverywhereMap = lazy(() => import("./EverywhereMap"));
 
 const GROUPS = [
@@ -22,6 +24,8 @@ export default function WanderingsList() {
   const navigate = useNavigate();
   const { wanderings, wanderingStops, items, releasedItems, moments, journalEntries, createWandering } = useAppData();
   const [worldOpen, setWorldOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [backfill, setBackfill] = useState(false);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(null);
   const [error, setError] = useState("");
@@ -65,6 +69,31 @@ export default function WanderingsList() {
 
   return (
     <div>
+      {/* Saving a place you're at, first and simplest (Cassidy, Nov 2). */}
+      <button
+        type="button"
+        onClick={() => setSaving(true)}
+        className="w-full flex items-center gap-3 rounded-card p-4 mb-2.5 text-left shadow-card border border-gold/60 bg-[color-mix(in_srgb,var(--gold)_10%,var(--surface-1))]"
+      >
+        <span className="w-10 h-10 flex-none rounded-full bg-gold text-[#19193D] flex items-center justify-center">
+          <MapPin size={19} strokeWidth={2} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-serif text-h3 text-textPrimary leading-tight">Save a place</span>
+          <span className="block text-caption text-textSecondary">Where you are now, or from a photo, with its memory</span>
+        </span>
+        <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted flex-none" />
+      </button>
+      <SavePlaceSheet open={saving} onClose={() => setSaving(false)} />
+      <button
+        type="button"
+        onClick={() => setBackfill(true)}
+        className="w-full flex items-center justify-center gap-1.5 min-h-[40px] mb-4 text-bodySm text-forestAccent font-medium"
+      >
+        <ImagePlus size={15} strokeWidth={1.75} /> Fill your map from old photos
+      </button>
+      <BackfillPlaces open={backfill} onClose={() => setBackfill(false)} />
+
       <div className="grid grid-cols-2 gap-2.5 mb-5">
         <button
           onClick={() => setWorldOpen(true)}

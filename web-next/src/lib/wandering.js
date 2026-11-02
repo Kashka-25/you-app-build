@@ -14,6 +14,59 @@ const isPlace = p => p.osm_key === "place" || p.osm_key === "boundary";
 // Prefecture"), ignoring case and accents.
 const fold = t => (t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
 
+// The name of the spot at a point (Cassidy, Nov 2: saving a place where you
+// are). Photon's reverse lookup: only the coordinates leave the device.
+// Falls back to the nearest town, then to plain coordinates.
+export const UNNAMED_PLACE = "A place I've been";
+export async function reversePlace(lat, lng, signal) {
+  const fallback = { name: UNNAMED_PLACE, detail: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, countryCode: null, lat, lng, unnamed: true };
+  try {
+    const res = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}&limit=1&lang=en`, { signal });
+    if (!res.ok) return fallback;
+    const p = (await res.json()).features?.[0]?.properties;
+    if (!p) return fallback;
+    const name = p.name || p.street || p.city || p.town || p.village || p.county || fallback.name;
+    const detail = [p.city || p.town || p.village, p.state, p.country]
+      .filter(v => v && v !== name)
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .join(", ");
+    return { name, detail, countryCode: p.countrycode || null, lat, lng };
+  } catch (e) {
+    if (e.name === "AbortError") throw e;
+    return fallback;
+  }
+}
+
+// Where and when a photo was taken, read from the photo itself before it's
+// shrunk (shrinking strips this, so the saved copy stays private). The
+// reader is only fetched when a photo is chosen. null if it has no location.
+export async function photoPlace(file) {
+  try {
+    const { default: exifr } = await import("exifr");
+    const data = await exifr.parse(file, { gps: true, pick: ["latitude", "longitude", "DateTimeOriginal", "CreateDate"] });
+    if (!data || !Number.isFinite(data.latitude) || !Number.isFinite(data.longitude)) return null;
+    const taken = data.DateTimeOriginal || data.CreateDate;
+    return { lat: data.latitude, lng: data.longitude, dateKey: taken instanceof Date && !Number.isNaN(+taken) ? localDateKey(taken) : null };
+  } catch (e) {
+    console.warn("[wandering] couldn't read the photo's location:", e);
+    return null;
+  }
+}
+
+// Where the phone is now, as a promise. Rejects with a friendly message.
+export function currentPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error("This device can't share its location. Search for the place instead."));
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      err => reject(new Error(err.code === 1
+        ? "Location is turned off for YOU. Allow it in your phone's settings, or search for the place instead."
+        : "Couldn't find where you are just now. Try again, or search for the place.")),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+  });
+}
+
 export async function searchPlaces(query, signal) {
   const q = query.trim();
   if (q.length < 2) return [];

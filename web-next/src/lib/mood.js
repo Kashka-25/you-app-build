@@ -17,6 +17,7 @@ const MIDDLE = { rough: 10, low: 30, okay: 50, good: 70, great: 90 };
 export function scoreOf(entry) {
   if (!entry) return null;
   if (entry.score != null) return Number(entry.score);
+  if (entry.mood_score != null) return Number(entry.mood_score);
   return MIDDLE[entry.mood] ?? null;
 }
 

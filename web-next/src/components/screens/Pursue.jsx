@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Check, Wind, RotateCcw } from "lucide-react";
+import { Check, Wind, RotateCcw, Plus, Sparkles, Moon } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
-import { BackRow, SectionTitle, DropdownSection } from "../Primitives";
+import { DropdownSection } from "../Primitives";
+import { Button } from "../ui/Button";
+import AddItemModal from "../pursue/AddItemModal";
+import { useActivePursuits } from "../../lib/activePursuits";
 import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
 import { SegmentedControl } from "../ui/SegmentedControl";
@@ -16,7 +19,13 @@ const VIEWS = [
   { value: "wanderings", label: "Wanderings" }
 ];
 
-const FILTERS = ["all", "habit", "goal", "dream", "done"];
+const FILTERS = [
+  { value: "all", label: "All" },
+  { value: "habit", label: "Habits" },
+  { value: "goal", label: "Goals" },
+  { value: "dream", label: "Dreams" },
+  { value: "done", label: "Done" }
+];
 
 function pathSegments(item) {
   return (item.subcat || "").split("/").map(s => s.trim()).filter(Boolean);
@@ -60,19 +69,22 @@ function GroupNode({ items, depth }) {
 }
 
 // Each Pillar's heading wears its colour, so it stands apart from the
-// quiet "Completed" fold beneath it (Cassidy, Oct 28).
+// quiet "Completed" fold beneath it (Cassidy, Oct 28). Active pursuits sit
+// at the top of the page, so a Pillar counts only what's resting in it.
 function PillarHeading({ cat, count }) {
   const color = PILLAR_COLORS[cat] || "var(--gold)";
   return (
     <span className="flex items-center gap-2.5">
       <span className="w-1.5 h-7 rounded-full flex-none" style={{ background: color }} aria-hidden="true" />
-      <span>{cat}</span>
-      <span
-        className="font-sans text-caption font-medium px-2 py-0.5 rounded-full"
-        style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
-      >
-        {count} growing
-      </span>
+      <span className="font-bold">{cat}</span>
+      {count > 0 && (
+        <span
+          className="font-sans text-caption font-medium px-2 py-0.5 rounded-full"
+          style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+        >
+          {count} resting
+        </span>
+      )}
     </span>
   );
 }
@@ -88,6 +100,8 @@ function CompletedLabel({ n }) {
 export default function Pursue() {
   const { items, releasedItems, restoreItem } = useAppData();
   const [filter, setFilter] = useState("all");
+  const [adding, setAdding] = useState(false);
+  const { isActive } = useActivePursuits();
   const location = useLocation();
   const [view, setView] = useState(location.state?.view || "pursuits");
   useEffect(() => {
@@ -107,8 +121,12 @@ export default function Pursue() {
   // skipped rather than shown empty.
   // On "all", each Pillar shows what's growing, with its completed
   // pursuits folded underneath (Cassidy, Oct 25).
+  // Active pursuits sit together at the top, highlighted (Cassidy, Nov 2);
+  // everything else rests in its Pillar below until it's activated.
+  const active = sorted.filter(i => isActive(i));
+  const resting = sorted.some(i => !i.done && !isActive(i));
   const groups = PILLARS.map(cat => {
-    const list = sorted.filter(i => i.cat === cat);
+    const list = sorted.filter(i => i.cat === cat && !isActive(i));
     return filter === "all"
       ? { cat, list: list.filter(i => !i.done), done: list.filter(i => i.done) }
       : { cat, list, done: [] };
@@ -116,8 +134,28 @@ export default function Pursue() {
 
   return (
     <div className="pt-1 pb-24 px-5">
-      <BackRow />
-      <SectionTitle>Your PursYOUts</SectionTitle>
+      {/* A painted header (Cassidy, Nov 2), like YOUrnal's: the three plants
+          from the YOU set, the name, and a way to plant something new. A main
+          page of its own, so no back link. */}
+      <section aria-labelledby="pursue-title" className="relative mt-3 mb-4 rounded-card overflow-hidden shadow-card">
+        <img
+          src="/images/home/tool-pursuits.webp"
+          alt=""
+          width="520"
+          height="370"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover object-[center_30%] dark:brightness-[0.62] dark:saturate-[0.85]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#FBF7F0] via-[#FBF7F0]/70 via-40% to-transparent dark:from-[#0B0B1F] dark:via-[#0B0B1F]/70" />
+        <div className="relative flex flex-col justify-end min-h-[168px] p-4 pt-16">
+          <h1 id="pursue-title" className="font-serif text-[30px] leading-tight text-textPrimary dark:text-cream m-0">Your PursYOUts</h1>
+          <p className="text-bodySm text-textSecondary dark:text-[color-mix(in_srgb,var(--cream)_88%,transparent)] m-0">The habits, goals and dreams you're growing.</p>
+          <div className="flex gap-2 mt-3">
+            <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>Plant something</Button>
+          </div>
+        </div>
+      </section>
+
       <div className="mb-4">
         <SegmentedControl options={VIEWS} value={view} onChange={setView} />
       </div>
@@ -127,13 +165,15 @@ export default function Pursue() {
       <div className="flex gap-2 mb-4 overflow-x-auto">
         {FILTERS.map(f => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`text-bodySm px-3.5 py-1.5 rounded-full flex-none capitalize transition-colors duration-150 ${
-              filter === f ? "bg-forestAccent text-onAccent font-medium" : "bg-surface3 text-textMuted"
+            key={f.value}
+            type="button"
+            onClick={() => setFilter(f.value)}
+            aria-pressed={filter === f.value}
+            className={`text-bodySm px-3.5 min-h-[34px] rounded-full flex-none transition-colors duration-150 ${
+              filter === f.value ? "bg-forestAccent text-onAccent font-medium" : "bg-surface3 text-textSecondary"
             }`}
           >
-            {f}
+            {f.label}
           </button>
         ))}
       </div>
@@ -143,7 +183,25 @@ export default function Pursue() {
           description="Your YOUniverse awaits your intentions. Tap Add to plant something."
         />
       ) : (
-        groups.map(({ cat, list, done }) => (
+        <>
+        {active.length > 0 && (
+          <section aria-labelledby="pursue-active" className="mb-5">
+            <h2 id="pursue-active" className="flex items-center gap-2 font-serif text-h3 text-textPrimary m-0 mb-2">
+              <Sparkles size={16} strokeWidth={1.75} className="text-gold" aria-hidden="true" /> Active
+              <span className="font-sans text-caption text-textMuted">{active.length}</span>
+            </h2>
+            {active.map(item => <ItemCard key={item.id} item={item} />)}
+          </section>
+        )}
+        {resting && (
+          <>
+            <h2 className="flex items-center gap-2 font-serif text-h3 text-textPrimary m-0 mb-1">
+              <Moon size={15} strokeWidth={1.75} className="text-textMuted" aria-hidden="true" /> Resting
+            </h2>
+            <p className="text-caption text-textMuted m-0 mb-2">Here until you're ready: tap Activate on any of them.</p>
+          </>
+        )}
+        {groups.map(({ cat, list, done }) => (
           <DropdownSection key={cat} title={<PillarHeading cat={cat} count={list.length} />} defaultOpen>
             {list.length > 0 && <GroupNode items={list} depth={0} />}
             {done.length > 0 && (
@@ -152,7 +210,8 @@ export default function Pursue() {
               </DropdownSection>
             )}
           </DropdownSection>
-        ))
+        ))}
+        </>
       )}
 
       {releasedItems.length > 0 && (
@@ -162,6 +221,8 @@ export default function Pursue() {
       )}
       </>
       )}
+
+      <AddItemModal open={adding} onClose={() => setAdding(false)} defaultType={["habit", "goal", "dream"].includes(filter) ? filter : "habit"} />
     </div>
   );
 }

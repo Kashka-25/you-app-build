@@ -13,6 +13,9 @@ import {
 import { getValueEntry } from "../constants/valueLibrary";
 import { callCostUsd } from "./aiCost";
 import { compressImage, JOURNAL_PAGE } from "./imageCompress";
+import { holdPlace, heldPlaces, releasePlace, isOffline } from "./placeOutbox";
+import { reversePlace } from "./wandering";
+import { pendingCount } from "./offline";
 import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
 import { markerXp, DAILY_FOCUS_XP_CAP } from "./focus";
 import { mementoForHour } from "../constants/mementos";
@@ -606,6 +609,16 @@ export function AppDataProvider({ children }) {
     await saveItemRow(updated);
   }
 
+  // All of a pursuit's steps at once, from the step editor (renamed, moved,
+  // amounts changed). Steps keep their ids, so habit days stay with them.
+  async function setMilestones(itemId, milestones) {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    const updated = { ...item, milestones };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
+  }
+
   async function removeMilestone(itemId, mi) {
     const item = items.find(i => i.id === itemId);
     if (!item) return;
@@ -1001,6 +1014,116 @@ export function AppDataProvider({ children }) {
     setWanderingStops(prev => [...prev, res.data]);
     return res.data;
   }
+
+  // A place and its memory in one go (Cassidy, Nov 2: standing somewhere
+  // beautiful, it should be simple). Places saved this way gather in one
+  // Wandering of their own, "Places I've been", made the first time; the
+  // stop is dated to the memory, and the memory is pinned to it.
+  const PLACES_TITLE = "Places I've been";
+  const WISH_TITLE = "Places I'd love to go";
+  // A place of its own (no Dream, no trip), dated to the day it was lived:
+  // used by Save a place and by "Where was this?" on any memory or entry.
+  // `wish` makes it a place you'd love to go instead (Places I'd love to go).
+  async function ownWandering(title) {
+    const found = latest.current.wanderings?.find(w => !w.item_id && w.title === title) || wanderings.find(w => !w.item_id && w.title === title);
+    if (found) return found;
+    const res = await supabase.from("wanderings").insert({ user_id: userId, item_id: null, title }).select().single();
+    if (res.error) throw res.error;
+    setWanderings(prev => [...prev, res.data]);
+    return res.data;
+  }
+
+  async function addOwnPlace(place, dateKey, { wish = false } = {}) {
+    const home = await ownWandering(wish ? WISH_TITLE : PLACES_TITLE);
+    const siblings = wanderingStops.filter(s => s.wandering_id === home.id);
+    const res = await supabase.from("wandering_stops").insert({
+      user_id: userId, wandering_id: home.id, position: siblings.length,
+      place_name: place.name, place_detail: place.detail || null, country_code: place.countryCode || null,
+      lat: place.lat, lng: place.lng, kind: "visit",
+      arrive: wish ? null : dateKey, depart: wish ? null : dateKey,
+      note: place.note || null
+    }).select().single();
+    if (res.error) throw res.error;
+    setWanderingStops(prev => [...prev, res.data]);
+    if (place.unnamed && !wish) await holdPlace({ momentId: `stop:${res.data.id}`, userId, stopId: res.data.id, photos: [], unnamed: { lat: place.lat, lng: place.lng, name: place.name } });
+    return res.data;
+  }
+
+  // A place you'd love to go, once you're there: it joins Places I've been,
+  // dated to the day.
+  async function wishVisited(stop, dateKey) {
+    const home = await ownWandering(PLACES_TITLE);
+    await updateWanderingStop(stop.id, { wandering_id: home.id, arrive: dateKey, depart: dateKey });
+  }
+
+  // A place you'd love to go, becoming a Dream with its own Wandering (the
+  // place as its first stop), ready to plan.
+  async function wishToDream(stop) {
+    const item = await addItem({ name: stop.place_name, type: "dream", cat: "Play", subcat: "Travel", note: stop.note || "" });
+    const w = await createWandering(item);
+    await updateWanderingStop(stop.id, { wandering_id: w.id, position: 0 });
+    return w;
+  }
+
+  async function savePlaceMemory({ place, momentDate, title, description, photos = [] }) {
+    const stop = await addOwnPlace({ ...place, unnamed: false }, momentDate);
+    const res = { data: stop };
+    // No signal: the memory saves now without its photos, and the photos
+    // (and the spot's name, if it's only coordinates) wait on the phone.
+    const later = isOffline() || place.unnamed;
+    if (!later) return addMoment({ title: title || place.name, momentDate, description, photos, stopId: res.data.id });
+    const moment = await addMoment({ title: title || place.name, momentDate, description, photos: isOffline() ? [] : photos, stopId: res.data.id });
+    await holdPlace({
+      momentId: moment.id, userId, stopId: res.data.id,
+      photos: isOffline() ? photos.map(p => ({ blob: p.blob, ext: p.ext })) : [],
+      unnamed: place.unnamed ? { lat: place.lat, lng: place.lng, name: place.name } : null
+    });
+    return moment;
+  }
+
+  // Once the signal is back and the offline queue has gone out, finish the
+  // places saved without it: upload their photos and name the spots that
+  // were only coordinates (unless they've been named since).
+  const finishingPlaces = useRef(false);
+  // The latest lists and editMoment, for work that finishes later.
+  const latest = useRef({});
+  const finishPlaces = useCallback(async () => {
+    if (!userId || finishingPlaces.current || isOffline()) return;
+    finishingPlaces.current = true;
+    try {
+      const held = await heldPlaces(userId);
+      if (!held.length) return;
+      for (let i = 0; i < 20 && (await pendingCount()) > 0; i++) await new Promise(r => setTimeout(r, 1500));
+      for (const h of held) {
+        const stopOnly = String(h.momentId).startsWith("stop:");
+        const moment = stopOnly ? null : latest.current.moments.find(m => m.id === h.momentId);
+        if (!stopOnly && !moment) { await releasePlace(h.momentId); continue; }
+        let title = moment?.title;
+        if (h.unnamed) {
+          const stop = latest.current.wanderingStops.find(s => s.id === h.stopId);
+          if (stop && stop.place_name === h.unnamed.name) {
+            const named = await reversePlace(h.unnamed.lat, h.unnamed.lng);
+            if (!named.unnamed) {
+              await supabase.from("wandering_stops").update({ place_name: named.name, place_detail: named.detail || null, country_code: named.countryCode || null }).eq("id", stop.id).eq("user_id", userId);
+              setWanderingStops(prev => prev.map(s => (s.id === stop.id ? { ...s, place_name: named.name, place_detail: named.detail || null } : s)));
+              if (moment && title === h.unnamed.name) title = named.name;
+            }
+          }
+        }
+        if (moment && (h.photos.length || title !== moment.title)) {
+          await latest.current.editMoment(moment.id, {
+            title, momentDate: moment.moment_date, description: moment.description,
+            photoOrder: h.photos.length ? [...momentPhotoPaths(moment).map(path => ({ path })), ...h.photos] : undefined
+          });
+        }
+        await releasePlace(h.momentId);
+      }
+    } catch (e) {
+      console.error("[places] couldn't finish a place saved offline:", e);
+    } finally {
+      finishingPlaces.current = false;
+    }
+  }, [userId]);
 
   async function updateWanderingStop(id, updates) {
     const before = wanderingStops;
@@ -1664,10 +1787,25 @@ export function AppDataProvider({ children }) {
     await supabase.from("todos").delete().eq("id", id).eq("user_id", userId);
   }
 
-  async function addJournalEntry({ content, mood, entryDate, tags, stopId }) {
-    const row = { user_id: userId, content, mood: mood || null, entry_date: entryDate || todayKey(), tags: tags || [] };
+  // An entry's mood is the 0–100 scale (Cassidy, Nov 2): mood_score keeps the
+  // number, mood its band's word for everything that reads the five moods.
+  // Until a database has mood_score, the entry saves without it.
+  const entryMood = moodScore => (moodScore == null
+    ? { mood: null, mood_score: null }
+    : { mood: bandFor(moodScore).key, mood_score: Math.round(moodScore) });
+  async function writeEntry(run, fields) {
+    let res = await run(fields);
+    if (res.error && ["PGRST204", "42703"].includes(res.error.code) && "mood_score" in fields) {
+      const { mood_score, ...rest } = fields;
+      res = await run(rest);
+    }
+    return res;
+  }
+
+  async function addJournalEntry({ content, moodScore, entryDate, tags, stopId }) {
+    const row = { user_id: userId, content, ...entryMood(moodScore), entry_date: entryDate || todayKey(), tags: tags || [] };
     if (stopId !== undefined) row.stop_id = stopId;
-    const res = await supabase.from("journal_entries").insert(row).select().single();
+    const res = await writeEntry(r => supabase.from("journal_entries").insert(r).select().single(), row);
     if (res.error) throw res.error;
     setJournalEntries(prev =>
       [res.data, ...prev].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
@@ -1677,10 +1815,10 @@ export function AppDataProvider({ children }) {
     return res.data;
   }
 
-  async function editJournalEntry(id, { content, mood, entryDate, tags, stopId }) {
-    const updates = { content, mood: mood || null, entry_date: entryDate, tags: tags || [], updated_at: new Date().toISOString() };
+  async function editJournalEntry(id, { content, moodScore, entryDate, tags, stopId }) {
+    const updates = { content, ...entryMood(moodScore), entry_date: entryDate, tags: tags || [], updated_at: new Date().toISOString() };
     if (stopId !== undefined) updates.stop_id = stopId;
-    const res = await supabase.from("journal_entries").update(updates).eq("id", id).eq("user_id", userId).select().single();
+    const res = await writeEntry(u => supabase.from("journal_entries").update(u).eq("id", id).eq("user_id", userId).select().single(), updates);
     if (res.error) throw res.error;
     setJournalEntries(prev =>
       prev.map(e => (e.id === id ? res.data : e)).sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date))
@@ -1836,7 +1974,7 @@ export function AppDataProvider({ children }) {
     }
     if (texts.length) {
       entry = await editJournalEntry(entry.id, {
-        content: texts.join("\n\n"), mood: null, entryDate: entry.entry_date, tags: []
+        content: texts.join("\n\n"), moodScore: null, entryDate: entry.entry_date, tags: []
       });
     }
     return { entry, transcribed: texts.length, pages, failure };
@@ -2103,12 +2241,21 @@ export function AppDataProvider({ children }) {
     return res.data || [];
   }
 
+  latest.current = { moments, wanderingStops, wanderings, editMoment };
+  useEffect(() => {
+    if (!loaded) return;
+    finishPlaces();
+    const back = () => setTimeout(finishPlaces, 4000);
+    window.addEventListener("online", back);
+    return () => window.removeEventListener("online", back);
+  }, [loaded, finishPlaces]);
+
   const value = {
     userId, loaded, sync, items: activeItems, releasedItems, memory, moodLog, logMood, values, profile, moments, chapters, valueChallenges, journalEntries,
     identityVisions, todos,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
-    addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
+    addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone, setMilestones,
     habitLogs, toggleHabitStep, setHabitAmount, habitStreak, logPastDay,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
@@ -2121,7 +2268,7 @@ export function AppDataProvider({ children }) {
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
     focusSessions, saveFocusSession, saveFocusNote,
     highlights, addHighlight, updateHighlight, deleteHighlight,
-    wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, updateWanderingStop, removeWanderingStop,
+    wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, savePlaceMemory, addOwnPlace, wishVisited, wishToDream, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted, setAiSources,
     loadDreamPatterns, readDreamPatterns,

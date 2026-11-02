@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Hash, Search, X } from "lucide-react";
 
 // The tags, folded away under one line, with a search inside (Cassidy,
 // Oct 24: "make the tabs collapsible and searchable"). `tags` is
 // [[name, count]] or [name]; `value` is the tag showing, or null for all.
-export default function TagFilter({ tags, value, onChange, label = "Tags" }) {
+// `tile`: folded, it's a small card beside Your moods (Cassidy, Nov 2), with
+// a gold # and the most used tags; open, it takes the full width.
+export default function TagFilter({ tags, value, onChange, label = "Tags", tile = false }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   if (tags.length === 0) return null;
@@ -13,8 +15,24 @@ export default function TagFilter({ tags, value, onChange, label = "Tags" }) {
   const q = query.trim().replace(/^#/, "").toLowerCase();
   const shown = q ? list.filter(([t]) => t.toLowerCase().includes(q)) : list;
 
+  if (tile && !open) {
+    return (
+      <div className="h-full rounded-card bg-surface1 shadow-card">
+        <button type="button" onClick={() => setOpen(true)} aria-expanded={false} className="w-full flex items-center gap-2 px-2.5 min-h-[44px] text-left">
+          <span className="w-[26px] h-[26px] flex-none rounded-full flex items-center justify-center bg-[color-mix(in_srgb,var(--gold)_18%,transparent)] text-[#7A6024] dark:text-gold">
+            <Hash size={14} strokeWidth={2} />
+          </span>
+          <span className="flex-1 min-w-0 text-bodySm text-textPrimary truncate">
+            {value ? `#${value}` : label} <span className="text-textMuted">· {list.length}</span>
+          </span>
+          <ChevronDown size={15} strokeWidth={1.75} className="flex-none text-textMuted" />
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="mb-3 rounded-card border border-borderC bg-surface1">
+    <div className={tile ? "col-span-2 rounded-card bg-surface1 shadow-card" : "mb-3 rounded-card border border-borderC bg-surface1"}>
       <div className="flex items-center gap-2 px-3 min-h-[44px]">
         <button
           type="button"
