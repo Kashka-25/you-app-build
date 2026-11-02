@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { Check, Wind, RotateCcw } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Check, Wind, RotateCcw, Plus, Sprout, Wheat, ChevronRight } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
-import { BackRow, SectionTitle, DropdownSection } from "../Primitives";
+import { DropdownSection } from "../Primitives";
+import { Button } from "../ui/Button";
+import AddItemModal from "../pursue/AddItemModal";
+import { tendedDaysThisWeek, needsSowing, harvestDue, isSunday, weekStartKey } from "../../lib/week";
 import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
 import { SegmentedControl } from "../ui/SegmentedControl";
@@ -16,7 +19,13 @@ const VIEWS = [
   { value: "wanderings", label: "Wanderings" }
 ];
 
-const FILTERS = ["all", "habit", "goal", "dream", "done"];
+const FILTERS = [
+  { value: "all", label: "All" },
+  { value: "habit", label: "Habits" },
+  { value: "goal", label: "Goals" },
+  { value: "dream", label: "Dreams" },
+  { value: "done", label: "Done" }
+];
 
 function pathSegments(item) {
   return (item.subcat || "").split("/").map(s => s.trim()).filter(Boolean);
@@ -88,6 +97,7 @@ function CompletedLabel({ n }) {
 export default function Pursue() {
   const { items, releasedItems, restoreItem } = useAppData();
   const [filter, setFilter] = useState("all");
+  const [adding, setAdding] = useState(false);
   const location = useLocation();
   const [view, setView] = useState(location.state?.view || "pursuits");
   useEffect(() => {
@@ -116,8 +126,30 @@ export default function Pursue() {
 
   return (
     <div className="pt-1 pb-24 px-5">
-      <BackRow />
-      <SectionTitle>Your PursYOUts</SectionTitle>
+      {/* A painted header (Cassidy, Nov 2), like YOUrnal's: the three plants
+          from the YOU set, the name, and a way to plant something new. A main
+          page of its own, so no back link. */}
+      <section aria-labelledby="pursue-title" className="relative mt-3 mb-4 rounded-card overflow-hidden shadow-card">
+        <img
+          src="/images/home/tool-pursuits.webp"
+          alt=""
+          width="520"
+          height="370"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover object-[center_30%] dark:brightness-[0.62] dark:saturate-[0.85]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#FBF7F0] via-[#FBF7F0]/70 via-40% to-transparent dark:from-[#0B0B1F] dark:via-[#0B0B1F]/70" />
+        <div className="relative flex flex-col justify-end min-h-[168px] p-4 pt-16">
+          <h1 id="pursue-title" className="font-serif text-[30px] leading-tight text-textPrimary dark:text-cream m-0">Your PursYOUts</h1>
+          <p className="text-bodySm text-textSecondary dark:text-[color-mix(in_srgb,var(--cream)_88%,transparent)] m-0">The habits, goals and dreams you're growing.</p>
+          <div className="flex gap-2 mt-3">
+            <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>Plant something</Button>
+          </div>
+        </div>
+      </section>
+
+      <ThisWeek />
+
       <div className="mb-4">
         <SegmentedControl options={VIEWS} value={view} onChange={setView} />
       </div>
@@ -127,13 +159,15 @@ export default function Pursue() {
       <div className="flex gap-2 mb-4 overflow-x-auto">
         {FILTERS.map(f => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`text-bodySm px-3.5 py-1.5 rounded-full flex-none capitalize transition-colors duration-150 ${
-              filter === f ? "bg-forestAccent text-onAccent font-medium" : "bg-surface3 text-textMuted"
+            key={f.value}
+            type="button"
+            onClick={() => setFilter(f.value)}
+            aria-pressed={filter === f.value}
+            className={`text-bodySm px-3.5 min-h-[34px] rounded-full flex-none transition-colors duration-150 ${
+              filter === f.value ? "bg-forestAccent text-onAccent font-medium" : "bg-surface3 text-textSecondary"
             }`}
           >
-            {f}
+            {f.label}
           </button>
         ))}
       </div>
@@ -162,7 +196,46 @@ export default function Pursue() {
       )}
       </>
       )}
+
+      <AddItemModal open={adding} onClose={() => setAdding(false)} defaultType={["habit", "goal", "dream"].includes(filter) ? filter : "habit"} />
     </div>
+  );
+}
+
+// The week's ritual, on hand all week (Cassidy, Nov 2): what's sown and how
+// many days it was tended, with the way to Sow, or to Harvest when it's due.
+// Home still nudges at the weekend.
+function ThisWeek() {
+  const { weekIntentions, weekHarvests } = useAppData();
+  const sown = weekIntentions.filter(w => w.week_start === weekStartKey()).length;
+  const tended = tendedDaysThisWeek(weekIntentions);
+  const harvest = harvestDue(weekIntentions, weekHarvests);
+  const sow = needsSowing(weekIntentions);
+  const row = "flex items-center gap-2.5 min-h-[44px] text-bodySm";
+
+  return (
+    <section aria-labelledby="pursue-week" className="rounded-card bg-surface1 shadow-card px-4 py-2.5 mb-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id="pursue-week" className="font-serif text-h3 text-textPrimary m-0">This week</h2>
+        {sown > 0 && (
+          <span className="text-caption text-textSecondary">{sown} sown · tended {tended} {tended === 1 ? "day" : "days"}</span>
+        )}
+      </div>
+      {harvest && (
+        <Link to="/harvest" className={`${row} text-textPrimary border-b border-borderC`}>
+          <Wheat size={16} strokeWidth={1.75} className="text-gold flex-none" />
+          <span className="flex-1">{isSunday() ? "Harvest this week" : "Harvest last week"}: see what grew</span>
+          <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
+        </Link>
+      )}
+      <Link to="/sow" className={`${row} text-forestAccent`}>
+        <Sprout size={16} strokeWidth={1.75} className="flex-none" />
+        <span className="flex-1">
+          {sow ? (isSunday() ? "Sow next week: what do you want to grow?" : "Sow your week: choose what to tend") : "Change what you've sown"}
+        </span>
+        <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
+      </Link>
+    </section>
   );
 }
 
