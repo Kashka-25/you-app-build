@@ -23,9 +23,12 @@ export const INNER_PILLARS = ["Body","Heart","Mind","Spirit"];
 export const OUTER_PILLARS = ["Connection","Purpose","Play","Home & Earth"];
 export const PILLARS = [...INNER_PILLARS, ...OUTER_PILLARS];
 
+// Eight Pillars, eight clearly different hues (Cassidy, Nov 2: the old set
+// had two oranges and three muted greens). Still earthy and warm, no blues:
+// terracotta, raspberry, leaf, amethyst, amber, deep teal, sunflower, earth.
 export const PILLAR_COLORS = {
-  Body:"#c4783a", Heart:"#b85f6e", Mind:"#7a8c5e", Spirit:"#d4a85a",
-  Connection:"#a06490", Purpose:"#5f7f72", Play:"#c98e6b", "Home & Earth":"#8a7a52"
+  Body:"#C2502F", Heart:"#C0447A", Mind:"#4E9A5C", Spirit:"#8A62C4",
+  Connection:"#DB8A1E", Purpose:"#1F8C80", Play:"#C9A21C", "Home & Earth":"#8E5E36"
 };
 
 // The old 7 -> v2. Rows are rewritten by the pillars_v2 migration; this
