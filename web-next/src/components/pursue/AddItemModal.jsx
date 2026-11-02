@@ -6,6 +6,7 @@ import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { localDateKey as todayKey } from "../../lib/week";
 import { formatAmount, newStepId } from "../../lib/habits";
+import { PillarPicker } from "../ui/Pillar";
 
 const INTENTION_PROMPTS = {
   habit: "What will this practice awaken in you?",
@@ -172,9 +173,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       <p className="text-caption text-textMuted -mt-1.5 mb-3">{TYPES.find(t => t.value === type)?.hint}</p>
 
       <label className={labelClass}>Life area</label>
-      <select className={fieldClass} value={cat} onChange={e => setCat(e.target.value)}>
-        {PILLARS.map(p => <option key={p} value={p}>{p}</option>)}
-      </select>
+      <PillarPicker value={cat} onChange={setCat} className="mb-3" />
 
       {!more && (
         <button

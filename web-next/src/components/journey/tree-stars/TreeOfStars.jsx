@@ -164,6 +164,7 @@ function PortalSwirl({ origin, direction = "in" }) {
 }
 
 export default function TreeOfStars() {
+  const [hoverStar, setHoverStar] = useState(null);
   // Full screen (Cassidy, Oct 25): the tree fills the screen, sized to fit
   // its height, with the details still opening underneath. Uses the
   // browser's own full screen where it's allowed, so the bars hide too.
@@ -594,24 +595,47 @@ export default function TreeOfStars() {
           </g>
 
           {/* Stars — visions, in the cosmos the canopy reaches toward */}
+          {/* Each star's vision is written faintly beside it, brighter on
+              hover or focus, so the sky can be read without tapping
+              (Cassidy, Nov 2); a tap still opens it. */}
           {stars.map((s, i) => {
             const isMember = active ? active.starIds.has(s.id) : false;
+            const lit = isMember || hoverStar === s.id;
+            const flip = s.x > SVG_W * 0.62;
+            const label = s.title.length > 26 ? `${s.title.slice(0, 25)}…` : s.title;
             return (
               <motion.g
                 key={s.id}
-                className="cursor-pointer"
+                className="cursor-pointer outline-none"
+                role="button"
+                tabIndex={0}
+                aria-label={`Vision: ${s.title}`}
                 onClick={() => toggle("star", s.id)}
+                onKeyDown={e => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle("star", s.id))}
+                onMouseEnter={() => setHoverStar(s.id)}
+                onMouseLeave={() => setHoverStar(h => (h === s.id ? null : h))}
+                onFocus={() => setHoverStar(s.id)}
+                onBlur={() => setHoverStar(h => (h === s.id ? null : h))}
                 initial={{ opacity: 0, scale: 0.3 }}
                 animate={{ opacity: dim(isMember), scale: 1 }}
                 transition={{ delay: 1 + i * 0.08, duration: 0.5, ease: easeOut }}
               >
-                <NodeGlow x={s.x} y={s.y} r={9} color="#EDE6D6" active={active && isMember} />
+                <circle cx={s.x} cy={s.y} r={14} fill="transparent" />
+                <NodeGlow x={s.x} y={s.y} r={lit ? 12 : 9} color="#EDE6D6" active={(active && isMember) || hoverStar === s.id} />
                 <NodeCore x={s.x} y={s.y} r={4} color="#EDE6D6" />
-                {isMember && (
-                  <text x={s.x + 12} y={s.y + 4} fontSize="12" fill="#EDE6D6" fontFamily="DM Sans, sans-serif">
-                    {s.title}
-                  </text>
-                )}
+                <text
+                  x={flip ? s.x - 12 : s.x + 12}
+                  y={s.y + 4}
+                  textAnchor={flip ? "end" : "start"}
+                  fontSize={lit ? 12 : 10.5}
+                  fill="#EDE6D6"
+                  opacity={lit ? 0.95 : 0.42}
+                  fontFamily="DM Sans, sans-serif"
+                  style={{ transition: "opacity 200ms, font-size 200ms" }}
+                  pointerEvents="none"
+                >
+                  {lit ? s.title : label}
+                </text>
               </motion.g>
             );
           })}

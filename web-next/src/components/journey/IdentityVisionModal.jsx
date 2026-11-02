@@ -4,6 +4,7 @@ import { PILLARS } from "../../constants/app.const";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { localDateKey as todayKey } from "../../lib/week";
+import { PillarPicker } from "../ui/Pillar";
 
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
@@ -86,9 +87,7 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
   return (
     <Modal open={open} title={isEdit ? "Edit vision" : "A version of yourself"} onClose={onClose}>
       <label className={labelClass}>Which part of life is this</label>
-      <select className={fieldClass} value={category} onChange={e => setCategory(e.target.value)}>
-        {PILLARS.map(p => <option key={p} value={p}>{p}</option>)}
-      </select>
+      <PillarPicker value={category} onChange={setCategory} label="Which part of life is this" className="mb-3" />
 
       <label className={labelClass}>Title</label>
       <input className={fieldClass} value={title} onChange={e => setTitle(e.target.value)} placeholder="Philosopher" />

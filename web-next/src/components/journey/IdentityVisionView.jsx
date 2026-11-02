@@ -7,6 +7,7 @@ import { PILLAR_ICONS } from "../../constants/pillarIcons";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
 import IdentityVisionModal from "./IdentityVisionModal";
+import { PillarTitle } from "../ui/Pillar";
 
 function niceDate(dateStr) {
   return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
@@ -16,20 +17,9 @@ function niceDate(dateStr) {
 // consistently across Pursue, Values and here, rather than Identity
 // inventing its own categories.
 
+// Bold, with the Pillar's colour stripe and symbol (Cassidy, Nov 2).
 function CategoryHeading({ category, count }) {
-  const Icon = PILLAR_ICONS[category] || Sparkles;
-  const color = PILLAR_COLORS[category] || "var(--gold)";
-  return (
-    <span className="flex items-center gap-2">
-      <span
-        className="w-6 h-6 rounded-full flex items-center justify-center flex-none"
-        style={{ background: `color-mix(in srgb, ${color} 20%, transparent)`, color }}
-      >
-        <Icon size={13} strokeWidth={1.75} />
-      </span>
-      {category} <span className="text-textMuted font-sans text-bodySm font-normal">({count})</span>
-    </span>
-  );
+  return <PillarTitle pillar={category} count={count} />;
 }
 
 function VisionCard({ vision, onEdit }) {
