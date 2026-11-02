@@ -38,6 +38,9 @@ const BRANCH_BASE_Y = 360, BRANCH_ARCH = 150, BRANCH_MARGIN_X = 80;
 const STORY_ORB = { x: TRUNK_X, y: 58 };
 const CONSTELLATION_ORB = { x: SVG_W - 92, y: 62 };
 const MAX_FRUIT = 8;
+// The painted backdrop (sky, trunk, soil), drawn to this scene's 800 × 1120
+// layout. Until it exists the scene draws its own.
+const PAINTED_TREE = "/images/journey/tree-of-you.webp";
 
 // Spread n items across an arch, sampling the middle of each slot so a
 // small canopy (two or three values) sits up and out rather than drooping
@@ -72,6 +75,49 @@ function fruitOffset(i, n) {
   const a = n === 1 ? Math.PI / 2 : start + (i / (n - 1)) * spread;
   const r = 26 + (i % 2) * 7;
   return { dx: Math.cos(a) * r, dy: Math.sin(a) * r };
+}
+
+// A ripening value's leaves: a cluster around the branch tip, fuller as
+// the value deepens (Cassidy, Nov 2: "a living tree").
+function Leaves({ x, y, n, color }) {
+  const leaves = [];
+  for (let i = 0; i < n; i++) {
+    // A crown fanned all round the tip, fuller above it.
+    const a = -Math.PI / 2 + (i - (n - 1) / 2) * ((Math.PI * 1.7) / Math.max(n - 1, 1));
+    const r = 28 + (i % 3) * 8;
+    const lx = x + Math.cos(a) * r, ly = y + Math.sin(a) * r * 0.8;
+    const deg = (a * 180) / Math.PI + 90;
+    leaves.push(
+      <ellipse
+        key={i} cx={lx} cy={ly} rx={9} ry={20}
+        transform={`rotate(${deg} ${lx} ${ly})`}
+        fill={i % 3 === 0 ? "#9BAF7E" : color} opacity={i % 3 === 0 ? 0.6 : 0.5}
+      />
+    );
+  }
+  return <g>{leaves}</g>;
+}
+
+// A four-point sparkle, for the visions in the sky.
+function Sparkle({ x, y, r, color, opacity = 1 }) {
+  const w = r * 0.28;
+  return (
+    <path
+      d={`M ${x} ${y - r} Q ${x + w} ${y - w} ${x + r} ${y} Q ${x + w} ${y + w} ${x} ${y + r} Q ${x - w} ${y + w} ${x - r} ${y} Q ${x - w} ${y - w} ${x} ${y - r} Z`}
+      fill={color} opacity={opacity}
+    />
+  );
+}
+
+// A golden fruit: a soft glow, the fruit, and a highlight.
+function Fruit({ x, y, color }) {
+  return (
+    <g>
+      <circle cx={x} cy={y} r={8} fill={color} opacity={0.35} filter="url(#tosBlur)" />
+      <circle cx={x} cy={y} r={5} fill={color} />
+      <circle cx={x} cy={y} r={5} fill="url(#tosFruitShine)" />
+    </g>
+  );
 }
 
 function NodeGlow({ x, y, r, color, active }) {
@@ -355,13 +401,42 @@ export default function TreeOfStars() {
     return `circle(${radiusPct}% at ${o.x}px ${o.y}px)`;
   }
 
-  // Static background stars (no twinkle loop — nothing moves on its own).
+  // Background stars in three depths (no twinkle loop — nothing moves on
+  // its own). They drift a little with your finger, cursor or the tilt of
+  // your phone, nearer stars more, so the sky has depth (Cassidy, Nov 2).
   const bgStars = useMemo(() => {
     let seed = 7;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    return Array.from({ length: 60 }, () => ({
-      x: rand() * SVG_W, y: rand() * 280, r: 0.35 + rand() * 1.0, o: 0.15 + rand() * 0.4
+    const layer = (n, rMin, rMax, oMin, oMax, depth) => Array.from({ length: n }, () => ({
+      x: rand() * SVG_W, y: rand() * 330, r: rMin + rand() * (rMax - rMin), o: oMin + rand() * (oMax - oMin), depth
     }));
+    return [layer(70, 0.3, 0.8, 0.12, 0.35, 0), layer(40, 0.6, 1.2, 0.25, 0.55, 1), layer(14, 1.1, 1.8, 0.5, 0.85, 2)];
+  }, []);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    if (reduceMotion) return;
+    const onTilt = e => {
+      if (e.gamma == null) return;
+      setTilt({ x: Math.max(-1, Math.min(1, e.gamma / 30)), y: Math.max(-1, Math.min(1, (e.beta - 45) / 30)) });
+    };
+    window.addEventListener("deviceorientation", onTilt);
+    return () => window.removeEventListener("deviceorientation", onTilt);
+  }, [reduceMotion]);
+  function onSkyPointer(e) {
+    if (reduceMotion || e.pointerType === "touch") return;
+    const box = e.currentTarget.getBoundingClientRect();
+    setTilt({ x: ((e.clientX - box.left) / box.width) * 2 - 1, y: ((e.clientY - box.top) / box.height) * 2 - 1 });
+  }
+  const drift = depth => `translate(${-tilt.x * (3 + depth * 5)} ${-tilt.y * (2 + depth * 3)})`;
+
+  // Cassidy's painted tree, when it's been added: it takes the place of the
+  // drawn soil and trunk, and everything living is laid over it.
+  const [painted, setPainted] = useState(false);
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setPainted(true);
+    img.src = PAINTED_TREE;
   }, []);
 
   return (
@@ -425,7 +500,7 @@ export default function TreeOfStars() {
           animate={{ scale: gardenZoom ? 3.2 : 1, opacity: gardenZoom ? 0.6 : 1 }}
           transition={{ duration: gardenZoom ? 0.75 : 0.5, ease: easeOut }}
         >
-        <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block w-full h-auto">
+        <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block w-full h-auto" onPointerMove={onSkyPointer} onPointerLeave={() => setTilt({ x: 0, y: 0 })}>
           <defs>
             <filter id="tosBlur" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur stdDeviation="6" />
@@ -439,6 +514,23 @@ export default function TreeOfStars() {
               <stop offset="50%" stopColor="#6b4a2f" />
               <stop offset="100%" stopColor="#3a2a1d" />
             </linearGradient>
+            <radialGradient id="tosFruitShine" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
+              <stop offset="45%" stopColor="#ffffff" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#000000" stopOpacity="0.25" />
+            </radialGradient>
+            <radialGradient id="tosNebulaA" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#8A62C4" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="#8A62C4" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="tosNebulaB" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#E0A458" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#E0A458" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="tosHorizon" cx="50%" cy="100%" r="60%">
+              <stop offset="0%" stopColor="#E0A458" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#E0A458" stopOpacity="0" />
+            </radialGradient>
             <radialGradient id="tosGalaxy" cx="35%" cy="35%" r="65%">
               <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
               <stop offset="30%" stopColor="#C9A24D" stopOpacity="0.85" />
@@ -447,11 +539,25 @@ export default function TreeOfStars() {
             </radialGradient>
           </defs>
 
-          {bgStars.map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6" opacity={s.o} />)}
+          {painted && <image href={PAINTED_TREE} x={0} y={0} width={SVG_W} height={SVG_H} preserveAspectRatio="xMidYMid slice" />}
+
+          {/* The sky: a faint nebula, then stars at three depths */}
+          <g transform={drift(0)} style={{ transition: "transform 600ms ease-out" }}>
+            <ellipse cx={SVG_W * 0.3} cy={170} rx={260} ry={110} fill="url(#tosNebulaA)" />
+            <ellipse cx={SVG_W * 0.72} cy={240} rx={220} ry={90} fill="url(#tosNebulaB)" />
+          </g>
+          {bgStars.map((layer, d) => (
+            <g key={d} transform={drift(d)} style={{ transition: "transform 600ms ease-out" }}>
+              {layer.map((s, i) => d === 2
+                ? <Sparkle key={i} x={s.x} y={s.y} r={s.r * 2.6} color="#F3EAD6" opacity={s.o} />
+                : <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6" opacity={s.o} />)}
+            </g>
+          ))}
 
           {/* Soil — the unseen: shadow as nourishment, not threat */}
-          <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y} L ${SVG_W} ${SVG_H} L 0 ${SVG_H} Z`} fill="url(#tosSoil)" />
-          <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y}`} fill="none" stroke="#6b4a2f" strokeWidth={1.5} opacity={0.5} />
+          {!painted && <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y} L ${SVG_W} ${SVG_H} L 0 ${SVG_H} Z`} fill="url(#tosSoil)" />}
+          <ellipse cx={TRUNK_X} cy={GROUND_Y - 4} rx={SVG_W * 0.55} ry={60} fill="url(#tosHorizon)" />
+          {!painted && <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y}`} fill="none" stroke="#6b4a2f" strokeWidth={1.5} opacity={0.5} />}
           <text x={24} y={GROUND_Y + 30} fontSize="11" fill="#EDE6D6" opacity={0.35} fontFamily="DM Sans, sans-serif" style={{ letterSpacing: "0.08em" }}>
             OUTER ROOTS SPREAD WIDE
           </text>
@@ -463,8 +569,14 @@ export default function TreeOfStars() {
           {roots.map((r, i) => {
             const isMember = active ? active.pils.has(r.name) : false;
             return (
+              <g key={r.name + "-root"}>
+              <path
+                d={rootPath(r.x, r.y)} fill="none" stroke={r.color} strokeLinecap="round"
+                strokeWidth={8 + r.growth * 10} filter="url(#tosBlur)"
+                opacity={active ? (isMember ? 0.5 : 0) : 0.18 + r.growth * 0.22}
+                className="transition-opacity duration-500"
+              />
               <motion.path
-                key={r.name + "-root"}
                 d={rootPath(r.x, r.y)}
                 fill="none" stroke={r.color} strokeLinecap="round"
                 strokeWidth={2.5 + r.growth * 4 + (active && isMember ? 1.5 : 0)}
@@ -472,28 +584,50 @@ export default function TreeOfStars() {
                 animate={{ pathLength: 1, opacity: active ? (isMember ? 0.95 : 0.08) : 0.55 }}
                 transition={{ pathLength: { duration: 1.1, ease: easeOut, delay: 0.05 * i }, opacity: { duration: 0.4 } }}
               />
+              </g>
             );
           })}
 
           {/* Trunk — the Seeker */}
-          <path d={TRUNK_SHAPE} fill="url(#tosBark)" opacity={active ? 0.5 : 0.95} className="transition-opacity duration-500" />
+          {!painted && (
+            <g opacity={active ? 0.5 : 1} className="transition-opacity duration-500">
+              <path d={TRUNK_SHAPE} fill="url(#tosBark)" opacity={0.95} />
+              <path d={TRUNK_SHAPE} fill="none" stroke="#E0A458" strokeOpacity={0.22} strokeWidth={1.2} />
+              {[-12, -4, 6, 14].map((dx, i) => (
+                <path key={i} d={`M ${TRUNK_X + dx * 1.6} ${GROUND_Y - 4} C ${TRUNK_X + dx * 1.2} ${GROUND_Y - 70}, ${TRUNK_X + dx * 0.7} ${TRUNK_TOP_Y + 90}, ${TRUNK_X + dx * 0.55} ${TRUNK_TOP_Y + 18}`}
+                  fill="none" stroke="#2a1d12" strokeOpacity={0.45} strokeWidth={1} />
+              ))}
+            </g>
+          )}
 
           {/* Branches (Values) */}
           {branches.map((b, i) => {
             const isMember = active ? active.vals.has(b.name) : false;
             const width = b.resting ? 2 : 2.5 + b.tierIndex * 1.8 + Math.min(b.prestige, 4) * 0.6;
+            const shown = active ? (isMember ? 1 : 0.08) : b.resting ? 0.55 : 1;
+            const grow = { pathLength: { duration: 1.1, ease: easeOut, delay: 0.3 + 0.05 * i }, opacity: { duration: 0.4 } };
             return (
-              <motion.path
-                key={b.name + "-branch"}
-                d={branchPath(b.x, b.y)}
-                fill="none" strokeLinecap="round"
-                stroke={b.resting ? "#7a7568" : b.color}
-                strokeDasharray={b.resting ? "5 6" : undefined}
-                strokeWidth={width + (active && isMember ? 1.2 : 0)}
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: active ? (isMember ? 0.95 : 0.07) : b.resting ? 0.45 : 0.75 }}
-                transition={{ pathLength: { duration: 1.1, ease: easeOut, delay: 0.3 + 0.05 * i }, opacity: { duration: 0.4 } }}
-              />
+              <g key={b.name + "-branch"}>
+                {/* bark */}
+                <motion.path
+                  d={branchPath(b.x, b.y)} fill="none" strokeLinecap="round"
+                  stroke={b.resting ? "#8f8a80" : "#3a2a1d"}
+                  strokeWidth={width + 3 + (active && isMember ? 1.2 : 0)}
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: shown * 0.9 }}
+                  transition={grow}
+                />
+                {/* the living colour running through it; a resting branch is bare silver */}
+                <motion.path
+                  d={branchPath(b.x, b.y)} fill="none" strokeLinecap="round"
+                  stroke={b.resting ? "#D6D0C4" : b.color}
+                  strokeDasharray={b.resting ? "5 6" : undefined}
+                  strokeWidth={Math.max(1.2, width * 0.45)}
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: shown * (b.resting ? 0.5 : 0.85) }}
+                  transition={grow}
+                />
+              </g>
             );
           })}
 
@@ -511,16 +645,14 @@ export default function TreeOfStars() {
                 animate={{ opacity: dim(isMember) * (b.resting ? 0.6 : 1), scale: 1 }}
                 transition={{ delay: 0.7 + 0.06 * i, duration: 0.5, ease: easeOut }}
               >
+                {!b.resting && <Leaves x={b.x} y={b.y} n={7 + b.tierIndex * 2 + Math.min(b.prestige, 3)} color={b.color} />}
                 {!b.resting && <NodeGlow x={b.x} y={b.y} r={22} color={b.color} active={active && isMember} />}
-                <NodeCore x={b.x} y={b.y} r={b.resting ? 9 : 12} color={b.resting ? "#5d5a52" : b.color} />
+                <NodeCore x={b.x} y={b.y} r={b.resting ? 9 : 12} color={b.resting ? "#9c968a" : b.color} />
                 <NodeIcon Icon={Icon} x={b.x} y={b.y} size={b.resting ? 12 : 15} />
                 {Array.from({ length: shownFruit }).map((_, f) => {
                   const off = fruitOffset(f, shownFruit);
                   return (
-                    <g key={f}>
-                      <circle cx={b.x + off.dx} cy={b.y + off.dy} r={4.6} fill={b.fruitColor} />
-                      <circle cx={b.x + off.dx - 1.3} cy={b.y + off.dy - 1.3} r={1.4} fill="white" opacity={0.45} />
-                    </g>
+                    <Fruit key={f} x={b.x + off.dx} y={b.y + off.dy} color={b.fruitColor} />
                   );
                 })}
                 <text
@@ -621,8 +753,9 @@ export default function TreeOfStars() {
                 transition={{ delay: 1 + i * 0.08, duration: 0.5, ease: easeOut }}
               >
                 <circle cx={s.x} cy={s.y} r={14} fill="transparent" />
-                <NodeGlow x={s.x} y={s.y} r={lit ? 12 : 9} color="#EDE6D6" active={(active && isMember) || hoverStar === s.id} />
-                <NodeCore x={s.x} y={s.y} r={4} color="#EDE6D6" />
+                <NodeGlow x={s.x} y={s.y} r={lit ? 13 : 10} color={PILLAR_COLORS[s.category] || "#EDE6D6"} active={(active && isMember) || hoverStar === s.id} />
+                <Sparkle x={s.x} y={s.y} r={lit ? 11 : 9} color="#F7F1E1" />
+                <circle cx={s.x} cy={s.y} r={2.2} fill={PILLAR_COLORS[s.category] || "#C9A24D"} />
                 <text
                   x={flip ? s.x - 12 : s.x + 12}
                   y={s.y + 4}
