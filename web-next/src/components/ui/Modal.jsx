@@ -3,14 +3,15 @@ import { X } from "lucide-react";
 import { fadeIn, sheetIn } from "./motion";
 import { useEscape } from "./useEscape";
 
-export function Modal({ open, onClose, title, children }) {
+// `layer` lifts it above a full-screen view (the world map sits at z-[70]).
+export function Modal({ open, onClose, title, children, layer = "z-50" }) {
   useEscape(open, onClose);
   return (
     <AnimatePresence>
       {open && (
         <motion.div
           {...fadeIn}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50"
+          className={`fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center ${layer}`}
           onClick={onClose}
         >
           <motion.div
