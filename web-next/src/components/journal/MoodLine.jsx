@@ -2,14 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { bandFor, moodColour, scoreOf } from "../../lib/mood";
+import MoodFace from "../home/MoodFace";
 import { addDaysKey, localDateKey } from "../../lib/week";
 
 // Your moods over time (Cassidy, Nov 2): every check-in and every entry's
 // mood, one point a day (the day's average), for the last two weeks, month
 // or three months. The line is quiet ink; each point wears its mood's colour
 // (the same warm-to-fresh scale as the faces) and its height says the same,
-// so colour is never the only cue. Tap a point for that day. It folds away
-// under one quiet line, like Tags, until it's opened (Cassidy, Nov 2).
+// so colour is never the only cue. Tap a point for that day. Folded, it's a
+// tile beside Tags (Cassidy, Nov 2: "more appealing"): the face of your usual
+// mood and your last seven days as dots. Open, it takes the full width.
 const RANGES = [
   { days: 14, label: "2 weeks" },
   { days: 30, label: "Month" },
@@ -77,16 +79,18 @@ export default function MoodLine({ onOpenEntry }) {
   const pick = picked && points.find(p => p.key === picked);
 
   return (
-    <section aria-labelledby="mood-line-title" className="mb-3 rounded-card border border-borderC bg-surface1">
+    <section aria-labelledby="mood-line-title" className={`rounded-card bg-surface1 shadow-card ${open ? "col-span-2" : ""}`}>
       <h2 id="mood-line-title" className="m-0">
         <button
           type="button"
           onClick={() => setOpen(o => !o)}
           aria-expanded={open}
-          className="w-full flex items-center gap-1.5 px-3 min-h-[44px] text-left text-bodySm text-textSecondary font-normal"
+          aria-label={`Your moods, mostly ${bandFor(average).label.toLowerCase()}. ${open ? "Fold away" : "Open"}`}
+          className="w-full flex items-center gap-2 px-2.5 min-h-[44px] text-left font-normal"
         >
-          <ChevronDown size={15} strokeWidth={1.75} className={`transition-transform ${open ? "rotate-180" : ""}`} />
-          Your moods <span className="text-textMuted">· mostly {bandFor(average).label.toLowerCase()}</span>
+          <MoodFace score={average} size={26} />
+          <span className="flex-1 min-w-0 text-bodySm text-textPrimary truncate">Your moods</span>
+          <ChevronDown size={15} strokeWidth={1.75} className={`flex-none text-textMuted transition-transform ${open ? "rotate-180" : ""}`} />
         </button>
       </h2>
       {open && (
