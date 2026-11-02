@@ -4,7 +4,7 @@ import { dailySteps, formatAmount } from "./habits";
 // The numbers of a season, worked out on the device from what's already
 // loaded (no AI): what was written, felt, done and grown between `from`
 // and `to` (dates, YYYY-MM-DD; `to` not included).
-export function seasonStats({ journalEntries, moments, moodLog, memory, habitLogs, focusSessions, items }, from, to) {
+export function seasonStats({ journalEntries, moments, moodLog, memory, habitLogs, focusSessions, items, wanderingStops = [], wanderings = [] }, from, to) {
   const inside = d => d && d >= from && d < to;
 
   const entries = journalEntries.filter(e => inside(e.entry_date));
@@ -44,7 +44,22 @@ export function seasonStats({ journalEntries, moments, moodLog, memory, habitLog
   entries.forEach(e => (e.tags || []).forEach(t => { const k = String(t).replace(/^#/, "").toLowerCase(); tagCount[k] = (tagCount[k] || 0) + 1; }));
   const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => t);
 
+  // The places lived this season (Cassidy, Nov 2), each with a photo kept
+  // there if there is one. Places only dreamed of don't count.
+  const wishes = new Set(wanderings.filter(w => !w.item_id && w.title === "Places I'd love to go").map(w => w.id));
+  const seen = new Set();
+  const places = wanderingStops
+    .filter(s => !wishes.has(s.wandering_id) && inside(s.arrive))
+    .sort((a, b) => (a.arrive > b.arrive ? 1 : -1))
+    .filter(s => { const k = s.place_name.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+    .map(s => ({
+      id: s.id,
+      name: s.place_name,
+      photo: moments.find(m => m.stop_id === s.id && m.photo_url)?.photo_url || null
+    }));
+
   return {
+    places,
     entries: entries.length,
     words: entries.reduce((n, e) => n + (e.content || "").split(/\s+/).filter(Boolean).length, 0),
     moments: memories.length,

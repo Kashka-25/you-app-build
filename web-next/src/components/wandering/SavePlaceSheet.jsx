@@ -7,6 +7,7 @@ import PlaceSearch from "./PlaceSearch";
 import { compressImage } from "../../lib/imageCompress";
 import { currentPosition, photoPlace, reversePlace } from "../../lib/wandering";
 import { localDateKey } from "../../lib/week";
+import { isOffline } from "../../lib/placeOutbox";
 
 const MAX_PHOTOS = 6;
 const field = "w-full bg-surface1 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
@@ -19,7 +20,8 @@ const label = "block text-label uppercase text-textMuted mb-1.5";
 // gathered under "Places I've been". `place` can arrive already chosen
 // (a pin dropped on the map).
 export default function SavePlaceSheet({ open, onClose, place: given = null, onSaved, layer }) {
-  const { savePlaceMemory } = useAppData();
+  const { savePlaceMemory, addOwnPlace } = useAppData();
+  const [wish, setWish] = useState(false);
   const [place, setPlace] = useState(null);
   const [finding, setFinding] = useState(null); // "here" | "photo" | null
   const [findError, setFindError] = useState("");
@@ -31,8 +33,21 @@ export default function SavePlaceSheet({ open, onClose, place: given = null, onS
   const photoInput = useRef(null);
   const placePhotoInput = useRef(null);
 
+  const [offline, setOffline] = useState(isOffline());
+  useEffect(() => {
+    const on = () => setOffline(isOffline());
+    window.addEventListener("online", on);
+    window.addEventListener("offline", on);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", on); };
+  }, []);
+
   useEffect(() => {
     if (!open) return;
+    // Fetch the photo reader now, while there's signal, so it's on the
+    // phone if the signal goes.
+    if (!isOffline()) import("exifr").catch(() => {});
+    setOffline(isOffline());
+    setWish(false);
     setPlace(given);
     setFinding(null);
     setFindError("");
@@ -88,6 +103,17 @@ export default function SavePlaceSheet({ open, onClose, place: given = null, onS
     if (!place?.name?.trim()) return;
     setSaving(true);
     setError("");
+    if (wish) {
+      try {
+        await addOwnPlace({ ...place, name: place.name.trim(), note: words.trim() }, null, { wish: true });
+        onClose();
+      } catch (e) {
+        console.error("[SavePlaceSheet] wish failed:", e);
+        setError("Couldn't save this place just now. Check your connection and try again.");
+        setSaving(false);
+      }
+      return;
+    }
     try {
       const moment = await savePlaceMemory({
         place: { ...place, name: place.name.trim() },
@@ -107,6 +133,27 @@ export default function SavePlaceSheet({ open, onClose, place: given = null, onS
 
   return (
     <Modal open={open} title="Save a place" onClose={onClose} layer={layer}>
+      {offline && (
+        <div className="text-bodySm text-textSecondary bg-surface3 rounded-sm p-3 mb-3" role="status">
+          No signal here. Save it anyway: it keeps on your phone, and the photos upload and the spot gets its name when you're back online.
+        </div>
+      )}
+      {/* Been there, or dreaming of it (Cassidy, Nov 2). */}
+      <div className="grid grid-cols-2 gap-1 p-1 mb-4 rounded-full bg-surface3" role="radiogroup" aria-label="This place is">
+        {[[false, "I've been here"], [true, "I'd love to go"]].map(([w, text]) => (
+          <button
+            key={text}
+            type="button"
+            role="radio"
+            aria-checked={wish === w}
+            onClick={() => setWish(w)}
+            className={`min-h-[38px] rounded-full text-bodySm ${wish === w ? "bg-surface1 shadow-card text-textPrimary font-medium" : "text-textSecondary"}`}
+          >
+            {text}
+          </button>
+        ))}
+      </div>
+
       <span className={label}>Where</span>
       {place ? (
         <div className="rounded-card border border-gold/60 bg-[color-mix(in_srgb,var(--gold)_8%,var(--surface-1))] p-3 mb-4">
@@ -135,7 +182,7 @@ export default function SavePlaceSheet({ open, onClose, place: given = null, onS
             <button
               type="button"
               onClick={useHere}
-              disabled={Boolean(finding)}
+              disabled={Boolean(finding) || wish}
               className="flex flex-col items-center justify-center gap-1 min-h-[72px] rounded-card bg-forestAccent text-onAccent text-bodySm font-medium disabled:opacity-60"
             >
               {finding === "here" ? <Loader2 size={20} className="animate-spin" /> : <Crosshair size={20} strokeWidth={1.75} />}
@@ -163,6 +210,19 @@ export default function SavePlaceSheet({ open, onClose, place: given = null, onS
         </div>
       )}
 
+      {wish ? (
+        <>
+          <span className={label}>Why does it call you? (optional)</span>
+          <textarea
+            rows={3}
+            value={words}
+            onChange={e => setWords(e.target.value)}
+            placeholder="The light there, someone you'd go with, a feeling…"
+            aria-label="Why does it call you?"
+            className={`${field} mb-4`}
+          />
+        </>
+      ) : <>
       <span className={label}>The memory</span>
       <div className="flex flex-wrap gap-2 mb-2.5">
         {photos.map((p, i) => (
@@ -206,15 +266,18 @@ export default function SavePlaceSheet({ open, onClose, place: given = null, onS
       />
       <label className={label} htmlFor="place-date">When</label>
       <input id="place-date" type="date" value={date} max={localDateKey()} onChange={e => setDate(e.target.value)} className={`${field} mb-4`} />
+      </>}
 
       {error && <div className="text-bodySm text-error mb-3" role="alert">{error}</div>}
       <div className="flex gap-3">
         <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
         <Button className="flex-1" icon={MapPin} onClick={save} disabled={!place?.name?.trim() || saving || Boolean(finding)}>
-          {saving ? "Saving…" : "Save this place"}
+          {saving ? "Saving…" : wish ? "Save to places I'd love to go" : "Save this place"}
         </Button>
       </div>
-      <p className="text-caption text-textMuted text-center mt-2.5 mb-0">It goes on your world map and into YOUrney, under Places I've been.</p>
+      <p className="text-caption text-textMuted text-center mt-2.5 mb-0">
+        {wish ? "It glows on your world map as a place you'd love to go. Make it a Dream whenever you're ready." : "It goes on your world map and into YOUrney, under Places I've been."}
+      </p>
     </Modal>
   );
 }
