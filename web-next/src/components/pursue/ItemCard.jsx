@@ -11,6 +11,7 @@ import { StepList } from "../ui/StepList";
 import AddItemModal from "./AddItemModal";
 import HabitDay from "./HabitDay";
 import HabitTotals from "./HabitTotals";
+import StepEditor from "./StepEditor";
 import { todaySlot } from "../home/HabitsToday";
 import { dailySteps, stepKey } from "../../lib/habits";
 import { bonusHint, finishXp, habitDays, nextCheckinXp } from "../../lib/xp";
@@ -60,7 +61,7 @@ function lastSevenDays() {
 // right on it (lib/activePursuits.js).
 export default function ItemCard({ item }) {
   const {
-    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone,
+    completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone, setMilestones,
     getPrestigeTier, wanderings, wanderingStops, createWandering,
     habitLogs, toggleHabitStep, habitStreak, logPastDay, memory
   } = useAppData();
@@ -80,6 +81,7 @@ export default function ItemCard({ item }) {
   const [completedDate, setCompletedDate] = useState(todayKey());
   const [celebrating, setCelebrating] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [editingSteps, setEditingSteps] = useState(false);
   // A dream's travel plan, if it has one (Wanderings live inside Dreams).
   const wandering = item.type === "dream" ? wanderings.find(w => w.item_id === item.id) : null;
   const wanderingStopCount = wandering ? wanderingStops.filter(s => s.wandering_id === wandering.id).length : 0;
@@ -315,7 +317,22 @@ export default function ItemCard({ item }) {
               {/* Steps: a habit's daily ones are ticked above, so here they're
                   the list to add to or trim; a goal's are ticked off here. */}
               <div className="mt-3">
-                <div className="text-label uppercase text-textMuted mb-1">{msTotal ? "Steps" : "Break it into steps"}</div>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="text-label uppercase text-textMuted">{msTotal ? "Steps" : "Break it into steps"}</div>
+                  {msTotal > 0 && !item.done && !editingSteps && (
+                    <button type="button" onClick={() => setEditingSteps(true)} className="inline-flex items-center gap-1 min-h-[32px] text-caption text-forestAccent font-medium">
+                      <Pencil size={12} strokeWidth={1.75} /> Edit steps
+                    </button>
+                  )}
+                </div>
+                {editingSteps ? (
+                  <StepEditor
+                    steps={item.milestones || []}
+                    isHabit={isHabit}
+                    onCancel={() => setEditingSteps(false)}
+                    onSave={async list => { await setMilestones(item.id, list); setEditingSteps(false); }}
+                  />
+                ) : (
                 <StepList
                   steps={isHabit
                     ? (item.milestones || []).map(m => ({ ...m, done: habitLogs.some(l => l.item_id === item.id && l.day === today && l.step === stepKey(m)) }))
@@ -328,6 +345,7 @@ export default function ItemCard({ item }) {
                   onAdd={item.done ? null : text => addMilestone(item.id, text)}
                   onRemove={item.done ? null : mi => removeMilestone(item.id, mi)}
                 />
+                )}
               </div>
 
               {item.type === "dream" && !wandering && !item.done && (
