@@ -75,11 +75,11 @@ export default function WelcomeHero({ greeting, message, mood, cta, art, words, 
       <div className={`relative flex flex-col p-5 lg:p-10 ${words ? "justify-between gap-5 min-h-[420px] lg:min-h-[440px]" : "justify-end min-h-[300px] lg:min-h-[360px]"}`}>
         {words && <FeaturedPiece work={words} ink={ink} inkSoft={inkSoft} onOpen={onOpenArt} />}
 
-        <div className="flex flex-col">
+        <div className="flex flex-col items-center text-center">
           <h1 id="home-welcome" className={`font-serif text-hero text-[clamp(23px,7.2vw,28px)] lg:text-[44px] lg:leading-tight ${ink} m-0`}>{greeting}</h1>
           {/* A personal message for the day (lib/dailyMessage.js). */}
           {message && (
-            <p className={`m-0 mt-1.5 max-w-[34ch] font-serif italic text-[17px] leading-snug ${inkSoft}`}>
+            <p className={`m-0 mt-1.5 mx-auto max-w-[34ch] font-serif italic text-[17px] leading-snug ${inkSoft}`}>
               {message.text}
               {message.by && <span className="block not-italic font-sans text-caption mt-1 opacity-80">{message.by}</span>}
             </p>
@@ -91,7 +91,7 @@ export default function WelcomeHero({ greeting, message, mood, cta, art, words, 
           {cta && (
             <Link
               to={cta.to}
-              className="mt-4 self-start inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-forestAccent text-onAccent font-medium text-body shadow-card hover:bg-forest active:scale-[0.98] transition"
+              className="mt-4 self-center inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-forestAccent text-onAccent font-medium text-body shadow-card hover:bg-forest active:scale-[0.98] transition"
             >
               {cta.label}
               <ArrowRight size={17} strokeWidth={2} />

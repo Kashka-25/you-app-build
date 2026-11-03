@@ -63,7 +63,7 @@ export function MoodBadge({ ink = "text-textPrimary", fallback = null }) {
   if (score == null) {
     if (!fallback) return null;
     return (
-      <div className="inline-flex self-start items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-white/70 border border-borderC dark:bg-black/30 dark:border-white/10">
+      <div className="inline-flex self-center items-center gap-2 mt-3 px-3 py-1.5 rounded-full bg-white/70 border border-borderC dark:bg-black/30 dark:border-white/10">
         <fallback.Icon size={14} strokeWidth={1.75} className={ink} />
         <span className={`text-bodySm font-medium ${ink}`}>Arriving {fallback.label.toLowerCase()} today</span>
       </div>
@@ -76,7 +76,7 @@ export function MoodBadge({ ink = "text-textPrimary", fallback = null }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Today you're arriving ${band.label.toLowerCase()}, ${score} out of 100. Tap to say how you are now.`}
-        className="inline-flex self-start items-center gap-2 mt-3 pl-1 pr-3 py-1 rounded-full bg-white/70 border border-borderC dark:bg-black/30 dark:border-white/10 active:scale-[0.98] transition"
+        className="inline-flex self-center items-center gap-2 mt-3 pl-1 pr-3 py-1 rounded-full bg-white/70 border border-borderC dark:bg-black/30 dark:border-white/10 active:scale-[0.98] transition"
       >
         <MoodFace score={score} size={30} />
         <span className={`text-bodySm font-medium ${ink}`}>Arriving {band.label.toLowerCase()} today</span>
