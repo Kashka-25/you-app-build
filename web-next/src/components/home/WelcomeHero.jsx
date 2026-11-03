@@ -21,13 +21,19 @@ import { MoodBadge } from "./DailyCheckIn";
 // the piece's own art if it has an image, or the sunrise if it doesn't.
 // With no featured words, a featured artwork takes the landscape's place,
 // credited in the corner.
-export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, mood, cta, art, words, artMode = "full", onOpenArt }) {
+export default function WelcomeHero({ greeting, message, mood, cta, art, words, artMode = "full", onOpenArt }) {
   const artOn = artMode !== "off";
   const background = words
     ? (artOn && words.imageUrl ? words : null)
     : (artOn && art?.imageUrl ? art : null);
   const ink = "text-textPrimary dark:text-cream";
   const inkSoft = "text-textSecondary dark:text-[color-mix(in_srgb,var(--cream)_90%,transparent)]";
+  // On the painted sunrise the greeting sits in the sky, under the star and
+  // above the sun (Cassidy, Nov 3); the day's message stays at the bottom.
+  const sunrise = !background && !words;
+  const heading = (
+    <h1 id="home-welcome" className={`font-serif text-hero text-[clamp(23px,7.2vw,28px)] lg:text-[44px] lg:leading-tight ${ink} m-0 text-center`}>{greeting}</h1>
+  );
   return (
     <motion.section {...riseIn} aria-labelledby="home-welcome" className="relative rounded-card overflow-hidden shadow-card">
       {/* Nature: the sunrise over the lake, words in dark ink on a parchment
@@ -72,18 +78,19 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
       {/* An artwork on its own is credited in the corner; featured words carry their credit with them. */}
       {background && !words && <CreditChip work={art} onOpen={onOpenArt} />}
 
-      <div className={`relative flex flex-col p-5 lg:p-10 ${words ? "justify-between gap-5 min-h-[420px] lg:min-h-[440px]" : "justify-end min-h-[300px] lg:min-h-[360px]"}`}>
+      <div className={`relative flex flex-col p-5 lg:p-10 ${words ? "justify-between gap-5 min-h-[420px] lg:min-h-[440px]" : sunrise ? "justify-between gap-6 min-h-[300px] lg:min-h-[360px]" : "justify-end min-h-[300px] lg:min-h-[360px]"}`}>
         {words && <FeaturedPiece work={words} ink={ink} inkSoft={inkSoft} onOpen={onOpenArt} />}
+        {sunrise && <div className="pt-[14%] lg:pt-[7%]">{heading}</div>}
 
-        <div className="flex flex-col">
-          <h1 id="home-welcome" className={`font-serif text-hero text-[clamp(23px,7.2vw,28px)] lg:text-[44px] lg:leading-tight ${ink} m-0`}>{greeting}</h1>
-          <p
-            className={`m-0 mt-1.5 max-w-[30ch] ${inkSoft} ${
-              subtitleIsCompass ? "font-serif italic text-[17px] leading-snug" : "text-bodySm"
-            }`}
-          >
-            {subtitle}
-          </p>
+        <div className="flex flex-col items-center text-center">
+          {!sunrise && heading}
+          {/* A personal message for the day (lib/dailyMessage.js). */}
+          {message && (
+            <p className={`m-0 mt-1.5 mx-auto max-w-[34ch] font-serif italic text-[17px] leading-snug ${inkSoft}`}>
+              {message.text}
+              {message.by && <span className="block not-italic font-sans text-caption mt-1 opacity-80">{message.by}</span>}
+            </p>
+          )}
 
           {/* Today's mood face; tap it to update (DailyCheckIn.jsx). */}
           <MoodBadge ink={ink} fallback={mood} />
@@ -91,7 +98,7 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
           {cta && (
             <Link
               to={cta.to}
-              className="mt-4 self-start inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-forestAccent text-onAccent font-medium text-body shadow-card hover:bg-forest active:scale-[0.98] transition"
+              className="mt-4 self-center inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-forestAccent text-onAccent font-medium text-body shadow-card hover:bg-forest active:scale-[0.98] transition"
             >
               {cta.label}
               <ArrowRight size={17} strokeWidth={2} />

@@ -2,18 +2,17 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, Sun, Sprout, Wheat, Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { pickCurrentChapter } from "../../lib/compass";
+import { dailyMessage } from "../../lib/dailyMessage";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
 import HabitsToday from "../home/HabitsToday";
-import PursYOUtsCard from "../home/PursYOUtsCard";
 import { usePlugin } from "../../lib/plugins";
 import { useCourseNow } from "../course/CourseNow";
 import WelcomeHero from "../home/WelcomeHero";
 import DailyCheckIn from "../home/DailyCheckIn";
 import JourneyProgressCard from "../home/JourneyProgressCard";
-import { PracticeCard, QuickTools } from "../home/PracticeAndTools";
+import { PracticeCard } from "../home/PracticeAndTools";
 import ArtworkSheet from "../showcase/ArtworkSheet";
 import { useAuth } from "../../lib/AuthContext";
 import { useShowcase } from "../../lib/showcaseApi";
@@ -28,7 +27,7 @@ import { useActivePursuits } from "../../lib/activePursuits";
 // already loaded (see lib/compass.js), so opening Home never calls AI.
 export default function Home() {
   const {
-    items, chapters, journalEntries, profile, loaded,
+    items, journalEntries, profile, loaded, highlights,
     todos, weekIntentions, weekHarvests, compass, moodLog
   } = useAppData();
   const todayList = useTodayList();
@@ -37,6 +36,11 @@ export default function Home() {
   const { isActive } = useActivePursuits();
   const hasHabits = items.some(i => i.type === "habit" && isActive(i) && !sownIds.includes(i.id));
   const todoOn = usePlugin("todo_list");
+  // Home stays simple (Cassidy, Nov 3): the welcome, the check-in and
+  // Today. YOUniversity's path and practice, and Showcase's featured piece,
+  // only come with their extras.
+  const youniversityOn = usePlugin("youniversity");
+  const showcaseOn = usePlugin("showcase");
   const { entries: courses, tools } = useCourseNow();
   const { userId } = useAuth();
   const showcase = useShowcase(userId);
@@ -58,9 +62,8 @@ export default function Home() {
   const isNew = items.length === 0 && journalEntries.length === 0;
   const greeting = firstName ? `${isNew ? "Welcome" : "Welcome back"}, ${firstName}.` : isNew ? "Welcome to YOU." : "Welcome back.";
 
-  const chapter = pickCurrentChapter(chapters);
-  const subtitleIsCompass = Boolean(compass?.compass_line);
-  const subtitle = compass?.compass_line || chapter?.title || "A little progress, every day.";
+  // A personal message under the greeting, new each day (lib/dailyMessage.js).
+  const message = dailyMessage({ compassLine: compass?.compass_line, highlights, userId, dateKey: today });
 
   // Today's answer: the newest check-in, or a mood given with today's entry.
   const checkIn = moodLog.find(m => m.date_key === today && MOODS.some(x => x.key === m.mood))?.mood;
@@ -78,8 +81,8 @@ export default function Home() {
   const tendedDays = tendedDaysThisWeek(weekIntentions);
   const sownThisWeek = weekIntentions.some(w => w.week_start === weekStartKey());
   const offerSow = needsSowing(weekIntentions);
-  const featuredArt = pickFeatured(showcase.works, "home_background");
-  const featuredWords = previewWords() || pickFeatured(showcase.works, "featured_words");
+  const featuredArt = showcaseOn ? pickFeatured(showcase.works, "home_background") : null;
+  const featuredWords = previewWords() || (showcaseOn ? pickFeatured(showcase.works, "featured_words") : null);
 
   return (
     // Phones: one column, in the order the questions are asked. Laptops: a
@@ -90,7 +93,7 @@ export default function Home() {
       style={{ paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom))" }}
     >
       <div className="lg:col-span-7 lg:order-1">
-        <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} art={featuredArt} words={featuredWords} artMode={artMode} onOpenArt={setOpenWork} />
+        <WelcomeHero greeting={greeting} message={message} mood={todayMood} cta={cta} art={featuredArt} words={featuredWords} artMode={artMode} onOpenArt={setOpenWork} />
       </div>
 
       {/* Arriving comes first (Cassidy, Nov 1): until today's check-in, it
@@ -152,28 +155,18 @@ export default function Home() {
       {/* When the year turns, YOU invites a Season review (lib/seasons.js). */}
       <SeasonNudge />
 
-
-      {/* PursYOUts first, then the path and its practice (Cassidy, Nov 1). */}
-      <div className="lg:col-span-7 lg:order-3">
-        <PursYOUtsCard />
-      </div>
-
-      <div className="lg:col-span-7 lg:order-3">
-        <JourneyProgressCard entries={courses} />
-      </div>
-
-      {/* The practice sits right under the path it comes from (Cassidy, Nov 1). */}
-      <div className="lg:col-span-5 lg:order-4">
-        <PracticeCard tool={tools[0]} />
-      </div>
-
-
-
-
-      <div className="lg:col-span-12 lg:order-7">
-        <QuickTools />
-      </div>
-
+      {/* With YOUniversity on: the path being walked, and its practice right
+          under it (Cassidy, Nov 1). */}
+      {youniversityOn && (
+        <>
+          <div className="lg:col-span-7 lg:order-3">
+            <JourneyProgressCard entries={courses} />
+          </div>
+          <div className="lg:col-span-5 lg:order-3">
+            <PracticeCard tool={tools[0]} />
+          </div>
+        </>
+      )}
 
       {isNew && todos.length === 0 && !hasIntentions && (
         <p className="lg:col-span-12 lg:order-8 rounded-card border border-dashed border-borderC bg-surface1 p-4 text-bodySm text-textMuted m-0">

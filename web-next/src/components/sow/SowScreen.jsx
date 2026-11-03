@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, Target, Flame, Sprout, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Star, Target, Flame, Sprout, ChevronDown, ChevronRight, Lightbulb } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS, PILLAR_COLORS, VALUE_PILLAR, VALUE_PILLAR2 } from "../../constants/app.const";
 import { sowWeekStartKey, weekStartKey, weekRangeLabel, WEEKDAY_SHORT, markWeekRested, goBack } from "../../lib/week";
@@ -8,7 +8,7 @@ import { Button } from "../ui/Button";
 
 const MAX_SOWN = 3;
 const TYPE_LABEL = { habit: "Habit", goal: "Goal", dream: "Dream" };
-const TYPE_ICON = { habit: Flame, goal: Target, dream: Star };
+const TYPE_ICON = { habit: Flame, goal: Target, dream: Star, idea: Lightbulb };
 // Within a Pillar, the most week-sized things first.
 const TYPE_ORDER = { habit: 0, goal: 1, dream: 2 };
 

@@ -81,15 +81,6 @@ export function isWeekRested(weekStart) {
   try { return localStorage.getItem(restedKey(weekStart)) === "1"; } catch { return false; }
 }
 
-// "Open on the Threshold" — per device for now (default on).
-const THRESHOLD_PREF = "you.threshold.onOpen";
-export function thresholdOnOpen() {
-  try { return localStorage.getItem(THRESHOLD_PREF) !== "off"; } catch { return true; }
-}
-export function setThresholdOnOpen(on) {
-  try { localStorage.setItem(THRESHOLD_PREF, on ? "on" : "off"); } catch { /* ignore */ }
-}
-
 // Go back if there's somewhere to go back to in this app, else Home.
 export function goBack(navigate) {
   if ((window.history.state?.idx ?? 0) > 0) navigate(-1);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { dailySteps, formatAmount } from "../../lib/habits";
+import { dailySteps, formatAmount, isTimeUnit } from "../../lib/habits";
 import { localDateKey } from "../../lib/week";
 
 // Today's steps for one habit, each ticked fresh each day, with what was
@@ -10,7 +10,7 @@ import { localDateKey } from "../../lib/week";
 // `compact` shows a habit with no steps as just its amount, for the Home row
 // that already has the habit's own tick.
 export default function HabitDay({ item, compact = false }) {
-  const { habitLogs, toggleHabitStep, setHabitAmount } = useAppData();
+  const { habitLogs, toggleHabitStep, setHabitAmount, setStepUnit } = useAppData();
   const today = localDateKey();
   const steps = dailySteps(item);
   const single = steps.length === 1 && steps[0].key === "habit";
@@ -28,6 +28,7 @@ export default function HabitDay({ item, compact = false }) {
             hideTick={single && compact}
             onToggle={() => toggleHabitStep(item.id, s.key, s.amount).catch(e => console.error("[HabitDay] tick failed:", e))}
             onAmount={v => log && setHabitAmount(log.id, v).catch(e => console.error("[HabitDay] amount failed:", e))}
+            onUnit={u => setStepUnit(item.id, s.key, u).catch(e => console.error("[HabitDay] unit failed:", e))}
           />
         );
       })}
@@ -35,19 +36,40 @@ export default function HabitDay({ item, compact = false }) {
   );
 }
 
-function StepRow({ step, log, hideTick, onToggle, onAmount }) {
+// How much can be a plain number, minutes or hours. Time is saved in
+// minutes; a step without a unit takes the one chosen the first time.
+const KINDS = [
+  { key: "count", label: "#" },
+  { key: "min", label: "min" },
+  { key: "hrs", label: "hrs" }
+];
+
+function StepRow({ step, log, hideTick, onToggle, onAmount, onUnit }) {
   const [editing, setEditing] = useState(false);
   const done = Boolean(log);
   const actual = log?.amount != null ? Number(log.amount) : step.amount;
   const [value, setValue] = useState(actual ?? "");
   const unit = step.unit || "";
+  const timed = isTimeUnit(unit);
+  // A unit like "push-ups" stays as it is; time or nothing can be chosen.
+  const canChoose = !unit || timed;
+  const [kind, setKind] = useState(timed ? "min" : "count");
   const label = step.key === "habit" ? "" : step.text;
+
+  function start() {
+    setKind(timed ? "min" : "count");
+    setValue(actual ?? "");
+    setEditing(true);
+  }
 
   function save() {
     setEditing(false);
     const v = String(value).trim();
-    if (v === String(actual ?? "")) return;
-    onAmount(v === "" ? null : v);
+    const n = v === "" ? null : kind === "hrs" ? Math.round(Number(v) * 60) : v;
+    if (kind !== "count" && !timed) onUnit("minutes");
+    if (kind === "count" && timed) onUnit("");
+    if (String(n ?? "") === String(actual ?? "") && (kind === "count") === !timed) return;
+    onAmount(n);
   }
 
   return (
@@ -75,18 +97,36 @@ function StepRow({ step, log, hideTick, onToggle, onAmount }) {
               min="0"
               value={value}
               onChange={e => setValue(e.target.value)}
-              onBlur={save}
-              onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }}
+              onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
               aria-label={`How much ${step.text} today`}
               className="w-16 bg-surface2 border border-borderC rounded-sm px-1.5 py-0.5 text-caption text-textPrimary outline-none focus:border-forestAccent"
             />
-            {unit && <span className="text-caption text-textMuted">{unit}</span>}
+            {canChoose ? (
+              <span role="radiogroup" aria-label="Count, minutes or hours" className="inline-flex rounded-full border border-borderC overflow-hidden">
+                {KINDS.map(k => (
+                  <button
+                    key={k.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={kind === k.key}
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => setKind(k.key)}
+                    className={`px-1.5 min-h-[24px] text-[11px] ${kind === k.key ? "bg-gold text-[#19193D] font-semibold" : "text-textMuted"}`}
+                  >
+                    {k.label}
+                  </button>
+                ))}
+              </span>
+            ) : (
+              <span className="text-caption text-textMuted">{unit}</span>
+            )}
+            <button type="button" onClick={save} className="min-h-[24px] px-2 rounded-full bg-forestAccent text-onAccent text-[11px] font-medium">Save</button>
           </span>
         ) : (
           <button
             type="button"
             disabled={!done}
-            onClick={() => { setValue(actual ?? ""); setEditing(true); }}
+            onClick={start}
             title={done ? "Tap to change how much you did today" : undefined}
             className={`flex-none text-caption rounded-full px-2 min-h-[26px] ${done ? "bg-[color-mix(in_srgb,var(--gold)_16%,transparent)] text-textPrimary" : "text-textMuted"}`}
           >

@@ -8,7 +8,7 @@ import { VALUE_ICONS, getValueEntry } from "../../../constants/valueLibrary";
 import { useAppData } from "../../../lib/AppDataContext";
 import {
   INNER_PILLARS, OUTER_PILLARS, VALUE_COLORS, VALUE_PILLAR, VALUE_PILLAR2, TIERS,
-  getTier, getPrestigeStage, prestigeRequirement, PILLAR_COLORS
+  getTier, getPrestigeStage, prestigeRequirement, PILLAR_COLORS, LEVELS
 } from "../../../constants/app.const";
 import { easeOut } from "../../ui/motion";
 import IdentityVisionModal from "../IdentityVisionModal";
@@ -32,12 +32,36 @@ import { GardenBloom, GardenSeed } from "../../focus/FocusFlower";
 
 const SVG_W = 800, SVG_H = 1120;
 const TRUNK_X = SVG_W / 2;
-const GROUND_Y = 720;          // soil line
-const TRUNK_TOP_Y = 560;       // where branches leave the trunk
+// Lined up with Cassidy's painted tree (Nov 2): its grass meets the soil
+// about two-thirds down, and its trunk opens into light at 44%.
+const GROUND_Y = 750;          // soil line
+const TRUNK_TOP_Y = 480;       // where branches leave the trunk
 const BRANCH_BASE_Y = 360, BRANCH_ARCH = 150, BRANCH_MARGIN_X = 80;
 const STORY_ORB = { x: TRUNK_X, y: 58 };
 const CONSTELLATION_ORB = { x: SVG_W - 92, y: 62 };
 const MAX_FRUIT = 8;
+// Cassidy's painted tree grows with the Seeker (Nov 2): one painting for
+// each of the eight levels, Seedling to Elder, all drawn to this scene's
+// 800 × 1120 layout. Each tier records where its trunk opens into light
+// (`top`), the half-width of that crown (`crown`) and of its flared base
+// (`base`), so branches and roots always leave the tree where it really
+// is, and how far its glowing painted roots are softened (`dim`) so the
+// Pillars' own roots read over them (Cassidy: "decrease their opacity").
+// From tier 3 the trunk is lit gold, so branches take that lit bark; from
+// tier 4 the painting has its own root web, so the Pillars run through it
+// as glowing veins rather than drawn root wood.
+const TREE_TIERS = [
+  { top: 483, crown: 10, base: 26, dim: 0 },
+  { top: 461, crown: 14, base: 38, dim: 0.12 },
+  { top: 444, crown: 26, base: 52, dim: 0.24, lit: true },
+  { top: 403, crown: 34, base: 70, dim: 0.36, lit: true, paintedRoots: true },
+  { top: 404, crown: 30, base: 88, dim: 0.44, lit: true, paintedRoots: true },
+  { top: 386, crown: 40, base: 100, dim: 0.52, lit: true, paintedRoots: true },
+  { top: 353, crown: 48, base: 118, dim: 0.58, lit: true, paintedRoots: true },
+  { top: 301, crown: 54, base: 136, dim: 0.64, lit: true, paintedRoots: true }
+];
+const treeImage = n => `/images/journey/tree-tier-${n + 1}.webp`;
+const TREE_SEEN = "you.tree.tier";
 
 // Spread n items across an arch, sampling the middle of each slot so a
 // small canopy (two or three values) sits up and out rather than drooping
@@ -50,14 +74,51 @@ function archPos(i, n, baseX, width, baseY, arch) {
 // Fruit deepens in colour with each prestige cycle.
 const FRUIT_COLORS = ["#E0A458", "#D9764A", "#C9A24D", "#B85F6E", "#8FA05E"];
 
-function branchPath(tipX, tipY) {
-  return `M ${TRUNK_X} ${TRUNK_TOP_Y + 20} C ${TRUNK_X} ${TRUNK_TOP_Y - 60}, ${tipX} ${tipY + 140}, ${tipX} ${tipY}`;
+// Each branch leaves the trunk's crown a little to its own side, the way a
+// real tree divides, and curves up and out to its value.
+function branchCurve(tipX, tipY, tier) {
+  const lean = Math.max(-1, Math.min(1, (tipX - TRUNK_X) / 300));
+  const top = tier?.top ?? TRUNK_TOP_Y;
+  const x0 = TRUNK_X + lean * (tier?.crown ?? 9) * 0.85, y0 = top + 26;
+  // A tall tree's crown sits nearer the canopy, so its boughs spread more than they climb.
+  const rise = Math.min(70, Math.max(10, top - tipY - 60));
+  return [[x0, y0], [x0 + lean * 18, top - rise], [tipX - (tipX - TRUNK_X) * 0.12, tipY + Math.min(120, Math.max(40, top - tipY))], [tipX, tipY]];
 }
 
-function rootPath(tipX, tipY) {
+// Roots leave the trunk's flared base across its width, dip, then reach.
+function rootCurve(tipX, tipY, tier) {
   const dx = tipX - TRUNK_X;
-  return `M ${TRUNK_X + dx * 0.04} ${GROUND_Y - 6} C ${TRUNK_X + dx * 0.25} ${GROUND_Y + 50}, `
-       + `${tipX - dx * 0.35} ${tipY - 40}, ${tipX} ${tipY}`;
+  const spread = tier?.base ?? 26;
+  const x0 = TRUNK_X + Math.max(-spread, Math.min(spread, dx * 0.12 * (spread / 26)));
+  return [[x0, GROUND_Y - 8], [TRUNK_X + dx * 0.3, GROUND_Y + 40], [tipX - dx * 0.3, tipY - 50], [tipX, tipY]];
+}
+
+const curveD = ([a, b, c, d]) => `M ${a[0]} ${a[1]} C ${b[0]} ${b[1]}, ${c[0]} ${c[1]}, ${d[0]} ${d[1]}`;
+
+function bezier([a, b, c, d], t) {
+  const u = 1 - t;
+  const k = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
+  return [k[0] * a[0] + k[1] * b[0] + k[2] * c[0] + k[3] * d[0], k[0] * a[1] + k[1] * b[1] + k[2] * c[1] + k[3] * d[1]];
+}
+
+// A limb with real thickness: wide where it leaves the trunk, narrowing to
+// the tip, with a gentle swell so it reads as wood rather than a line
+// (Cassidy, Nov 2: "more cohesive with the image").
+function limbShape(curve, w0, w1) {
+  const n = 28, left = [], right = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const [x, y] = bezier(curve, t);
+    const [x2, y2] = bezier(curve, Math.min(1, t + 0.01));
+    const [x1, y1] = bezier(curve, Math.max(0, t - 0.01));
+    let nx = -(y2 - y1), ny = x2 - x1;
+    const len = Math.hypot(nx, ny) || 1;
+    nx /= len; ny /= len;
+    const w = (w0 + (w1 - w0) * Math.pow(t, 0.7)) * (1 + 0.06 * Math.sin(t * 9)) / 2;
+    left.push(`${(x + nx * w).toFixed(1)} ${(y + ny * w).toFixed(1)}`);
+    right.push(`${(x - nx * w).toFixed(1)} ${(y - ny * w).toFixed(1)}`);
+  }
+  return `M ${left.join(" L ")} L ${right.reverse().join(" L ")} Z`;
 }
 
 // A trunk that tapers from a wide base to a narrower crown.
@@ -72,6 +133,50 @@ function fruitOffset(i, n) {
   const a = n === 1 ? Math.PI / 2 : start + (i / (n - 1)) * spread;
   const r = 26 + (i % 2) * 7;
   return { dx: Math.cos(a) * r, dy: Math.sin(a) * r };
+}
+
+// A ripening value's leaves: a cluster around the branch tip, fuller as
+// the value deepens (Cassidy, Nov 2: "a living tree").
+function Leaves({ x, y, n, color }) {
+  const leaves = [];
+  for (let i = 0; i < n; i++) {
+    // A crown fanned all round the tip, fuller above it.
+    const a = -Math.PI / 2 + (i - (n - 1) / 2) * ((Math.PI * 1.7) / Math.max(n - 1, 1));
+    const r = 28 + (i % 3) * 8;
+    const lx = x + Math.cos(a) * r, ly = y + Math.sin(a) * r * 0.8;
+    const deg = (a * 180) / Math.PI + 90;
+    leaves.push(
+      <ellipse
+        key={i} cx={lx} cy={ly} rx={9} ry={20}
+        transform={`rotate(${deg} ${lx} ${ly})`}
+        style={{ fill: i % 4 === 0 ? "#D9A85A" : `color-mix(in srgb, ${color} ${i % 2 ? 45 : 30}%, #5E6B3A)` }}
+        opacity={i % 4 === 0 ? 0.55 : 0.85}
+      />
+    );
+  }
+  return <g>{leaves}</g>;
+}
+
+// A four-point sparkle, for the visions in the sky.
+function Sparkle({ x, y, r, color, opacity = 1 }) {
+  const w = r * 0.28;
+  return (
+    <path
+      d={`M ${x} ${y - r} Q ${x + w} ${y - w} ${x + r} ${y} Q ${x + w} ${y + w} ${x} ${y + r} Q ${x - w} ${y + w} ${x - r} ${y} Q ${x - w} ${y - w} ${x} ${y - r} Z`}
+      fill={color} opacity={opacity}
+    />
+  );
+}
+
+// A golden fruit: a soft glow, the fruit, and a highlight.
+function Fruit({ x, y, color }) {
+  return (
+    <g>
+      <circle cx={x} cy={y} r={8} fill={color} opacity={0.35} filter="url(#tosBlur)" />
+      <circle cx={x} cy={y} r={5} fill={color} />
+      <circle cx={x} cy={y} r={5} fill="url(#tosFruitShine)" />
+    </g>
+  );
 }
 
 function NodeGlow({ x, y, r, color, active }) {
@@ -164,6 +269,7 @@ function PortalSwirl({ origin, direction = "in" }) {
 }
 
 export default function TreeOfStars() {
+  const [hoverStar, setHoverStar] = useState(null);
   // Full screen (Cassidy, Oct 25): the tree fills the screen, sized to fit
   // its height, with the details still opening underneath. Uses the
   // browser's own full screen where it's allowed, so the bars hide too.
@@ -237,7 +343,7 @@ export default function TreeOfStars() {
       const p = byName[name] || { name, xp: 0, color: "#9a8870" };
       const growth = p.xp / maxXp;
       const offsets = [-125, -45, 45, 125];
-      return { ...p, inner: true, growth, x: TRUNK_X + offsets[i] * (0.8 + growth * 0.3), y: GROUND_Y + 230 + growth * 140 };
+      return { ...p, inner: true, growth, x: TRUNK_X + offsets[i] * (0.8 + growth * 0.3), y: GROUND_Y + 190 + growth * 150 };
     });
     const outer = OUTER_PILLARS.map((name, i) => {
       const p = byName[name] || { name, xp: 0, color: "#9a8870" };
@@ -354,21 +460,66 @@ export default function TreeOfStars() {
     return `circle(${radiusPct}% at ${o.x}px ${o.y}px)`;
   }
 
-  // Static background stars (no twinkle loop — nothing moves on its own).
+  // Background stars in three depths (no twinkle loop — nothing moves on
+  // its own). They drift a little with your finger, cursor or the tilt of
+  // your phone, nearer stars more, so the sky has depth (Cassidy, Nov 2).
   const bgStars = useMemo(() => {
     let seed = 7;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    return Array.from({ length: 60 }, () => ({
-      x: rand() * SVG_W, y: rand() * 280, r: 0.35 + rand() * 1.0, o: 0.15 + rand() * 0.4
+    const layer = (n, rMin, rMax, oMin, oMax, depth) => Array.from({ length: n }, () => ({
+      x: rand() * SVG_W, y: rand() * 330, r: rMin + rand() * (rMax - rMin), o: oMin + rand() * (oMax - oMin), depth
     }));
+    return [layer(70, 0.3, 0.8, 0.12, 0.35, 0), layer(40, 0.6, 1.2, 0.25, 0.55, 1), layer(14, 1.1, 1.8, 0.5, 0.85, 2)];
   }, []);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  useEffect(() => {
+    if (reduceMotion) return;
+    const onTilt = e => {
+      if (e.gamma == null) return;
+      setTilt({ x: Math.max(-1, Math.min(1, e.gamma / 30)), y: Math.max(-1, Math.min(1, (e.beta - 45) / 30)) });
+    };
+    window.addEventListener("deviceorientation", onTilt);
+    return () => window.removeEventListener("deviceorientation", onTilt);
+  }, [reduceMotion]);
+  function onSkyPointer(e) {
+    if (reduceMotion || e.pointerType === "touch") return;
+    const box = e.currentTarget.getBoundingClientRect();
+    setTilt({ x: ((e.clientX - box.left) / box.width) * 2 - 1, y: ((e.clientY - box.top) / box.height) * 2 - 1 });
+  }
+  const drift = depth => `translate(${-tilt.x * (3 + depth * 5)} ${-tilt.y * (2 + depth * 3)})`;
+
+  // The painting for the Seeker's level takes the place of the drawn soil
+  // and trunk; everything living is laid over it.
+  // On a local dev copy, /journey?tree-tier=5 shows any tier, to check them all.
+  const forcedTier = import.meta.env.DEV ? Number(new URLSearchParams(window.location.search).get("tree-tier")) - 1 : -1;
+  const tierIndex = forcedTier >= 0 && forcedTier < TREE_TIERS.length
+    ? forcedTier
+    : Math.max(0, Math.min(TREE_TIERS.length - 1, LEVELS.findIndex(l => l.name === level?.name)));
+  const [painted, setPainted] = useState(false);
+  const [grewFrom, setGrewFrom] = useState(null);
+  const tier = painted ? TREE_TIERS[tierIndex] : null;
+  useEffect(() => {
+    setPainted(false);
+    const img = new Image();
+    img.onload = () => {
+      setPainted(true);
+      // Grown since this tree was last seen here: the old tree gives way to
+      // the new one, once.
+      let seen = null;
+      try { seen = Number(localStorage.getItem(TREE_SEEN)); } catch { /* private mode */ }
+      if (Number.isInteger(seen) && seen >= 0 && seen < tierIndex) setGrewFrom(seen);
+      try { localStorage.setItem(TREE_SEEN, String(tierIndex)); } catch { /* fine */ }
+    };
+    img.src = treeImage(tierIndex);
+  }, [tierIndex]);
 
   return (
     <div
       className={full ? "fixed inset-0 z-40 overflow-y-auto px-3 pb-10 font-sans" : "pt-1 pb-24 px-5"}
       // Immersive (Cassidy, Oct 28: "leave no screen border"): no frame, and
       // the tree's own night and soil run on to every edge.
-      style={full ? { background: tall ? "linear-gradient(180deg, #060b08 50%, #0d0906 50%)" : "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%) top / 100% 100dvh no-repeat, #0d0906" } : undefined}
+      style={full ? { background: tall ? (painted ? "linear-gradient(180deg, #0c0b22 50%, #25100c 50%)" : "linear-gradient(180deg, #060b08 50%, #0d0906 50%)") : "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%) top / 100% 100dvh no-repeat, #0d0906" } : undefined}
       role={full ? "dialog" : undefined}
       aria-label={full ? "Tree of YOU, full screen" : undefined}
     >
@@ -424,7 +575,7 @@ export default function TreeOfStars() {
           animate={{ scale: gardenZoom ? 3.2 : 1, opacity: gardenZoom ? 0.6 : 1 }}
           transition={{ duration: gardenZoom ? 0.75 : 0.5, ease: easeOut }}
         >
-        <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block w-full h-auto">
+        <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block w-full h-auto" onPointerMove={onSkyPointer} onPointerLeave={() => setTilt({ x: 0, y: 0 })}>
           <defs>
             <filter id="tosBlur" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur stdDeviation="6" />
@@ -438,6 +589,42 @@ export default function TreeOfStars() {
               <stop offset="50%" stopColor="#6b4a2f" />
               <stop offset="100%" stopColor="#3a2a1d" />
             </linearGradient>
+            <linearGradient id="tosBough" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor="#945a37" />
+              <stop offset="55%" stopColor="#7a4a2e" />
+              <stop offset="100%" stopColor="#613627" />
+            </linearGradient>
+            <linearGradient id="tosRootDim" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#25100c" stopOpacity="0" />
+              <stop offset="12%" stopColor="#25100c" stopOpacity="1" />
+              <stop offset="100%" stopColor="#1a0b08" stopOpacity="1" />
+            </linearGradient>
+            <linearGradient id="tosBoughLit" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor="#d59a55" />
+              <stop offset="50%" stopColor="#b5773f" />
+              <stop offset="100%" stopColor="#8a5530" />
+            </linearGradient>
+            <linearGradient id="tosRootWood" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7a4a2e" />
+              <stop offset="100%" stopColor="#3d2216" />
+            </linearGradient>
+            <radialGradient id="tosFruitShine" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#ffffff" stopOpacity="0.75" />
+              <stop offset="45%" stopColor="#ffffff" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#000000" stopOpacity="0.25" />
+            </radialGradient>
+            <radialGradient id="tosNebulaA" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#8A62C4" stopOpacity="0.32" />
+              <stop offset="100%" stopColor="#8A62C4" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="tosNebulaB" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#E0A458" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#E0A458" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="tosHorizon" cx="50%" cy="100%" r="60%">
+              <stop offset="0%" stopColor="#E0A458" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#E0A458" stopOpacity="0" />
+            </radialGradient>
             <radialGradient id="tosGalaxy" cx="35%" cy="35%" r="65%">
               <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
               <stop offset="30%" stopColor="#C9A24D" stopOpacity="0.85" />
@@ -446,11 +633,49 @@ export default function TreeOfStars() {
             </radialGradient>
           </defs>
 
-          {bgStars.map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6" opacity={s.o} />)}
+          {painted && <image href={treeImage(tierIndex)} x={0} y={0} width={SVG_W} height={SVG_H} preserveAspectRatio="xMidYMid slice" />}
+          {painted && grewFrom != null && (
+            <motion.image
+              href={treeImage(grewFrom)} x={0} y={0} width={SVG_W} height={SVG_H} preserveAspectRatio="xMidYMid slice"
+              initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 3.2, delay: 0.8, ease: "easeInOut" }}
+            />
+          )}
+          {painted && grewFrom != null && (
+            <motion.g
+              pointerEvents="none"
+              initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 1, 0] }}
+              transition={{ duration: 7, times: [0, 0.18, 0.75, 1], ease: "easeInOut" }}
+            >
+              <text x={TRUNK_X} y={GROUND_Y + 120} textAnchor="middle" fontSize="34" fill="#F7EEDC" fontFamily="Cormorant Garamond, Georgia, serif" style={{ paintOrder: "stroke", stroke: "#1a0b08", strokeWidth: 6, strokeOpacity: 0.55 }}>
+                Your tree has grown
+              </text>
+              <text x={TRUNK_X} y={GROUND_Y + 156} textAnchor="middle" fontSize="18" fill="#E8C877" fontFamily="DM Sans, sans-serif" letterSpacing="0.12em" style={{ paintOrder: "stroke", stroke: "#1a0b08", strokeWidth: 5, strokeOpacity: 0.55 }}>
+                {(LEVELS[tierIndex]?.name || "").toUpperCase()}
+              </text>
+            </motion.g>
+          )}
+          {tier?.dim > 0 && (
+            <rect x={0} y={GROUND_Y - 10} width={SVG_W} height={SVG_H - GROUND_Y + 10} fill="url(#tosRootDim)" style={{ opacity: tier.dim }} pointerEvents="none" />
+          )}
+
+          {/* The sky: a faint nebula, then stars at three depths (over the
+              painting, which has its own, only the nearest sparkles) */}
+          {!painted && <g transform={drift(0)} style={{ transition: "transform 600ms ease-out" }}>
+            <ellipse cx={SVG_W * 0.3} cy={170} rx={260} ry={110} fill="url(#tosNebulaA)" />
+            <ellipse cx={SVG_W * 0.72} cy={240} rx={220} ry={90} fill="url(#tosNebulaB)" />
+          </g>}
+          {bgStars.map((layer, d) => (painted && d < 2) ? null : (
+            <g key={d} transform={drift(d)} style={{ transition: "transform 600ms ease-out" }}>
+              {layer.map((s, i) => d === 2
+                ? <Sparkle key={i} x={s.x} y={s.y} r={s.r * 2.6} color="#F3EAD6" opacity={s.o} />
+                : <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6" opacity={s.o} />)}
+            </g>
+          ))}
 
           {/* Soil — the unseen: shadow as nourishment, not threat */}
-          <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y} L ${SVG_W} ${SVG_H} L 0 ${SVG_H} Z`} fill="url(#tosSoil)" />
-          <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y}`} fill="none" stroke="#6b4a2f" strokeWidth={1.5} opacity={0.5} />
+          {!painted && <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y} L ${SVG_W} ${SVG_H} L 0 ${SVG_H} Z`} fill="url(#tosSoil)" />}
+          {!painted && <ellipse cx={TRUNK_X} cy={GROUND_Y - 4} rx={SVG_W * 0.55} ry={60} fill="url(#tosHorizon)" />}
+          {!painted && <path d={`M 0 ${GROUND_Y} Q ${TRUNK_X} ${GROUND_Y - 26} ${SVG_W} ${GROUND_Y}`} fill="none" stroke="#6b4a2f" strokeWidth={1.5} opacity={0.5} />}
           <text x={24} y={GROUND_Y + 30} fontSize="11" fill="#EDE6D6" opacity={0.35} fontFamily="DM Sans, sans-serif" style={{ letterSpacing: "0.08em" }}>
             OUTER ROOTS SPREAD WIDE
           </text>
@@ -461,38 +686,87 @@ export default function TreeOfStars() {
           {/* Roots (Pillars) */}
           {roots.map((r, i) => {
             const isMember = active ? active.pils.has(r.name) : false;
+            const curve = rootCurve(r.x, r.y, tier);
+            const shown = active ? (isMember ? 1 : 0.12) : 1;
+            const grow = { duration: 1.1, ease: easeOut, delay: 0.05 * i };
             return (
-              <motion.path
-                key={r.name + "-root"}
-                d={rootPath(r.x, r.y)}
-                fill="none" stroke={r.color} strokeLinecap="round"
-                strokeWidth={2.5 + r.growth * 4 + (active && isMember ? 1.5 : 0)}
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: active ? (isMember ? 0.95 : 0.08) : 0.55 }}
-                transition={{ pathLength: { duration: 1.1, ease: easeOut, delay: 0.05 * i }, opacity: { duration: 0.4 } }}
-              />
+              <g key={r.name + "-root"}>
+                {/* the soil glowing around it, in the Pillar's colour */}
+                <path
+                  d={curveD(curve)} fill="none" stroke={r.color} strokeLinecap="round"
+                  strokeWidth={10 + r.growth * 12} filter="url(#tosBlur)"
+                  opacity={active ? (isMember ? 0.45 : 0) : 0.14 + r.growth * 0.2}
+                  className="transition-opacity duration-500"
+                />
+                {/* the root itself: wood, thick at the trunk, fine at the tip */}
+                {!tier?.paintedRoots && <motion.path
+                  d={limbShape(curve, 14 + r.growth * 10, 2.6)}
+                  fill="url(#tosRootWood)" stroke="#2a150c" strokeOpacity={0.5} strokeWidth={0.6}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: shown * 0.92 }}
+                  transition={{ opacity: grow }}
+                />}
+                {/* a vein of light running through it */}
+                <motion.path
+                  d={curveD(curve)} fill="none" stroke={r.color} strokeLinecap="round"
+                  strokeWidth={(tier?.paintedRoots ? 2.4 : 1.2) + r.growth * 1.6 + (active && isMember ? 0.8 : 0)}
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: shown * 0.85 }}
+                  transition={{ pathLength: grow, opacity: { duration: 0.4 } }}
+                />
+              </g>
             );
           })}
 
           {/* Trunk — the Seeker */}
-          <path d={TRUNK_SHAPE} fill="url(#tosBark)" opacity={active ? 0.5 : 0.95} className="transition-opacity duration-500" />
+          {!painted && (
+            <g opacity={active ? 0.5 : 1} className="transition-opacity duration-500">
+              <path d={TRUNK_SHAPE} fill="url(#tosBark)" opacity={0.95} />
+              <path d={TRUNK_SHAPE} fill="none" stroke="#E0A458" strokeOpacity={0.22} strokeWidth={1.2} />
+              {[-12, -4, 6, 14].map((dx, i) => (
+                <path key={i} d={`M ${TRUNK_X + dx * 1.6} ${GROUND_Y - 4} C ${TRUNK_X + dx * 1.2} ${GROUND_Y - 70}, ${TRUNK_X + dx * 0.7} ${TRUNK_TOP_Y + 90}, ${TRUNK_X + dx * 0.55} ${TRUNK_TOP_Y + 18}`}
+                  fill="none" stroke="#2a1d12" strokeOpacity={0.45} strokeWidth={1} />
+              ))}
+            </g>
+          )}
 
           {/* Branches (Values) */}
           {branches.map((b, i) => {
             const isMember = active ? active.vals.has(b.name) : false;
-            const width = b.resting ? 2 : 2.5 + b.tierIndex * 1.8 + Math.min(b.prestige, 4) * 0.6;
+            const curve = branchCurve(b.x, b.y, tier);
+            const base = b.resting ? 10 : 16 + b.tierIndex * 3 + Math.min(b.prestige, 4) * 1.2;
+            const shown = active ? (isMember ? 1 : 0.1) : b.resting ? 0.7 : 1;
+            const grow = { duration: 1.1, ease: easeOut, delay: 0.3 + 0.05 * i };
             return (
-              <motion.path
-                key={b.name + "-branch"}
-                d={branchPath(b.x, b.y)}
-                fill="none" strokeLinecap="round"
-                stroke={b.resting ? "#7a7568" : b.color}
-                strokeDasharray={b.resting ? "5 6" : undefined}
-                strokeWidth={width + (active && isMember ? 1.2 : 0)}
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: active ? (isMember ? 0.95 : 0.07) : b.resting ? 0.45 : 0.75 }}
-                transition={{ pathLength: { duration: 1.1, ease: easeOut, delay: 0.3 + 0.05 * i }, opacity: { duration: 0.4 } }}
-              />
+              <g key={b.name + "-branch"}>
+                {/* the bough: the painting's own bark, a resting one weathered silver */}
+                <motion.path
+                  d={limbShape(curve, base, 4)}
+                  fill={b.resting ? "#8f8a80" : tier?.lit ? "url(#tosBoughLit)" : "url(#tosBough)"}
+                  stroke={b.resting ? "#5f5b54" : "#3d2216"} strokeOpacity={0.55} strokeWidth={0.7}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: shown * 0.97 }}
+                  transition={{ opacity: grow }}
+                />
+                {/* light catching its upper edge, as on the trunk */}
+                {!b.resting && (
+                  <motion.path
+                    d={curveD(curve)} fill="none" stroke="#da8c55" strokeLinecap="round"
+                    strokeWidth={1} transform="translate(-1.5 -1)"
+                    initial={{ opacity: 0 }} animate={{ opacity: shown * 0.35 }} transition={{ opacity: grow }}
+                  />
+                )}
+                {/* the value's colour running through it, like the trunk's gold vines */}
+                <motion.path
+                  d={curveD(curve)} fill="none" strokeLinecap="round"
+                  stroke={b.resting ? "#D6D0C4" : b.color}
+                  strokeDasharray={b.resting ? "4 7" : undefined}
+                  strokeWidth={b.resting ? 1 : 1.4 + b.tierIndex * 0.35 + (active && isMember ? 0.8 : 0)}
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: shown * (b.resting ? 0.45 : 0.8) }}
+                  transition={{ pathLength: grow, opacity: { duration: 0.4 } }}
+                />
+              </g>
             );
           })}
 
@@ -510,16 +784,14 @@ export default function TreeOfStars() {
                 animate={{ opacity: dim(isMember) * (b.resting ? 0.6 : 1), scale: 1 }}
                 transition={{ delay: 0.7 + 0.06 * i, duration: 0.5, ease: easeOut }}
               >
+                {!b.resting && <Leaves x={b.x} y={b.y} n={7 + b.tierIndex * 2 + Math.min(b.prestige, 3)} color={b.color} />}
                 {!b.resting && <NodeGlow x={b.x} y={b.y} r={22} color={b.color} active={active && isMember} />}
-                <NodeCore x={b.x} y={b.y} r={b.resting ? 9 : 12} color={b.resting ? "#5d5a52" : b.color} />
+                <NodeCore x={b.x} y={b.y} r={b.resting ? 9 : 12} color={b.resting ? "#9c968a" : b.color} />
                 <NodeIcon Icon={Icon} x={b.x} y={b.y} size={b.resting ? 12 : 15} />
                 {Array.from({ length: shownFruit }).map((_, f) => {
                   const off = fruitOffset(f, shownFruit);
                   return (
-                    <g key={f}>
-                      <circle cx={b.x + off.dx} cy={b.y + off.dy} r={4.6} fill={b.fruitColor} />
-                      <circle cx={b.x + off.dx - 1.3} cy={b.y + off.dy - 1.3} r={1.4} fill="white" opacity={0.45} />
-                    </g>
+                    <Fruit key={f} x={b.x + off.dx} y={b.y + off.dy} color={b.fruitColor} />
                   );
                 })}
                 <text
@@ -594,24 +866,48 @@ export default function TreeOfStars() {
           </g>
 
           {/* Stars — visions, in the cosmos the canopy reaches toward */}
+          {/* Each star's vision is written faintly beside it, brighter on
+              hover or focus, so the sky can be read without tapping
+              (Cassidy, Nov 2); a tap still opens it. */}
           {stars.map((s, i) => {
             const isMember = active ? active.starIds.has(s.id) : false;
+            const lit = isMember || hoverStar === s.id;
+            const flip = s.x > SVG_W * 0.62;
+            const label = s.title.length > 26 ? `${s.title.slice(0, 25)}…` : s.title;
             return (
               <motion.g
                 key={s.id}
-                className="cursor-pointer"
+                className="cursor-pointer outline-none"
+                role="button"
+                tabIndex={0}
+                aria-label={`Vision: ${s.title}`}
                 onClick={() => toggle("star", s.id)}
+                onKeyDown={e => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle("star", s.id))}
+                onMouseEnter={() => setHoverStar(s.id)}
+                onMouseLeave={() => setHoverStar(h => (h === s.id ? null : h))}
+                onFocus={() => setHoverStar(s.id)}
+                onBlur={() => setHoverStar(h => (h === s.id ? null : h))}
                 initial={{ opacity: 0, scale: 0.3 }}
                 animate={{ opacity: dim(isMember), scale: 1 }}
                 transition={{ delay: 1 + i * 0.08, duration: 0.5, ease: easeOut }}
               >
-                <NodeGlow x={s.x} y={s.y} r={9} color="#EDE6D6" active={active && isMember} />
-                <NodeCore x={s.x} y={s.y} r={4} color="#EDE6D6" />
-                {isMember && (
-                  <text x={s.x + 12} y={s.y + 4} fontSize="12" fill="#EDE6D6" fontFamily="DM Sans, sans-serif">
-                    {s.title}
-                  </text>
-                )}
+                <circle cx={s.x} cy={s.y} r={14} fill="transparent" />
+                <NodeGlow x={s.x} y={s.y} r={lit ? 13 : 10} color={PILLAR_COLORS[s.category] || "#EDE6D6"} active={(active && isMember) || hoverStar === s.id} />
+                <Sparkle x={s.x} y={s.y} r={lit ? 11 : 9} color="#F7F1E1" />
+                <circle cx={s.x} cy={s.y} r={2.2} fill={PILLAR_COLORS[s.category] || "#C9A24D"} />
+                <text
+                  x={flip ? s.x - 12 : s.x + 12}
+                  y={s.y + 4}
+                  textAnchor={flip ? "end" : "start"}
+                  fontSize={lit ? 12 : 10.5}
+                  fill="#EDE6D6"
+                  opacity={lit ? 0.95 : 0.42}
+                  fontFamily="DM Sans, sans-serif"
+                  style={{ transition: "opacity 200ms, font-size 200ms" }}
+                  pointerEvents="none"
+                >
+                  {lit ? s.title : label}
+                </text>
               </motion.g>
             );
           })}
