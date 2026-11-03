@@ -60,7 +60,16 @@ export function habitStats(item, logs, today) {
       return { key: s.key, text: s.text, unit: s.unit, amount };
     })
     .filter(t => t.amount > 0);
-  return { daysDone: days.size, since: Math.max(since, days.size), totals };
+  // Each step on its own (Cassidy, Nov 3): the days it was ticked, and its
+  // total, so a step that's slipping shows (push-ups 10 days, sit-ups 5).
+  const perStep = steps.length > 1 || steps[0]?.key !== "habit"
+    ? steps.map(s => {
+        const logs = mine.filter(l => l.step === s.key);
+        const amount = logs.reduce((sum, l) => sum + (l.amount != null ? Number(l.amount) : s.amount || 0), 0);
+        return { key: s.key, text: s.text, unit: s.unit, days: new Set(logs.map(l => l.day)).size, amount };
+      })
+    : [];
+  return { daysDone: days.size, since: Math.max(since, days.size), totals, perStep };
 }
 
 // Round numbers worth a small celebration.
