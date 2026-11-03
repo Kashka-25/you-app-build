@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Compass, Feather, MessageSquareHeart, Sprout, Sun, Puzzle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Compass, Feather, Map as MapIcon, MessageSquareHeart, Sprout, Sun, Puzzle } from "lucide-react";
 import { useAuth } from "../lib/AuthContext";
 import { useAppData } from "../lib/AppDataContext";
 import { usePlugin, useSetPlugin } from "../lib/plugins";
@@ -11,51 +11,67 @@ import { BetaBadge } from "./SignIn";
 // The first-run welcome: once per account (prefs.welcomed), replayable from
 // Your Own Universe. One idea per page, one action at most, always a way
 // out (Skip, Back, Escape). Nothing moves until the Seeker taps.
+// Rewritten Nov 3 for the simple-core beta: the five places, XP, values that
+// grow, reflections over time and Extras, in the words of the Kronk intro.
 const STEPS = [
   {
     key: "welcome",
     image: "/images/home/welcome-day.webp",
     icon: Sun,
     title: "Welcome to Your Own Universe",
-    body: "A quiet place to grow into who you already are. No streaks to keep, nothing to catch up on. Just you, a little at a time."
+    body: "A place to free the dream: to reflect on who you were, who you are, and who you are becoming, and to live it a little more each day."
+  },
+  {
+    key: "places",
+    image: "/images/home/welcome-sunrise.webp",
+    icon: MapIcon,
+    title: "Five places, that's all",
+    body: "Everything in YOU lives in five places. You'll find them along the bar at the bottom and in the side menu.",
+    points: [
+      "Home · check in with how you feel, and see what today holds",
+      "YOUrnal · write it down, or photograph a handwritten page",
+      "YOUrney · your memories and moments: the story so far",
+      "PursYOUts · your habits, goals and dreams in one clear vision",
+      "YOU · your values and Pillars: your whole self at a glance"
+    ]
   },
   {
     key: "rhythm",
     image: "/images/home/tool-pursuits.webp",
     icon: Sprout,
     title: "Sow, tend, harvest",
-    body: "Once a week, choose up to three things to grow: habits, goals or dreams. Each day, tend them with one small step. At the week's end, look back at what grew.",
-    points: ["Sow · about five minutes, once a week", "Tend · a moment each day", "Harvest · a gentle look back"]
+    body: "Once a week, choose up to three things to grow: habits, goals or dreams. Each day, tend them with one small step. At the week's end, look back at what grew. Every step earns XP.",
+    points: ["Sow · about five minutes, once a week", "Tend · +3 XP a day, with a bonus for each week and month in a row", "Harvest · a gentle look back", "Finish a habit, goal or dream · +10, +25 or +50 XP"]
   },
   {
     key: "compass",
-    image: "/images/home/yourney.webp",
+    image: "/images/home/tool-mirror.webp",
     icon: Compass,
-    title: "Your values, your compass",
-    body: "Bring a few values into focus, in your own words. When they pull against each other, walk the Crossroads to find your True North. You'll find them under YOU."
+    title: "Live your values",
+    body: "Choose the values you want to live by. Small, real-life challenges grow each one from Seed to Luminary, and the XP grows your Pillars too. When values pull against each other, walk the Crossroads to find your True North. You'll find it all under YOU."
   },
   {
     key: "yournal",
     image: "/images/home/tool-journal.webp",
     icon: Feather,
-    title: "Write it down",
-    body: "Your YOUrnal holds whatever's on your mind: entries, ideas, dreams. It's private to you.",
-    points: ["AI reflections are off until you say yes", "You can turn them off again any time"]
+    title: "Find the gold in your own words",
+    body: "Your YOUrnal is private to you. Type it, or photograph your handwritten pages. When you're ready, gentle AI reflections show what you've been through and the patterns that keep returning, and the more you live in YOU, the more personal they become.",
+    points: ["Off until you say yes, and you can turn it off any time", "You choose what it may read, in Settings → Your data", "Your words are never used to train the AI"]
   },
   {
     key: "yours",
     image: "/images/home/tool-focus.webp",
     icon: Puzzle,
-    title: "Make it yours",
-    body: "Keep only what helps. You can change this any time in Your Own Universe."
+    title: "Start simple. Make it yours.",
+    body: "YOU starts with just the five places. When you want more, switch on an Extra in Settings: guided paths in YOUniversity, your Kronk feed in KommYOUnity, Focus, YOUr Projects and more."
   },
   {
     key: "beta",
     image: "/images/home/community.webp",
     icon: MessageSquareHeart,
     title: "We're building this together",
-    body: "YOU is in beta, so some things will change and a few may wobble. When something feels off, or wonderful, tell us.",
-    points: ["Find your way · a map of YOU, in the side menu", "Send feedback · in the side menu", "Download your data · any time, in Your Own Universe", "AI · a small free allowance each month"]
+    body: "YOU is in beta, so some things will change and a few may wobble. When something feels off, or wonderful, tell us. Which Extras you switch on helps us know what to grow.",
+    points: ["Find your way · a map of YOU, in the side menu", "Send feedback · in the side menu", "Download your data · any time, in Settings", "AI · a free allowance each month during the beta"]
   }
 ];
 
@@ -216,7 +232,7 @@ function TodoChoice() {
     setError("");
     try { await setPlugin("todo_list", value); } catch (e) {
       console.error("[Welcome] plugin change failed:", e);
-      setError("Couldn't save that just now. You can set it later in Your Own Universe.");
+      setError("Couldn't save that just now. You can set it later in Settings → Extras.");
     }
   }
   return (
