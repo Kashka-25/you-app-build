@@ -17,6 +17,7 @@ import { dailySteps, stepKey } from "../../lib/habits";
 import { bonusHint, finishXp, habitDays, nextCheckinXp } from "../../lib/xp";
 import { localDateKey as todayKey } from "../../lib/week";
 import { useActivePursuits } from "../../lib/activePursuits";
+import { PillarChip } from "../ui/Pillar";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame, idea: Lightbulb };
 
@@ -244,7 +245,7 @@ export default function ItemCard({ item }) {
             <div className="pl-4 pr-3.5 pb-3.5 pt-0.5 border-t border-borderC mx-0">
               <div className="flex flex-wrap items-center gap-1.5 mt-2.5 text-caption text-textSecondary">
                 <span className="px-2 py-0.5 rounded-full bg-surface3 capitalize">{item.type}</span>
-                <span className="px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, ${color} 16%, transparent)`, color }}>{item.cat}</span>
+                <PillarChip pillar={item.cat} />
                 {item.subcat && <span className="px-2 py-0.5 rounded-full bg-surface3">{item.subcat.split("/").join(" › ")}</span>}
                 {(item.tags || []).map(t => <span key={t}>#{t}</span>)}
               </div>

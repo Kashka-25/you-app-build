@@ -1300,6 +1300,34 @@ export function AppDataProvider({ children }) {
     return { empty: false, patterns: data.patterns };
   }
 
+  // ── Ask YOU (YOUnderstanding) ──
+  // A question of their own, answered from everything they let AI read
+  // (ask-younderstanding). Nothing is saved until they choose to keep it;
+  // kept readings live in younderstandings, newest first.
+  async function askYOUnderstanding(question) {
+    await withAiConsent();
+    const data = await invokeAi("ask-younderstanding", { question });
+    if (data?.empty) return { empty: true, message: data.message };
+    return { empty: false, question: data.question, answer: data.answer, drew_from: data.drew_from };
+  }
+
+  async function loadKeptUnderstandings() {
+    const res = await supabase.from("younderstandings").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50);
+    if (res.error) { console.error("[AppData] loadKeptUnderstandings failed:", res.error); return []; }
+    return res.data || [];
+  }
+
+  async function keepUnderstanding({ question, answer, drew_from }) {
+    const res = await supabase.from("younderstandings").insert({ user_id: userId, question, answer, drew_from }).select().single();
+    if (res.error) throw res.error;
+    return res.data;
+  }
+
+  async function deleteUnderstanding(id) {
+    const res = await supabase.from("younderstandings").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+  }
+
   // ── Seasons ──
   // Read by the infer-season Edge Function from recent Harvests, only when
   // asked. Newest row = the current season; earlier readings are kept.
@@ -2321,7 +2349,7 @@ export function AppDataProvider({ children }) {
     wanderings, wanderingStops, createWandering, renameWandering, addWanderingStop, savePlaceMemory, addOwnPlace, wishVisited, wishToDream, updateWanderingStop, removeWanderingStop,
     moveWanderingStop, setStopDayPlan, pinMemory, makeWanderingDream,
     aiConsent, consentPrompt, answerConsentPrompt, setAiConsentGranted, setAiSources,
-    loadDreamPatterns, readDreamPatterns,
+    loadDreamPatterns, readDreamPatterns, askYOUnderstanding, loadKeptUnderstandings, keepUnderstanding, deleteUnderstanding,
     reflections, saveReflectionAnswer, deleteReflectionSession,
     isAdmin, adminChecked, sendBuildNote, sendAllIdeaEntries, ideaEntryCount: journalEntries.filter(isIdeaEntry).length, entitlement, aiAllowed: canUseAi(entitlement), codexNew, recordValueWords, addOwnValue, loadCodexRequests, setCodexWordStatus,
     heldArcana, arcanaLoaded, addArcanum, redeemArcanumCode, removeArcanum, courseProgress, toolUses, completeCoursePart, skipCourseRest, saveToolUse, courseWalks, walkFor, startNewWalk, setIncludeCourses, deleteToolUse,
