@@ -528,10 +528,12 @@ export function AppDataProvider({ children }) {
   // data", e.g. a journalling habit of years): every day from `since` up to
   // the day before tracking began is marked done. It counts toward days
   // done, totals and days in a row, but earns no XP. Days already logged are
-  // left as they are. Returns how many days were filled in.
-  async function backfillHabit(itemId, since) {
-    const item = items.find(i => i.id === itemId);
-    if (!item || !since) return 0;
+  // left as they are. Returns how many days were filled in. Takes the habit
+  // itself (a habit just created isn't in `items` yet) or its id.
+  async function backfillHabit(habit, since) {
+    const item = typeof habit === "object" ? habit : items.find(i => i.id === habit);
+    const itemId = item?.id;
+    if (!item || !since || String(itemId).startsWith("temp_")) return 0;
     const mine = habitLogs.filter(l => l.item_id === itemId);
     const logged = new Set(mine.map(l => l.day));
     const firstTracked = [item.createdDate, ...mine.map(l => l.day)].filter(Boolean).sort()[0] || todayKey();

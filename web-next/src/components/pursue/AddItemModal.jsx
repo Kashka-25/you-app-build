@@ -6,6 +6,7 @@ import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { localDateKey as todayKey } from "../../lib/week";
 import { formatAmount, newStepId } from "../../lib/habits";
+import HabitHistory from "./HabitHistory";
 
 const INTENTION_PROMPTS = {
   habit: "What will this practice awaken in you?",
@@ -33,7 +34,7 @@ const labelClass = "text-label uppercase text-textMuted";
 // "More" for steps, amounts, tags, note, sub-category, date and intention.
 // Editing opens with everything showing.
 export default function AddItemModal({ open, onClose, defaultType = "habit", item, prefill }) {
-  const { addItem, editItem, deleteItem } = useAppData();
+  const { addItem, editItem, deleteItem, backfillHabit } = useAppData();
   const isEdit = Boolean(item);
   const [name, setName] = useState("");
   const [type, setType] = useState(defaultType);
@@ -52,6 +53,8 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
   const [milestones, setMilestones] = useState([]);
   const [intention, setIntention] = useState("");
   const [createdDate, setCreatedDate] = useState(todayKey());
+  // A habit's history from before YOU, filled in once the form is saved.
+  const [since, setSince] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [more, setMore] = useState(false);
@@ -84,6 +87,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       setTargetUnit("");
     }
     setMore(Boolean(item) || Boolean(prefill?.note));
+    setSince("");
     setTagInput("");
     setMsText("");
     setMsAmount("");
@@ -128,8 +132,10 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       ? { amount: Number(targetAmount), ...(targetUnit.trim() && { unit: targetUnit.trim() }) }
       : null;
     const payload = { name: name.trim(), type, cat, subcat: subcat.trim(), note: note.trim(), tags: withTag(), milestones: steps, intention: intention.trim(), createdDate, dailyTarget };
-    if (isEdit) await editItem(item.id, payload);
-    else await addItem(payload);
+    const saved = isEdit ? (await editItem(item.id, payload), { ...item, ...payload }) : await addItem(payload);
+    if (type === "habit" && since) {
+      await backfillHabit(saved, since).catch(e => console.error("[AddItemModal] history failed:", e));
+    }
     setSaving(false);
     onClose();
   }
@@ -184,7 +190,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
           onClick={() => setMore(true)}
           className="w-full flex items-center justify-center gap-1.5 min-h-[44px] mb-3 rounded-full border border-dashed border-borderC text-bodySm text-textSecondary hover:text-textPrimary"
         >
-          More: {type === "habit" ? "steps, daily amount" : "steps"}, tags, note <ChevronDown size={15} strokeWidth={1.75} />
+          More: {type === "habit" ? "steps, daily amount, history" : "steps"}, tags, note <ChevronDown size={15} strokeWidth={1.75} />
         </button>
       )}
 
@@ -207,6 +213,8 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
         max={todayKey()}
         onChange={e => setCreatedDate(e.target.value)}
       />
+
+      {type === "habit" && <HabitHistory item={item} started={createdDate} since={since} onSince={setSince} />}
 
       <label className={labelClass}>Note (optional)</label>
       <textarea className={fieldClass} rows={2} value={note} onChange={e => setNote(e.target.value)} />

@@ -11,7 +11,6 @@ import { StepList } from "../ui/StepList";
 import AddItemModal from "./AddItemModal";
 import HabitDay from "./HabitDay";
 import HabitTotals from "./HabitTotals";
-import HabitHistory from "./HabitHistory";
 import StepEditor from "./StepEditor";
 import { todaySlot } from "../home/HabitsToday";
 import { dailySteps, stepKey } from "../../lib/habits";
@@ -298,7 +297,6 @@ export default function ItemCard({ item }) {
                     </div>
                     <div className="text-[11px] text-textMuted mt-1">Forgot a day? Tap it to fill it in.</div>
                   </div>
-                  <HabitHistory item={item} />
 
                   <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
                     <span className="text-gold">+{nextCheckinXp(streak.before)} XP for today's check-in</span>
