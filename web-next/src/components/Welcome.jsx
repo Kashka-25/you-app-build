@@ -4,12 +4,13 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Compass, Feather, Map as MapIcon, MessageSquareHeart, Sprout, Sun, Puzzle } from "lucide-react";
 import { useAuth } from "../lib/AuthContext";
 import { useAppData } from "../lib/AppDataContext";
-import { usePlugin, useSetPlugin } from "../lib/plugins";
+import { PLUGINS, usePlugin, useSetPlugin } from "../lib/plugins";
+import { useKronkLink } from "../lib/kronk";
 import { easeOut } from "./ui/motion";
 import { BetaBadge } from "./SignIn";
 
 // The first-run welcome: once per account (prefs.welcomed), replayable from
-// Your Own Universe. One idea per page, one action at most, always a way
+// Settings. One idea per page, one action at most, always a way
 // out (Skip, Back, Escape). Nothing moves until the Seeker taps.
 // Rewritten Nov 3 for the simple-core beta: the five places, XP, values that
 // grow, reflections over time and Extras, in the words of the Kronk intro.
@@ -39,9 +40,9 @@ const STEPS = [
     key: "rhythm",
     image: "/images/home/tool-pursuits.webp",
     icon: Sprout,
-    title: "Sow, tend, harvest",
-    body: "Once a week, choose up to three things to grow: habits, goals or dreams. Each day, tend them with one small step. At the week's end, look back at what grew. Every step earns XP.",
-    points: ["Sow · about five minutes, once a week", "Tend · +3 XP a day, with a bonus for each week and month in a row", "Harvest · a gentle look back", "Finish a habit, goal or dream · +10, +25 or +50 XP"]
+    title: "Your week, in three steps",
+    body: "YOU works in a gentle weekly rhythm, named after a garden. Every step earns XP.",
+    points: ["Sow · once a week, choose up to three of your PursYOUts to focus on", "Tend · each day, tick off one small step on Home (+3 XP, with a bonus for each week and month in a row)", "Harvest · at the week's end, look back at what grew", "Finish a habit, goal or dream · +10, +25 or +50 XP"]
   },
   {
     key: "compass",
@@ -63,7 +64,7 @@ const STEPS = [
     image: "/images/home/tool-focus.webp",
     icon: Puzzle,
     title: "Start simple. Make it yours.",
-    body: "YOU starts with just the five places. When you want more, switch on an Extra in Settings: guided paths in YOUniversity, your Kronk feed in KommYOUnity, Focus, YOUr Projects and more."
+    body: "YOU starts with just the five places. When you want more, switch on an Extra any time in Settings → Extras."
   },
   {
     key: "beta",
@@ -185,7 +186,7 @@ export default function Welcome({ onDone }) {
                 </div>
               )}
 
-              {step.key === "yours" && <TodoChoice />}
+              {step.key === "yours" && <ExtrasGlimpse />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -223,24 +224,43 @@ export default function Welcome({ onDone }) {
   );
 }
 
-// The one optional part so far: Today's to-do list (lib/plugins.js).
-function TodoChoice() {
-  const on = usePlugin("todo_list");
+// The Extras as their emblems (Cassidy, Nov 3: show what's possible rather
+// than one choice). Anyone who joined with Kronk is offered KommYOUnity, so
+// their Kronk feed is there from the start.
+function ExtrasGlimpse() {
+  const kronk = useKronkLink();
+  return (
+    <div>
+      <ul className="grid grid-cols-4 gap-x-2 gap-y-3" aria-label="Extras you can switch on">
+        {PLUGINS.filter(p => p.key !== "threshold").map(p => (
+          <li key={p.key} className="flex flex-col items-center text-center">
+            <img src={`/images/icons/${p.icon}.png`} alt="" width="52" height="52" className="w-[52px] h-[52px]" />
+            <span className="mt-1 text-caption text-textSecondary leading-tight">{p.title}</span>
+          </li>
+        ))}
+      </ul>
+      {kronk && <KommYOUnityChoice />}
+    </div>
+  );
+}
+
+function KommYOUnityChoice() {
+  const on = usePlugin("community");
   const setPlugin = useSetPlugin();
   const [error, setError] = useState("");
   async function pick(value) {
     setError("");
-    try { await setPlugin("todo_list", value); } catch (e) {
+    try { await setPlugin("community", value); } catch (e) {
       console.error("[Welcome] plugin change failed:", e);
-      setError("Couldn't save that just now. You can set it later in Settings → Extras.");
+      setError("Couldn't save that just now. You can switch it on later in Settings → Extras.");
     }
   }
   return (
-    <div className="rounded-card bg-surface1 shadow-card p-4">
-      <div className="text-body text-textPrimary font-medium mb-0.5">A to-do list for today?</div>
-      <div className="text-caption text-textMuted mb-3">For small things that aren't part of what you're growing. Whatever's left tonight falls away.</div>
-      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Today's to-do list">
-        {[[true, "Yes, please"], [false, "Not for me"]].map(([value, label]) => (
+    <div className="rounded-card bg-surface1 shadow-card p-4 mt-4">
+      <div className="text-body text-textPrimary font-medium mb-0.5">You joined with Kronk. Switch on KommYOUnity?</div>
+      <div className="text-caption text-textMuted mb-3">Your Kronk feed, inside YOU. Nothing from YOU is shared unless you share it.</div>
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="KommYOUnity">
+        {[[true, "Yes, please"], [false, "Not now"]].map(([value, label]) => (
           <button
             key={label}
             type="button"

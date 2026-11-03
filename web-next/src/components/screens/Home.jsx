@@ -135,7 +135,7 @@ export default function Home() {
         {harvestDue(weekIntentions, weekHarvests) && (
           <Link to="/harvest" className="flex items-center gap-2.5 min-h-[44px] text-bodySm text-textPrimary mt-2 pt-2 border-t border-borderC">
             <Wheat size={16} strokeWidth={1.75} className="text-gold" />
-            <span className="flex-1">{isSunday() ? "Harvest this week" : "Harvest last week"}: see what grew</span>
+            <span className="flex-1">{isSunday() ? "Harvest this week" : "Harvest last week"}: look back at what grew</span>
             <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
           </Link>
         )}
@@ -143,7 +143,7 @@ export default function Home() {
         {offerSow ? (
           <Link to="/sow" className="flex items-center gap-2.5 min-h-[44px] text-bodySm text-forestAccent mt-2 pt-2 border-t border-borderC">
             <Sprout size={16} strokeWidth={1.75} />
-            <span className="flex-1">{isSunday() ? "Sow next week" : "Sow your week"}: what do you want to grow?</span>
+            <span className="flex-1">{isSunday() ? "Sow next week" : "Sow your week"}: pick up to three things to focus on</span>
             <ChevronRight size={16} strokeWidth={1.75} className="text-textMuted" />
           </Link>
         ) : sownThisWeek && (
