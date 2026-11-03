@@ -20,10 +20,20 @@ export function newStepId() {
   return crypto.randomUUID ? crypto.randomUUID() : `s${Date.now()}${Math.random().toString(36).slice(2, 7)}`;
 }
 
-// "100 push-ups", "1 hour" style.
+// A unit that means time. Time is kept in minutes (Cassidy, Nov 3: "how
+// much" in minutes or hours as well as a plain number), so totals add up.
+export const isTimeUnit = unit => /^(min|mins|minute|minutes|hr|hrs|hour|hours)$/i.test(String(unit || "").trim());
+const isHourUnit = unit => /^(hr|hrs|hour|hours)$/i.test(String(unit || "").trim());
+
+// "100 push-ups", "1 h 30 min" style.
 export function formatAmount(amount, unit) {
   if (amount == null) return "";
   const n = Number(amount);
+  if (isTimeUnit(unit)) {
+    const mins = Math.round(isHourUnit(unit) ? n * 60 : n);
+    const h = Math.floor(mins / 60), m = mins % 60;
+    return h ? (m ? `${h} h ${m} min` : `${h} h`) : `${m} min`;
+  }
   const shown = Number.isInteger(n) ? n.toLocaleString() : n.toLocaleString(undefined, { maximumFractionDigits: 1 });
   return unit ? `${shown} ${unit}` : shown;
 }
@@ -38,7 +48,8 @@ function daysBetween(a, b) {
 export function habitStats(item, logs, today) {
   const mine = logs.filter(l => l.item_id === item.id);
   const days = new Set(mine.map(l => l.day));
-  const start = item.createdDate || (mine.length ? [...days].sort()[0] : today);
+  // From the earliest of: when it was started in YOU, or any history filled in before that.
+  const start = [item.createdDate, ...days].filter(Boolean).sort()[0] || today;
   const since = Math.max(1, daysBetween(start, today) + 1);
   const steps = dailySteps(item);
   const totals = steps

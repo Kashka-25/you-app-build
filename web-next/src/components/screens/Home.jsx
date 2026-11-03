@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, Sun, Sprout, Wheat, Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { pickCurrentChapter } from "../../lib/compass";
+import { dailyMessage } from "../../lib/dailyMessage";
 import { MOODS } from "../ui/Input";
 import TodayIntentions, { useTodayList } from "../sow/TodayIntentions";
 import QuickList from "../sow/QuickList";
@@ -27,7 +27,7 @@ import { useActivePursuits } from "../../lib/activePursuits";
 // already loaded (see lib/compass.js), so opening Home never calls AI.
 export default function Home() {
   const {
-    items, chapters, journalEntries, profile, loaded,
+    items, journalEntries, profile, loaded, highlights,
     todos, weekIntentions, weekHarvests, compass, moodLog
   } = useAppData();
   const todayList = useTodayList();
@@ -62,9 +62,8 @@ export default function Home() {
   const isNew = items.length === 0 && journalEntries.length === 0;
   const greeting = firstName ? `${isNew ? "Welcome" : "Welcome back"}, ${firstName}.` : isNew ? "Welcome to YOU." : "Welcome back.";
 
-  const chapter = pickCurrentChapter(chapters);
-  const subtitleIsCompass = Boolean(compass?.compass_line);
-  const subtitle = compass?.compass_line || chapter?.title || "A little progress, every day.";
+  // A personal message under the greeting, new each day (lib/dailyMessage.js).
+  const message = dailyMessage({ compassLine: compass?.compass_line, highlights, userId, dateKey: today });
 
   // Today's answer: the newest check-in, or a mood given with today's entry.
   const checkIn = moodLog.find(m => m.date_key === today && MOODS.some(x => x.key === m.mood))?.mood;
@@ -94,7 +93,7 @@ export default function Home() {
       style={{ paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom))" }}
     >
       <div className="lg:col-span-7 lg:order-1">
-        <WelcomeHero greeting={greeting} subtitle={subtitle} subtitleIsCompass={subtitleIsCompass} mood={todayMood} cta={cta} art={featuredArt} words={featuredWords} artMode={artMode} onOpenArt={setOpenWork} />
+        <WelcomeHero greeting={greeting} message={message} mood={todayMood} cta={cta} art={featuredArt} words={featuredWords} artMode={artMode} onOpenArt={setOpenWork} />
       </div>
 
       {/* Arriving comes first (Cassidy, Nov 1): until today's check-in, it

@@ -21,7 +21,7 @@ import { MoodBadge } from "./DailyCheckIn";
 // the piece's own art if it has an image, or the sunrise if it doesn't.
 // With no featured words, a featured artwork takes the landscape's place,
 // credited in the corner.
-export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, mood, cta, art, words, artMode = "full", onOpenArt }) {
+export default function WelcomeHero({ greeting, message, mood, cta, art, words, artMode = "full", onOpenArt }) {
   const artOn = artMode !== "off";
   const background = words
     ? (artOn && words.imageUrl ? words : null)
@@ -77,13 +77,13 @@ export default function WelcomeHero({ greeting, subtitle, subtitleIsCompass, moo
 
         <div className="flex flex-col">
           <h1 id="home-welcome" className={`font-serif text-hero text-[clamp(23px,7.2vw,28px)] lg:text-[44px] lg:leading-tight ${ink} m-0`}>{greeting}</h1>
-          <p
-            className={`m-0 mt-1.5 max-w-[30ch] ${inkSoft} ${
-              subtitleIsCompass ? "font-serif italic text-[17px] leading-snug" : "text-bodySm"
-            }`}
-          >
-            {subtitle}
-          </p>
+          {/* A personal message for the day (lib/dailyMessage.js). */}
+          {message && (
+            <p className={`m-0 mt-1.5 max-w-[34ch] font-serif italic text-[17px] leading-snug ${inkSoft}`}>
+              {message.text}
+              {message.by && <span className="block not-italic font-sans text-caption mt-1 opacity-80">{message.by}</span>}
+            </p>
+          )}
 
           {/* Today's mood face; tap it to update (DailyCheckIn.jsx). */}
           <MoodBadge ink={ink} fallback={mood} />
