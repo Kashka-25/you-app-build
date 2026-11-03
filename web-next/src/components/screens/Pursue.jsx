@@ -25,6 +25,7 @@ const FILTERS = [
   { value: "habit", label: "Habits" },
   { value: "goal", label: "Goals" },
   { value: "dream", label: "Dreams" },
+  { value: "idea", label: "Ideas" },
   { value: "done", label: "Done" }
 ];
 
@@ -209,7 +210,7 @@ export default function Pursue() {
       </>
       )}
 
-      <AddItemModal open={adding} onClose={() => setAdding(false)} defaultType={["habit", "goal", "dream"].includes(filter) ? filter : "habit"} />
+      <AddItemModal open={adding} onClose={() => setAdding(false)} defaultType={["habit", "goal", "dream", "idea"].includes(filter) ? filter : "habit"} />
     </div>
   );
 }

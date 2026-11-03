@@ -7,23 +7,11 @@ import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
 import KommYOUnity from "./KommYOUnity";
 import { useNavigation } from "../lib/navigation";
-import { usePluginStates, useSetPlugin } from "../lib/plugins";
 import { useWhatsNewUnseen } from "../lib/whatsNew";
 
 // The places listed come from lib/navigation.js, in its fixed order, minus
 // any the Seeker has hidden in Extras (Home and YOU always stay). Each
 // place has its emblem from the YOU art set (public/images/icons).
-
-// Pages that exist but aren't built yet, folded away so the menu stays
-// clean. Move one up into SITEMAP when it's real.
-const COMING_SOON = [
-  { to: "/therapists", label: "Therapists" },
-  { to: "/events", label: "Events / Calendar" },
-  { to: "/shop", label: "Shop" },
-  { to: "/challenges", label: "Challenges" },
-  { to: "/saved", label: "Saved" },
-  { to: "/review", label: "Review" }
-];
 
 const CREATOR_PAGES = ["/codex-requests", "/showcase-review", "/build-notes", "/tester-inbox"];
 
@@ -37,23 +25,13 @@ const linkClass = ({ isActive }) =>
 export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open = true }) {
   const location = useLocation();
   const { isAdmin, codexNew } = useAppData();
-  const { menu, available, isHidden } = useNavigation();
-  // The Hidden fold (Cassidy, Oct 27): places taken out of the menu, still
-  // a tap away, and inside it the extras not yet added, ready to switch on.
-  const hiddenPlaces = available.filter(p => !p.locked && isHidden(p.key));
-  const extrasToAdd = usePluginStates().filter(p => !p.isOn);
-  const setPlugin = useSetPlugin();
-  const [hiddenOpen, setHiddenOpen] = useState(false);
-  const [extrasOpen, setExtrasOpen] = useState(false);
-  const [adding, setAdding] = useState(null);
+  // Just the places in use (Cassidy, Nov 3: keep it simple): the core, and
+  // any extras switched on. Extras are added in Settings → Extras.
+  const { menu } = useNavigation();
   const whatsNewUnseen = useWhatsNewUnseen();
-  const onComingSoonPage = COMING_SOON.some(i => location.pathname.startsWith(i.to));
-  const [soonOpen, setSoonOpen] = useState(onComingSoonPage);
   const onCreatorPage = CREATOR_PAGES.some(p => location.pathname.startsWith(p));
   const [creatorOpen, setCreatorOpen] = useState(onCreatorPage);
   useEffect(() => { if (open && onCreatorPage) setCreatorOpen(true); }, [open, onCreatorPage]);
-  // Opening the menu while on one of those pages shows where you are.
-  useEffect(() => { if (open && onComingSoonPage) setSoonOpen(true); }, [open, onComingSoonPage]);
 
   return (
     <>
@@ -65,92 +43,6 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
           </NavLink>
         ))}
 
-        {(hiddenPlaces.length > 0 || extrasToAdd.length > 0) && (
-          <>
-            <button
-              type="button"
-              onClick={() => setHiddenOpen(!hiddenOpen)}
-              aria-expanded={hiddenOpen}
-              className="w-full flex items-center gap-1.5 px-5 pt-4 pb-2 text-label uppercase text-textMuted"
-            >
-              {hiddenOpen ? <ChevronDown size={13} strokeWidth={1.75} /> : <ChevronRight size={13} strokeWidth={1.75} />}
-              Hidden
-              <span className="normal-case tracking-normal">· {hiddenPlaces.length}</span>
-            </button>
-            {hiddenOpen && (
-              <div className="pb-1">
-                {hiddenPlaces.map(item => (
-                  <NavLink key={item.key} to={item.to} onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-3 !py-1.5 text-bodySm ${isActive ? "" : "!text-textSecondary"}`}>
-                    <img src={`/images/icons/${item.icon}.png`} alt="" width="26" height="26" className="w-[26px] h-[26px] flex-none opacity-80" />
-                    {item.key === "community" ? <KommYOUnity /> : item.label}
-                  </NavLink>
-                ))}
-                {hiddenPlaces.length === 0 && (
-                  <div className="px-5 py-1.5 text-caption text-textMuted">Nothing hidden. Hide places you don't use in Extras.</div>
-                )}
-
-                {extrasToAdd.length > 0 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setExtrasOpen(!extrasOpen)}
-                      aria-expanded={extrasOpen}
-                      className="w-full flex items-center gap-1.5 pl-8 pr-5 pt-2.5 pb-1.5 text-label uppercase text-textMuted"
-                    >
-                      {extrasOpen ? <ChevronDown size={12} strokeWidth={1.75} /> : <ChevronRight size={12} strokeWidth={1.75} />}
-                      Extras
-                      <span className="normal-case tracking-normal">· {extrasToAdd.length} to add</span>
-                    </button>
-                    {extrasOpen && extrasToAdd.map(p => (
-                      <div key={p.key} className="flex items-center gap-3 pl-8 pr-4 py-1.5">
-                        {p.icon
-                          ? <img src={`/images/icons/${p.icon}.png`} alt="" width="26" height="26" className="w-[26px] h-[26px] flex-none" />
-                          : <span className="w-[26px] h-[26px] flex-none rounded-full bg-[color-mix(in_srgb,var(--gold)_16%,transparent)] flex items-center justify-center" aria-hidden="true"><Puzzle size={13} strokeWidth={1.75} className="text-gold" /></span>}
-                        <span className="flex-1 min-w-0 text-bodySm leading-snug text-textPrimary">{p.title}</span>
-                        <button
-                          type="button"
-                          disabled={adding === p.key}
-                          onClick={async () => {
-                            setAdding(p.key);
-                            try { await setPlugin(p.key, true); } catch (e) { console.error("[SidebarMenu] add extra failed:", e); }
-                            setAdding(null);
-                          }}
-                          className="flex-none min-h-[32px] px-3 rounded-full bg-forestAccent text-onAccent text-caption font-medium disabled:opacity-50"
-                        >
-                          {adding === p.key ? "Adding…" : "Add"}
-                        </button>
-                      </div>
-                    ))}
-                  </>
-                )}
-                <NavLink to="/extras" onClick={onNavigate} className="block pl-8 pr-5 py-2 text-caption text-forestAccent underline underline-offset-2">
-                  Manage in Extras
-                </NavLink>
-              </div>
-            )}
-          </>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setSoonOpen(!soonOpen)}
-          aria-expanded={soonOpen}
-          className="w-full flex items-center gap-1.5 px-5 pt-4 pb-2 text-label uppercase text-textMuted"
-        >
-          {soonOpen ? <ChevronDown size={13} strokeWidth={1.75} /> : <ChevronRight size={13} strokeWidth={1.75} />}
-          Coming soon
-          <span className="normal-case tracking-normal">· {COMING_SOON.length}</span>
-        </button>
-        {soonOpen && COMING_SOON.map(item => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            onClick={onNavigate}
-            className={({ isActive }) => `${linkClass({ isActive })} text-bodySm ${isActive ? "" : "!text-textSecondary"}`}
-          >
-            {item.label}
-          </NavLink>
-        ))}
       </nav>
 
       {isAdmin && (
@@ -197,7 +89,7 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
 
       <div className="border-t border-borderC pt-3">
         <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} mb-1`}>
-          Your Own Universe
+          Settings
         </NavLink>
         <NavLink to="/extras" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
           <Puzzle size={17} strokeWidth={1.75} className="text-gold" />

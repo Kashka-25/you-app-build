@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sprout, Sun, BookOpen, Repeat, Target, Star, Image, ArrowLeft, ChevronRight, X, MapPin } from "lucide-react";
+import { Sprout, Sun, BookOpen, Repeat, Target, Star, Image, ArrowLeft, ChevronRight, X, MapPin, Lightbulb } from "lucide-react";
 import { fadeIn, sheetIn } from "./ui/motion";
 import { Button } from "./ui/Button";
 import { useEscape } from "./ui/useEscape";
@@ -12,7 +12,7 @@ import { usePlugin } from "../lib/plugins";
 // one level). Anything finer — which kind of pursuit, which kind of
 // journal note — lives one tap deeper, behind the choice it belongs to.
 const TOP = [
-  { key: "pursuit", icon: Sprout, title: "Pursuit", desc: "A habit, goal, or dream" },
+  { key: "pursuit", icon: Sprout, title: "Pursuit", desc: "A habit, goal, dream or idea" },
   { key: "today", icon: Sun, title: "Today", desc: "A small thing for today" },
   { key: "journal", icon: BookOpen, title: "Journal", desc: "Words, a memory, or a place" }
 ];
@@ -20,7 +20,8 @@ const TOP = [
 const PURSUITS = [
   { key: "habit", icon: Repeat, title: "Habit", desc: "Something you return to" },
   { key: "goal", icon: Target, title: "Goal", desc: "Something you're actively working toward" },
-  { key: "dream", icon: Star, title: "Dream", desc: "What kind of life do you want?" }
+  { key: "dream", icon: Star, title: "Dream", desc: "What kind of life do you want?" },
+  { key: "idea", icon: Lightbulb, title: "Idea", desc: "Something to explore, that may grow" }
 ];
 
 // Idea/Experience are still journal entries, just auto-tagged so they're

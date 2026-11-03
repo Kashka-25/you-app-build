@@ -13,6 +13,7 @@ import LevelUpCelebration from "./pillars/LevelUpCelebration";
 import { BetaBadge } from "./SignIn";
 import OfflineBanner from "./OfflineBanner";
 import { useNavigation } from "../lib/navigation";
+import { useSimpleStart } from "../lib/simpleStart";
 
 export default function AppShell() {
   // Remembered on this device; index.html applies it before the first paint.
@@ -26,6 +27,7 @@ export default function AppShell() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   // The bar's two middle spots are the Seeker's to choose (lib/navigation.js).
   const { bar } = useNavigation();
+  useSimpleStart();
   const [feedbackKind, setFeedbackKind] = useState("problem");
   const openFeedback = (kind = "problem") => { setFeedbackKind(kind); setFeedbackOpen(true); };
   // Home spreads out into a grid on a laptop; every other screen keeps its

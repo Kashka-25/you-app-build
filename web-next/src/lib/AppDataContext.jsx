@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
-import { newStepId, dailySteps } from "./habits";
+import { newStepId, dailySteps, stepKey as stepKeyOf } from "./habits";
 import { CHECKIN_XP, streakBonus, stepShares, habitDays, streakEnding, streakBefore } from "./xp";
 import { bandFor } from "./mood";
 import { fileEntryToProjects } from "./projects";
@@ -524,6 +524,44 @@ export function AppDataProvider({ children }) {
     else if (!anyToday && checkedToday) await toggleDay(itemId, slot, { base });
   }
 
+  // A habit kept long before YOU (Cassidy, Nov 3: "backlogging habitual
+  // data", e.g. a journalling habit of years): every day from `since` up to
+  // the day before tracking began is marked done. It counts toward days
+  // done, totals and days in a row, but earns no XP. Days already logged are
+  // left as they are. Returns how many days were filled in. Takes the habit
+  // itself (a habit just created isn't in `items` yet) or its id.
+  async function backfillHabit(habit, since) {
+    const item = typeof habit === "object" ? habit : items.find(i => i.id === habit);
+    const itemId = item?.id;
+    if (!item || !since || String(itemId).startsWith("temp_")) return 0;
+    const mine = habitLogs.filter(l => l.item_id === itemId);
+    const logged = new Set(mine.map(l => l.day));
+    const firstTracked = [item.createdDate, ...mine.map(l => l.day)].filter(Boolean).sort()[0] || todayKey();
+    const rows = [];
+    for (let d = since; d < firstTracked; d = addDaysKey(d, 1)) {
+      if (!logged.has(d)) rows.push({ user_id: userId, item_id: itemId, day: d, step: "habit", amount: null });
+    }
+    const saved = [];
+    for (let i = 0; i < rows.length; i += 400) {
+      const res = await supabase.from("habit_logs").insert(rows.slice(i, i + 400)).select();
+      if (res.error) throw res.error;
+      saved.push(...(res.data || []));
+    }
+    setHabitLogs(prev => [...saved, ...prev]);
+    return saved.length;
+  }
+
+  // Takes the filled-in history away again: the plain logs from before the
+  // habit was started in YOU.
+  async function clearHabitHistory(itemId) {
+    const item = items.find(i => i.id === itemId);
+    if (!item?.createdDate) return;
+    const res = await supabase.from("habit_logs").delete()
+      .eq("user_id", userId).eq("item_id", itemId).eq("step", "habit").lt("day", item.createdDate);
+    if (res.error) throw res.error;
+    setHabitLogs(prev => prev.filter(l => !(l.item_id === itemId && l.step === "habit" && l.day < item.createdDate)));
+  }
+
   // A day that was done but never logged (Cassidy, Oct 27): one of the last
   // six days, ticked from the habit's week row. It earns the plain check-in
   // XP for that day (no streak bonus, so catching up can't farm bonuses) and
@@ -579,6 +617,18 @@ export function AppDataProvider({ children }) {
     const done = habitDays(item, memory, habitLogs);
     const today = todayKey();
     return { before: streakBefore(done, today), now: streakEnding(done, today) };
+  }
+
+  // A step (or a habit with no steps) remembers the unit first chosen for
+  // its amount, e.g. "minutes".
+  async function setStepUnit(itemId, key, unit) {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+    const updated = key === "habit"
+      ? { ...item, dailyTarget: { ...(item.dailyTarget || {}), unit } }
+      : { ...item, milestones: (item.milestones || []).map(m => (stepKeyOf(m) === key ? { ...m, unit } : m)) };
+    setItems(prev => prev.map(i => (i.id === itemId ? updated : i)));
+    await saveItemRow(updated);
   }
 
   // What was actually done today: 150 push-ups, an hour instead of 30 minutes.
@@ -2284,7 +2334,7 @@ export function AppDataProvider({ children }) {
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone, setMilestones,
-    habitLogs, toggleHabitStep, setHabitAmount, habitStreak, logPastDay,
+    habitLogs, toggleHabitStep, setHabitAmount, habitStreak, logPastDay, backfillHabit, clearHabitHistory, setStepUnit,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,

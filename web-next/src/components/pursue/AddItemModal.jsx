@@ -7,19 +7,22 @@ import { Button } from "../ui/Button";
 import { localDateKey as todayKey } from "../../lib/week";
 import { formatAmount, newStepId } from "../../lib/habits";
 import { PillarPicker } from "../ui/Pillar";
+import HabitHistory from "./HabitHistory";
 
 const INTENTION_PROMPTS = {
   habit: "What will this practice awaken in you?",
   goal: "What will this unlock in you?",
-  dream: "What does this dream mean to your soul?"
+  dream: "What does this dream mean to your soul?",
+  idea: "What could this become?"
 };
 
 const TYPES = [
   { value: "habit", label: "Habit", hint: "Something you do again and again, like a morning walk." },
   { value: "goal", label: "Goal", hint: "Something you'll finish, with steps along the way." },
-  { value: "dream", label: "Dream", hint: "A wish for your life, big or far away." }
+  { value: "dream", label: "Dream", hint: "A wish for your life, big or far away." },
+  { value: "idea", label: "Idea", hint: "Something to explore. It can grow into a goal or a dream." }
 ];
-const PLACEHOLDERS = { habit: "Morning meditation", goal: "Finish my first song", dream: "Live by the sea" };
+const PLACEHOLDERS = { habit: "Morning meditation", goal: "Finish my first song", dream: "Live by the sea", idea: "A podcast about healing" };
 
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
@@ -32,7 +35,7 @@ const labelClass = "text-label uppercase text-textMuted";
 // "More" for steps, amounts, tags, note, sub-category, date and intention.
 // Editing opens with everything showing.
 export default function AddItemModal({ open, onClose, defaultType = "habit", item, prefill }) {
-  const { addItem, editItem, deleteItem } = useAppData();
+  const { addItem, editItem, deleteItem, backfillHabit } = useAppData();
   const isEdit = Boolean(item);
   const [name, setName] = useState("");
   const [type, setType] = useState(defaultType);
@@ -51,6 +54,8 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
   const [milestones, setMilestones] = useState([]);
   const [intention, setIntention] = useState("");
   const [createdDate, setCreatedDate] = useState(todayKey());
+  // A habit's history from before YOU, filled in once the form is saved.
+  const [since, setSince] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [more, setMore] = useState(false);
@@ -83,6 +88,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       setTargetUnit("");
     }
     setMore(Boolean(item) || Boolean(prefill?.note));
+    setSince("");
     setTagInput("");
     setMsText("");
     setMsAmount("");
@@ -127,8 +133,10 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
       ? { amount: Number(targetAmount), ...(targetUnit.trim() && { unit: targetUnit.trim() }) }
       : null;
     const payload = { name: name.trim(), type, cat, subcat: subcat.trim(), note: note.trim(), tags: withTag(), milestones: steps, intention: intention.trim(), createdDate, dailyTarget };
-    if (isEdit) await editItem(item.id, payload);
-    else await addItem(payload);
+    const saved = isEdit ? (await editItem(item.id, payload), { ...item, ...payload }) : await addItem(payload);
+    if (type === "habit" && since) {
+      await backfillHabit(saved, since).catch(e => console.error("[AddItemModal] history failed:", e));
+    }
     setSaving(false);
     onClose();
   }
@@ -181,7 +189,7 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
           onClick={() => setMore(true)}
           className="w-full flex items-center justify-center gap-1.5 min-h-[44px] mb-3 rounded-full border border-dashed border-borderC text-bodySm text-textSecondary hover:text-textPrimary"
         >
-          More: {type === "habit" ? "steps, daily amount" : "steps"}, tags, note <ChevronDown size={15} strokeWidth={1.75} />
+          More: {type === "habit" ? "steps, daily amount, history" : "steps"}, tags, note <ChevronDown size={15} strokeWidth={1.75} />
         </button>
       )}
 
@@ -204,6 +212,8 @@ export default function AddItemModal({ open, onClose, defaultType = "habit", ite
         max={todayKey()}
         onChange={e => setCreatedDate(e.target.value)}
       />
+
+      {type === "habit" && <HabitHistory item={item} started={createdDate} since={since} onSince={setSince} />}
 
       <label className={labelClass}>Note (optional)</label>
       <textarea className={fieldClass} rows={2} value={note} onChange={e => setNote(e.target.value)} />

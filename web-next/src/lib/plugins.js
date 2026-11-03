@@ -1,12 +1,69 @@
 import { useAuth } from "./AuthContext";
 
-// Optional parts of YOU each Seeker can switch on or off in Your Own
-// Universe. Kept per account (auth prefs). `on` is the default for anyone
-// who hasn't chosen, so existing Seekers keep what they had.
+// Optional parts of YOU each Seeker can switch on or off in Settings →
+// Extras. Kept per account (auth prefs). `on` is the default for anyone who
+// hasn't chosen.
+//
+// The beta keeps YOU simple (Cassidy, Nov 3, "K.I.S.S."): the core is Home,
+// YOUrnal, YOUrney, YOU and PursYOUts; everything else is an extra and
+// starts switched off, so it's obvious how YOU is used. Testers turn on
+// what they want, and we learn what people really use.
 // `icon`: every extra has its own emblem in the YOU art style (Cassidy,
 // Oct 27), in public/images/icons as <name>.png (128px) and <name>@4x.png.
 // See design/plugin-emblems for how they're drawn.
 export const PLUGINS = [
+  {
+    key: "youniversity",
+    title: "YOUniversity",
+    icon: "youniversity",
+    summary: "Guided paths for real change, one small part at a time, and your own practices.",
+    more: [
+      "Walk a path like The Sovereign Empath, a part at a time, at your own pace.",
+      "Each path unlocks practices you can come back to whenever you need them.",
+      "With it on, Home shows the path you're walking and a practice for today."
+    ],
+    desc: "Guided paths and practices. Opens from the side menu, and shows your path and a practice for today on Home.",
+    on: false
+  },
+  {
+    key: "community",
+    title: "KommYOUnity",
+    icon: "community",
+    summary: "YOU's community on Kronk: your mates, your orbit and the wider Kronkverse.",
+    more: [
+      "Sign in with your Kronk account (or connect it) and your Kronk feeds come into YOU.",
+      "Froth and Komment on posts, and share moments from YOU when you choose to.",
+      "Nothing from YOU is shared unless you share it."
+    ],
+    desc: "YOU's community, through your Kronk account. Opens from the side menu.",
+    on: false
+  },
+  {
+    key: "showcase",
+    title: "Showcase",
+    icon: "showcase",
+    summary: "Art and words from YOUsers, featured on Home and gathered in a gallery.",
+    more: [
+      "A featured piece of writing or art greets you on Home, on the scroll.",
+      "Browse the gallery, keep pieces in your collection and support the artists.",
+      "Creators share their own work into Showcase with the YOUrigin extra."
+    ],
+    desc: "Featured art and words on Home, and the gallery. Opens from the side menu.",
+    on: false
+  },
+  {
+    key: "threshold",
+    title: "The Threshold",
+    icon: "home",
+    summary: "Open YOU on a quiet threshold: a breath, then today's intention.",
+    more: [
+      "Each time you open YOU, you arrive on the Threshold first, once a visit.",
+      "A moment to land before the day: your intention and what's due today.",
+      "Off, YOU opens straight on Home."
+    ],
+    desc: "Open YOU on the Threshold before Home, once a visit.",
+    on: false
+  },
   {
     key: "focus",
     title: "Focus",
@@ -31,7 +88,7 @@ export const PLUGINS = [
       "It's for small, one-off things that aren't part of what you're growing: no Pillars, no XP, no streaks.",
       "Whatever's left at night falls away, so nothing piles up as overdue. Tomorrow starts clear."
     ],
-    on: true
+    on: false
   },
   {
     key: "projects",

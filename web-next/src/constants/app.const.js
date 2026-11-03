@@ -12,7 +12,7 @@ export const LEVELS = [
   {xp:4000,name:"Elder",desc:"The cycle is complete. You are the light that plants new universes.",avatar:"ELDER"}
 ];
 
-export const XP_VALS = { habit: 10, goal: 25, dream: 50 };
+export const XP_VALS = { habit: 10, goal: 25, dream: 50, idea: 10 };
 export const STREAK_BONUS_XP = 15;
 export const STREAK_BONUS_INTERVAL = 7;
 export const DAY_LABELS = ["M","T","W","T","F","S","S"];

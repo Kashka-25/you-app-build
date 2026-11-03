@@ -7,6 +7,14 @@ import { useAuth } from "./AuthContext";
 // take the Seeker there.
 export const WHATS_NEW = [
   {
+    id: "2026-11-03-simple",
+    date: "2026-11-03",
+    title: "YOU, simpler",
+    body: "YOU now starts with what you'll use every day: Home, YOUrnal, YOUrney, YOU and PursYOUts. Everything else is an extra you can add whenever you like: YOUniversity, KommYOUnity with your Kronk account, Showcase, Focus, the to-do list and more. Find them in Settings → Extras. Settings itself is now just Extras, Colours and Your data.",
+    to: "/settings",
+    open: "Open Settings"
+  },
+  {
     id: "2026-11-01-home",
     date: "2026-11-01",
     title: "A calmer Home",
