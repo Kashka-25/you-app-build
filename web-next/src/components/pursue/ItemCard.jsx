@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Check, Flame, RotateCcw, ChevronDown, Award, Star, Target, Sparkles, Pencil, MapPin, Trash2, Flag, Moon } from "lucide-react";
+import { Check, Flame, RotateCcw, ChevronDown, Award, Star, Target, Sparkles, Pencil, MapPin, Trash2, Flag, Moon, Lightbulb } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAppData } from "../../lib/AppDataContext";
 import { DAY_LABELS, TIERS, PILLAR_COLORS } from "../../constants/app.const";
@@ -11,6 +11,7 @@ import { StepList } from "../ui/StepList";
 import AddItemModal from "./AddItemModal";
 import HabitDay from "./HabitDay";
 import HabitTotals from "./HabitTotals";
+import HabitHistory from "./HabitHistory";
 import StepEditor from "./StepEditor";
 import { todaySlot } from "../home/HabitsToday";
 import { dailySteps, stepKey } from "../../lib/habits";
@@ -18,7 +19,7 @@ import { bonusHint, finishXp, habitDays, nextCheckinXp } from "../../lib/xp";
 import { localDateKey as todayKey } from "../../lib/week";
 import { useActivePursuits } from "../../lib/activePursuits";
 
-const TYPE_ICON = { dream: Star, goal: Target, habit: Flame };
+const TYPE_ICON = { dream: Star, goal: Target, habit: Flame, idea: Lightbulb };
 
 // 8 small sparks radiating outward from the checkbox and fading — the one
 // moment (right when an item is confirmed complete) that gets an animated
@@ -297,6 +298,7 @@ export default function ItemCard({ item }) {
                     </div>
                     <div className="text-[11px] text-textMuted mt-1">Forgot a day? Tap it to fill it in.</div>
                   </div>
+                  <HabitHistory item={item} />
 
                   <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
                     <span className="text-gold">+{nextCheckinXp(streak.before)} XP for today's check-in</span>

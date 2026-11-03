@@ -10,15 +10,17 @@ import { formatAmount, newStepId } from "../../lib/habits";
 const INTENTION_PROMPTS = {
   habit: "What will this practice awaken in you?",
   goal: "What will this unlock in you?",
-  dream: "What does this dream mean to your soul?"
+  dream: "What does this dream mean to your soul?",
+  idea: "What could this become?"
 };
 
 const TYPES = [
   { value: "habit", label: "Habit", hint: "Something you do again and again, like a morning walk." },
   { value: "goal", label: "Goal", hint: "Something you'll finish, with steps along the way." },
-  { value: "dream", label: "Dream", hint: "A wish for your life, big or far away." }
+  { value: "dream", label: "Dream", hint: "A wish for your life, big or far away." },
+  { value: "idea", label: "Idea", hint: "Something to explore. It can grow into a goal or a dream." }
 ];
-const PLACEHOLDERS = { habit: "Morning meditation", goal: "Finish my first song", dream: "Live by the sea" };
+const PLACEHOLDERS = { habit: "Morning meditation", goal: "Finish my first song", dream: "Live by the sea", idea: "A podcast about healing" };
 
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
