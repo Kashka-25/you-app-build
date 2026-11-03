@@ -11,6 +11,7 @@ import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
 import { SegmentedControl } from "../ui/SegmentedControl";
 import WanderingsList from "../wandering/WanderingsList";
+import { PillarTitle } from "../ui/Pillar";
 
 // Two views: the pursuits themselves, and the Wanderings that grow out of
 // Dreams. Open on Wanderings with router state { view: "wanderings" }.
@@ -72,21 +73,7 @@ function GroupNode({ items, depth }) {
 // quiet "Completed" fold beneath it (Cassidy, Oct 28). Active pursuits sit
 // at the top of the page, so a Pillar counts only what's resting in it.
 function PillarHeading({ cat, count }) {
-  const color = PILLAR_COLORS[cat] || "var(--gold)";
-  return (
-    <span className="flex items-center gap-2.5">
-      <span className="w-1.5 h-7 rounded-full flex-none" style={{ background: color }} aria-hidden="true" />
-      <span className="font-bold">{cat}</span>
-      {count > 0 && (
-        <span
-          className="font-sans text-caption font-medium px-2 py-0.5 rounded-full"
-          style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
-        >
-          {count} resting
-        </span>
-      )}
-    </span>
-  );
+  return <PillarTitle pillar={cat} count={count} countLabel="resting" />;
 }
 
 function CompletedLabel({ n }) {
