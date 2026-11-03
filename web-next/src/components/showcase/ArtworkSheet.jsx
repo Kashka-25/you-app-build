@@ -191,7 +191,7 @@ export default function ArtworkSheet({ work, saved, onSavedChange, onClose }) {
 
       <div className="mt-3">
         {reported ? (
-          <p className="text-caption text-textMuted m-0">Thank you. Cassidy will take a look.</p>
+          <p className="text-caption text-textMuted m-0">Thank you. The YOU Team will take a look.</p>
         ) : reporting ? (
           <div className="space-y-2">
             <textarea

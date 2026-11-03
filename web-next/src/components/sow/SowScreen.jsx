@@ -217,15 +217,15 @@ export default function SowScreen() {
           Sow · {isNextWeek ? "next week" : "this week"} · {weekRangeLabel(weekStart)}
         </div>
         <h1 className="font-serif text-hero text-textPrimary mb-1">What do you want to plant {isNextWeek ? "next week" : "this week"}?</h1>
-        <p className="text-bodySm text-textSecondary mb-6">Pick up to three. Resting is allowed too.</p>
+        <p className="text-bodySm text-textSecondary mb-6">Choose up to three of your PursYOUts to focus on. Each day you'll tend them on Home with one small step, and at the week's end you'll look back at what grew. Resting is allowed too.</p>
 
         {!loaded && <div className="text-body text-textSecondary">Gathering your pursuits…</div>}
 
         {loaded && candidates.length === 0 && (
           <div className="rounded-card border border-dashed border-borderC bg-surface1 p-4 text-bodySm text-textSecondary">
-            Nothing planted yet. Add a habit, goal or dream first, and it'll appear here to sow.
+            Nothing to sow yet. Add a habit, goal or dream in PursYOUts first, and it'll appear here.
             <div className="mt-3">
-              <Button variant="secondary" size="sm" onClick={() => navigate("/pursue")}>Go to Pursue</Button>
+              <Button variant="secondary" size="sm" onClick={() => navigate("/pursue")}>Go to PursYOUts</Button>
             </div>
           </div>
         )}

@@ -77,7 +77,7 @@ export default function FeedbackSheet({ open, onClose, initialKind = "problem" }
             {sent ? (
               <div className="py-4">
                 <div className="font-serif italic text-body text-textPrimary mb-4">
-                  Thank you. It's on its way to Cassidy, and helps shape what YOU becomes.
+                  Thank you. It's on its way to the YOU Team, and helps shape what YOU becomes.
                 </div>
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" className="flex-1" onClick={() => setSent(false)}>Send another</Button>
