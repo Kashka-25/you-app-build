@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAppData } from "../lib/AppDataContext";
 import { BetaBadge } from "./SignIn";
 import NewInYou from "./NewInYou";
+import ProfileBubble from "./ProfileBubble";
 
 export default function TopBar({ onMenuClick }) {
   const { codexNew } = useAppData();
@@ -26,9 +27,13 @@ export default function TopBar({ onMenuClick }) {
           a dot that never clears) only adds noise. */}
       <div className="flex items-center gap-2.5">
         <NewInYou />
-        {/* A simple gold cog, like the side menu's own symbols (Cassidy, Nov 3). */}
-        <Link to="/settings" className="w-9 h-9 flex-none flex items-center justify-center text-gold" aria-label="Settings">
-          <SettingsIcon size={21} strokeWidth={1.75} />
+        {/* Your picture, with a small gold cog: it opens Settings (Cassidy,
+            Nov 3). Your own picture, else your Kronk one, else your initial. */}
+        <Link to="/settings" className="relative w-8 h-8 flex-none before:absolute before:-inset-1.5 before:content-['']" aria-label="Settings">
+          <ProfileBubble size={32} className="shadow-card" />
+          <span className="absolute -bottom-1 -right-1 w-[17px] h-[17px] rounded-full bg-surface2 border border-borderC text-gold flex items-center justify-center" aria-hidden="true">
+            <SettingsIcon size={11} strokeWidth={2} />
+          </span>
         </Link>
       </div>
     </div>

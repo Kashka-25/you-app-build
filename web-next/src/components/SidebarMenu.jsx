@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, Map as MapIcon, MessageSquareHeart, Puzzle, Settings as SettingsIcon, Sparkles, X } from "lucide-react";
+import { ChevronDown, ChevronRight, MessageSquareHeart, Puzzle, Settings as SettingsIcon, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
 import KommYOUnity from "./KommYOUnity";
 import { useNavigation } from "../lib/navigation";
-import { useWhatsNewUnseen } from "../lib/whatsNew";
 
 // The places listed come from lib/navigation.js, in its fixed order, minus
 // any the Seeker has hidden in Extras (Home and YOU always stay). Each
@@ -28,7 +27,6 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
   // Just the places in use (Cassidy, Nov 3: keep it simple): the core, and
   // any extras switched on. Extras are added in Settings → Extras.
   const { menu } = useNavigation();
-  const whatsNewUnseen = useWhatsNewUnseen();
   const onCreatorPage = CREATOR_PAGES.some(p => location.pathname.startsWith(p));
   const [creatorOpen, setCreatorOpen] = useState(onCreatorPage);
   useEffect(() => { if (open && onCreatorPage) setCreatorOpen(true); }, [open, onCreatorPage]);
@@ -95,15 +93,6 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
         <NavLink to="/extras" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
           <Puzzle size={17} strokeWidth={1.75} className="text-gold" />
           Extras
-        </NavLink>
-        <NavLink to="/whats-new" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
-          <Sparkles size={17} strokeWidth={1.75} className="text-gold" />
-          What's new
-          {whatsNewUnseen && <span className="ml-1 w-2 h-2 rounded-full bg-gold" aria-label="New things to see" />}
-        </NavLink>
-        <NavLink to="/find-your-way" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
-          <MapIcon size={17} strokeWidth={1.75} className="text-gold" />
-          Find your way
         </NavLink>
         {onFeedback && (
           <button
