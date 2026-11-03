@@ -88,7 +88,8 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
       )}
 
       <div className="border-t border-borderC pt-3">
-        <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} mb-1`}>
+        <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
+          <img src="/images/icons/settings.png" alt="" width="22" height="22" className="w-[22px] h-[22px] -ml-0.5 -my-0.5" />
           Settings
         </NavLink>
         <NavLink to="/extras" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>

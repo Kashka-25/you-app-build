@@ -26,12 +26,9 @@ export default function TopBar({ onMenuClick }) {
           a dot that never clears) only adds noise. */}
       <div className="flex items-center gap-2.5">
         <NewInYou />
-        <Link to="/settings" className="relative w-8 h-8 flex-none before:absolute before:-inset-1.5 before:content-['']" aria-label="Settings: Your Own Universe">
-          <div
-            className="w-8 h-8 rounded-full"
-            style={{ background: "radial-gradient(circle at 35% 30%, var(--sage), var(--forest) 70%)" }}
-          />
-          <div className="absolute -bottom-0.5 -right-0.5 w-[15px] h-[15px] rounded-full bg-gold border-2 border-surface2" />
+        {/* The Settings cog, in the emblem style (Cassidy, Nov 3). */}
+        <Link to="/settings" className="relative w-9 h-9 flex-none before:absolute before:-inset-1 before:content-['']" aria-label="Settings">
+          <img src="/images/icons/settings.png" alt="" width="36" height="36" className="w-9 h-9" />
         </Link>
       </div>
     </div>
