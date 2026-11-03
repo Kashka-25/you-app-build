@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, ChevronRight, Map as MapIcon, MessageSquareHeart, Puzzle, Sparkles, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Map as MapIcon, MessageSquareHeart, Puzzle, Settings as SettingsIcon, Sparkles, X } from "lucide-react";
 import { useEscape } from "./ui/useEscape";
 import { useAppData } from "../lib/AppDataContext";
 import { fadeIn, easeOut } from "./ui/motion";
@@ -89,7 +89,7 @@ export function MenuContents({ onNavigate, mode, onToggleMode, onFeedback, open 
 
       <div className="border-t border-borderC pt-3">
         <NavLink to="/settings" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>
-          <img src="/images/icons/settings.png" alt="" width="22" height="22" className="w-[22px] h-[22px] -ml-0.5 -my-0.5" />
+          <SettingsIcon size={17} strokeWidth={1.75} className="text-gold" />
           Settings
         </NavLink>
         <NavLink to="/extras" onClick={onNavigate} className={({ isActive }) => `${linkClass({ isActive })} flex items-center gap-2 mb-1`}>

@@ -1,4 +1,4 @@
-import { Menu } from "lucide-react";
+import { Menu, Settings as SettingsIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAppData } from "../lib/AppDataContext";
 import { BetaBadge } from "./SignIn";
@@ -26,9 +26,9 @@ export default function TopBar({ onMenuClick }) {
           a dot that never clears) only adds noise. */}
       <div className="flex items-center gap-2.5">
         <NewInYou />
-        {/* The Settings cog, in the emblem style (Cassidy, Nov 3). */}
-        <Link to="/settings" className="relative w-9 h-9 flex-none before:absolute before:-inset-1 before:content-['']" aria-label="Settings">
-          <img src="/images/icons/settings.png" alt="" width="36" height="36" className="w-9 h-9" />
+        {/* A simple gold cog, like the side menu's own symbols (Cassidy, Nov 3). */}
+        <Link to="/settings" className="w-9 h-9 flex-none flex items-center justify-center text-gold" aria-label="Settings">
+          <SettingsIcon size={21} strokeWidth={1.75} />
         </Link>
       </div>
     </div>
