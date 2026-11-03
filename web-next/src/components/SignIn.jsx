@@ -8,6 +8,9 @@ const fieldClass =
 const labelClass = "text-label uppercase text-textMuted";
 // Matches Supabase Auth's minimum (set Oct 2), so the form says it first.
 export const MIN_PASSWORD = 12;
+// Supabase Auth also asks for a mix of characters; its own message lists
+// every symbol, so the form says it plainly instead.
+const PASSWORD_RULE = `Use at least ${MIN_PASSWORD} characters, with a capital letter, a small letter, a number and a symbol.`;
 
 // The card every signed-out screen sits in.
 // onExit adds a close button that goes back (to the welcome universe).
@@ -49,12 +52,15 @@ export default function SignIn({ initialMode = "signin", onExit }) {
   // Offered once a confirmation email is in play (just signed up, or tried
   // to sign in before confirming).
   const [canResend, setCanResend] = useState(false);
+  // Set when someone tries to sign up with an email that already has an account.
+  const [alreadyHasAccount, setAlreadyHasAccount] = useState(false);
 
   function go(next) {
     setMode(next);
     setError("");
     setInfo("");
     setCanResend(false);
+    setAlreadyHasAccount(false);
   }
 
   async function resend() {
@@ -70,6 +76,7 @@ export default function SignIn({ initialMode = "signin", onExit }) {
     e.preventDefault();
     setError("");
     setInfo("");
+    setAlreadyHasAccount(false);
     setBusy(true);
     if (mode === "reset") {
       const { error: err } = await sendPasswordReset(email.trim());
@@ -81,13 +88,22 @@ export default function SignIn({ initialMode = "signin", onExit }) {
       return;
     }
     const action = mode === "signin" ? signInWithPassword : signUp;
-    const { error: err } = await action(email.trim(), password);
+    const { data, error: err } = await action(email.trim(), password);
     setBusy(false);
     if (err) {
       if (/not confirmed/i.test(err.message)) {
         setError("Your email isn't confirmed yet. Open the link we emailed you, or get a new one below.");
         setCanResend(true);
+      } else if (/password should contain/i.test(err.message)) {
+        setError(PASSWORD_RULE);
       } else setError(err.message);
+      return;
+    }
+    // Supabase answers a sign-up for an address that's already confirmed
+    // with a stand-in user and no identities, and sends no email. Say so,
+    // rather than leave them waiting for a link (Cassidy, Nov 3).
+    if (mode === "signup" && data?.user && data.user.identities?.length === 0) {
+      setAlreadyHasAccount(true);
       return;
     }
     if (mode === "signup") {
@@ -134,12 +150,21 @@ export default function SignIn({ initialMode = "signin", onExit }) {
               onChange={e => setPassword(e.target.value)}
             />
             {mode === "signup" && (
-              <div className="text-caption text-textMuted -mt-1.5 mb-3">At least {MIN_PASSWORD} characters.</div>
+              <div className="text-caption text-textMuted -mt-1.5 mb-3">At least {MIN_PASSWORD} characters, with a capital, a small letter, a number and a symbol.</div>
             )}
           </>
         )}
 
         {error && <div className="text-bodySm text-red-500 mb-3">{error}</div>}
+        {alreadyHasAccount && (
+          <div role="alert" className="text-bodySm text-textPrimary bg-surface2 border border-borderC rounded-sm p-3 mb-3 text-center">
+            <p><span className="[overflow-wrap:anywhere]">{email.trim()}</span> already has a YOU account.</p>
+            <div className="flex justify-center gap-4 mt-2">
+              <button type="button" onClick={() => go("signin")} className="text-forestAccent font-medium underline underline-offset-2">Sign in instead</button>
+              <button type="button" onClick={() => go("reset")} className="text-textSecondary underline underline-offset-2">Reset password</button>
+            </div>
+          </div>
+        )}
         {info && <div className="text-bodySm text-sage mb-3">{info}</div>}
         {canResend && (
           <button type="button" onClick={resend} disabled={busy} className="w-full text-center text-bodySm text-textSecondary underline underline-offset-2 mb-3 disabled:opacity-40">
@@ -204,13 +229,13 @@ export function SetNewPassword() {
     setError("");
     const { error: err } = await setNewPassword(password);
     setBusy(false);
-    if (err) setError(err.message);
+    if (err) setError(/password should contain/i.test(err.message) ? PASSWORD_RULE : err.message);
   }
 
   return (
     <AuthCard>
       <div className="font-serif text-h1 text-textPrimary mb-1">A new password</div>
-      <div className="text-bodySm text-textSecondary mb-6">Choose one you'll remember. At least {MIN_PASSWORD} characters.</div>
+      <div className="text-bodySm text-textSecondary mb-6">Choose one you'll remember. At least {MIN_PASSWORD} characters, with a capital, a small letter, a number and a symbol.</div>
       <form onSubmit={submit}>
         <label className={labelClass}>New password</label>
         <input type="password" required minLength={MIN_PASSWORD} autoComplete="new-password" className={fieldClass} value={password} onChange={e => setPassword(e.target.value)} />
