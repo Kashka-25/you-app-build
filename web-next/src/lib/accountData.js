@@ -7,7 +7,7 @@ const OWN_TABLES = [
   // Profiles are keyed by user_id (their own id is a separate row id).
   "profiles",
   "journal_entries", "journal_highlights", "journal_photos", "journal_ai_insights", "reflections",
-  "weekly_reflections", "mood_log", "memory", "life_moments", "life_chapters", "seasons",
+  "weekly_reflections", "mood_log", "memory", "life_moments", "life_chapters", "seasons", "younderstandings",
   "items", "todos", "week_intentions", "week_harvests", "focus_sessions",
   "user_values", "value_challenges", "value_compass", "value_words", "identity_visions",
   "wanderings", "wandering_stops", "projects", "project_notes", "habit_logs",

@@ -4,6 +4,7 @@ import { ArrowRight, Footprints, HelpCircle } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { pickNoticedPatterns, pickReflectionQuestion, pickNextStep } from "../../lib/compass";
 import { AiCard, AiLabel } from "../ui/Premium";
+import AskYOU from "./AskYOU";
 
 function niceDate(key) {
   return key ? new Date(key + "T00:00:00").toLocaleDateString(undefined, { day: "numeric", month: "long" }) : "";
@@ -14,6 +15,8 @@ function niceDate(key) {
 // gathered from every entry you've asked to be reflected on, with a
 // question to sit with and one small step. Says plainly what it is and how
 // it grows. Reads reflections already made; never calls AI itself.
+// Ask YOU sits on top (Cassidy, Nov 2): your own question, answered from
+// everything you've shared, only when you ask.
 export default function YOUnderstandingView() {
   const { recentInsights, loadRecentInsights, loaded, items } = useAppData();
   const [asked, setAsked] = useState(false);
@@ -31,6 +34,8 @@ export default function YOUnderstandingView() {
 
   return (
     <>
+      <AskYOU />
+
       <div className="rounded-card bg-surface1 shadow-card p-4 mb-4">
         <h2 className="font-serif text-h2 text-textPrimary m-0">What YOU notices</h2>
         <p className="text-bodySm text-textSecondary m-0 mt-1.5">
