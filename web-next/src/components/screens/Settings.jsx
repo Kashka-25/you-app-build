@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Brush, ChevronDown, Download, LogOut, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Trash2 } from "lucide-react";
+import { Brush, Camera, ChevronDown, ChevronRight, Download, LogOut, Map as MapIcon, MapPin, Palette, PenLine, Puzzle, RotateCcw, ShieldCheck, Sparkles, Trash2 } from "lucide-react";
 import { SCALE_DEFAULT, SCALE_STOPS, applyScale, coloursAt, readScale, stopName, storeScale } from "../../lib/colourScale";
 import { Fold } from "../ui/Fold";
 import { AI_USER_MONTHLY_USD } from "../../lib/aiCost";
@@ -20,6 +20,9 @@ import { SegmentedControl } from "../ui/SegmentedControl";
 import { BACKGROUND_MODES, backgroundMode, setBackgroundMode } from "../../lib/showcase";
 import ArtistProfileCard from "../showcase/ArtistProfileCard";
 import { Guide } from "../ui/Guide";
+import { useWhatsNewUnseen } from "../../lib/whatsNew";
+import ProfileBubble from "../ProfileBubble";
+import { useProfilePicture, useSetProfilePicture } from "../../lib/profilePicture";
 
 // Settings, kept simple for the beta (Cassidy, Nov 3): your name, then just
 // Extras, Colours and Your data. An extra's own settings (Kronk, featured
@@ -30,6 +33,7 @@ export default function Settings() {
   const communityOn = usePlugin("community");
   const showcaseOn = usePlugin("showcase");
   const youriginOn = usePlugin("yourigin");
+  const whatsNewUnseen = useWhatsNewUnseen();
 
   return (
     <div className="pt-1 pb-24 px-5">
@@ -52,6 +56,9 @@ export default function Settings() {
           <div className="border-t border-borderC my-4" />
           <YourDataSetting />
         </Fold>
+        {/* Moved here from the side menu (Cassidy, Nov 3). */}
+        <LinkRow to="/whats-new" icon={Sparkles} title="What's new" hint="The latest in YOU, and everything before it" dot={whatsNewUnseen} />
+        <LinkRow to="/find-your-way" icon={MapIcon} title="Find your way" hint="A map of YOU: where everything lives" />
       </div>
 
       {(communityOn || showcaseOn || youriginOn) && (
@@ -81,6 +88,70 @@ export default function Settings() {
         Sign out
       </Button>
     </div>
+  );
+}
+
+// Your picture (lib/profilePicture.js): tap it to choose a new one.
+function ProfilePicture() {
+  const { choose } = useSetProfilePicture();
+  const input = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function pick(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    setError("");
+    try { await choose(file); } catch (err) {
+      console.error("[Settings] picture upload failed:", err);
+      setError(err?.friendly || "Couldn't save that picture. Try another, or try again in a minute.");
+    }
+    setBusy(false);
+  }
+  return (
+    <div className="flex-none">
+      <button type="button" onClick={() => input.current?.click()} disabled={busy} className="relative block rounded-full disabled:opacity-60" aria-label="Choose your picture">
+        <ProfileBubble size={64} className="shadow-card text-[26px]" />
+        <span className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-surface2 border border-borderC text-gold flex items-center justify-center" aria-hidden="true">
+          <Camera size={13} strokeWidth={1.75} />
+        </span>
+      </button>
+      <input ref={input} type="file" accept="image/*" className="hidden" onChange={pick} />
+      {error && <div className="absolute left-5 right-5 bottom-2 text-caption text-red-500">{error}</div>}
+    </div>
+  );
+}
+
+// Which picture is showing, and a way back from your own.
+function PictureNote() {
+  const { source, kronkUrl } = useProfilePicture();
+  const { clear } = useSetProfilePicture();
+  if (source === "kronk") return <div className="text-caption text-textMuted mt-3">Showing your Kronk picture. Tap it to choose your own.</div>;
+  if (source !== "own") return <div className="text-caption text-textMuted mt-3">Tap the circle to add a picture.</div>;
+  return (
+    <button type="button" onClick={() => clear().catch(e => console.error("[Settings] picture remove failed:", e))} className="text-caption text-textSecondary underline underline-offset-2 mt-3 min-h-[32px]">
+      {kronkUrl ? "Use my Kronk picture instead" : "Remove my picture"}
+    </button>
+  );
+}
+
+// A row that goes somewhere, shaped like the Fold rows above it.
+function LinkRow({ to, icon: Icon, title, hint, dot = false }) {
+  return (
+    <Link to={to} className="bg-surface1 shadow-card rounded-card mt-3 w-full flex items-center gap-3 p-4 text-left">
+      <span className="w-9 h-9 rounded-full bg-[color-mix(in_srgb,var(--gold)_14%,transparent)] text-gold flex items-center justify-center flex-none" aria-hidden="true">
+        <Icon size={17} strokeWidth={1.75} />
+      </span>
+      <span className="flex-1 min-w-0">
+        <span className="flex items-center gap-2 text-body text-textPrimary">
+          {title}
+          {dot && <span className="w-2 h-2 rounded-full bg-gold" aria-label="New things to see" />}
+        </span>
+        <span className="block text-caption text-textMuted truncate">{hint}</span>
+      </span>
+      <ChevronRight size={18} strokeWidth={1.75} className="text-textMuted flex-none" />
+    </Link>
   );
 }
 
@@ -128,8 +199,6 @@ function ProfileCard() {
     setSaving(false);
   }
 
-  const initial = (profile?.name || "").trim().charAt(0).toUpperCase();
-
   return (
     <div className="relative rounded-card bg-surface1 shadow-card p-5">
       {!editing ? (
@@ -142,13 +211,7 @@ function ProfileCard() {
             <PenLine size={14} strokeWidth={1.75} /> Edit
           </button>
           <div className="flex items-center gap-4 pr-16">
-            <span
-              className="w-16 h-16 rounded-full flex-none flex items-center justify-center font-serif text-[26px] text-cream shadow-card"
-              style={{ background: "radial-gradient(circle at 35% 30%, var(--sage), var(--forest) 70%)" }}
-              aria-hidden="true"
-            >
-              {initial}
-            </span>
+            <ProfilePicture />
             <div className="min-w-0">
               <div className="font-serif text-h2 text-textPrimary leading-tight break-words">{profile?.name || "Your name"}</div>
               {profile?.location && (
@@ -163,10 +226,15 @@ function ProfileCard() {
           ) : (
             <p className="text-bodySm text-textMuted italic mt-4 mb-0">A little about you, whenever you'd like.</p>
           )}
+          <PictureNote />
           {savedAt && <div className="text-caption text-sage mt-3">Saved.</div>}
         </>
       ) : (
         <form onSubmit={submit}>
+          <div className="flex items-center gap-4 mb-4">
+            <ProfilePicture />
+            <div className="-mt-3"><PictureNote /></div>
+          </div>
           <div className="text-bodySm text-textSecondary mb-3">Who you are, in your own words.</div>
           <FloatingLabelField
             label="Name"

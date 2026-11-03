@@ -71,7 +71,7 @@ export default function AppShell() {
 
       <div className="flex-1 min-w-0 flex justify-center">
       <div className={`w-full max-w-[640px] ${wide ? "lg:max-w-[1160px]" : ""} h-dvh relative flex flex-col overflow-hidden`}>
-        <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="lg:hidden flex-none bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md">
+        <div style={{ paddingTop: "env(safe-area-inset-top)" }} className="lg:hidden flex-none relative z-20 bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] backdrop-blur-md">
           <TopBar onMenuClick={() => setMenuOpen(true)} />
         </div>
         <div className="flex-none">
