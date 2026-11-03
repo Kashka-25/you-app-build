@@ -72,7 +72,7 @@ const STEPS = [
     icon: MessageSquareHeart,
     title: "We're building this together",
     body: "YOU is in beta, so some things will change and a few may wobble. When something feels off, or wonderful, tell us. Which Extras you switch on helps us know what to grow.",
-    points: ["Find your way · a map of YOU, in the side menu", "Send feedback · in the side menu", "Download your data · any time, in Settings", "AI · a free allowance each month during the beta"]
+    points: ["Find your way · a map of YOU, in Settings", "Send feedback · in the side menu", "Download your data · any time, in Settings", "AI · a free allowance each month during the beta"]
   }
 ];
 

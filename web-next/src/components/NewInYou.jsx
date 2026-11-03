@@ -7,7 +7,7 @@ import { latestNew, useMarkWhatsNewSeen, useWhatsNewUnseen } from "../lib/whatsN
 import { useEscape } from "./ui/useEscape";
 import { easeOut } from "./ui/motion";
 
-// "New in YOU" in the top bar, beside the profile circle (Cassidy, Nov 1):
+// "What's New" in the top bar, beside the profile picture (Cassidy, Nov 1):
 // always there, glowing gold while something's unseen. On a phone it's the
 // sparkle alone; with room, it's named. It drops down the latest update to
 // read on the spot, with a way to it and a way to everything else new.
@@ -51,16 +51,22 @@ export default function NewInYou() {
         onClick={toggle}
         aria-expanded={open}
         aria-controls="new-in-you"
-        aria-label={unseen ? "New in YOU: something you haven't seen" : "New in YOU"}
-        className={`relative inline-flex items-center justify-center gap-1.5 h-8 min-w-8 sm:pl-2.5 sm:pr-3 rounded-full text-caption font-medium border transition ${
+        aria-label={unseen ? "What's New: something you haven't seen" : "What's New"}
+        className={`group relative inline-flex items-center justify-center gap-1.5 h-8 min-w-8 sm:pl-2.5 sm:pr-3 rounded-full text-caption font-medium border transition ${
           unseen
             ? "bg-[color-mix(in_srgb,var(--gold)_22%,var(--surface-2))] border-gold text-textPrimary shadow-[0_0_12px_color-mix(in_srgb,var(--gold)_50%,transparent)]"
             : "bg-surface1 border-borderC text-textSecondary hover:text-textPrimary"
         }`}
       >
         <Sparkles size={15} strokeWidth={1.75} className="text-gold" aria-hidden="true" />
-        <span className="hidden sm:inline">New in YOU</span>
+        <span className="hidden sm:inline">What's New</span>
         {unseen && <span className="absolute -top-0.5 -right-0.5 w-[9px] h-[9px] rounded-full bg-gold border-2 border-surface2" aria-hidden="true" />}
+        {/* Named on hover where the sparkle stands alone (Cassidy, Nov 3). */}
+        {!open && (
+          <span className="sm:hidden pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-sm bg-surface2 border border-borderC shadow-card px-2 py-1 text-caption text-textPrimary opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity z-10" aria-hidden="true">
+            What's New
+          </span>
+        )}
       </button>
 
       {/* On the page itself, not inside the bar: the bar's frosted glass

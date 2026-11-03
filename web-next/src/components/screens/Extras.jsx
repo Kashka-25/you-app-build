@@ -131,7 +131,7 @@ export default function Extras() {
           </div>
         ))}
         <p className="text-caption text-textMuted mt-2 mb-1">
-          Your Own Universe, Extras, What's new and Find your way always stay at the bottom of the menu.
+          Settings, Extras and Send feedback always stay at the bottom of the menu.
         </p>
       </Card>
 
