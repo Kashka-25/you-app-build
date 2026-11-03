@@ -31,6 +31,9 @@ export default function WelcomeHero({ greeting, message, mood, cta, art, words, 
   // On the painted sunrise the greeting sits in the sky, under the star and
   // above the sun (Cassidy, Nov 3); the day's message stays at the bottom.
   const sunrise = !background && !words;
+  // A soft, low-opacity bubble behind the words so they read clearly over
+  // the painting (Cassidy, Nov 3).
+  const bubble = "rounded-[22px] bg-[#FBF7F0]/55 dark:bg-[#0B0B1F]/40 backdrop-blur-[3px] shadow-[0_2px_18px_rgba(74,58,18,0.08)]";
   const heading = (
     <h1 id="home-welcome" className={`font-serif text-hero text-[clamp(23px,7.2vw,28px)] lg:text-[44px] lg:leading-tight ${ink} m-0 text-center`}>{greeting}</h1>
   );
@@ -80,9 +83,9 @@ export default function WelcomeHero({ greeting, message, mood, cta, art, words, 
 
       <div className={`relative flex flex-col p-5 lg:p-10 ${words ? "justify-between gap-5 min-h-[420px] lg:min-h-[440px]" : sunrise ? "justify-between gap-6 min-h-[300px] lg:min-h-[360px]" : "justify-end min-h-[300px] lg:min-h-[360px]"}`}>
         {words && <FeaturedPiece work={words} ink={ink} inkSoft={inkSoft} onOpen={onOpenArt} />}
-        {sunrise && <div className="pt-[14%] lg:pt-[7%]">{heading}</div>}
+        {sunrise && <div className="pt-[14%] lg:pt-[7%] flex justify-center"><div className={`${bubble} px-5 py-1.5`}>{heading}</div></div>}
 
-        <div className="flex flex-col items-center text-center">
+        <div className={`flex flex-col items-center text-center ${sunrise ? `${bubble} self-center px-5 py-3` : ""}`}>
           {!sunrise && heading}
           {/* A personal message for the day (lib/dailyMessage.js). */}
           {message && (
