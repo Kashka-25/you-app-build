@@ -5,11 +5,9 @@ import SignIn, { SetNewPassword } from "./components/SignIn";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Welcome from "./components/Welcome";
 import { introSeen } from "./components/Intro";
-import WelcomeLab from "./components/WelcomeLab";
 import Universe from "./components/welcome/Universe";
 import KronkCallback from "./components/KronkCallback";
 import ConfirmEmail from "./components/ConfirmEmail";
-import Community from "./components/screens/Community";
 import { KRONK_CALLBACK_PATH } from "./lib/kronk";
 import Privacy from "./components/screens/Privacy";
 import AppShell from "./components/AppShell";
@@ -19,36 +17,56 @@ import BringMeBackToMyself from "./components/screens/BringMeBackToMyself";
 import Journey from "./components/screens/Journey";
 import You from "./components/screens/You";
 import Pursue from "./components/screens/Pursue";
-import Empatherapy from "./components/screens/Empatherapy";
-import ShowcaseGallery from "./components/screens/ShowcaseGallery";
-import YOUriginSpace from "./components/screens/YOUriginSpace";
-import ShowcaseReview from "./components/screens/ShowcaseReview";
 import Reflections from "./components/screens/Reflections";
-import Legacy from "./components/screens/Legacy";
-import Mirror from "./components/screens/Mirror";
-import MyStory from "./components/screens/MyStory";
-import Settings from "./components/screens/Settings";
-import Styleguide from "./components/screens/Styleguide";
 import Threshold, { THRESHOLD_SEEN } from "./components/screens/Threshold";
-import SowScreen from "./components/sow/SowScreen";
-import HarvestScreen from "./components/sow/HarvestScreen";
-import FocusScreen from "./components/focus/FocusScreen";
 import FocusWatcher from "./components/focus/FocusWatcher";
-import YOUniversity from "./components/youniversity/YOUniversity";
-import ArcanumScreen from "./components/youniversity/ArcanumScreen";
-import OwnToolScreen from "./components/youniversity/OwnToolScreen";
-import CoursePlayer from "./components/course/CoursePlayer";
-import CourseToolScreen from "./components/course/CourseToolScreen";
-import CodexRequests from "./components/screens/CodexRequests";
-import BuildNotes from "./components/screens/BuildNotes";
-import BetaInbox from "./components/screens/BetaInbox";
-import SeasonReview from "./components/journey/SeasonReview";
-import WhatsNew from "./components/screens/WhatsNew";
-import Extras from "./components/screens/Extras";
-import { ProjectsLayout, ProjectsHome, ProjectView } from "./components/projects/ProjectsSpace";
-import FindYourWay from "./components/screens/FindYourWay";
-// Loaded on demand: the map library is large, and only a Wandering needs it.
-const WanderingScreen = lazy(() => import("./components/wandering/WanderingScreen"));
+// Loaded on demand (Nov 4): the five core places, sign-in and the welcome
+// come with the app; every other screen is fetched the first time it's
+// opened, so the first open on a phone is lighter. The service worker
+// precaches every chunk, so they still open offline.
+// After a new deploy an open app can ask for a chunk that no longer
+// exists; then it reloads once to pick up the new build.
+function page(load, pick = m => m.default) {
+  return lazy(() => load().then(m => ({ default: pick(m) })).catch(err => {
+    let reloaded = false;
+    try { reloaded = sessionStorage.getItem("you.chunk-reload") === "1"; sessionStorage.setItem("you.chunk-reload", "1"); } catch { /* ignore */ }
+    if (!reloaded) { window.location.reload(); return new Promise(() => {}); }
+    throw err;
+  }));
+}
+try { sessionStorage.removeItem("you.chunk-reload"); } catch { /* ignore */ }
+
+// The map library is large, and only a Wandering needs it.
+const WanderingScreen = page(() => import("./components/wandering/WanderingScreen"));
+const WelcomeLab = page(() => import("./components/WelcomeLab"));
+const Community = page(() => import("./components/screens/Community"));
+const Empatherapy = page(() => import("./components/screens/Empatherapy"));
+const ShowcaseGallery = page(() => import("./components/screens/ShowcaseGallery"));
+const YOUriginSpace = page(() => import("./components/screens/YOUriginSpace"));
+const ShowcaseReview = page(() => import("./components/screens/ShowcaseReview"));
+const Legacy = page(() => import("./components/screens/Legacy"));
+const Mirror = page(() => import("./components/screens/Mirror"));
+const MyStory = page(() => import("./components/screens/MyStory"));
+const Settings = page(() => import("./components/screens/Settings"));
+const Styleguide = page(() => import("./components/screens/Styleguide"));
+const SowScreen = page(() => import("./components/sow/SowScreen"));
+const HarvestScreen = page(() => import("./components/sow/HarvestScreen"));
+const FocusScreen = page(() => import("./components/focus/FocusScreen"));
+const YOUniversity = page(() => import("./components/youniversity/YOUniversity"));
+const ArcanumScreen = page(() => import("./components/youniversity/ArcanumScreen"));
+const OwnToolScreen = page(() => import("./components/youniversity/OwnToolScreen"));
+const CoursePlayer = page(() => import("./components/course/CoursePlayer"));
+const CourseToolScreen = page(() => import("./components/course/CourseToolScreen"));
+const CodexRequests = page(() => import("./components/screens/CodexRequests"));
+const BuildNotes = page(() => import("./components/screens/BuildNotes"));
+const BetaInbox = page(() => import("./components/screens/BetaInbox"));
+const SeasonReview = page(() => import("./components/journey/SeasonReview"));
+const WhatsNew = page(() => import("./components/screens/WhatsNew"));
+const Extras = page(() => import("./components/screens/Extras"));
+const FindYourWay = page(() => import("./components/screens/FindYourWay"));
+const ProjectsLayout = page(() => import("./components/projects/ProjectsSpace"), m => m.ProjectsLayout);
+const ProjectsHome = page(() => import("./components/projects/ProjectsSpace"), m => m.ProjectsHome);
+const ProjectView = page(() => import("./components/projects/ProjectsSpace"), m => m.ProjectView);
 import { ParkedScreen } from "./components/Primitives";
 import { useSectionElement } from "./lib/elements";
 import { applyScale, readScale, storeScale, watchMode } from "./lib/colourScale";
@@ -82,6 +100,14 @@ function useThresholdOnOpen(ready, on) {
   }, [ready]);
 }
 
+function PageLoading() {
+  return (
+    <div className="min-h-dvh bg-bg flex justify-center items-center font-sans">
+      <LoadingScreen label="Opening" />
+    </div>
+  );
+}
+
 export default function App() {
   const { userId, loading, recovering, prefs } = useAuth();
   const { pathname } = useLocation();
@@ -109,12 +135,14 @@ export default function App() {
   if (pathname === "/welcome" || pathname === "/welcome-lab") {
     const Page = pathname === "/welcome" ? Universe : WelcomeLab;
     return (
-      <Page
-        onContinue={mode => {
-          setSignInMode(mode);
-          navigate("/", { replace: true });
-        }}
-      />
+      <Suspense fallback={<PageLoading />}>
+        <Page
+          onContinue={mode => {
+            setSignInMode(mode);
+            navigate("/", { replace: true });
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -135,6 +163,7 @@ export default function App() {
   return (
     <ErrorBoundary key={pathname}>
     <FocusWatcher />
+    <Suspense fallback={<PageLoading />}>
     <Routes>
       <Route path="/styleguide" element={<Styleguide />} />
       {/* Full-screen layers, outside the shell: no top bar, no nav. */}
@@ -201,6 +230,7 @@ export default function App() {
         <Route path="/find-your-way" element={<FindYourWay />} />
       </Route>
     </Routes>
+    </Suspense>
     </ErrorBoundary>
   );
 }

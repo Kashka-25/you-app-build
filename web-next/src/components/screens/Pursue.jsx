@@ -11,6 +11,7 @@ import { EmptyState } from "../ui/EmptyState";
 import ItemCard from "../pursue/ItemCard";
 import { SegmentedControl } from "../ui/SegmentedControl";
 import WanderingsList from "../wandering/WanderingsList";
+import WeekRitualCard from "../pursue/WeekRitualCard";
 import { PillarTitle } from "../ui/Pillar";
 
 // Two views: the pursuits themselves, and the Wanderings that grow out of
@@ -150,6 +151,7 @@ export default function Pursue() {
 
       {view === "wanderings" ? <WanderingsList /> : (
       <>
+      {items.some(i => !i.done) && <WeekRitualCard />}
       <div className="flex gap-2 mb-4 overflow-x-auto">
         {FILTERS.map(f => (
           <button
