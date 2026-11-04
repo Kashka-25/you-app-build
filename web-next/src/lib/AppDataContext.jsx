@@ -992,6 +992,7 @@ export function AppDataProvider({ children }) {
     const today = localDateKey();
     const name = `Tended: ${item.name}`;
     const tended = w.tended_dates || [];
+    if (item.type === "habit") return toggleTendedHabit(w, item, today, name);
 
     if (tended.includes(today)) {
       await updateWeekIntention(id, { tended_dates: tended.filter(d => d !== today) });
@@ -1009,6 +1010,39 @@ export function AppDataProvider({ children }) {
       date: entry.date, date_key: entry.date_key, cat: entry.cat || null, tags: entry.tags
     }).select().single();
     if (res.data) setMemory(prev => prev.map(m => (m === entry ? { ...m, id: res.data.id } : m)));
+  }
+
+  // A sown habit: tending it IS today's check-in (Nov 4). Before, tending
+  // added its own 3 XP and the habit's tick (on the same row, or on
+  // PursYOUts) added 3 more for the same day. Now the check-in carries the
+  // XP, and a habit already checked in today counts as tended.
+  //  · one tick a day: tending ticks it; untending takes today's tick back.
+  //  · with steps: the steps carry the XP, so tending only marks the day.
+  function isTendedToday(w, item, today = localDateKey()) {
+    if ((w.tended_dates || []).includes(today)) return true;
+    return item?.type === "habit" && habitDays(item, memory, habitLogs).has(today);
+  }
+
+  async function toggleTendedHabit(w, item, today, oldTendName) {
+    const steps = dailySteps(item);
+    const single = steps.length === 1 && steps[0].key === "habit";
+    const loggedToday = habitLogs.some(l => l.item_id === item.id && l.day === today && l.step === "habit");
+    const tendedDates = w.tended_dates || [];
+
+    if (isTendedToday(w, item, today)) {
+      await updateWeekIntention(w.id, { tended_dates: tendedDates.filter(d => d !== today) });
+      // A tend from before Nov 4 carried its own XP; take it back with it.
+      const old = memory.find(m => m.name === oldTendName && m.date_key === today);
+      if (old) {
+        setMemory(prev => prev.filter(m => m !== old));
+        if (old.id) await supabase.from("memory").delete().eq("id", old.id).eq("user_id", userId);
+      }
+      if (single && loggedToday) await toggleHabitStep(item.id, "habit", steps[0].amount);
+      return;
+    }
+
+    await updateWeekIntention(w.id, { tended_dates: [...tendedDates, today] });
+    if (single && !loggedToday) await toggleHabitStep(item.id, "habit", steps[0].amount);
   }
 
   async function restIntentionToday(id) {
@@ -1432,7 +1466,7 @@ export function AppDataProvider({ children }) {
     }
 
     const w = active.intentionId && weekIntentions.find(x => x.id === active.intentionId);
-    const tendedNow = !!w && !(w.tended_dates || []).includes(today);
+    const tendedNow = !!w && !isTendedToday(w, items.find(i => i.id === w.item_id), today);
     if (tendedNow) await toggleTended(w.id);
     return { session: res.data, xp, tendedNow };
   }
@@ -2340,7 +2374,7 @@ export function AppDataProvider({ children }) {
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
     addIdentityVision, editIdentityVision, deleteIdentityVision,
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
-    weekIntentions, sowWeek, toggleTended, restIntentionToday,
+    weekIntentions, sowWeek, toggleTended, isTendedToday, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
     seasons, currentSeason: seasons.find(s => s.based_on?.kind !== "lookback") || null, readSeason, aiUsageThisMonth,
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
