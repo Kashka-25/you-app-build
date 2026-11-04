@@ -164,7 +164,9 @@ create table if not exists public.identity_visions (
   reflection text,
   vision_date date not null default CURRENT_DATE,
   inserted_at timestamp with time zone not null default now(),
-  updated_at timestamp with time zone not null default now()
+  updated_at timestamp with time zone not null default now(),
+  journey jsonb not null default '{}'::jsonb,
+  item_ids uuid[] not null default '{}'::uuid[]
 );
 
 create table if not exists public.items (

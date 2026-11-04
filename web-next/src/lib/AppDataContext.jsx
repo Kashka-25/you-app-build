@@ -218,7 +218,7 @@ export function AppDataProvider({ children }) {
       setChapters(chaptersRes.data || []);
       setValueChallenges(valueChallengesRes.data || []);
       setJournalEntries(journalRes.data || []);
-      setIdentityVisions((identityVisionsRes.data || []).map(v => ({ ...v, category: normalizePillar(v.category) })));
+      setIdentityVisions((identityVisionsRes.data || []).map(v => ({ ...v, category: normalizePillar(v.category), journey: v.journey || {}, item_ids: v.item_ids || [] })));
       setSync("synced");
       loadTodos();
       loadWeekIntentions();
@@ -839,32 +839,59 @@ export function AppDataProvider({ children }) {
   // `category` is whatever free text the user types (UI offers suggestions,
   // doesn't enforce them); `visionDate` follows the same backdating pattern
   // as everything else in this file rather than always defaulting to today.
-  async function addIdentityVision({ category, title, statement, reflection, visionDate }) {
+  // Nov 4: a vision can also keep what the "Meet your future self" journey
+  // gathered (`journey`: horizon, a day in the life, the voices of the
+  // people closest, what's already a little true, a letter, the obstacle
+  // and the plan) and the pursuits that are votes for it (`itemIds`).
+  const isUuid = id => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id);
+  const visionRow = v => ({ ...v, category: normalizePillar(v.category), journey: v.journey || {}, item_ids: v.item_ids || [] });
+
+  async function addIdentityVision({ category, title, statement, reflection, visionDate, journey, itemIds }) {
     const row = {
       user_id: userId, category: (category || "").trim(), title: title.trim(), statement: statement.trim(),
-      reflection: (reflection || "").trim() || null, vision_date: visionDate || todayKey()
+      reflection: (reflection || "").trim() || null, vision_date: visionDate || todayKey(),
+      ...(journey && { journey }),
+      ...(itemIds && { item_ids: itemIds.filter(isUuid) })
     };
     const res = await supabase.from("identity_visions").insert(row).select().single();
     if (res.error) throw res.error;
-    setIdentityVisions(prev => [res.data, ...prev]);
-    return res.data;
+    const saved = visionRow(res.data);
+    setIdentityVisions(prev => [saved, ...prev]);
+    return saved;
   }
 
-  async function editIdentityVision(id, { category, title, statement, reflection, visionDate }) {
+  async function editIdentityVision(id, { category, title, statement, reflection, visionDate, journey, itemIds }) {
     const updates = {
       category: (category || "").trim(), title: title.trim(), statement: statement.trim(),
       reflection: (reflection || "").trim() || null, vision_date: visionDate,
+      ...(journey && { journey }),
+      ...(itemIds && { item_ids: itemIds.filter(isUuid) }),
       updated_at: new Date().toISOString()
     };
     const res = await supabase.from("identity_visions").update(updates).eq("id", id).eq("user_id", userId).select().single();
     if (res.error) throw res.error;
-    setIdentityVisions(prev => prev.map(v => (v.id === id ? res.data : v)));
-    return res.data;
+    const saved = visionRow(res.data);
+    setIdentityVisions(prev => prev.map(v => (v.id === id ? saved : v)));
+    return saved;
   }
 
+  // Which pursuits grow a vision, changed from the vision or the journey.
+  async function linkVisionItems(id, itemIds) {
+    const res = await supabase.from("identity_visions")
+      .update({ item_ids: itemIds.filter(isUuid), updated_at: new Date().toISOString() })
+      .eq("id", id).eq("user_id", userId).select().single();
+    if (res.error) throw res.error;
+    const saved = visionRow(res.data);
+    setIdentityVisions(prev => prev.map(v => (v.id === id ? saved : v)));
+    return saved;
+  }
+
+  // Asked first in the form (Nov 4); a failed delete puts it back.
   async function deleteIdentityVision(id) {
+    const before = identityVisions;
     setIdentityVisions(prev => prev.filter(v => v.id !== id));
-    await supabase.from("identity_visions").delete().eq("id", id).eq("user_id", userId);
+    const res = await supabase.from("identity_visions").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) { setIdentityVisions(before); throw res.error; }
   }
 
   // Journal entries. Kept distinct from `memory` (the auto-generated XP
@@ -2380,7 +2407,7 @@ export function AppDataProvider({ children }) {
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
-    addIdentityVision, editIdentityVision, deleteIdentityVision,
+    addIdentityVision, editIdentityVision, deleteIdentityVision, linkVisionItems,
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
     weekIntentions, sowWeek, toggleTended, isTendedToday, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,

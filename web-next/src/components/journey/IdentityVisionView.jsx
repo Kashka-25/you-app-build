@@ -1,63 +1,73 @@
 import { useState } from "react";
-import { Plus, Compass, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Plus, Sparkles, ArrowRight, Sprout } from "lucide-react";
 import { DropdownSection } from "../Primitives";
 import { useAppData } from "../../lib/AppDataContext";
-import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
-import { PILLAR_ICONS } from "../../constants/pillarIcons";
+import { PILLARS } from "../../constants/app.const";
+import { PillarSymbol, PillarTitle, pillarColor } from "../ui/Pillar";
 import { Button } from "../ui/Button";
-import { GlowBubble } from "../ui/GlowBubble";
 import IdentityVisionModal from "./IdentityVisionModal";
-import { PillarTitle } from "../ui/Pillar";
+import VisionSheet from "./VisionSheet";
+import { visionItems, votesThisWeek } from "../../lib/visions";
 
-function niceDate(dateStr) {
-  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-}
-
-// Shared icon-per-Pillar mapping — one taxonomy (Pillars) used
-// consistently across Pursue, Values and here, rather than Identity
-// inventing its own categories.
-
-// Bold, with the Pillar's colour stripe and symbol (Cassidy, Nov 2).
-function CategoryHeading({ category, count }) {
-  return <PillarTitle pillar={category} count={count} />;
-}
-
-function VisionCard({ vision, onEdit }) {
-  const color = PILLAR_COLORS[vision.category] || "var(--gold)";
-  const Icon = PILLAR_ICONS[vision.category] || Sparkles;
+// A keepsake card (Nov 4): the life area's colour as a soft glow, the
+// name and its line, and the pursuits that grow it as small seeds along
+// the foot, with this week's votes. Tap to open everything it holds.
+function VisionCard({ vision, onOpen }) {
+  const { items, memory, habitLogs } = useAppData();
+  const color = pillarColor(vision.category);
+  const seeds = visionItems(vision, items);
+  const votes = votesThisWeek(vision, items, memory, habitLogs);
   return (
     <button
-      onClick={() => onEdit(vision)}
-      className="w-full text-left rounded-card bg-surface1 shadow-card p-4 mb-3 border-l-2 flex gap-3.5"
-      style={{ borderLeftColor: color }}
+      type="button"
+      onClick={() => onOpen(vision)}
+      className="relative w-full text-left rounded-card bg-surface1 shadow-card p-4 mb-3 overflow-hidden border"
+      style={{ borderColor: `color-mix(in srgb, ${color} 35%, transparent)` }}
     >
-      <GlowBubble icon={Icon} size={44} color={color} className="mt-0.5" animate={false} />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-3 mb-1">
-          <span className="font-serif text-h3 text-textPrimary">{vision.title}</span>
-          <span className="text-caption text-textMuted flex-none mt-1">{niceDate(vision.vision_date)}</span>
+      <span
+        className="absolute -top-16 -left-16 w-48 h-48 rounded-full pointer-events-none"
+        style={{ background: `radial-gradient(circle, color-mix(in srgb, ${color} 30%, transparent) 0%, transparent 70%)` }}
+        aria-hidden="true"
+      />
+      <div className="relative flex gap-3">
+        <PillarSymbol pillar={vision.category} size={40} className="flex-none mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <div className="font-serif text-h2 leading-tight text-textPrimary">{vision.title}</div>
+          {vision.statement && <p className="font-serif italic text-body text-textSecondary leading-snug m-0 mt-1">{vision.statement}</p>}
         </div>
-        <div className="relative pl-3">
-          <span className="absolute left-0 top-0 font-serif text-h2 leading-none" style={{ color }}>"</span>
-          <p className="font-serif text-body text-textSecondary italic leading-snug">{vision.statement}</p>
-        </div>
-        {vision.reflection && (
-          <div className="text-bodySm text-textSecondary mt-2.5 pt-2.5 border-t border-borderC">{vision.reflection}</div>
-        )}
       </div>
+      {(seeds.length > 0 || votes > 0) && (
+        <div className="relative mt-3 pt-3 border-t border-borderC">
+          {votes > 0 && (
+            <div className="text-caption font-medium mb-1.5" style={{ color }}>
+              {votes} {votes === 1 ? "vote" : "votes"} for {vision.title} this week
+            </div>
+          )}
+          <div className="flex flex-wrap gap-1.5">
+            {seeds.map(s => (
+              <span key={s.id} className="inline-flex items-center gap-1.5 text-caption text-textSecondary bg-surface3 rounded-full pl-2 pr-2.5 py-0.5 max-w-full">
+                <Sprout size={12} strokeWidth={1.75} style={{ color: pillarColor(s.cat) }} aria-hidden="true" />
+                <span className="truncate">{s.name}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </button>
   );
 }
 
-// Not a goal list — nothing here has a done flag or earns XP. It's a place
-// to declare a version of yourself you're orienting toward (an identity,
-// an ideal relationship, a life/work vision) whether or not it's practical
-// or achievable on any timeline. Grouped by Pillar, in PILLARS' fixed
-// order, matching Pursue's grouping exactly.
+// Not a goal list: nothing here has a done flag or earns XP. It's who
+// you're orienting toward, grouped by life area in PILLARS' fixed order,
+// each in its colour (Cassidy liked the colours, Nov 4). The way in is
+// Meet your future self; Add a vision stays for writing one directly.
 export default function IdentityVisionView() {
   const { identityVisions } = useAppData();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [openId, setOpenId] = useState(null);
+  const open = identityVisions.find(v => v.id === openId) || null;
 
   const groups = PILLARS
     .map(cat => ({ category: cat, visions: identityVisions.filter(v => v.category === cat) }))
@@ -66,44 +76,47 @@ export default function IdentityVisionView() {
 
   return (
     <>
-      <div
-        className="rounded-card bg-gradient-to-br from-forest to-forestAccent p-4 mb-5 shadow-card flex items-center gap-3.5"
-        style={{ boxShadow: "0 0 40px -12px color-mix(in srgb, var(--gold) 35%, transparent)" }}
+      <Link
+        to="/future-self"
+        className="relative block rounded-card overflow-hidden p-5 mb-5 shadow-card text-white"
+        style={{ background: "linear-gradient(160deg, #E9C99A -10%, #B78DA8 30%, #5E4A86 70%, #1B1638 120%)" }}
       >
-        <GlowBubble icon={Compass} size={48} />
-        <div className="flex-1 min-w-0">
-          <div className="font-serif text-h3 text-cream">Who you're becoming</div>
-          <div className="text-bodySm text-[color-mix(in_srgb,var(--cream)_85%,transparent)] mt-0.5">
-            Not a goal, not something to complete — a version of yourself you're orienting toward.
-          </div>
-        </div>
-      </div>
+        <Sparkles size={22} strokeWidth={1.5} className="mb-2 opacity-90" aria-hidden="true" />
+        <div className="font-serif text-[26px] leading-tight">Meet your future self</div>
+        <p className="text-bodySm text-white/85 m-0 mt-1 max-w-[34ch]">
+          A quiet walk to who you're becoming: a day in their life, the people who love you, a letter back, and your first steps.
+        </p>
+        <span className="inline-flex items-center gap-1.5 mt-3 min-h-[40px] px-4 rounded-full bg-white text-[#24183A] text-bodySm font-medium">
+          Begin <ArrowRight size={16} strokeWidth={1.75} />
+        </span>
+        <span className="block text-caption text-white/70 mt-2">About 10 minutes · no AI · you can skip any step</span>
+      </Link>
 
       <div className="flex justify-between items-center mb-1">
-        <span className="font-serif text-h2 font-medium">Your visions</span>
-        <Button size="sm" variant="secondary" icon={Plus} onClick={() => setAddOpen(true)}>Add a vision</Button>
+        <span className="font-serif text-h2 font-medium">Who you're becoming</span>
+        <Button size="sm" variant="secondary" icon={Plus} onClick={() => setAddOpen(true)}>Write one</Button>
       </div>
 
       {identityVisions.length === 0 ? (
-        <div className="rounded-card border border-dashed border-borderC bg-surface1 p-4 mt-4 text-bodySm text-textMuted">
-          Nothing here yet — who are you trying to become? A title (Philosopher, Poet, Musician), the shape of
-          the relationship you want, or the long-term direction of your life and work all belong here.
+        <div className="rounded-card border border-dashed border-borderC bg-surface1 p-4 mt-3 text-bodySm text-textMuted">
+          Not goals, not something to finish: versions of yourself you're growing toward. A Poet, a Healer, a steady, present parent. Begin with Meet your future self above, or write one straight away.
         </div>
       ) : (
         <>
           {groups.map(({ category, visions }) => (
-            <DropdownSection key={category} title={<CategoryHeading category={category} count={visions.length} />} defaultOpen>
-              {visions.map(v => <VisionCard key={v.id} vision={v} onEdit={setEditing} />)}
+            <DropdownSection key={category} title={<PillarTitle pillar={category} count={visions.length} />} defaultOpen>
+              {visions.map(v => <VisionCard key={v.id} vision={v} onOpen={x => setOpenId(x.id)} />)}
             </DropdownSection>
           ))}
           {other.length > 0 && (
-            <DropdownSection title={<CategoryHeading category="Other" count={other.length} />} defaultOpen={groups.length === 0}>
-              {other.map(v => <VisionCard key={v.id} vision={v} onEdit={setEditing} />)}
+            <DropdownSection title={<PillarTitle pillar="Other" count={other.length} />} defaultOpen={groups.length === 0}>
+              {other.map(v => <VisionCard key={v.id} vision={v} onOpen={x => setOpenId(x.id)} />)}
             </DropdownSection>
           )}
         </>
       )}
 
+      <VisionSheet vision={open} onClose={() => setOpenId(null)} onEdit={v => { setOpenId(null); setEditing(v); }} />
       <IdentityVisionModal open={addOpen} onClose={() => setAddOpen(false)} />
       <IdentityVisionModal open={Boolean(editing)} vision={editing} onClose={() => setEditing(null)} />
     </>
