@@ -211,7 +211,19 @@ function RestingTip({ x, y, Icon }) {
 
 // Ida, Pingala and Sushumna, as a slender graphic through the trunk.
 const CHAKRAS = ["#D9584A", "#E8894A", "#E8C877", "#7FB069", "#6FA8C9", "#7C6FC4", "#E9DDF6"];
-function NadiChannels({ bottom, top, dimmed, label }) {
+// When a value or Pillar is tapped the channels wake (Cassidy, Nov 4): Ida
+// glows moon-blue and Pingala sun-red, pulsing in turn, one brightening as
+// the other softens. Still for anyone who prefers reduced motion.
+const NADI_CSS = `
+  @keyframes nadiIda { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @keyframes nadiPingala { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+  .nadi-ida { animation: nadiIda 2.6s ease-in-out infinite; }
+  .nadi-pingala { animation: nadiPingala 2.6s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .nadi-ida, .nadi-pingala { animation: none; } }
+`;
+const IDA_BLUE = "#5FA8FF", PINGALA_RED = "#FF4A3D";
+
+function NadiChannels({ bottom, top, dimmed, awake, label }) {
   const h = bottom - top;
   const amp = 10;
   const turns = CHAKRAS.length - 1; // a half-turn between each pair of chakras
@@ -226,16 +238,29 @@ function NadiChannels({ bottom, top, dimmed, label }) {
     return pts.join(" ");
   };
   return (
-    <g opacity={dimmed ? 0.35 : 1} className="transition-opacity duration-500 pointer-events-auto" role="img" aria-label={label}>
+    <g opacity={dimmed && !awake ? 0.35 : 1} className="transition-opacity duration-500 pointer-events-auto" role="img" aria-label={label}>
       <title>{label}</title>
+      <style>{NADI_CSS}</style>
       {/* a soft shadow behind, so the channels read against the glowing bark */}
       <line x1={TRUNK_X} y1={bottom} x2={TRUNK_X} y2={top} stroke="#1a0b08" strokeWidth={30} opacity={0.4} filter="url(#tosBlur)" />
       {/* Sushumna: a soft glow, then the luminous line */}
       <line x1={TRUNK_X} y1={bottom} x2={TRUNK_X} y2={top} stroke="#FFE9A8" strokeWidth={6} opacity={0.35} filter="url(#tosBlur)" />
       <line x1={TRUNK_X} y1={bottom} x2={TRUNK_X} y2={top} stroke="url(#tosSushumna)" strokeWidth={1.6} strokeLinecap="round" />
       {/* Ida, the moon channel, begins on the left; Pingala, the sun, on the right */}
-      <path d={wave(-1)} fill="none" stroke="#EEEBFF" strokeWidth={1.8} strokeLinecap="round" />
-      <path d={wave(1)} fill="none" stroke="#FF7E45" strokeWidth={1.8} strokeLinecap="round" />
+      <path d={wave(-1)} fill="none" stroke={awake ? IDA_BLUE : "#EEEBFF"} strokeWidth={awake ? 2.2 : 1.8} strokeLinecap="round" style={{ transition: "stroke 500ms" }} />
+      <path d={wave(1)} fill="none" stroke={awake ? PINGALA_RED : "#FF7E45"} strokeWidth={awake ? 2.2 : 1.8} strokeLinecap="round" style={{ transition: "stroke 500ms" }} />
+      {awake && (
+        <>
+          <g className="nadi-ida">
+            <path d={wave(-1)} fill="none" stroke={IDA_BLUE} strokeWidth={7} strokeLinecap="round" opacity={0.75} filter="url(#tosBlur)" />
+            <path d={wave(-1)} fill="none" stroke="#CFE6FF" strokeWidth={1.2} strokeLinecap="round" />
+          </g>
+          <g className="nadi-pingala">
+            <path d={wave(1)} fill="none" stroke={PINGALA_RED} strokeWidth={7} strokeLinecap="round" opacity={0.75} filter="url(#tosBlur)" />
+            <path d={wave(1)} fill="none" stroke="#FFD0C2" strokeWidth={1.2} strokeLinecap="round" />
+          </g>
+        </>
+      )}
       {/* the seven chakras, where they cross */}
       {CHAKRAS.map((c, i) => {
         const y = bottom - (i / turns) * h;
@@ -472,16 +497,29 @@ export default function TreeOfStars() {
   }, [values, valueChallenges, reflections]);
 
   // ── Sky: visions as stars, spread across the cosmos above the canopy ──
+  // Vision stars sit either side of The Story of You, alternating left and
+  // right (Cassidy, Nov 4: one was hidden under it). Each label points
+  // away from the middle, or inward at the sky's edge, so no words run
+  // under the orb; near the Life Constellations doorway they sit lower.
   const stars = useMemo(() => {
-    const n = identityVisions.length;
-    return identityVisions.map((v, i) => {
-      const t = n <= 1 ? 0.25 : i / (n - 1);
-      // Spread across the sky, kept clear of The Story of You (centre) and
-      // the Life Constellations doorway (top right).
-      let x = 70 + t * (SVG_W - 250);
-      if (Math.abs(x - TRUNK_X) < 70) x += x < TRUNK_X ? -70 : 70;
-      return { ...v, x, y: i % 2 ? 150 : 105 };
+    const sides = [[], []];
+    identityVisions.forEach((v, i) => sides[i % 2].push(v));
+    const CLEAR = 135; // half-width kept free around The Story of You
+    const place = (list, side) => list.map((v, j) => {
+      const k = list.length;
+      const t = k <= 1 ? 0.5 : j / (k - 1);
+      const near = TRUNK_X + (side ? CLEAR : -CLEAR);
+      const far = side ? SVG_W - 60 : 60;
+      const x = near + (far - near) * (k <= 1 ? 0.45 : t);
+      let y = j % 2 ? 158 : 104;
+      if (side && x > SVG_W - 190) y = 168;
+      // Labels point away from the middle; at the sky's edge, back inward.
+      const outward = side ? "start" : "end";
+      const atEdge = side ? x > SVG_W - 200 : x < 200;
+      const anchor = atEdge ? (side ? "end" : "start") : outward;
+      return { ...v, x, y, anchor };
     });
+    return [...place(sides[0], 0), ...place(sides[1], 1)];
   }, [identityVisions]);
 
   const active = useMemo(() => {
@@ -562,7 +600,9 @@ export default function TreeOfStars() {
     const layer = (n, rMin, rMax, oMin, oMax, depth) => Array.from({ length: n }, () => ({
       x: rand() * SVG_W, y: rand() * 330, r: rMin + rand() * (rMax - rMin), o: oMin + rand() * (oMax - oMin), depth
     }));
-    return [layer(70, 0.3, 0.8, 0.12, 0.35, 0), layer(40, 0.6, 1.2, 0.25, 0.55, 1), layer(14, 1.1, 1.8, 0.5, 0.85, 2)];
+    // Nothing sparkles over the two doorways or their names.
+    const clear = st => [STORY_ORB, CONSTELLATION_ORB].every(o => Math.abs(st.x - o.x) > 80 || st.y - o.y > 60 || o.y - st.y > 40);
+    return [layer(70, 0.3, 0.8, 0.12, 0.35, 0), layer(40, 0.6, 1.2, 0.25, 0.55, 1), layer(14, 1.1, 1.8, 0.5, 0.85, 2)].map(l => l.filter(clear));
   }, []);
   // The painting for the Seeker's level takes the place of the drawn soil
   // and trunk; everything living is laid over it.
@@ -943,6 +983,7 @@ export default function TreeOfStars() {
             bottom={GROUND_Y - 6}
             top={(tier?.top ?? TRUNK_TOP_Y) + 22}
             dimmed={Boolean(active)}
+            awake={selected?.type === "value" || selected?.type === "pillar"}
             label={`${firstName ? `${firstName}, the` : "The"} ${level?.name || "Seedling"}`}
           />
 
@@ -953,7 +994,6 @@ export default function TreeOfStars() {
           {stars.map((s, i) => {
             const isMember = active ? active.starIds.has(s.id) : false;
             const lit = isMember || hoverStar === s.id;
-            const flip = s.x > SVG_W * 0.62;
             const label = s.title.length > 26 ? `${s.title.slice(0, 25)}…` : s.title;
             return (
               <motion.g
@@ -977,9 +1017,9 @@ export default function TreeOfStars() {
                 <Sparkle x={s.x} y={s.y} r={lit ? 11 : 9} color="#F7F1E1" />
                 <circle cx={s.x} cy={s.y} r={2.2} fill={PILLAR_COLORS[s.category] || "#C9A24D"} />
                 <text
-                  x={flip ? s.x - 12 : s.x + 12}
+                  x={s.anchor === "end" ? s.x - 12 : s.x + 12}
                   y={s.y + 4}
-                  textAnchor={flip ? "end" : "start"}
+                  textAnchor={s.anchor}
                   fontSize={lit ? 12 : 10.5}
                   fill="#EDE6D6"
                   opacity={lit ? 0.95 : 0.42}
