@@ -69,7 +69,7 @@ export function useTodayList() {
 // Returns null when nothing is due, so callers decide what an empty day
 // looks like.
 export default function TodayIntentions() {
-  const { toggleTended, restIntentionToday, toggleMilestone } = useAppData();
+  const { toggleTended, isTendedToday, restIntentionToday, toggleMilestone } = useAppData();
   const focusOn = usePlugin("focus");
   const today = localDateKey();
   const { due, restedToday, isEmpty } = useTodayList();
@@ -79,7 +79,8 @@ export default function TodayIntentions() {
   return (
     <div>
       {due.map(({ w, item }, idx) => {
-        const tended = (w.tended_dates || []).includes(today);
+        // A sown habit checked in anywhere today counts as tended.
+        const tended = isTendedToday(w, item, today);
         return (
           <div key={w.id} className={`flex items-start gap-3 py-3 ${idx > 0 ? "border-t border-borderC" : ""}`}>
             <button

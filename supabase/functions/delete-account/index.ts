@@ -18,6 +18,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Every bucket stores a Seeker's files under a folder named by their user id.
 const BUCKETS = ["journal-photos", "life-moments", "showcase"];
+const LEGACY_TABLES = ["items", "memory", "mood_log", "user_xp"];
 const KRONK_BASE = (Deno.env.get("KRONK_BASE") || "https://kronk.info").replace(/\/$/, "");
 const KRONK_CLIENT_ID = Deno.env.get("KRONK_CLIENT_ID");
 const KRONK_CLIENT_SECRET = Deno.env.get("KRONK_CLIENT_SECRET");
@@ -70,6 +71,14 @@ Deno.serve(async req => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_id: KRONK_CLIENT_ID, client_secret: KRONK_CLIENT_SECRET, token: kronkLink.access_token })
       }).catch(() => null);
+    }
+
+    // The four oldest tables were made before accounts were linked by
+    // cascade (fixed by 20261104120000_link_legacy_tables_to_accounts.sql).
+    // Cleared by hand too, so nothing is left behind either way.
+    for (const table of LEGACY_TABLES) {
+      const { error } = await admin.from(table).delete().eq("user_id", user.id);
+      if (error) throw new Error(`${table}: ${error.message}`);
     }
 
     const { error } = await admin.auth.admin.deleteUser(user.id);

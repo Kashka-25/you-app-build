@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { Check, Wind, RotateCcw, Plus, Sparkles, Moon } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Check, Wind, RotateCcw, Plus, Sparkles, Moon, Sprout } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS, PILLAR_COLORS } from "../../constants/app.const";
 import { DropdownSection } from "../Primitives";
@@ -91,6 +91,7 @@ export default function Pursue() {
   const [adding, setAdding] = useState(false);
   const { isActive } = useActivePursuits();
   const location = useLocation();
+  const navigate = useNavigate();
   const [view, setView] = useState(location.state?.view || "pursuits");
   useEffect(() => {
     if (location.state?.view) setView(location.state.view);
@@ -140,6 +141,8 @@ export default function Pursue() {
           <p className="text-bodySm text-textSecondary dark:text-[color-mix(in_srgb,var(--cream)_88%,transparent)] m-0">The habits, goals and dreams you're growing.</p>
           <div className="flex gap-2 mt-3">
             <Button size="sm" icon={Plus} onClick={() => setAdding(true)}>Plant something</Button>
+            {/* The week's ritual, kept small (Cassidy, Nov 4): one button to Sow. */}
+            <Button size="sm" variant="secondary" icon={Sprout} onClick={() => navigate("/sow")}>Sow your week</Button>
           </div>
         </div>
       </section>
