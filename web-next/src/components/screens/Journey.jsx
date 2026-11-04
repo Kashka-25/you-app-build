@@ -8,7 +8,7 @@ import YOUnderstandingView from "../journey/YOUnderstandingView";
 import IdentityVisionView from "../journey/IdentityVisionView";
 
 const TABS = [
-  { value: "chapters", label: "Chapters" },
+  { value: "chapters", label: "Memories" },
   { value: "identity", label: "Identity" },
   { value: "tree-stars", label: "Tree & Stars" },
   { value: "youn", label: "YOUnderstanding" }

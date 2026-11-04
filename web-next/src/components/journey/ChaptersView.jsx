@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Map, Wheat, ChevronDown } from "lucide-react";
+import { Plus, Map, Wheat, ChevronDown, ChevronRight } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
 import { GlowBubble } from "../ui/GlowBubble";
@@ -7,8 +7,8 @@ import { AiCard, AiLabel } from "../ui/Premium";
 import AddMomentModal from "./AddMomentModal";
 import { PhotoCarousel } from "../ui/PhotoCarousel";
 import { PlaceTag } from "../wandering/PlacePicker";
-import SuggestChaptersPanel from "./SuggestChaptersPanel";
 import SeasonCard from "./SeasonCard";
+import SeasonReading from "./SeasonReading";
 import { localDateKey } from "../../lib/week";
 
 function niceDate(dateStr) {
@@ -44,30 +44,15 @@ function readingLabel(reading) {
   return "Your season";
 }
 
-const PARTS = [
-  ["grew", "What grew"],
-  ["light", "Light"],
-  ["shadow", "Shadow"],
-  ["balance", "Keep in balance"],
-  ["carry", "Carry forward"]
-];
-
 // A season reading, Look back or Season review, kept in the timeline at
 // the end of the stretch it read (Cassidy, Nov 2), in its premium gold.
-// Tap to open what it found.
+// Tap to open it full screen, where it can also be deleted.
 function ReadingCard({ reading }) {
   const [open, setOpen] = useState(false);
   const based = reading.based_on || {};
-  const parts = PARTS.filter(([k]) => based.review?.[k]);
-  const more = parts.length > 0 || (reading.signals || []).length > 0;
   return (
     <AiCard className="mb-3">
-      <button
-        type="button"
-        onClick={() => more && setOpen(o => !o)}
-        aria-expanded={more ? open : undefined}
-        className="block w-full text-left"
-      >
+      <button type="button" onClick={() => setOpen(true)} className="block w-full text-left">
         <div className="flex items-center justify-between gap-3 mb-1">
           <AiLabel>{readingLabel(reading)}</AiLabel>
           {based.from && (
@@ -77,31 +62,12 @@ function ReadingCard({ reading }) {
           )}
         </div>
         <div className="font-serif text-h3 ai-gold-text">{reading.name}</div>
-        {reading.blurb && <div className="text-bodySm text-[var(--ai-text-2)] mt-1">{reading.blurb}</div>}
-        {more && (
-          <span className="inline-flex items-center gap-1 text-caption text-[var(--ai-text-2)] mt-2">
-            {open ? "Fold away" : "Open the reading"}
-            <ChevronDown size={14} strokeWidth={1.75} className={`transition-transform ${open ? "rotate-180" : ""}`} />
-          </span>
-        )}
+        {reading.blurb && <div className="text-bodySm text-[var(--ai-text-2)] mt-1 line-clamp-2">{reading.blurb}</div>}
+        <span className="inline-flex items-center gap-1 text-caption text-[var(--ai-text-2)] mt-2">
+          Open the reading <ChevronRight size={14} strokeWidth={1.75} />
+        </span>
       </button>
-      {open && (
-        <div className="mt-2.5 pt-2.5 border-t border-white/10 space-y-2">
-          {(reading.signals || []).length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {reading.signals.map(sig => (
-                <span key={sig} className="text-caption bg-white/10 text-[var(--ai-text-2)] px-2 py-0.5 rounded-full">{sig}</span>
-              ))}
-            </div>
-          )}
-          {parts.map(([k, label]) => (
-            <div key={k}>
-              <div className="text-label uppercase text-[#E8C877]">{label}</div>
-              <div className="text-bodySm text-[var(--ai-text-2)]">{based.review[k]}</div>
-            </div>
-          ))}
-        </div>
-      )}
+      <SeasonReading reading={open ? reading : null} onClose={() => setOpen(false)} />
     </AiCard>
   );
 }
@@ -186,9 +152,17 @@ export default function ChaptersView() {
     <>
       <SeasonCard />
 
-      {moments.length > 0 && <SuggestChaptersPanel />}
+      {/* A quiet gold divide between the AI readings above and your own
+          memories below (Cassidy, Nov 4). */}
+      <div className="flex items-center gap-3 my-7" aria-hidden="true">
+        <span className="flex-1 h-px bg-gradient-to-r from-transparent to-[color-mix(in_srgb,var(--gold)_55%,transparent)]" />
+        <svg width="14" height="14" viewBox="0 0 24 24" className="flex-none text-gold">
+          <path d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z" fill="currentColor" />
+        </svg>
+        <span className="flex-1 h-px bg-gradient-to-l from-transparent to-[color-mix(in_srgb,var(--gold)_55%,transparent)]" />
+      </div>
 
-      <div className="flex justify-between items-center gap-3 mt-5 mb-3">
+      <div className="flex justify-between items-center gap-3 mb-3">
         <h2 className="font-serif text-h2 text-textPrimary m-0">Memories</h2>
         <Button size="sm" variant="secondary" icon={Plus} onClick={() => setAddOpen(true)}>Add memory</Button>
       </div>

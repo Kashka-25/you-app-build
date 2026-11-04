@@ -1381,6 +1381,14 @@ export function AppDataProvider({ children }) {
     return { empty: false, season: data.season };
   }
 
+  // A reading the Seeker chose not to keep (Cassidy, Nov 2: save, change
+  // or delete when the reading is closed).
+  async function deleteSeason(id) {
+    const res = await supabase.from("seasons").delete().eq("id", id).eq("user_id", userId);
+    if (res.error) throw res.error;
+    setSeasons(prev => prev.filter(s => s.id !== id));
+  }
+
   // ── The Compass ──
   // One row per walk of the Crossroads; the newest is the current compass,
   // earlier ones are kept so the Mirror can show how it has shifted.
@@ -2376,7 +2384,7 @@ export function AppDataProvider({ children }) {
     addTodo, toggleTodo, deleteTodo, addTodoStep, toggleTodoStep, removeTodoStep,
     weekIntentions, sowWeek, toggleTended, isTendedToday, restIntentionToday,
     weekHarvests, harvestWeek, releaseItem, restoreItem,
-    seasons, currentSeason: seasons.find(s => s.based_on?.kind !== "lookback") || null, readSeason, aiUsageThisMonth,
+    seasons, currentSeason: seasons.find(s => s.based_on?.kind !== "lookback") || null, readSeason, deleteSeason, aiUsageThisMonth,
     compassHistory, compass: compassHistory[0] || null, saveCompass, saveCompassLine,
     focusSessions, saveFocusSession, saveFocusNote,
     highlights, addHighlight, updateHighlight, deleteHighlight,
