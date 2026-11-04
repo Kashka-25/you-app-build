@@ -8,16 +8,16 @@
 
 ---
 
-## Progress (4 Nov, branch `fix/mvp-secure-and-polish`, not yet merged)
+## Progress (4 Nov, merged to main: PR #91 → #92)
 
 | Task | State |
 |---|---|
-| A1 Backups | **Chosen: scripted export on Free.** `supabase/backup/backup.mjs` run once: 54 tables, 6 accounts, 25 files → `~/YOU-backups/2026-11-04_1553`. `restore.mjs` written. **Test restore still needs a scratch project** |
-| A2 Schema baseline | Done: `supabase/schema/baseline.sql` + `snapshot.mjs` |
-| A3 + A4 Account-link migration | Written: `20261104120000_link_legacy_tables_to_accounts.sql` (also drops the 48 unreachable rows, approved). Rehearsed on live in a rolled-back transaction: passes. **Not applied yet** |
-| A5 Delete & export | `delete-account` now clears the four legacy tables itself (**needs redeploy**); export adds `user_xp`, `dream_patterns`, `beta_feedback`, `arcanum_code_redemptions` |
+| A1 Backups | **Chosen: scripted export on Free.** `supabase/backup/backup.mjs`: backups on 4 Nov at 15:53 and 17:40 in `~/YOU-backups/`. `restore.mjs` written. **Test restore still needs a scratch project** |
+| A2 Schema baseline | Done: `supabase/schema/baseline.sql` + `snapshot.mjs` (refreshed after A4) |
+| A3 + A4 Account-link migration | **Live (4 Nov):** 48 unreachable rows removed; items/memory/mood_log/user_xp are uuid → `auth.users` on delete cascade; 7 policies recreated. Items 42, memory 72 |
+| A5 Delete & export | **Live:** `delete-account` redeployed and clears the four tables itself; export adds `user_xp`, `dream_patterns`, `beta_feedback`, `arcanum_code_redemptions`. Still to do: delete a test account and confirm nothing is left |
 | B1 Double XP | Fixed: tending a sown habit is its check-in |
-| C1 PursYOUts | Compact cards, quick add and painted header were already live; added the "Your week" Sow/Harvest card |
+| C1 PursYOUts | Compact cards, quick add and painted header were already live; a small "Sow your week" button in the header (Cassidy chose a button over a card) |
 | D1 Bundle | Non-core screens lazy-loaded: main chunk 1.70 → 1.43 MB (495 → 424 KB gzip). The rest is the 245 KB values Codex and core libraries |
 | E2 Tester note | Rewritten for the simple beta; README replaced |
 
