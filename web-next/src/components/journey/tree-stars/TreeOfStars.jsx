@@ -126,35 +126,128 @@ const TRUNK_SHAPE =
   `M ${TRUNK_X - 30} ${GROUND_Y + 4} C ${TRUNK_X - 22} ${GROUND_Y - 60}, ${TRUNK_X - 14} ${TRUNK_TOP_Y + 80}, ${TRUNK_X - 11} ${TRUNK_TOP_Y + 10} ` +
   `L ${TRUNK_X + 11} ${TRUNK_TOP_Y + 10} C ${TRUNK_X + 14} ${TRUNK_TOP_Y + 80}, ${TRUNK_X + 22} ${GROUND_Y - 60}, ${TRUNK_X + 30} ${GROUND_Y + 4} Z`;
 
-// Fruit hangs in a small arc beneath and around a branch tip.
-function fruitOffset(i, n) {
-  const spread = Math.min(Math.PI * 1.1, 0.5 + n * 0.22);
-  const start = Math.PI / 2 - spread / 2;
-  const a = n === 1 ? Math.PI / 2 : start + (i / (n - 1)) * spread;
-  const r = 26 + (i % 2) * 7;
-  return { dx: Math.cos(a) * r, dy: Math.sin(a) * r };
+// A value's crown (Cassidy, Nov 4: "more like tree branches leading to
+// building a canopy"): the branch forks into twigs, and a crown of small
+// leaves grows around them, tinted with the value's colour and fuller as
+// it deepens. Neighbouring crowns overlap into one canopy. Lived depth
+// shows as golden seeds among the leaves; a small badge keeps the symbol.
+function hashSeed(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+  return (h >>> 0) || 1;
+}
+function seeded(seed) {
+  let x = seed;
+  return () => (x = (x * 16807) % 2147483647) / 2147483647;
+}
+const LEAF_GREENS = ["#2F4A22", "#3B5A28", "#4A6B30", "#5C7F38", "#264019"];
+
+function Canopy({ name, x, y, depth, color, fruit, fruitColor, Icon, active }) {
+  const shape = useMemo(() => {
+    const rand = seeded(hashSeed(name));
+    const rx = 50 + depth * 6, ry = 36 + depth * 4;
+    const cy = y - ry * 0.55;
+    const n = Math.min(150, 90 + depth * 14);
+    const leaves = Array.from({ length: n }, (_, i) => {
+      const t = Math.sqrt(rand()), a = rand() * Math.PI * 2;
+      const lx = x + Math.cos(a) * rx * t, ly = cy + Math.sin(a) * ry * t;
+      const outward = (Math.atan2(ly - cy, lx - x) * 180) / Math.PI + 90 + (rand() - 0.5) * 50;
+      const len = 8 + rand() * 5;
+      const back = i < n * 0.45;
+      const tint = back ? 15 : 22 + rand() * 18;
+      const green = LEAF_GREENS[Math.floor(rand() * LEAF_GREENS.length)];
+      return { lx, ly, outward, len, back, tint, green, light: !back && rand() < 0.1 };
+    });
+    const twigs = [[-0.75, -0.35], [0.7, -0.45], [0.05, -0.9], [-0.35, -0.7], [0.4, -0.75]]
+      .slice(0, 3 + Math.min(2, Math.floor(depth / 2)))
+      .map(([dx, dy]) => ({ x2: x + dx * rx * 0.8, y2: cy + dy * ry * 0.7 }));
+    const seeds = Array.from({ length: fruit }, () => {
+      const t = 0.35 + Math.sqrt(rand()) * 0.55, a = rand() * Math.PI * 2;
+      return { sx: x + Math.cos(a) * rx * t, sy: cy + Math.sin(a) * ry * t };
+    });
+    return { leaves, twigs, seeds, cy, rx, ry };
+  }, [name, x, y, depth, fruit]);
+  const leaf = l => (
+    <path
+      key={`${l.lx}-${l.ly}`}
+      d={`M ${l.lx} ${l.ly + l.len} Q ${l.lx + l.len * 0.45} ${l.ly} ${l.lx} ${l.ly - l.len} Q ${l.lx - l.len * 0.45} ${l.ly} ${l.lx} ${l.ly + l.len} Z`}
+      transform={`rotate(${l.outward} ${l.lx} ${l.ly})`}
+      fill={l.light ? "#B7C873" : `color-mix(in srgb, ${color} ${l.tint}%, ${l.green})`}
+      opacity={l.back ? 0.78 : 0.95}
+    />
+  );
+  return (
+    <g>
+      <ellipse cx={x} cy={shape.cy} rx={shape.rx * (active ? 1.5 : 1.25)} ry={shape.ry * (active ? 1.5 : 1.25)} fill={color} opacity={active ? 0.38 : 0.18} filter="url(#tosBlur)" className="transition-all duration-500" />
+      {shape.leaves.filter(l => l.back).map(leaf)}
+      {shape.twigs.map((t, i) => (
+        <path key={i} d={`M ${x} ${y} Q ${(x + t.x2) / 2} ${y - 4} ${t.x2} ${t.y2}`} fill="none" stroke="#5a3a26" strokeWidth={2.4} strokeLinecap="round" opacity={0.9} />
+      ))}
+      {shape.leaves.filter(l => !l.back).map(leaf)}
+      {shape.seeds.map((p, i) => <Fruit key={i} x={p.sx} y={p.sy} color={fruitColor} />)}
+      <circle cx={x} cy={shape.cy} r={11} fill="#1a1230" stroke="#E8C877" strokeOpacity={0.8} strokeWidth={0.9} />
+      {Icon && (
+        <foreignObject x={x - 7} y={shape.cy - 7} width={14} height={14} className="pointer-events-none">
+          <Icon size={14} color={color} strokeWidth={2} />
+        </foreignObject>
+      )}
+    </g>
+  );
 }
 
-// A ripening value's leaves: a cluster around the branch tip, fuller as
-// the value deepens (Cassidy, Nov 2: "a living tree").
-function Leaves({ x, y, n, color }) {
-  const leaves = [];
-  for (let i = 0; i < n; i++) {
-    // A crown fanned all round the tip, fuller above it.
-    const a = -Math.PI / 2 + (i - (n - 1) / 2) * ((Math.PI * 1.7) / Math.max(n - 1, 1));
-    const r = 28 + (i % 3) * 8;
-    const lx = x + Math.cos(a) * r, ly = y + Math.sin(a) * r * 0.8;
-    const deg = (a * 180) / Math.PI + 90;
-    leaves.push(
-      <ellipse
-        key={i} cx={lx} cy={ly} rx={9} ry={20}
-        transform={`rotate(${deg} ${lx} ${ly})`}
-        style={{ fill: i % 4 === 0 ? "#D9A85A" : `color-mix(in srgb, ${color} ${i % 2 ? 45 : 30}%, #5E6B3A)` }}
-        opacity={i % 4 === 0 ? 0.55 : 0.85}
-      />
-    );
-  }
-  return <g>{leaves}</g>;
+// A resting value: a bare tip, quiet and silver.
+function RestingTip({ x, y, Icon }) {
+  return (
+    <g>
+      <circle cx={x} cy={y} r={9} fill="#1a1230" stroke="#9c968a" strokeWidth={1.2} opacity={0.85} />
+      {Icon && (
+        <foreignObject x={x - 5.5} y={y - 5.5} width={11} height={11} className="pointer-events-none">
+          <Icon size={11} color="#C9C3B6" strokeWidth={2} />
+        </foreignObject>
+      )}
+    </g>
+  );
+}
+
+// Ida, Pingala and Sushumna, as a slender graphic through the trunk.
+const CHAKRAS = ["#D9584A", "#E8894A", "#E8C877", "#7FB069", "#6FA8C9", "#7C6FC4", "#E9DDF6"];
+function NadiChannels({ bottom, top, dimmed, label }) {
+  const h = bottom - top;
+  const amp = 10;
+  const turns = CHAKRAS.length - 1; // a half-turn between each pair of chakras
+  const wave = sign => {
+    const pts = [];
+    for (let i = 0; i <= 120; i++) {
+      const t = i / 120;
+      const y = bottom - t * h;
+      const x = TRUNK_X + sign * amp * Math.sin(t * turns * Math.PI) * (0.55 + 0.45 * Math.sin(t * Math.PI));
+      pts.push(`${i ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`);
+    }
+    return pts.join(" ");
+  };
+  return (
+    <g opacity={dimmed ? 0.35 : 1} className="transition-opacity duration-500 pointer-events-auto" role="img" aria-label={label}>
+      <title>{label}</title>
+      {/* a soft shadow behind, so the channels read against the glowing bark */}
+      <line x1={TRUNK_X} y1={bottom} x2={TRUNK_X} y2={top} stroke="#1a0b08" strokeWidth={30} opacity={0.4} filter="url(#tosBlur)" />
+      {/* Sushumna: a soft glow, then the luminous line */}
+      <line x1={TRUNK_X} y1={bottom} x2={TRUNK_X} y2={top} stroke="#FFE9A8" strokeWidth={6} opacity={0.35} filter="url(#tosBlur)" />
+      <line x1={TRUNK_X} y1={bottom} x2={TRUNK_X} y2={top} stroke="url(#tosSushumna)" strokeWidth={1.6} strokeLinecap="round" />
+      {/* Ida, the moon channel, begins on the left; Pingala, the sun, on the right */}
+      <path d={wave(-1)} fill="none" stroke="#EEEBFF" strokeWidth={1.8} strokeLinecap="round" />
+      <path d={wave(1)} fill="none" stroke="#FF7E45" strokeWidth={1.8} strokeLinecap="round" />
+      {/* the seven chakras, where they cross */}
+      {CHAKRAS.map((c, i) => {
+        const y = bottom - (i / turns) * h;
+        return (
+          <g key={i}>
+            <circle cx={TRUNK_X} cy={y} r={8} fill={c} opacity={0.6} filter="url(#tosBlur)" />
+            <circle cx={TRUNK_X} cy={y} r={3.6} fill={c} stroke="#FFF6D6" strokeWidth={0.8} strokeOpacity={0.85} />
+          </g>
+        );
+      })}
+    </g>
+  );
 }
 
 // A four-point sparkle, for the visions in the sky.
@@ -172,9 +265,9 @@ function Sparkle({ x, y, r, color, opacity = 1 }) {
 function Fruit({ x, y, color }) {
   return (
     <g>
-      <circle cx={x} cy={y} r={8} fill={color} opacity={0.35} filter="url(#tosBlur)" />
-      <circle cx={x} cy={y} r={5} fill={color} />
-      <circle cx={x} cy={y} r={5} fill="url(#tosFruitShine)" />
+      <circle cx={x} cy={y} r={4} fill={color} opacity={0.4} filter="url(#tosBlur)" />
+      <circle cx={x} cy={y} r={2.4} fill={color} />
+      <circle cx={x - 0.8} cy={y - 0.8} r={0.9} fill="white" opacity={0.6} />
     </g>
   );
 }
@@ -315,7 +408,8 @@ export default function TreeOfStars() {
     document.addEventListener("fullscreenchange", onChange);
     return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("fullscreenchange", onChange); };
   }, [full]);
-  const { pillars, values, identityVisions, valueChallenges, reflections, level, focusSessions } = useAppData();
+  const { pillars, values, identityVisions, valueChallenges, reflections, level, focusSessions, profile } = useAppData();
+  const firstName = profile?.name?.trim().split(" ")[0] || "";
   // The garden: focus sessions growing around the trunk. Tapping it zooms
   // the view down into the soil, then opens the garden up close.
   const garden = useMemo(
@@ -460,9 +554,8 @@ export default function TreeOfStars() {
     return `circle(${radiusPct}% at ${o.x}px ${o.y}px)`;
   }
 
-  // Background stars in three depths (no twinkle loop — nothing moves on
-  // its own). They drift a little with your finger, cursor or the tilt of
-  // your phone, nearer stars more, so the sky has depth (Cassidy, Nov 2).
+  // Background stars in three depths. The sky is still (Cassidy, Nov 4:
+  // the stars used to drift with the cursor or the phone's tilt).
   const bgStars = useMemo(() => {
     let seed = 7;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -471,24 +564,6 @@ export default function TreeOfStars() {
     }));
     return [layer(70, 0.3, 0.8, 0.12, 0.35, 0), layer(40, 0.6, 1.2, 0.25, 0.55, 1), layer(14, 1.1, 1.8, 0.5, 0.85, 2)];
   }, []);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  useEffect(() => {
-    if (reduceMotion) return;
-    const onTilt = e => {
-      if (e.gamma == null) return;
-      setTilt({ x: Math.max(-1, Math.min(1, e.gamma / 30)), y: Math.max(-1, Math.min(1, (e.beta - 45) / 30)) });
-    };
-    window.addEventListener("deviceorientation", onTilt);
-    return () => window.removeEventListener("deviceorientation", onTilt);
-  }, [reduceMotion]);
-  function onSkyPointer(e) {
-    if (reduceMotion || e.pointerType === "touch") return;
-    const box = e.currentTarget.getBoundingClientRect();
-    setTilt({ x: ((e.clientX - box.left) / box.width) * 2 - 1, y: ((e.clientY - box.top) / box.height) * 2 - 1 });
-  }
-  const drift = depth => `translate(${-tilt.x * (3 + depth * 5)} ${-tilt.y * (2 + depth * 3)})`;
-
   // The painting for the Seeker's level takes the place of the drawn soil
   // and trunk; everything living is laid over it.
   // On a local dev copy, /journey?tree-tier=5 shows any tier, to check them all.
@@ -575,7 +650,7 @@ export default function TreeOfStars() {
           animate={{ scale: gardenZoom ? 3.2 : 1, opacity: gardenZoom ? 0.6 : 1 }}
           transition={{ duration: gardenZoom ? 0.75 : 0.5, ease: easeOut }}
         >
-        <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block w-full h-auto" onPointerMove={onSkyPointer} onPointerLeave={() => setTilt({ x: 0, y: 0 })}>
+        <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="block w-full h-auto">
           <defs>
             <filter id="tosBlur" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur stdDeviation="6" />
@@ -625,6 +700,11 @@ export default function TreeOfStars() {
               <stop offset="0%" stopColor="#E0A458" stopOpacity="0.28" />
               <stop offset="100%" stopColor="#E0A458" stopOpacity="0" />
             </radialGradient>
+            <linearGradient id="tosSushumna" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%" stopColor="#E8C877" stopOpacity="0.7" />
+              <stop offset="50%" stopColor="#FFF3CC" stopOpacity="1" />
+              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.85" />
+            </linearGradient>
             <radialGradient id="tosGalaxy" cx="35%" cy="35%" r="65%">
               <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
               <stop offset="30%" stopColor="#C9A24D" stopOpacity="0.85" />
@@ -660,12 +740,12 @@ export default function TreeOfStars() {
 
           {/* The sky: a faint nebula, then stars at three depths (over the
               painting, which has its own, only the nearest sparkles) */}
-          {!painted && <g transform={drift(0)} style={{ transition: "transform 600ms ease-out" }}>
+          {!painted && <g>
             <ellipse cx={SVG_W * 0.3} cy={170} rx={260} ry={110} fill="url(#tosNebulaA)" />
             <ellipse cx={SVG_W * 0.72} cy={240} rx={220} ry={90} fill="url(#tosNebulaB)" />
           </g>}
           {bgStars.map((layer, d) => (painted && d < 2) ? null : (
-            <g key={d} transform={drift(d)} style={{ transition: "transform 600ms ease-out" }}>
+            <g key={d}>
               {layer.map((s, i) => d === 2
                 ? <Sparkle key={i} x={s.x} y={s.y} r={s.r * 2.6} color="#F3EAD6" opacity={s.o} />
                 : <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#EDE6D6" opacity={s.o} />)}
@@ -784,19 +864,16 @@ export default function TreeOfStars() {
                 animate={{ opacity: dim(isMember) * (b.resting ? 0.6 : 1), scale: 1 }}
                 transition={{ delay: 0.7 + 0.06 * i, duration: 0.5, ease: easeOut }}
               >
-                {!b.resting && <Leaves x={b.x} y={b.y} n={7 + b.tierIndex * 2 + Math.min(b.prestige, 3)} color={b.color} />}
-                {!b.resting && <NodeGlow x={b.x} y={b.y} r={22} color={b.color} active={active && isMember} />}
-                <NodeCore x={b.x} y={b.y} r={b.resting ? 9 : 12} color={b.resting ? "#9c968a" : b.color} />
-                <NodeIcon Icon={Icon} x={b.x} y={b.y} size={b.resting ? 12 : 15} />
-                {Array.from({ length: shownFruit }).map((_, f) => {
-                  const off = fruitOffset(f, shownFruit);
-                  return (
-                    <Fruit key={f} x={b.x + off.dx} y={b.y + off.dy} color={b.fruitColor} />
-                  );
-                })}
+                {b.resting
+                  ? <RestingTip x={b.x} y={b.y} Icon={Icon} />
+                  : <Canopy name={b.name} x={b.x} y={b.y} depth={b.tierIndex + Math.min(b.prestige, 3)} color={b.color} fruit={shownFruit} fruitColor={b.fruitColor} Icon={Icon} active={active && isMember} />}
+                {/* the name just under its crown, by the branch, in the serif, with a soft dark
+                    edge so it reads against the sky */}
                 <text
-                  x={b.x} y={b.y - 22} textAnchor="middle" fontSize="12.5" fill="#EDE6D6"
-                  fontFamily="DM Sans, sans-serif" opacity={b.resting ? 0.6 : 0.92}
+                  x={b.x} y={b.y + (b.resting ? 24 : 32)} textAnchor="middle" fontSize="16" fill="#F7EEDC"
+                  fontFamily="Cormorant Garamond, Georgia, serif" fontWeight="600" letterSpacing="0.02em"
+                  opacity={b.resting ? 0.6 : 1}
+                  style={{ paintOrder: "stroke", stroke: "#120a1f", strokeWidth: 4, strokeOpacity: 0.7 }}
                 >
                   {b.name}{b.resting ? " · resting" : ""}
                 </text>
@@ -856,14 +933,18 @@ export default function TreeOfStars() {
             </g>
           )}
 
-          {/* Seed Being, at the base of the trunk */}
-          <g opacity={active ? 0.4 : 1} className="transition-opacity duration-500">
-            <circle cx={TRUNK_X} cy={GROUND_Y - 28} r={18} fill="#C9A24D" opacity={0.35} filter="url(#tosBlur)" />
-            <NodeCore x={TRUNK_X} y={GROUND_Y - 28} r={8} color="#C9A24D" />
-            <text x={TRUNK_X + 22} y={GROUND_Y - 24} fontSize="11" fill="#EDE6D6" opacity={0.75} fontFamily="DM Sans, sans-serif">
-              {level?.name || "Seed"}
-            </text>
-          </g>
+          {/* The heart of the tree (Cassidy, Nov 4): Sushumna, the central
+              channel, rising through the trunk from root to crown, with Ida
+              (moon, silver, from the left) and Pingala (sun, gold, from the
+              right) spiralling around it and crossing at the seven chakras.
+              Still, like the sky. The Seeker's name and level stay for
+              screen readers and on hover. */}
+          <NadiChannels
+            bottom={GROUND_Y - 6}
+            top={(tier?.top ?? TRUNK_TOP_Y) + 22}
+            dimmed={Boolean(active)}
+            label={`${firstName ? `${firstName}, the` : "The"} ${level?.name || "Seedling"}`}
+          />
 
           {/* Stars — visions, in the cosmos the canopy reaches toward */}
           {/* Each star's vision is written faintly beside it, brighter on
