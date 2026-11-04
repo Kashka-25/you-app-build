@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { Button } from "../ui/Button";
-import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
+import { AiButton } from "../ui/Premium";
 import DrawsFrom from "../ui/DrawsFrom";
 
 
@@ -50,36 +49,36 @@ export default function SuggestChaptersPanel() {
 
   if (suggestions) {
     return (
-      <div className="rounded-card bg-surface1 shadow-card p-4 mb-5">
-        <div className="text-label uppercase text-gold mb-3">Suggested chapters — review before saving</div>
+      <div className="mt-3">
+        <div className="text-label uppercase text-[#E8C877] mb-3">Suggested chapters — review before saving</div>
         {suggestions.map((c, i) => (
-          <div key={i} className="mb-3 pb-3 border-b border-borderC last:border-0 last:mb-0 last:pb-0">
+          <div key={i} className="mb-3 pb-3 border-b border-white/10 last:border-0 last:mb-0 last:pb-0">
             <div className="flex items-center justify-between gap-3">
-              <div className="font-serif text-h3 text-textPrimary">{c.title}</div>
-              <span className="text-caption text-textMuted flex-none">{niceDate(c.range_start)} – {niceDate(c.range_end)}</span>
+              <div className="font-serif text-h3 ai-gold-text">{c.title}</div>
+              <span className="text-caption text-[var(--ai-text-3)] flex-none">{niceDate(c.range_start)} – {niceDate(c.range_end)}</span>
             </div>
-            <div className="text-bodySm text-textSecondary mt-1">{c.blurb}</div>
-            <div className="text-caption text-textMuted mt-1">{(c.moment_titles || []).length} moments</div>
+            <div className="text-bodySm text-[var(--ai-text-2)] mt-1">{c.blurb}</div>
+            <div className="text-caption text-[var(--ai-text-3)] mt-1">{(c.moment_titles || []).length} moments</div>
           </div>
         ))}
         {error && <div className="text-bodySm text-red-500 mt-2 mb-2">{error}</div>}
         <div className="flex gap-3 mt-3">
-          <Button variant="secondary" className="flex-1" onClick={() => setSuggestions(null)} disabled={saving}>Discard</Button>
-          <Button variant="primary" className="flex-1" onClick={accept} disabled={saving}>
-            {saving ? "Saving…" : "Save these chapters"}
-          </Button>
+          <button type="button" className="flex-1 min-h-[44px] rounded-sm bg-white/10 text-[var(--ai-text)] disabled:opacity-40" onClick={() => setSuggestions(null)} disabled={saving}>Discard</button>
+          <button type="button" className="flex-1 min-h-[44px] rounded-sm bg-[var(--ai-gold-2)] text-[var(--ai-ink)] font-medium disabled:opacity-40" onClick={accept} disabled={saving}>
+            {saving ? "Saving…" : "Keep these chapters"}
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mb-5">
-      <AiButton onClick={runSuggest} busy={loading}>
-        {loading ? "Reading your story…" : "Suggest chapters with AI"}
+    <div className="mt-3">
+      <AiButton size="sm" onClick={runSuggest} busy={loading}>
+        {loading ? "Reading your story…" : "Suggest my chapters"}
       </AiButton>
       <DrawsFrom uses={["moments", "journal", "harvests", "pursuits"]} className="mt-1.5" />
-      {note && <div className="text-bodySm text-textSecondary mt-2">{note}</div>}
+      {note && <div className="text-bodySm text-[var(--ai-text-2)] mt-2">{note}</div>}
       {error && <div className="text-bodySm text-red-500 mt-2">{error}</div>}
     </div>
   );

@@ -216,10 +216,10 @@ export default function StoryOfYou({ onClose }) {
           <div className="flex-1 flex flex-col items-center justify-center text-center px-8 pointer-events-auto">
             <div className="font-serif text-h3 text-cream mb-1.5">Your story has no eras yet</div>
             <p className="text-bodySm text-[#B8B5D6] mb-3 max-w-[36ch]">
-              Eras come from your Chapters — add some memories and let YOU suggest the shape of your story so far.
+              Eras come from your chapters. Add some memories, then let YOU suggest the shape of your story so far.
             </p>
-            <Link to="/journey" state={{ tab: "chapters" }} className="text-bodySm underline" style={{ color: "var(--gold)" }}>
-              Go to Chapters →
+            <Link to="/journey" state={{ tab: "chapters", open: "chapters" }} className="text-bodySm underline" style={{ color: "var(--gold)" }}>
+              Find your chapters →
             </Link>
           </div>
         )}

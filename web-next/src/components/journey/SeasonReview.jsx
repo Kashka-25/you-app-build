@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Leaf, Snowflake, Sparkles, Sun, X, Flower2 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { latestReview, niceRange, useHemisphere, SEASON_SKY } from "../../lib/seasons";
@@ -184,19 +184,36 @@ export default function SeasonReview() {
         </div>
 
         <div className="flex-1 flex items-center overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              className="w-full"
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
-              transition={{ duration: 0.45, ease: easeOut }}
-            >
-              {slides[step]}
-            </motion.div>
-          </AnimatePresence>
+          {/* No waiting for the last slide to leave (Nov 4): a paused
+              animation can never hold the next one back. */}
+          <motion.div
+            key={step}
+            className="w-full"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: easeOut }}
+          >
+            {slides[step]}
+          </motion.div>
         </div>
+
+        {/* At the equinoxes, the balance points of the year, an invitation
+            to walk to the future self again (Cassidy, Nov 4). Its home is
+            Identity; this is a second door, twice a year. */}
+        {last && review.kind === "equinox" && (
+          <button
+            type="button"
+            onClick={() => navigate("/future-self")}
+            className="w-full mb-3 rounded-card bg-black/20 hover:bg-black/30 p-4 text-left flex items-center gap-3"
+          >
+            <Sparkles size={20} strokeWidth={1.5} className="flex-none opacity-90" />
+            <span className="flex-1 min-w-0">
+              <span className="block font-serif text-h3">Walk to your future self again?</span>
+              <span className="block text-caption opacity-80">The year is turning. See who you're becoming now, and choose your next steps.</span>
+            </span>
+            <ArrowRight size={18} strokeWidth={1.75} className="flex-none" />
+          </button>
+        )}
 
         <div className="flex gap-2">
           {step > 0 && (

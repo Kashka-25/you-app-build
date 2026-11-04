@@ -5,6 +5,7 @@ import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 import { localDateKey as todayKey } from "../../lib/week";
 import { PillarPicker } from "../ui/Pillar";
+import PursuitPicker from "./PursuitPicker";
 
 const fieldClass = "w-full bg-surface1 border border-borderC rounded-sm px-3 py-2 mb-3 text-body outline-none focus:border-forestAccent shadow-field";
 const labelClass = "text-label uppercase text-textMuted";
@@ -26,6 +27,8 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
   const [visionDate, setVisionDate] = useState(todayKey());
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [itemIds, setItemIds] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -37,6 +40,7 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
       setReflection(vision.reflection || "");
       setReflecting(Boolean(vision.reflection));
       setVisionDate(vision.vision_date || todayKey());
+      setItemIds(vision.item_ids || []);
     } else {
       setCategory(initialCategory || PILLARS[0]);
       setTitle("");
@@ -44,7 +48,9 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
       setReflection("");
       setReflecting(false);
       setVisionDate(todayKey());
+      setItemIds([]);
     }
+    setConfirmDelete(false);
     setError("");
   }, [open, vision, initialCategory]);
 
@@ -53,14 +59,10 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
       setError("Give it a title — what are you calling this vision of yourself?");
       return;
     }
-    if (!statement.trim()) {
-      setError("Add a short statement — what does this actually mean?");
-      return;
-    }
     setSaving(true);
     setError("");
     try {
-      const payload = { category, title, statement, reflection, visionDate };
+      const payload = { category, title, statement, reflection, visionDate, itemIds };
       if (isEdit) await editIdentityVision(vision.id, payload);
       else await addIdentityVision(payload);
       onClose();
@@ -89,10 +91,10 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
       <label className={labelClass}>Which part of life is this</label>
       <PillarPicker value={category} onChange={setCategory} label="Which part of life is this" className="mb-3" />
 
-      <label className={labelClass}>Title</label>
+      <label className={labelClass}>Who you're becoming</label>
       <input className={fieldClass} value={title} onChange={e => setTitle(e.target.value)} placeholder="Philosopher" />
 
-      <label className={labelClass}>Statement</label>
+      <label className={labelClass}>In a line, who is that?</label>
       <textarea
         className={fieldClass}
         rows={2}
@@ -112,7 +114,12 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
         </button>
       )}
 
-      <label className={labelClass}>Date</label>
+      <label className={labelClass}>Growing it</label>
+      <div className="mb-3 mt-1">
+        <PursuitPicker value={itemIds} onChange={setItemIds} pillar={category} />
+      </div>
+
+      <label className={labelClass}>When this vision began</label>
       <input
         type="date"
         className={fieldClass}
@@ -130,15 +137,26 @@ export default function IdentityVisionModal({ open, onClose, vision, initialCate
         </Button>
       </div>
 
-      {isEdit && (
+      {isEdit && !confirmDelete && (
         <button
           type="button"
-          onClick={handleDelete}
+          onClick={() => setConfirmDelete(true)}
           disabled={saving || deleting}
-          className="w-full text-center text-bodySm text-red-500 mt-3"
+          className="w-full text-center text-bodySm text-red-500 mt-3 min-h-[40px]"
         >
-          {deleting ? "Deleting…" : "Delete this vision"}
+          Delete this vision
         </button>
+      )}
+      {isEdit && confirmDelete && (
+        <div className="mt-3 rounded-sm border border-borderC bg-surface1 p-3 text-center">
+          <div className="text-bodySm text-textPrimary mb-2">Delete {vision.title} and everything it holds, for good?</div>
+          <div className="flex gap-2 justify-center">
+            <Button size="sm" variant="secondary" onClick={() => setConfirmDelete(false)} disabled={deleting}>Keep it</Button>
+            <button type="button" onClick={handleDelete} disabled={deleting} className="min-h-[36px] px-4 rounded-sm bg-red-600 text-white text-bodySm font-medium disabled:opacity-50">
+              {deleting ? "Deleting…" : "Delete"}
+            </button>
+          </div>
+        </div>
       )}
     </Modal>
   );

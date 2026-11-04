@@ -17,7 +17,8 @@ import { dailySteps, stepKey } from "../../lib/habits";
 import { bonusHint, finishXp, habitDays, nextCheckinXp } from "../../lib/xp";
 import { localDateKey as todayKey } from "../../lib/week";
 import { useActivePursuits } from "../../lib/activePursuits";
-import { PillarChip } from "../ui/Pillar";
+import { PillarChip, pillarColor } from "../ui/Pillar";
+import { visionsFor } from "../../lib/visions";
 
 const TYPE_ICON = { dream: Star, goal: Target, habit: Flame, idea: Lightbulb };
 
@@ -64,8 +65,9 @@ export default function ItemCard({ item }) {
   const {
     completeItem, unachieveItem, deleteItem, toggleDay, toggleMilestone, addMilestone, removeMilestone, setMilestones,
     getPrestigeTier, wanderings, wanderingStops, createWandering,
-    habitLogs, toggleHabitStep, habitStreak, logPastDay, memory
+    habitLogs, toggleHabitStep, habitStreak, logPastDay, memory, identityVisions
   } = useAppData();
+  const growing = visionsFor(item, identityVisions);
   const isHabit = item.type === "habit";
   const today = todayKey();
   const reduce = useReducedMotion();
@@ -251,6 +253,19 @@ export default function ItemCard({ item }) {
               </div>
 
               {item.intention && <p className="font-serif italic text-body text-textPrimary m-0 mt-2.5">{item.intention}</p>}
+              {/* The selves this grows (Identity, Nov 4). */}
+              {growing.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/journey", { state: { tab: "identity" } })}
+                  className="flex flex-wrap items-center gap-1.5 mt-2.5 text-caption text-textSecondary text-left"
+                >
+                  <Sparkles size={13} strokeWidth={1.75} className="text-gold" aria-hidden="true" /> A vote for
+                  {growing.map((v, i) => (
+                    <span key={v.id} className="font-medium" style={{ color: pillarColor(v.category) }}>{v.title}{i < growing.length - 1 ? "," : ""}</span>
+                  ))}
+                </button>
+              )}
               {item.note && <p className="text-bodySm text-textSecondary m-0 mt-1.5 whitespace-pre-line">{item.note}</p>}
 
               {wandering && (

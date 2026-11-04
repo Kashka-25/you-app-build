@@ -61,6 +61,7 @@ const CodexRequests = page(() => import("./components/screens/CodexRequests"));
 const BuildNotes = page(() => import("./components/screens/BuildNotes"));
 const BetaInbox = page(() => import("./components/screens/BetaInbox"));
 const SeasonReview = page(() => import("./components/journey/SeasonReview"));
+const FutureSelfScreen = page(() => import("./components/journey/FutureSelfScreen"));
 const WhatsNew = page(() => import("./components/screens/WhatsNew"));
 const Extras = page(() => import("./components/screens/Extras"));
 const FindYourWay = page(() => import("./components/screens/FindYourWay"));
@@ -173,6 +174,8 @@ export default function App() {
       <Route path="/focus" element={<FocusScreen />} />
       {/* The Season review: a full-screen story (lib/seasons.js). */}
       <Route path="/season-review" element={<SeasonReview />} />
+      {/* Meet your future self: the Identity journey (Nov 4). */}
+      <Route path="/future-self" element={<FutureSelfScreen />} />
       {/* YOUr Projects: its own space, outside the tab bar (lib/projects.js). */}
       <Route element={<ProjectsLayout />}>
         <Route path="/projects" element={<ProjectsHome />} />
