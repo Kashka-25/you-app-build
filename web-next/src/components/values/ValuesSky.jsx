@@ -51,7 +51,10 @@ export default function ValuesSky({ stars, open, onSelect, onAdd, total }) {
           {empty.map((p, j) => (
             <g key={`e${j}`} onClick={onAdd} onKeyDown={onKey(onAdd)} className="cursor-pointer focus:outline-none focus-visible:outline focus-visible:outline-1" role="button" tabIndex={0} aria-label="Add a value to this open place">
               <circle cx={p.x} cy={p.y} r="14" fill="transparent" />
-              <circle cx={p.x} cy={p.y} r="4" fill="none" stroke="var(--vs-soft)" strokeOpacity="0.7" strokeDasharray="1.5 2" />
+              <circle cx={p.x} cy={p.y} r="6" fill="none" stroke="var(--vs-soft)" strokeOpacity="0.8" strokeDasharray="1.5 2" />
+              {/* an open place says what it's for (Nov 5) */}
+              <path d={`M ${p.x - 2.6} ${p.y} H ${p.x + 2.6} M ${p.x} ${p.y - 2.6} V ${p.y + 2.6}`} stroke="var(--vs-soft)" strokeWidth="1" strokeLinecap="round" />
+              <text x={p.x} y={(stars.length + j) % 2 ? p.y - 11 : p.y + 17} textAnchor="middle" fontSize="8.5" fill="var(--vs-soft)" fontFamily="DM Sans, sans-serif" letterSpacing="0.06em">add</text>
             </g>
           ))}
 
@@ -75,7 +78,7 @@ export default function ValuesSky({ stars, open, onSelect, onAdd, total }) {
         <div className="px-4 pb-3 -mt-1 text-caption min-h-[1.25rem]" style={{ color: "var(--vs-soft)" }} aria-live="polite">
           {chosen
             ? <><span style={{ color: "var(--vs-ink)" }}>{chosen.name}</span> · <span style={{ color: chosen.tierColor }}>{chosen.tier}</span></>
-            : `${stars.length} of ${total} in focus · tap a star`}
+            : `${stars.length} of ${total} in focus · tap a star to open it${stars.length < total ? ", or an open place to add one" : ""}`}
         </div>
       </div>
     </div>
