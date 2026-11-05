@@ -226,6 +226,15 @@ export default function ValuesPanel() {
   );
 }
 
+// "9% of the way to Practising": a value's growth said in words, toward
+// its next tier, or its next stage once it's Mastering (Nov 5).
+function growthWords(pct, tier, prestige) {
+  const i = TIERS.findIndex(t => t.name === tier.name);
+  const next = i < TIERS.length - 1 ? TIERS[i + 1].name : getPrestigeStage(prestige + 1).name;
+  if (pct <= 0) return "just planted";
+  return `${pct}% of the way to ${next}`;
+}
+
 function ValueCard({
   v, open, onToggle, moment, valueChallenges,
   onCompleteLib, onCompleteAi, onGenerate, onSaveDefinition, onRest
@@ -278,7 +287,7 @@ function ValueCard({
             {/* A solid chip rather than plain colored text -- next to the tier
                 caption below, plain text read as one blurred phrase. */}
             <span
-              className="flex items-center gap-1 text-caption font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full flex-none"
+              className="flex items-center gap-1 text-caption font-semibold px-2 py-0.5 rounded-full flex-none"
               style={{ color: stageColor, background: `color-mix(in srgb, ${stageColor} 18%, transparent)` }}
               title={stage.desc}
             >
@@ -286,10 +295,16 @@ function ValueCard({
               {stage.name}
             </span>
           </div>
-          {/* The Fallout-style XP bar through this cycle (Cassidy, Oct 19). */}
-          <XpBar pct={pct} color={color} xp={v.rating} of={requirement} className="mt-1.5" />
+          {/* What it means, on the card itself (Nov 5: friendlier cards). */}
+          {(v.definition || lib?.essence) && (
+            <div className="font-serif italic text-bodySm text-textSecondary leading-snug mt-0.5 line-clamp-1">{v.definition || lib.essence}</div>
+          )}
+          {/* The Fallout-style XP bar through this cycle (Cassidy, Oct 19),
+              read in words rather than numbers. */}
+          <XpBar pct={pct} color={color} className="mt-1.5" />
           <div className="text-caption text-textMuted mt-1">
             <span className="font-medium" style={{ color: tier.color }}>{tier.name}</span>
+            {" · "}{growthWords(pct, tier, prestige)}
             {VALUE_ELEMENT[v.name] ? <> · {VALUE_ELEMENT[v.name]}</> : own ? <> · your own</> : null}
           </div>
         </div>
@@ -327,69 +342,80 @@ function ValueCard({
                 </div>
               )}
 
-              <button
-                onClick={() => setExploring(true)}
-                className="w-full flex items-center justify-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-2 mt-4"
-              >
-                <SunMoon size={14} strokeWidth={1.75} />
-                Explore its light &amp; shadow
-              </button>
-
-              <div className="flex gap-1.5 mb-3 mt-4">
-                {["all", "gentle", "bold", "brave"].map(d => (
-                  <button
-                    key={d}
-                    onClick={() => setDiff(d)}
-                    className={`text-caption px-2.5 py-1 rounded-full ${diff === d ? "bg-forestAccent text-onAccent" : "bg-surface3 text-textMuted"}`}
-                  >
-                    {d}
-                  </button>
-                ))}
-              </div>
-              {fixedChallenges.length === 0 && valueChallenges.length === 0 && (
-                <div className="text-bodySm text-textMuted mb-2">
-                  No challenges written for {v.name} yet. Generate a few below to begin.
-                </div>
-              )}
-              <div className="space-y-2">
-                {fixedChallenges
-                  .map((c, idx) => ({ ...c, idx, done: (v.completed || []).includes(idx) }))
-                  .filter(c => diff === "all" || c.diff === diff)
-                  .map(c => (
-                    <div key={`lib-${c.idx}`} className={`flex items-center gap-2.5 p-2.5 rounded-sm bg-surface2 ${c.done ? "opacity-50" : ""}`}>
-                      <button
-                        onClick={() => !c.done && onCompleteLib(c.idx)}
-                        disabled={c.done}
-                        aria-label={c.done ? "Done" : "Mark done"}
-                        className={`w-6 h-6 flex-none rounded-full border text-caption ${c.done ? "bg-sage border-sage text-onAccent" : "border-borderC"}`}
-                      >
-                        {c.done ? "✓" : ""}
-                      </button>
-                      <div className="flex-1 text-bodySm">{c.text}</div>
-                      <div className="text-caption text-gold flex-none">+{c.pts}</div>
+              {/* Challenges, calmer (Nov 5): what's left to try, the done ones
+                  folded away, difficulty as chips with counts. */}
+              {(() => {
+                const all = [
+                  ...fixedChallenges.map((c, idx) => ({ key: `lib-${idx}`, text: c.text, pts: c.pts, diff: c.diff, done: (v.completed || []).includes(idx), complete: () => onCompleteLib(idx) })),
+                  ...valueChallenges.map(c => ({ key: c.id, text: c.text, pts: c.pts, diff: c.diff, done: c.completed, ai: true, complete: () => onCompleteAi(c.id) }))
+                ];
+                const shown = all.filter(c => diff === "all" || c.diff === diff);
+                const toTry = shown.filter(c => !c.done);
+                const done = shown.filter(c => c.done);
+                const count = d => all.filter(c => !c.done && (d === "all" || c.diff === d)).length;
+                return (
+                  <>
+                    <div className="flex items-baseline justify-between mt-4 mb-2">
+                      <div className="text-label uppercase text-textMuted">Challenges</div>
                     </div>
-                  ))}
-
-                {valueChallenges
-                  .filter(c => diff === "all" || c.diff === diff)
-                  .map(c => (
-                    <div key={c.id} className={`flex items-center gap-2.5 p-2.5 rounded-sm bg-surface2 border border-dashed border-gold/40 ${c.completed ? "opacity-50" : ""}`}>
-                      <button
-                        onClick={() => !c.completed && onCompleteAi(c.id)}
-                        disabled={c.completed}
-                        aria-label={c.completed ? "Done" : "Mark done"}
-                        className={`w-6 h-6 flex-none rounded-full border text-caption ${c.completed ? "bg-sage border-sage text-onAccent" : "border-borderC"}`}
-                      >
-                        {c.completed ? "✓" : ""}
-                      </button>
-                      <div className="flex-1 text-bodySm">
-                        {c.text}
-                        <span className="text-caption text-gold ml-1.5 align-middle">✨ AI</span>
-                      </div>
-                      <div className="text-caption text-gold flex-none">+{c.pts}</div>
+                    <div className="flex flex-wrap gap-1.5 mb-3" role="radiogroup" aria-label="How big a step">
+                      {[["all", "All"], ["gentle", "Gentle"], ["bold", "Bold"], ["brave", "Brave"]].map(([d, label]) => (
+                        <button
+                          key={d}
+                          type="button"
+                          role="radio"
+                          aria-checked={diff === d}
+                          onClick={() => setDiff(d)}
+                          className={`text-caption min-h-[30px] px-3 rounded-full border ${diff === d ? "bg-forestAccent border-forestAccent text-onAccent" : "border-borderC bg-surface1 text-textSecondary"}`}
+                        >
+                          {label} <span className="opacity-70">· {count(d)}</span>
+                        </button>
+                      ))}
                     </div>
-                  ))}
-              </div>
+                    {all.length === 0 && (
+                      <div className="text-bodySm text-textMuted mb-2">No challenges written for {v.name} yet. Generate a few below to begin.</div>
+                    )}
+                    {all.length > 0 && toTry.length === 0 && (
+                      <div className="text-bodySm text-textMuted mb-2">Nothing left to try here{diff !== "all" ? ` at ${diff}` : ""}. Generate a few more below.</div>
+                    )}
+                    <ul className="list-none m-0 p-0 space-y-2">
+                      {toTry.map(c => (
+                        <li key={c.key} className="flex items-start gap-3 p-3 rounded-sm bg-surface2">
+                          <button
+                            type="button"
+                            onClick={c.complete}
+                            aria-label={`Mark done: ${c.text}`}
+                            className="w-6 h-6 mt-0.5 flex-none rounded-full border-2 hover:bg-[color-mix(in_srgb,var(--forest-accent)_12%,transparent)]"
+                            style={{ borderColor: `color-mix(in srgb, ${color} 70%, var(--border-c, #ccc))` }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-bodySm text-textPrimary">{c.text}</div>
+                            <div className="text-caption text-textMuted mt-0.5 capitalize">
+                              {c.diff}{c.ai && <span className="normal-case"> · <span className="text-gold">✦ written for you</span></span>}
+                            </div>
+                          </div>
+                          <div className="text-caption font-medium flex-none mt-0.5" style={{ color }}>+{c.pts}</div>
+                        </li>
+                      ))}
+                    </ul>
+                    {done.length > 0 && (
+                      <details className="mt-2.5 group">
+                        <summary className="cursor-pointer list-none inline-flex items-center gap-1 min-h-[32px] text-caption text-textMuted">
+                          <ChevronDown size={14} strokeWidth={1.75} className="transition-transform group-open:rotate-180" /> Done · {done.length}
+                        </summary>
+                        <ul className="list-none m-0 p-0 mt-1.5 space-y-1.5">
+                          {done.map(c => (
+                            <li key={c.key} className="flex items-start gap-2.5 px-3 py-2 rounded-sm text-bodySm text-textMuted">
+                              <Check size={14} strokeWidth={2.25} className="mt-0.5 flex-none text-forestAccent" />
+                              <span className="flex-1 line-through decoration-1 decoration-[color-mix(in_srgb,var(--text-muted,#999)_60%,transparent)]">{c.text}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
+                  </>
+                );
+              })()}
 
               <AiButton size="sm" full onClick={handleGenerate} busy={generating} className="mt-3">
                 {generating ? "Writing new challenges…" : "Generate more challenges"}
@@ -397,13 +423,15 @@ function ValueCard({
               <DrawsFrom uses={["journal", "pursuits", "values"]} className="mt-1.5" />
               {genError && <div className="text-caption text-red-500 mt-1.5">{genError}</div>}
 
-              <button
-                onClick={onRest}
-                className="w-full flex items-center justify-center gap-1.5 text-bodySm text-textMuted mt-3 py-1"
-              >
-                <Moon size={14} strokeWidth={1.75} />
-                Rest this value (it keeps its growth)
-              </button>
+              {/* Quieter ways on, at the foot */}
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mt-4 pt-3 border-t border-borderC">
+                <button type="button" onClick={() => setExploring(true)} className="inline-flex items-center gap-1.5 min-h-[40px] text-bodySm text-textSecondary hover:text-textPrimary">
+                  <SunMoon size={14} strokeWidth={1.75} /> Explore its light &amp; shadow
+                </button>
+                <button type="button" onClick={onRest} className="inline-flex items-center gap-1.5 min-h-[40px] text-bodySm text-textMuted hover:text-textSecondary">
+                  <Moon size={14} strokeWidth={1.75} /> Rest this value
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -735,7 +763,13 @@ function TrueNorthInvite() {
         <span className="flex-1 min-w-0">
           <span className="block text-label uppercase tracking-[0.12em] text-[#C9A24D]">{north ? "Your True North" : "True North"}</span>
           <span className="block font-serif text-[21px] leading-tight mt-0.5 truncate">{north || "Find which way you lean"}</span>
-          <span className="block text-caption text-[#B8B5D6] mt-0.5">{north ? "Open your compass" : "Walk the crossroads of your values"}</span>
+          {/* One line on what it is before you tap in, or your own compass line
+              once you have one (Nov 5). */}
+          <span className={`block mt-0.5 ${north && compass?.compass_line ? "font-serif italic text-bodySm text-[#EDE6D6] line-clamp-2" : "text-caption text-[#B8B5D6]"}`}>
+            {north
+              ? compass?.compass_line || "Open your compass"
+              : "Choose between your values two at a time, to see which you lean toward when they pull apart."}
+          </span>
         </span>
         <ChevronDown size={18} strokeWidth={1.75} className={`flex-none text-[#C9A24D] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
