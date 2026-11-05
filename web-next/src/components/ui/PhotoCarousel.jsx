@@ -6,7 +6,15 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 // the arrows. Never moves on its own. A single photo shows as a plain image.
 // Tapping a photo opens it full screen, where it can be pinched to zoom
 // (Cassidy, Oct 28).
-export function PhotoCarousel({ urls = [], className = "h-36", rounded = "rounded-sm" }) {
+// `thumbs` (optional, same order as `urls`): smaller copies for the card
+// itself; full screen always shows `urls`. A copy that fails to load falls
+// back to the full photo.
+function Shown({ thumb, url, className }) {
+  const [src, setSrc] = useState(thumb || url);
+  return <img src={src} onError={() => src !== url && setSrc(url)} alt="" loading="lazy" decoding="async" className={className} />;
+}
+
+export function PhotoCarousel({ urls = [], thumbs, className = "h-36", rounded = "rounded-sm" }) {
   const track = useRef(null);
   const [rawIndex, setIndex] = useState(0);
   const [viewing, setViewing] = useState(null);
@@ -23,7 +31,7 @@ export function PhotoCarousel({ urls = [], className = "h-36", rounded = "rounde
           className={`block w-full overflow-hidden ${rounded}`}
           aria-label="Open the photo full screen"
         >
-          <img src={urls[0]} alt="" loading="lazy" className={`w-full object-cover ${className}`} />
+          <Shown thumb={thumbs?.[0]} url={urls[0]} className={`w-full object-cover ${className}`} />
         </button>
         {viewer}
       </>
@@ -70,7 +78,7 @@ export function PhotoCarousel({ urls = [], className = "h-36", rounded = "rounde
             aria-label={`Photo ${i + 1} of ${urls.length}, open full screen`}
             className="w-full h-full flex-none snap-center"
           >
-            <img src={u} alt="" loading="lazy" className="w-full h-full object-cover" />
+            <Shown thumb={thumbs?.[i]} url={u} className="w-full h-full object-cover" />
           </button>
         ))}
       </div>

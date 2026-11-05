@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Award, Feather, Flame, Sprout } from "lucide-react";
+import { Award, Feather, Flame, Plus, Sprout } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Guide } from "../ui/Guide";
 import { useAppData } from "../../lib/AppDataContext";
-import { getPillarLevel, TIERS, INNER_PILLARS } from "../../constants/app.const";
+import { getPillarLevel, TIERS, INNER_PILLARS, VALUE_PILLAR, VALUE_PILLAR2 } from "../../constants/app.const";
 import { PILLAR_ICONS } from "../../constants/pillarIcons";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { easeOut } from "../ui/motion";
@@ -14,16 +16,40 @@ import { XpBar } from "../ui/XpBar";
 // a tile for each Pillar with its progress as a ring around its icon. Tap a
 // tile (or a petal) to open it. Nothing moves until the Seeker taps.
 export default function PillarsPanel() {
-  const { pillars } = useAppData();
+  const { pillars, items, values } = useAppData();
+  const navigate = useNavigate();
   const [openName, setOpenName] = useState(null);
   const [dream, setDream] = useState({ open: false, pillar: null });
   const shown = pillars.map(p => ({ ...p, ...getPillarLevel(p.xp), inner: INNER_PILLARS.includes(p.name) }));
   const open = shown.find(p => p.name === openName);
   const toggle = name => setOpenName(n => (n === name ? null : name));
 
+  // What has grown, said plainly under the flower (Cassidy, Nov 5: "2
+  // LEVELS" in its heart didn't say what it meant).
+  const totalLevel = shown.reduce((s, p) => s + p.level, 0);
+  const growingMost = [...shown].sort((a, b) => b.xp - a.xp)[0];
+  const summary = !growingMost || growingMost.xp === 0
+    ? "Nothing has grown yet. Tick a habit or write in your YOUrnal, and a Pillar will begin to grow."
+    : `${totalLevel ? `${totalLevel} ${totalLevel === 1 ? "level" : "levels"} grown so far` : "Your first level is on its way"} · ${growingMost.name} is growing most`;
+
+  // What feeds the open Pillar: the pursuits growing in it, and the values it feeds.
+  const feeding = open ? items.filter(i => !i.done && i.cat === open.name) : [];
+  const valuesFed = open
+    ? values.filter(v => v.status !== "rested" && (VALUE_PILLAR[v.name] === open.name || VALUE_PILLAR2[v.name] === open.name))
+    : [];
+
   return (
     <div>
+      <p className="text-bodySm text-textSecondary m-0">
+        The eight parts of your life. Everything you do grows one of them.
+      </p>
+      <Guide className="mb-1">
+        Each habit, goal and dream belongs to a Pillar, and so does the XP from ticking it off, writing in your YOUrnal or a
+        focus session. As a Pillar's XP grows its petal reaches further, and every level earned becomes a solid band.
+        Tap a Pillar to see what feeds it.
+      </Guide>
       <PillarWheel pillars={shown} selected={openName} onSelect={toggle} />
+      <p className="text-caption text-textMuted text-center m-0 -mt-1">{summary}</p>
 
       <div className="grid grid-cols-2 gap-2.5 mt-4">
         {shown.map(p => (
@@ -45,19 +71,48 @@ export default function PillarsPanel() {
               <div className="font-serif text-h3 text-textPrimary">{open.name}</div>
               <div className="text-caption text-textMuted mb-3">
                 {open.level > 0 ? `Level ${open.level}` : "Just beginning"} · {open.xp} XP · {100 - open.pct}% to the next level
+                {open.bestStreak > 0 && <> · <Flame size={11} strokeWidth={1.75} className="inline -mt-0.5" style={{ color: open.color }} /> best streak {open.bestStreak} days</>}
               </div>
-              <div className="flex gap-4 text-bodySm text-textSecondary mb-3">
-                <span className="inline-flex items-center gap-1.5"><Sprout size={14} strokeWidth={1.75} style={{ color: open.color }} /> {open.active} growing</span>
-                <span className="inline-flex items-center gap-1.5"><Flame size={14} strokeWidth={1.75} style={{ color: open.color }} /> best streak {open.bestStreak}d</span>
+
+              <div className="text-label uppercase text-textMuted mb-1">Growing here</div>
+              {feeding.length > 0 ? (
+                <ul className="list-none m-0 p-0 mb-3 space-y-1">
+                  {feeding.map(i => (
+                    <li key={i.id} className="flex items-center gap-2 text-bodySm text-textPrimary">
+                      <Sprout size={14} strokeWidth={1.75} style={{ color: open.color }} aria-hidden="true" /> {i.name}
+                      <span className="text-caption text-textMuted capitalize">{i.type}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-bodySm text-textMuted m-0 mb-3">Nothing growing here yet.</p>
+              )}
+
+              {valuesFed.length > 0 && (
+                <>
+                  <div className="text-label uppercase text-textMuted mb-1">Feeds your values</div>
+                  <p className="text-bodySm text-textPrimary m-0 mb-3">{valuesFed.map(v => v.name).join(" · ")}</p>
+                </>
+              )}
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate("/pursue", { state: { plant: open.name } })}
+                  className="inline-flex items-center gap-1.5 text-bodySm font-medium text-onAccent bg-forestAccent rounded-full px-3.5 min-h-[40px]"
+                >
+                  <Plus size={14} strokeWidth={1.75} />
+                  Plant something in {open.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDream({ open: true, pillar: open.name })}
+                  className="inline-flex items-center gap-1.5 text-bodySm text-textPrimary border border-borderC bg-surface2 rounded-full px-3.5 min-h-[40px]"
+                >
+                  <Feather size={14} strokeWidth={1.75} />
+                  Free a dream
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setDream({ open: true, pillar: open.name })}
-                className="inline-flex items-center gap-1.5 text-bodySm text-textPrimary border border-borderC bg-surface2 rounded-full px-3.5 min-h-[40px]"
-              >
-                <Feather size={14} strokeWidth={1.75} />
-                Free a dream in {open.name}
-              </button>
             </div>
           </motion.div>
         )}
@@ -109,11 +164,15 @@ export function PillarWheel({ pillars, selected, onSelect }) {
   // How far all eight petals are, together, toward their next levels: the
   // sunflower heart's seeds turn gold as it grows.
   const together = pillars.length ? pillars.reduce((s, p) => s + p.pct, 0) / pillars.length : 0;
+  // Framed to how far the petals reach now (Cassidy, Nov 5: the flower sat
+  // in a wide empty ring), so it fills its space and the frame widens as
+  // the Pillars grow, up to the full wheel.
+  const half = Math.min(R, Math.max(...placed.map(({ p }) => reach(p.level + 1))) + 16);
   return (
-    <div className="relative mx-auto w-full max-w-[300px] aspect-square">
-      <svg viewBox={`0 0 ${R * 2} ${R * 2}`} className="w-full h-full" role="img"
+    <div className="relative mx-auto w-full max-w-[320px] aspect-square">
+      <svg viewBox={`${R - half} ${R - half} ${half * 2} ${half * 2}`} className="w-full h-full" role="img"
         aria-label={`Your eight Pillars as a flower: ${totalLevel} levels earned; each petal grows a band with every level and fills toward the next`}>
-        <circle cx={R} cy={R} r={R - 6} fill="none" stroke="var(--gold)" strokeOpacity="0.25" strokeDasharray="1 5" />
+        <circle cx={R} cy={R} r={half - 6} fill="none" stroke="var(--gold)" strokeOpacity="0.25" strokeDasharray="1 5" />
         {/* Where each level begins: a petal crossing a ring has levelled up. */}
         {LEVEL_RINGS.map(l => (
           <circle key={l} cx={R} cy={R} r={reach(l)} fill="none" stroke="var(--gold)" strokeOpacity="0.16" strokeDasharray={l === 1 ? undefined : "2 4"} />
@@ -138,11 +197,6 @@ export function PillarWheel({ pillars, selected, onSelect }) {
         })}
         <SunflowerHeart filled={together} />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none" aria-hidden="true">
-        {/* Over the sunflower heart: starlight-cream with a soft shadow. */}
-        <div className="font-serif text-[22px] leading-none text-[#FBF3DF] [text-shadow:0_1px_4px_rgba(0,0,0,0.85)]">{totalLevel}</div>
-        <div className="text-[8.5px] uppercase tracking-[0.14em] text-[#F3DE9C] mt-0.5 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{totalLevel === 1 ? "level" : "levels"}</div>
-      </div>
     </div>
   );
 }
@@ -206,8 +260,9 @@ function PillarTile({ p, selected, onSelect }) {
           <span className="block text-bodySm font-medium text-textPrimary truncate">{p.name}</span>
           <span className="flex items-center gap-1 text-caption text-textMuted">
             {p.level > 0 ? (
-              <span className="inline-flex items-center gap-0.5" style={{ color: badgeColor }}><Award size={11} strokeWidth={1.75} />Lv {p.level}</span>
-            ) : "Lv 0"}
+              <span className="inline-flex items-center gap-0.5" style={{ color: badgeColor }}><Award size={11} strokeWidth={1.75} />Level {p.level}</span>
+            ) : p.xp > 0 ? "Growing" : "Just beginning"}
+            {p.active > 0 && <span> · {p.active} {p.active === 1 ? "pursuit" : "pursuits"}</span>}
           </span>
         </span>
       </span>

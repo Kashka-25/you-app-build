@@ -16,21 +16,37 @@ export function tripLine(t) {
 }
 export const niceDate = k => new Date(k + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
 
-// What the Seeker can choose to include. Journal entries are the most
-// private, so they start switched off.
+// What the Seeker can choose to include. From the YOUrnal, the book takes
+// the highlights: the lines they chose to keep, not whole entries
+// (Cassidy, Nov 5).
 export const SECTIONS = [
   { key: "places", label: "Places and journeys", on: true },
   { key: "dreams", label: "Dreams lived", on: true },
   { key: "moments", label: "Memories (with photos)", on: true },
   { key: "seasons", label: "Seasons", on: true },
   { key: "harvests", label: "Harvest notes", on: true },
-  { key: "journal", label: "Journal entries", on: false },
+  { key: "highlights", label: "Journal highlights", on: true },
   { key: "chapters", label: "Life chapters", on: true },
   { key: "growing", label: "What I'm growing toward", on: true }
 ];
 
+// Lines kept from the same entry (or, without one, the same day) become
+// one passage, in the order they were kept.
+function gatherWords(highlights) {
+  const passages = new Map();
+  for (const h of highlights) {
+    const key = h.entry || `day:${h.date}`;
+    if (!passages.has(key)) passages.set(key, { kind: "words", date: h.date, lines: [] });
+    passages.get(key).lines.push(h.text);
+  }
+  return [...passages.values()];
+}
+
+// On the same day, the memory first, then the words, then the harvest.
+const KIND_ORDER = { memory: 0, words: 1, harvest: 2 };
+
 export function buildStory(data, include) {
-  const { profile, moments, journalEntries, weekHarvests, seasons = [], chapters = [], values = [], identityVisions = [], items = [] } = data;
+  const { profile, moments, highlights = [], weekHarvests, seasons = [], chapters = [], values = [], identityVisions = [], items = [] } = data;
   const placeName = stopId => data.wanderingStops.find(s => s.id === stopId)?.place_name || null;
 
   const years = yearsWithLife(data).slice().sort((a, b) => a - b).map(year => {
@@ -53,12 +69,22 @@ export function buildStory(data, include) {
       harvests: include.harvests
         ? summary.harvests.filter(h => (h.note || "").trim()).sort((a, b) => (a.week_start > b.week_start ? 1 : -1)).map(h => ({ week: h.week_start, note: h.note.trim() }))
         : [],
-      journal: include.journal
-        ? journalEntries.filter(e => yearOf(e.entry_date) === year).sort((a, b) => (a.entry_date > b.entry_date ? 1 : -1))
-            .map(e => ({ date: e.entry_date, text: e.content, place: placeName(e.stop_id) }))
+      highlights: include.highlights
+        ? highlights
+            .map(h => ({ date: h.entry_date || (h.created_at || "").slice(0, 10), text: (h.text || "").trim(), entry: h.entry_id || null, kept: h.created_at || "" }))
+            .filter(h => h.text && yearOf(h.date) === year)
+            // by date, and lines from the same day in the order they were kept
+            .sort((a, b) => a.date.localeCompare(b.date) || a.kept.localeCompare(b.kept))
         : []
     };
-    y.empty = !y.seasons.length && !y.trips.length && !y.dreams.length && !y.moments.length && !y.harvests.length && !y.journal.length;
+    // Through the year (Cassidy, Nov 5): memories, the words kept and the
+    // harvest notes in one flow by date, so it alternates naturally.
+    y.flow = [
+      ...y.moments.map(m => ({ kind: "memory", date: m.date, ...m })),
+      ...gatherWords(y.highlights),
+      ...y.harvests.map(h => ({ kind: "harvest", date: h.week, ...h }))
+    ].sort((a, b) => (a.date === b.date ? KIND_ORDER[a.kind] - KIND_ORDER[b.kind] : a.date > b.date ? 1 : -1));
+    y.empty = !y.seasons.length && !y.trips.length && !y.dreams.length && !y.flow.length;
     return y;
   }).filter(y => !y.empty);
 
@@ -110,21 +136,20 @@ export function storyToMarkdown(book) {
       out.push("");
     }
     if (y.dreams.length) out.push("### Dreams I lived", "", ...y.dreams.map(d => `- ${d}`), "");
-    if (y.moments.length) {
-      out.push("### Memories", "");
-      y.moments.forEach(m => {
-        out.push(`**${m.title}** — ${niceDate(m.date)}${m.place ? ` · ${m.place}` : ""}`);
-        if (m.text) out.push("", m.text);
-        out.push("");
+    if (y.flow.length) {
+      out.push("### Through the year", "");
+      y.flow.forEach(f => {
+        if (f.kind === "memory") {
+          out.push(`**${f.title}** — ${niceDate(f.date)}${f.place ? ` · ${f.place}` : ""}`);
+          if (f.text) out.push("", f.text);
+          out.push("");
+        } else if (f.kind === "words") {
+          f.lines.forEach((line, i) => out.push(`> ${line.replace(/\n/g, "\n> ")}`, ...(i < f.lines.length - 1 ? [">"] : [])));
+          out.push(`> — from my YOUrnal, ${niceDate(f.date)}`, "");
+        } else {
+          out.push(`> ${f.note}`, `> — from my harvest, week of ${niceDate(f.date)}`, "");
+        }
       });
-    }
-    if (y.harvests.length) {
-      out.push("### From my harvests", "");
-      y.harvests.forEach(h => out.push(`> ${h.note}`, `> — week of ${niceDate(h.week)}`, ""));
-    }
-    if (y.journal.length) {
-      out.push("### From my journal", "");
-      y.journal.forEach(j => out.push(`*${niceDate(j.date)}${j.place ? ` · ${j.place}` : ""}*`, "", j.text, ""));
     }
   });
   if (book.chapters.length) {
@@ -143,4 +168,16 @@ export function storyToMarkdown(book) {
   }
   out.push("---", `Kept in YOU · ${book.made}`);
   return out.join("\n");
+}
+
+// My Story's cover photo (Cassidy, Nov 5): the one chosen (saved as its
+// storage path in the account's prefs), or the newest memory photo.
+export function coverPhotos(moments) {
+  return [...moments]
+    .sort((a, b) => (a.moment_date < b.moment_date ? 1 : -1))
+    .flatMap(m => (m.photo_items || []).filter(p => p.url).map(p => ({ path: p.path, thumb: p.thumb || p.url, url: p.url, title: m.title })));
+}
+export function storyCover(moments, chosenPath) {
+  const all = coverPhotos(moments);
+  return all.find(p => p.path === chosenPath) || all[0] || null;
 }

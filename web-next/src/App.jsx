@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from "react";
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./lib/AuthContext";
 import SignIn, { SetNewPassword } from "./components/SignIn";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -45,7 +45,6 @@ const ShowcaseGallery = page(() => import("./components/screens/ShowcaseGallery"
 const YOUriginSpace = page(() => import("./components/screens/YOUriginSpace"));
 const ShowcaseReview = page(() => import("./components/screens/ShowcaseReview"));
 const Legacy = page(() => import("./components/screens/Legacy"));
-const Mirror = page(() => import("./components/screens/Mirror"));
 const MyStory = page(() => import("./components/screens/MyStory"));
 const Settings = page(() => import("./components/screens/Settings"));
 const Styleguide = page(() => import("./components/screens/Styleguide"));
@@ -220,7 +219,8 @@ export default function App() {
         <Route path="/empatherapy" element={<Empatherapy />} />
         <Route path="/reflections" element={<Reflections />} />
         <Route path="/legacy" element={<Legacy />} />
-        <Route path="/mirror" element={<Mirror />} />
+        {/* The Mirror folded into YOUrney (Nov 5): a year ago is on Memories. */}
+        <Route path="/mirror" element={<Navigate to="/journey" replace state={{ tab: "chapters" }} />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/codex-requests" element={<CodexRequests />} />
         <Route path="/showcase" element={<ShowcaseGallery />} />

@@ -183,6 +183,10 @@ body {
 .night-map .maplibregl-ctrl-attrib-button { filter: invert(0.85); }
 .night-map .maplibregl-ctrl-top-right { top: 150px; }
 
+/* "My Story" on screen is read a page at a time (Nov 5); the pages not open
+   are hidden, and printing shows them all again. */
+.my-story .book-off { display: none; }
+
 /* "My Story" printing: only the book, on white, one year per page. The
    book uses its own print typography (fixed point sizes), separate from
    the app's type scale. */
@@ -195,6 +199,8 @@ body {
   .my-story .book-cover { break-after: page; padding-top: 30vh; }
   .my-story .book-keep { break-inside: avoid; }
   .my-story img { max-height: 90mm !important; }
+  .my-story .book-off { display: block !important; }
+  .my-story .book-turn { display: none !important; }
 }
 
 /* ── YOUnderstanding: the AI (and future premium) look ──
@@ -371,3 +377,23 @@ body {
 }
 .mood-range:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 45%, transparent); }
 
+
+/* ── Scrollbars (Cassidy, Nov 5: "more on brand or non visible") ──
+   Slim and soft everywhere: a warm gold thumb on a clear track, faint
+   until the pointer is over it. Kept rather than hidden, so long pages stay
+   easy to scroll on a computer; phones show their own overlay bars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--gold) 38%, transparent) transparent;
+}
+*:hover {
+  scrollbar-color: color-mix(in srgb, var(--gold) 65%, transparent) transparent;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--gold) 38%, transparent);
+  border-radius: 999px;
+}
+:hover::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--gold) 65%, transparent); }
+::-webkit-scrollbar-corner { background: transparent; }

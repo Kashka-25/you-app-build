@@ -130,6 +130,8 @@ export function AppDataProvider({ children }) {
   const [focusSessions, setFocusSessions] = useState([]);
   const [highlights, setHighlights] = useState([]);
   const [wanderingStops, setWanderingStops] = useState([]);
+  // Trips load after the rest; until then "no places" would be untrue (Nov 5).
+  const [wanderingsLoaded, setWanderingsLoaded] = useState(false);
   // AI consent: null = not loaded yet. Reflections = questionnaire answers
   // (the most intimate data in the app — owner-only, never analytics).
   const [aiConsent, setAiConsent] = useState(null);
@@ -163,17 +165,29 @@ export function AppDataProvider({ children }) {
   // trusting anything persisted. Every row gets photo_items ({ path, url }
   // for the edit form), photo_urls (the carousel, in order) and photo_url
   // (the cover, i.e. the first).
+  // Supabase Pro (Nov 5) resizes images on the server, so each photo also
+  // gets a small display copy (photo_thumbs, 800px wide) for the cards; the
+  // full photo still opens full screen. A copy that fails falls back to the
+  // full one in PhotoCarousel.
   const attachSignedPhotoUrls = useCallback(async (rows) => {
     const paths = [...new Set(rows.flatMap(momentPhotoPaths))];
     const urlByPath = {};
+    const thumbByPath = {};
     if (paths.length) {
-      const { data } = await supabase.storage.from("life-moments").createSignedUrls(paths, 3600);
+      const bucket = supabase.storage.from("life-moments");
+      const [{ data }, thumbs] = await Promise.all([
+        bucket.createSignedUrls(paths, 3600),
+        Promise.all(paths.map(p => bucket.createSignedUrl(p, 3600, { transform: { width: 800, quality: 70 } }).catch(() => ({ data: null }))))
+      ]);
       (data || []).forEach(d => { if (d.path) urlByPath[d.path] = d.signedUrl || null; });
+      thumbs.forEach((t, i) => { thumbByPath[paths[i]] = t?.data?.signedUrl || null; });
     }
     return rows.map(r => {
-      const photo_items = momentPhotoPaths(r).map(path => ({ path, url: urlByPath[path] || null }));
-      const photo_urls = photo_items.map(p => p.url).filter(Boolean);
-      return { ...r, photo_items, photo_urls, photo_url: photo_urls[0] || null };
+      const photo_items = momentPhotoPaths(r).map(path => ({ path, url: urlByPath[path] || null, thumb: thumbByPath[path] || null }));
+      const shown = photo_items.filter(p => p.url);
+      const photo_urls = shown.map(p => p.url);
+      const photo_thumbs = shown.map(p => p.thumb || p.url);
+      return { ...r, photo_items, photo_urls, photo_thumbs, photo_url: photo_urls[0] || null };
     });
   }, []);
 
@@ -1091,9 +1105,10 @@ export function AppDataProvider({ children }) {
       supabase.from("wanderings").select("*").eq("user_id", userId).order("created_at"),
       supabase.from("wandering_stops").select("*").eq("user_id", userId).order("position")
     ]);
-    if (y.error || st.error) { console.error("[AppData] loadWanderings failed:", y.error || st.error); return; }
+    if (y.error || st.error) { console.error("[AppData] loadWanderings failed:", y.error || st.error); setWanderingsLoaded(true); return; }
     setWanderings(y.data || []);
     setWanderingStops(st.data || []);
+    setWanderingsLoaded(true);
   }
 
   async function createWandering(item) {
@@ -2399,7 +2414,7 @@ export function AppDataProvider({ children }) {
 
   const value = {
     userId, loaded, sync, items: activeItems, releasedItems, memory, moodLog, logMood, values, profile, moments, chapters, valueChallenges, journalEntries,
-    identityVisions, todos,
+    identityVisions, todos, wanderingsLoaded,
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone, setMilestones,
