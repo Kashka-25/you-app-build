@@ -9,6 +9,8 @@ import { PhotoCarousel } from "../ui/PhotoCarousel";
 import { PlaceTag } from "../wandering/PlacePicker";
 import SeasonCard from "./SeasonCard";
 import SeasonReading from "./SeasonReading";
+import YearAgoCard from "./YearAgoCard";
+import { Link } from "react-router-dom";
 import { localDateKey } from "../../lib/week";
 
 function niceDate(dateStr) {
@@ -22,7 +24,7 @@ function MemoryCard({ moment, onEdit }) {
   const hasPhotos = (moment.photo_urls || []).length > 0;
   return (
     <div className="rounded-card bg-surface1 shadow-card p-4 mb-3">
-      {hasPhotos && <PhotoCarousel urls={moment.photo_urls} className="h-44 mb-3" />}
+      {hasPhotos && <PhotoCarousel urls={moment.photo_urls} thumbs={moment.photo_thumbs} className="h-44 mb-3" />}
       <button onClick={() => onEdit(moment)} className="block w-full text-left">
         <div className="flex items-center justify-between mb-1.5 gap-3">
           <div className="font-serif text-h3 text-textPrimary">{moment.title}</div>
@@ -163,9 +165,17 @@ export default function ChaptersView() {
       </div>
 
       <div className="flex justify-between items-center gap-3 mb-3">
-        <h2 className="font-serif text-h2 text-textPrimary m-0">Memories</h2>
+        <div className="min-w-0">
+          <h2 className="font-serif text-h2 text-textPrimary m-0">Memories</h2>
+          {/* Legacy, folded in as Your years (Cassidy, Nov 5). */}
+          <Link to="/legacy" className="inline-flex items-center gap-1 min-h-[32px] text-caption font-medium text-forestAccent">
+            Your years, and your story as a book <ChevronRight size={13} strokeWidth={1.75} />
+          </Link>
+        </div>
         <Button size="sm" variant="secondary" icon={Plus} onClick={() => setAddOpen(true)}>Add memory</Button>
       </div>
+
+      <YearAgoCard />
 
       {timeline.length === 0 ? (
         <div className="rounded-card border border-dashed border-borderC bg-surface1 p-4 text-bodySm text-textMuted">

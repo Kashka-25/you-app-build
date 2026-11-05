@@ -340,7 +340,7 @@ export default function EverywhereMap({ onClose, year = null }) {
             <div className="mt-3 space-y-3">
               {here.moments.map(m => (
                 <div key={m.id}>
-                  {m.photo_urls?.length > 0 && <PhotoCarousel urls={m.photo_urls} className="h-44" />}
+                  {m.photo_urls?.length > 0 && <PhotoCarousel urls={m.photo_urls} thumbs={m.photo_thumbs} className="h-44" />}
                   <div className="mt-1.5 flex items-baseline justify-between gap-2">
                     <span className="font-serif text-body text-cream">{m.title}</span>
                     <span className="flex-none text-caption" style={{ color: "#8A88AE" }}>
