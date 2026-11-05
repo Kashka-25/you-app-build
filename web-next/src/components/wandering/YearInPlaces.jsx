@@ -16,7 +16,9 @@ export default function YearInPlaces({ year, heading = true }) {
   return (
     <div>
       {heading && <div className="text-label uppercase text-textMuted mb-1.5">Places you reached {isThisYear ? "this year" : `in ${year}`}</div>}
-      {trips.length === 0 ? (
+      {!data.wanderingsLoaded ? (
+        <p className="text-bodySm text-textMuted">Gathering your places…</p>
+      ) : trips.length === 0 ? (
         <p className="text-bodySm text-textSecondary">
           {isThisYear ? "No places recorded yet this year." : `No places recorded for ${year}.`}{" "}
           <Link to="/pursue" state={{ view: "wanderings" }} className="underline underline-offset-2">Your wanderings</Link>

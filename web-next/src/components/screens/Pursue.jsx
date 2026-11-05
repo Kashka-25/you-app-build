@@ -96,6 +96,13 @@ export default function Pursue() {
   useEffect(() => {
     if (location.state?.view) setView(location.state.view);
   }, [location.key]);
+  // From a Pillar on YOU (Nov 5): open the form with that Pillar chosen.
+  const [plantIn, setPlantIn] = useState(null);
+  useEffect(() => {
+    if (!location.state?.plant) return;
+    setPlantIn(location.state.plant);
+    setAdding(true);
+  }, [location.key]);
 
   const filtered = items.filter(i => {
     if (filter === "done") return i.done;
@@ -213,7 +220,12 @@ export default function Pursue() {
       </>
       )}
 
-      <AddItemModal open={adding} onClose={() => setAdding(false)} defaultType={["habit", "goal", "dream", "idea"].includes(filter) ? filter : "habit"} />
+      <AddItemModal
+        open={adding}
+        onClose={() => { setAdding(false); setPlantIn(null); }}
+        defaultType={["habit", "goal", "dream", "idea"].includes(filter) ? filter : "habit"}
+        prefill={plantIn ? { cat: plantIn } : undefined}
+      />
     </div>
   );
 }

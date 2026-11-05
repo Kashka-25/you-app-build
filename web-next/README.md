@@ -47,7 +47,12 @@ Feature branch → PR into `staging` → test on the staging site → PR
 `staging` → `main`. Staging uses the **live** database, so migrations and
 function deploys reach real users: back up first.
 
-## Backups (Free plan, no Docker)
+## Backups
+
+The live project is on **Supabase Pro** (since 5 Nov 2026, in the Wandering
+organisation): daily backups kept 7 days, restorable from the dashboard.
+Before any migration, also take our own export, which includes the stored
+photos and is kept off-site:
 
 ```
 node ../supabase/backup/backup.mjs            # → ~/YOU-backups/<date>/
@@ -57,3 +62,6 @@ node ../supabase/schema/snapshot.mjs          # after any migration; commit base
 A backup holds every table, accounts (without password hashes) and every
 stored file. It's private writing: keep it out of git and somewhere safe.
 `restore.mjs <backup> --db-url <url>` rebuilds a fresh project (never the live one).
+
+Memory photos load an 800px display copy (Pro's image transformation); the
+full photo opens full screen. If a copy ever fails, the original is used.

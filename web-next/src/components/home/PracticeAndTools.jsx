@@ -41,7 +41,7 @@ export function PracticeCard({ tool }) {
 // lead somewhere new, each with its own painting from the YOU set.
 const TOOLS = [
   { to: "/journey", label: "YOUrney", note: "Your life story", image: "/images/home/tool-yourney.webp" },
-  { to: "/mirror", label: "Mirror", note: "This year, and a year ago", image: "/images/home/tool-mirror.webp" },
+  { to: "/legacy", label: "Your years", note: "Your life, year by year", image: "/images/home/tool-mirror.webp" },
   { to: "/showcase", label: "Showcase", note: "Art from YOUsers", image: "/images/home/tool-showcase.webp" },
   { to: "/pursue", state: { view: "wanderings" }, label: "Wanderings", note: "Places you'll go", image: "/images/home/tool-wanderings.webp" }
 ];

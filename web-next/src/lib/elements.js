@@ -25,7 +25,6 @@ const SECTIONS = [
   ["/youniversity", "air"],
   ["/learn", "air"],
   ["/journey", "ether"],
-  ["/mirror", "ether"],
   ["/legacy", "ether"],
   ["/my-story", "ether"]
 ];
