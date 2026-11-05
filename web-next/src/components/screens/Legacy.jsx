@@ -95,13 +95,9 @@ export default function Legacy() {
                   <img src={cover} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
                 ) : (
                   <>
+                    {/* the painted year (design/chatgpt-prompts/years-backdrop.md),
+                        tinted by the year's own dusk so each feels its own */}
                     <Backdrop src={BACKDROP_WIDE} className="absolute inset-0 w-full h-full object-cover opacity-75" />
-                    {/* the places that year reached, written softly across it */}
-                    {p.countries.length > 0 && (
-                      <span aria-hidden="true" className="absolute right-3 top-3 max-w-[70%] text-right font-serif italic text-[26px] leading-tight text-white/25">
-                        {p.countries.join(" · ")}
-                      </span>
-                    )}
                   </>
                 )}
                 <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
