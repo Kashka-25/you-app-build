@@ -43,6 +43,8 @@ JSON shape:
 
 Keep "insights" to at most 8 items total across all categories — only include what is genuinely present, not an exhaustive checklist.
 
+A "pattern" insight is a thread that runs through their life and writing; they are gathered on a page called YOUnderstanding and read later, out of context. Write each one to the person, warmly, in plain everyday words, like a friend who knows them well gently pointing something out: "You keep finding meaning in your dreams.", "You seem to return to the sea whenever you need to rest.", "You're learning to put yourself first, and you're noticing when you don't." One sentence, under 20 words, still tentative where it's a guess ("seem to", "often", "keep"). Never clinical or analytical ("This reads as…", "a framework", "a tendency to…", "self-authored"), never describe the entry itself, and never use their name.
+
 "highlights" are the user's own words worth keeping: a dream or idea they want to remember, a realisation, a line about who they are or want to be, something they'd want to read again. Copy each one exactly as written (one to three sentences, under 300 characters), never paraphrased, never fixed, never combined from separate places. Leave the list empty when nothing stands out; never pad it.`;
 
 // Added when the entry is tagged #dream: a night-time dream, read as a dream.
