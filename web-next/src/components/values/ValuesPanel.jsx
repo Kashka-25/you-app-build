@@ -7,13 +7,15 @@ import {
 import { useAppData } from "../../lib/AppDataContext";
 import {
   getTier, VALUE_COLORS, TIERS, prestigeRequirement, getPrestigeStage,
-  ELEMENTS, VALUE_ELEMENT, MAX_VALUE_SLOTS
+  ELEMENTS, VALUE_ELEMENT, MAX_VALUE_SLOTS, START_VALUE_SLOTS
 } from "../../constants/app.const";
 import { VALUE_LIBRARY, VALUE_ICONS, getValueEntry, valueNameForSlug } from "../../constants/valueLibrary";
 import { easeOut } from "../ui/motion";
 import { GlowBubble } from "../ui/GlowBubble";
 import { Button } from "../ui/Button";
 import { DropdownSection } from "../Primitives";
+import { Guide } from "../ui/Guide";
+import { Check } from "lucide-react";
 import QuestionnaireFlow from "../questionnaires/QuestionnaireFlow";
 import { AiButton, AiCard } from "../ui/Premium";
 import DrawsFrom from "../ui/DrawsFrom";
@@ -30,6 +32,10 @@ import { findInCodex, closestValues, displayWord, validWord } from "../../lib/va
 // -> full sun) that reads distinctly from the VALUE_ICONS glyphs below.
 const PRESTIGE_ICONS = [Dot, Sprout, TreeDeciduous, Flower, Flower2, LeafyGreen, Sparkle, Sun];
 
+
+// A first choice for an empty account (Nov 5: "clearer Values"): ten values
+// most people recognise straight away, each shown with its one-line meaning.
+const STARTERS = ["Love", "Freedom", "Peace", "Courage", "Kindness", "Honesty", "Creativity", "Presence", "Gratitude", "Joy"];
 
 const fieldClass =
   "w-full bg-surface2 border border-borderC rounded-sm px-3.5 py-3 text-body text-textPrimary outline-none focus:border-forestAccent shadow-field";
@@ -61,7 +67,7 @@ export default function ValuesPanel() {
 
   async function handleAddValue(name) {
     await addValue(name);
-    setOpenName(name);
+    if (values.length + 1 >= 3) setOpenName(name);
     setAdding(false);
   }
 
@@ -82,10 +88,37 @@ export default function ValuesPanel() {
     if (moment && moment.name !== name) setMoment(null);
   }
 
+  // A newcomer chooses a few first; the welcome stays until three are held.
+  const empty = values.length === 0;
+  const beginning = values.length < 3;
+
   return (
     <div>
+      {/* What values are, and how they grow, said plainly (Nov 5). */}
+      <p className="text-bodySm text-textSecondary m-0">
+        The qualities you want to live by. Choose a few to grow, and they grow as you live them.
+      </p>
+      <Guide className="mb-2">
+        <span className="block">
+          <b className="font-medium text-textPrimary">In focus</b> are the values you're growing now. You start with room
+          for {START_VALUE_SLOTS}; more room opens as they ripen, up to {MAX_VALUE_SLOTS}.
+          <b className="font-medium text-textPrimary"> Resting</b> values are set down for a while and keep everything they've grown.
+        </span>
+        <span className="block mt-1.5">
+          Each value has small challenges, gentle, bold and brave. Doing one grows the value, and the Pillar it belongs to.
+        </span>
+        <span className="block mt-1.5">
+          Its bar fills through four tiers: Awakening, Practising, Embodying, Mastering. Each time it fills, the value reaches
+          a new stage, from Seed and Sprout through to Luminary, and begins again a little deeper.
+        </span>
+      </Guide>
+
+      {beginning && <FirstValues onPick={handleAddValue} onSeeAll={() => setAdding(true)} picked={values} />}
+
       {/* Values in focus open first; True North folds away below (Cassidy, Oct 18). */}
-      <DropdownSection title={`In focus (${activeValues.length})`} level={1} defaultOpen>
+      {!empty && (
+      <DropdownSection title={`In focus (${activeValues.length} of ${valueSlots})`} level={1} defaultOpen>
+        <p className="text-caption text-textMuted m-0 -mt-1 mb-3">The values you're growing now. Tap one to see its challenges.</p>
         {/* Your values sky (Cassidy, Oct 19): the values in focus as a
             constellation; tap a star to open its card below. */}
         <ValuesSky
@@ -140,12 +173,25 @@ export default function ValuesPanel() {
           </div>
         )}
       </DropdownSection>
+      )}
+
+      {empty && adding && (
+        <AddValuePicker
+          adding={adding}
+          setAdding={setAdding}
+          available={available}
+          activeValues={activeValues}
+          onPick={handleAddValue}
+          onPickOwn={handleAddOwn}
+          held={values}
+        />
+      )}
 
       <TrueNorthInvite />
 
 
       {rested.length > 0 && (
-        <DropdownSection title={`Resting (${rested.length})`} level={1}>
+        <DropdownSection title={`Resting (${rested.length}) · set down, nothing lost`} level={1}>
           <div className="text-caption text-textMuted mb-2">
             Resting values keep their growth. Return one whenever it calls you.
           </div>
@@ -513,6 +559,48 @@ function NameYourOwn({ held, available, onPick, onPickOwn }) {
   );
 }
 
+// An empty account's first step (Nov 5): a few values to choose from, each
+// with its meaning, and the way into the whole library.
+export function FirstValues({ onPick, onSeeAll, picked }) {
+  const [busy, setBusy] = useState(null);
+  const starters = STARTERS.map(name => ({ name, entry: getValueEntry(name) })).filter(s => s.entry);
+  async function pick(name) {
+    setBusy(name);
+    try { await onPick(name); } finally { setBusy(null); }
+  }
+  return (
+    <section aria-labelledby="first-values" className="rounded-card bg-surface1 shadow-card p-4 mb-4 mt-2" style={{ borderLeft: "3px solid color-mix(in srgb, var(--gold) 70%, transparent)" }}>
+      <h3 id="first-values" className="font-serif text-h3 text-textPrimary m-0">{picked.length ? "Choose a few more" : "Choose your first values"}</h3>
+      <p className="text-bodySm text-textSecondary m-0 mt-1 mb-3">
+        {picked.length ? "One or two more that feel true right now, if they call you." : "Start with two or three that feel true right now. You can change them any time."}
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        {starters.map(({ name, entry }) => {
+          const has = picked.some(v => v.name === name);
+          return (
+            <button
+              key={name}
+              type="button"
+              onClick={() => !has && pick(name)}
+              disabled={has || busy === name}
+              aria-pressed={has}
+              className={`text-left rounded-sm border px-3 py-2 transition-colors ${has ? "border-forestAccent bg-[color-mix(in_srgb,var(--forest-accent)_10%,var(--surface-1))]" : "border-borderC bg-surface2 hover:border-forestAccent"}`}
+            >
+              <span className="flex items-center gap-1.5 text-bodySm font-medium text-textPrimary">
+                {has && <Check size={14} strokeWidth={2.25} className="text-forestAccent" />}{name}
+              </span>
+              <span className="block text-caption text-textMuted leading-snug mt-0.5 line-clamp-3">{entry.essence}</span>
+            </button>
+          );
+        })}
+      </div>
+      <button type="button" onClick={onSeeAll} className="mt-3 inline-flex items-center gap-1 min-h-[40px] text-bodySm font-medium text-forestAccent">
+        <Plus size={14} strokeWidth={1.75} /> See all the values, or name your own
+      </button>
+    </section>
+  );
+}
+
 function AddValuePicker({ adding, setAdding, available, activeValues, onPick, onPickOwn, held }) {
   const [view, setView] = useState("element"); // "element" | "az"
 
@@ -532,9 +620,11 @@ function AddValuePicker({ adding, setAdding, available, activeValues, onPick, on
   const heldElements = new Set(activeValues.map(v => VALUE_ELEMENT[v.name]).filter(Boolean));
   const missing = ELEMENTS.filter(e => !heldElements.has(e));
 
+  // Each value with its one-line meaning, so choosing is about the meaning (Nov 5).
   const choice = name => (
-    <button key={name} onClick={() => onPick(name)} className="text-bodySm border border-borderC rounded-sm px-3 py-2 text-left bg-surface1">
-      {name}
+    <button key={name} onClick={() => onPick(name)} className="border border-borderC rounded-sm px-3 py-2 text-left bg-surface1 hover:border-forestAccent">
+      <span className="block text-bodySm font-medium text-textPrimary">{name}</span>
+      {getValueEntry(name)?.essence && <span className="block text-caption text-textMuted leading-snug mt-0.5 line-clamp-3">{getValueEntry(name).essence}</span>}
     </button>
   );
 
