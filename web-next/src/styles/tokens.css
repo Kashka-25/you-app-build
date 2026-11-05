@@ -377,3 +377,23 @@ body {
 }
 .mood-range:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 45%, transparent); }
 
+
+/* ── Scrollbars (Cassidy, Nov 5: "more on brand or non visible") ──
+   Slim and soft everywhere: a warm gold thumb on a clear track, faint
+   until the pointer is over it. Kept rather than hidden, so long pages stay
+   easy to scroll on a computer; phones show their own overlay bars. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--gold) 38%, transparent) transparent;
+}
+*:hover {
+  scrollbar-color: color-mix(in srgb, var(--gold) 65%, transparent) transparent;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--gold) 38%, transparent);
+  border-radius: 999px;
+}
+:hover::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--gold) 65%, transparent); }
+::-webkit-scrollbar-corner { background: transparent; }
