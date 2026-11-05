@@ -58,27 +58,38 @@ export default function Legacy() {
         </div>
       </section>
 
-      {/* My Story, as the book it is */}
-      <Link to="/my-story" className="group flex items-center gap-4 mb-7" aria-label="My Story: your life so far as a book">
-        <span
-          className="relative flex-none w-[104px] h-[150px] rounded-r-md rounded-l-sm shadow-card flex flex-col items-center justify-center text-center px-2 transition-transform group-hover:-translate-y-0.5"
-          style={{
-            background: "linear-gradient(135deg, #2F4A3A 0%, #1F3328 100%)",
-            boxShadow: "inset 6px 0 0 rgba(0,0,0,0.25), inset 7px 0 0 rgba(255,255,255,0.06), 0 8px 18px -8px rgba(0,0,0,0.5)"
-          }}
-          aria-hidden="true"
-        >
-          <span className="absolute inset-[6px] left-[12px] border border-[#C9A24D]/50 rounded-sm" />
-          {bookPhoto && <img src={bookPhoto.thumb} alt="" className="relative w-[58px] h-[46px] object-cover rounded-[2px] mb-1 border border-[#C9A24D]/60" />}
-          <span className="text-[8px] tracking-[0.2em] uppercase text-[#E8C877]">Kept in YOU</span>
-          <span className="font-serif text-[19px] leading-tight text-[#F7EEDC] mt-1">My Story</span>
-          {profile?.name && <span className="font-serif italic text-[11px] text-[#E8C877] mt-1">{profile.name.trim().split(" ")[0]}</span>}
-          {span && <span className="text-[9px] text-[#F7EEDC]/70 mt-1.5">{span}</span>}
-        </span>
-        <span className="min-w-0">
-          <span className="block font-serif text-h2 text-textPrimary leading-tight">My Story</span>
-          <span className="block text-bodySm text-textSecondary mt-0.5">Your life so far as a book, made only from what you've kept. Read it, print it, or keep a copy.</span>
-          <span className="inline-flex items-center gap-1 mt-1.5 text-bodySm font-medium text-forestAccent">Open the book <ChevronRight size={15} strokeWidth={1.75} /></span>
+      {/* My Story (Cassidy, Nov 5: "more cohesive with the pages"): a card in
+          the same family as the headers and year cards, the painted reading
+          place behind it and the chosen cover photo framed like a print. */}
+      <Link
+        to="/my-story"
+        className="group relative block rounded-card overflow-hidden shadow-card mb-7 border border-[color-mix(in_srgb,var(--gold)_30%,transparent)]"
+        aria-label="My Story: your life so far as a book"
+      >
+        <img
+          src="/images/journey/my-story-backdrop-wide.webp"
+          alt=""
+          loading="lazy"
+          onError={e => { e.currentTarget.style.display = "none"; }}
+          className="absolute inset-0 w-full h-full object-cover dark:brightness-[0.55]"
+        />
+        <span className="absolute inset-0 bg-gradient-to-r from-[#FBF7F0]/10 via-[#FBF7F0]/55 to-[#FBF7F0]/85 dark:from-black/20 dark:via-[#0B0B1F]/55 dark:to-[#0B0B1F]/80" />
+        <span className="relative flex items-center gap-4 p-4 min-h-[156px]">
+          <span className="flex-none w-[92px] p-1.5 pb-4 bg-white shadow-card rotate-[-3deg] transition-transform duration-300 group-hover:rotate-0" style={{ border: "1px solid #E8DCC4" }} aria-hidden="true">
+            {bookPhoto
+              ? <img src={bookPhoto.thumb} alt="" className="w-full aspect-[4/5] object-cover" />
+              : <span className="block w-full aspect-[4/5] bg-[#F3E6D3]" />}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-label uppercase tracking-[0.16em] text-gold">Kept in YOU{span ? ` · ${span}` : ""}</span>
+            <span className="block font-serif text-[28px] leading-tight text-textPrimary dark:text-cream mt-0.5">My Story</span>
+            <span className="block text-bodySm text-textSecondary dark:text-[color-mix(in_srgb,var(--cream)_85%,transparent)] mt-0.5">
+              Your life so far as a book, in your own words.
+            </span>
+            <span className="inline-flex items-center gap-1 mt-2 min-h-[36px] px-3.5 rounded-full bg-forestAccent text-onAccent text-bodySm font-medium">
+              Open the book <ChevronRight size={15} strokeWidth={1.75} />
+            </span>
+          </span>
         </span>
       </Link>
 
