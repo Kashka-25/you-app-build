@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Plus, BookOpen, ScanText, Highlighter, Lock, LockOpen } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { Button } from "../ui/Button";
@@ -96,6 +97,24 @@ export default function Reflections() {
   const [limit, setLimit] = useState(ENTRIES_SHOWN);
   const [addOpen, setAddOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
+  // Arriving from a thread in YOUnderstanding opens that entry (Nov 4). The
+  // lock screen still comes first when YOUrnal is locked.
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Opened from a thread: closing the entry goes straight back to
+  // YOUnderstanding, where they came from (Cassidy, Nov 5).
+  const fromThread = Boolean(location.state?.openEntry);
+  function closeEntry() {
+    setEditingEntry(null);
+    setScanNote("");
+    if (fromThread) navigate(-1);
+  }
+  useEffect(() => {
+    const id = location.state?.openEntry;
+    if (!id || !loaded) return;
+    const entry = journalEntries.find(e => e.id === id);
+    if (entry) setEditingEntry(entry);
+  }, [location.key, loaded]);
   const { scanJournalPages } = useAppData();
   const scanInput = useRef(null);
   const [scanning, setScanning] = useState(false);
@@ -145,6 +164,7 @@ export default function Reflections() {
   const [savedNote, setSavedNote] = useState("");
   const savedTimer = useRef(null);
   function handleSaved(saved, { wasNew } = {}) {
+    if (fromThread && !wasNew) { closeEntry(); return; }
     setAddOpen(false);
     setEditingEntry(null);
     setScanNote("");
@@ -256,7 +276,7 @@ export default function Reflections() {
         open={Boolean(editingEntry)}
         entry={editingEntry}
         notice={scanNote}
-        onClose={() => { setEditingEntry(null); setScanNote(""); }}
+        onClose={closeEntry}
         onSaved={handleSaved}
       />
 
