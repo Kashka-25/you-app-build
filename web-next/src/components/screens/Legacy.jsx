@@ -42,9 +42,9 @@ export default function Legacy() {
           width="705"
           height="380"
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover object-[center_30%] dark:brightness-[0.62] dark:saturate-[0.85]"
+          className="absolute inset-0 w-full h-full object-cover object-[center_40%] dark:brightness-[0.62] dark:saturate-[0.85]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#FBF7F0] via-[#FBF7F0]/70 via-40% to-transparent dark:from-[#0B0B1F] dark:via-[#0B0B1F]/70" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#FBF7F0] via-[#FBF7F0]/45 via-30% to-transparent dark:from-[#0B0B1F] dark:via-[#0B0B1F]/60" />
         <Link
           to="/journey"
           state={{ tab: "chapters" }}
@@ -52,7 +52,7 @@ export default function Legacy() {
         >
           <ArrowLeft size={14} strokeWidth={1.75} /> YOUrney
         </Link>
-        <div className="relative flex flex-col justify-end min-h-[176px] p-4 pt-16">
+        <div className="relative flex flex-col justify-end min-h-[220px] p-4 pt-16">
           <h1 id="years-title" className="font-serif text-[30px] leading-tight text-textPrimary dark:text-cream m-0">Your years</h1>
           <p className="text-bodySm text-textSecondary dark:text-[color-mix(in_srgb,var(--cream)_88%,transparent)] m-0">Your life, year by year, as you've kept it.</p>
         </div>
