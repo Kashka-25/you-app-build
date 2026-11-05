@@ -22,7 +22,18 @@ export default function Legacy() {
   const span = years.length ? (years.length === 1 ? `${years[0]}` : `${years[years.length - 1]} – ${years[0]}`) : "";
 
   return (
-    <div className="pt-1 pb-24 px-5">
+    <div className="pt-1 pb-24 px-5 relative isolate">
+      {/* The same painted reading place as My Story, behind the page
+          (Cassidy, Nov 5); softened so the cards stay the focus. */}
+      <picture className="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true">
+        <source media="(min-width: 768px)" srcSet="/images/journey/my-story-backdrop-wide.webp" />
+        <img
+          src="/images/journey/my-story-backdrop-tall.webp"
+          alt=""
+          onError={e => { e.currentTarget.style.display = "none"; }}
+          className="w-full h-full object-cover opacity-70 dark:opacity-30"
+        />
+      </picture>
       <section aria-labelledby="years-title" className="relative mt-3 mb-5 rounded-card overflow-hidden shadow-card">
         <img
           src="/images/home/yourney.webp"

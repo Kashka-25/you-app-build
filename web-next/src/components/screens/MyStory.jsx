@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Printer, Download, Lock, SlidersHorizontal } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { goBack } from "../../lib/week";
@@ -75,12 +75,19 @@ export default function MyStory() {
       </picture>
       {/* Controls: never printed. */}
       <div className="no-print max-w-[640px] mx-auto px-5 pb-6" style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}>
-        <button onClick={() => goBack(navigate)} className="inline-flex items-center gap-1.5 text-bodySm text-textSecondary mb-5">
+        <button onClick={() => goBack(navigate)} className="inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-full bg-[#FBF7F0]/85 dark:bg-black/40 backdrop-blur-sm shadow-card text-bodySm text-textPrimary mb-4">
           <ArrowLeft size={16} strokeWidth={1.75} /> Back
         </button>
-        <div className="text-label uppercase text-gold mb-1">Your years</div>
-        <h1 className="font-serif text-hero text-textPrimary m-0">My Story</h1>
-        <p className="text-bodySm text-textSecondary mt-1 mb-3">
+        {/* Clear over the painting (Cassidy, Nov 5): the label on a soft
+            cream pill, and a gentle cream glow behind the title and line. */}
+        <Link
+          to="/legacy"
+          className="flex w-max items-center gap-1 mb-2 px-2.5 py-1 rounded-full bg-[#FBF7F0]/85 dark:bg-black/40 backdrop-blur-sm text-label uppercase tracking-[0.14em] font-semibold text-forestAccent dark:text-[#E8C877] shadow-card"
+        >
+          Your years
+        </Link>
+        <h1 className="font-serif text-hero text-textPrimary m-0 [text-shadow:0_0_14px_rgba(251,247,240,0.95),0_0_4px_rgba(251,247,240,0.9)] dark:[text-shadow:0_1px_10px_rgba(0,0,0,0.8)]">My Story</h1>
+        <p className="text-bodySm text-textPrimary mt-1 mb-3 [text-shadow:0_0_10px_rgba(251,247,240,0.95),0_0_3px_rgba(251,247,240,0.9)] dark:[text-shadow:0_1px_8px_rgba(0,0,0,0.8)]">
           Your life so far, as a book, made only from what you've kept, in your own words.
         </p>
 
