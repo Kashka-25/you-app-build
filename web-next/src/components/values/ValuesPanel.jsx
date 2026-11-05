@@ -197,12 +197,31 @@ export default function ValuesPanel() {
           </div>
           <div className="space-y-2">
             {rested.map(v => {
-              const { tier } = cycleView(v);
+              const { tier, pct, prestige } = cycleView(v);
+              const color = valueShade(v.name, VALUE_ELEMENT) || VALUE_COLORS[v.name] || "#C9A24D";
+              const Icon = VALUE_ICONS[v.name] || Sparkles;
+              const meaning = v.definition || getValueEntry(v.name)?.essence;
               return (
-                <div key={v.name} className="flex items-center gap-3 rounded-sm bg-surface1 px-3.5 py-2.5">
+                <div
+                  key={v.name}
+                  className="flex items-center gap-3 rounded-card p-3 border"
+                  style={{
+                    borderColor: `color-mix(in srgb, ${color} 22%, transparent)`,
+                    background: `linear-gradient(105deg, color-mix(in srgb, ${color} 10%, var(--surface-1)) 0%, var(--surface-1) 60%)`
+                  }}
+                >
+                  <span className="w-10 h-10 rounded-full flex-none flex items-center justify-center opacity-80" style={{ background: `color-mix(in srgb, ${color} 22%, transparent)`, color: deep(color) }}>
+                    <Moon size={16} strokeWidth={1.75} aria-hidden="true" />
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-body text-textPrimary">{v.name}</div>
-                    <div className="text-caption" style={{ color: tier.color }}>{tier.name}</div>
+                    <div className="flex items-center gap-1.5 font-serif text-h3 text-textPrimary">
+                      {Icon && <Icon size={14} strokeWidth={1.75} style={{ color: deep(color) }} aria-hidden="true" />}{v.name}
+                    </div>
+                    {meaning && <div className="font-serif italic text-caption text-textSecondary line-clamp-1">{meaning}</div>}
+                    <div className="text-caption text-textMuted">
+                      Resting at <span className="font-semibold" style={{ color: deep(tier.color) }}>{tier.name}</span>
+                      {pct > 0 ? `, ${pct}% through` : ""} · {getPrestigeStage(prestige).name}
+                    </div>
                   </div>
                   <Button
                     variant="secondary"
@@ -211,7 +230,7 @@ export default function ValuesPanel() {
                     disabled={!hasRoom}
                     onClick={() => setValueStatus(v.name, "active")}
                   >
-                    Return to focus
+                    Return
                   </Button>
                 </div>
               );
@@ -225,6 +244,10 @@ export default function ValuesPanel() {
     </div>
   );
 }
+
+// Stage and tier colours, deepened toward the text colour so they read on
+// the beige cards (Nov 5).
+const deep = c => `color-mix(in srgb, ${c} 62%, var(--text-primary, #2B2118))`;
 
 // "9% of the way to Practising": a value's growth said in words, toward
 // its next tier, or its next stage once it's Mastering (Nov 5).
@@ -243,6 +266,9 @@ function ValueCard({
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError] = useState("");
   const [exploring, setExploring] = useState(false);
+  // A challenge just ticked stays a moment, filled in the value's colour,
+  // before it folds into Done (Nov 5).
+  const [justDone, setJustDone] = useState(null); // { key, pts }
 
   const { prestige, requirement, pct, tier } = cycleView(v);
   const stage = getPrestigeStage(prestige);
@@ -288,7 +314,7 @@ function ValueCard({
                 caption below, plain text read as one blurred phrase. */}
             <span
               className="flex items-center gap-1 text-caption font-semibold px-2 py-0.5 rounded-full flex-none"
-              style={{ color: stageColor, background: `color-mix(in srgb, ${stageColor} 18%, transparent)` }}
+              style={{ color: deep(stageColor), background: `color-mix(in srgb, ${stageColor} 22%, transparent)` }}
               title={stage.desc}
             >
               {StageIcon && <StageIcon size={11} strokeWidth={2} />}
@@ -303,7 +329,7 @@ function ValueCard({
               read in words rather than numbers. */}
           <XpBar pct={pct} color={color} className="mt-1.5" />
           <div className="text-caption text-textMuted mt-1">
-            <span className="font-medium" style={{ color: tier.color }}>{tier.name}</span>
+            <span className="font-semibold" style={{ color: deep(tier.color) }}>{tier.name}</span>
             {" · "}{growthWords(pct, tier, prestige)}
             {VALUE_ELEMENT[v.name] ? <> · {VALUE_ELEMENT[v.name]}</> : own ? <> · your own</> : null}
           </div>
@@ -350,8 +376,8 @@ function ValueCard({
                   ...valueChallenges.map(c => ({ key: c.id, text: c.text, pts: c.pts, diff: c.diff, done: c.completed, ai: true, complete: () => onCompleteAi(c.id) }))
                 ];
                 const shown = all.filter(c => diff === "all" || c.diff === diff);
-                const toTry = shown.filter(c => !c.done);
-                const done = shown.filter(c => c.done);
+                const toTry = shown.filter(c => !c.done || c.key === justDone?.key);
+                const done = shown.filter(c => c.done && c.key !== justDone?.key);
                 const count = d => all.filter(c => !c.done && (d === "all" || c.diff === d)).length;
                 return (
                   <>
@@ -379,24 +405,41 @@ function ValueCard({
                       <div className="text-bodySm text-textMuted mb-2">Nothing left to try here{diff !== "all" ? ` at ${diff}` : ""}. Generate a few more below.</div>
                     )}
                     <ul className="list-none m-0 p-0 space-y-2">
-                      {toTry.map(c => (
-                        <li key={c.key} className="flex items-start gap-3 p-3 rounded-sm bg-surface2">
+                      {toTry.map(c => {
+                        const celebrating = justDone?.key === c.key;
+                        return (
+                        <li key={c.key} className="flex items-start gap-3 p-3 rounded-sm bg-surface2 transition-colors duration-500" style={celebrating ? { background: `color-mix(in srgb, ${color} 14%, var(--surface-2))` } : undefined}>
                           <button
                             type="button"
-                            onClick={c.complete}
+                            disabled={celebrating}
+                            onClick={() => {
+                              setJustDone({ key: c.key, pts: c.pts });
+                              c.complete();
+                              setTimeout(() => setJustDone(j => (j?.key === c.key ? null : j)), 1800);
+                            }}
                             aria-label={`Mark done: ${c.text}`}
-                            className="w-6 h-6 mt-0.5 flex-none rounded-full border-2 hover:bg-[color-mix(in_srgb,var(--forest-accent)_12%,transparent)]"
-                            style={{ borderColor: `color-mix(in srgb, ${color} 70%, var(--border-c, #ccc))` }}
-                          />
+                            className="w-6 h-6 mt-0.5 flex-none rounded-full border-2 flex items-center justify-center transition-all duration-300 hover:bg-[color-mix(in_srgb,var(--forest-accent)_12%,transparent)]"
+                            style={celebrating
+                              ? { borderColor: color, background: color, transform: "scale(1.1)" }
+                              : { borderColor: `color-mix(in srgb, ${color} 70%, var(--border-c, #ccc))` }}
+                          >
+                            {celebrating && <Check size={14} strokeWidth={2.75} className="text-white" />}
+                          </button>
                           <div className="flex-1 min-w-0">
-                            <div className="text-bodySm text-textPrimary">{c.text}</div>
+                            <div className={`text-bodySm text-textPrimary ${celebrating ? "line-through decoration-1" : ""}`}>{c.text}</div>
+                            {celebrating && (
+                              <div className="text-caption font-medium mt-0.5" style={{ color: deep(color) }} role="status">
+                                +{c.pts} · {v.name} grew
+                              </div>
+                            )}
                             <div className="text-caption text-textMuted mt-0.5 capitalize">
                               {c.diff}{c.ai && <span className="normal-case"> · <span className="text-gold">✦ written for you</span></span>}
                             </div>
                           </div>
-                          <div className="text-caption font-medium flex-none mt-0.5" style={{ color }}>+{c.pts}</div>
+                          <div className="text-caption font-medium flex-none mt-0.5" style={{ color: deep(color) }}>+{c.pts}</div>
                         </li>
-                      ))}
+                        );
+                      })}
                     </ul>
                     {done.length > 0 && (
                       <details className="mt-2.5 group">
