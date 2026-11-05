@@ -61,7 +61,18 @@ export default function MyStory() {
   }
 
   return (
-    <div className="min-h-dvh bg-bg font-sans my-story">
+    <div className="min-h-dvh bg-bg font-sans my-story relative isolate">
+      {/* The painted reading place behind the book (design/chatgpt-prompts/
+          my-story-backdrop.md): on screen only, and only once it's added. */}
+      <picture className="no-print fixed inset-0 -z-10 pointer-events-none" aria-hidden="true">
+        <source media="(min-width: 768px)" srcSet="/images/journey/my-story-backdrop-wide.webp" />
+        <img
+          src="/images/journey/my-story-backdrop-tall.webp"
+          alt=""
+          onError={e => { e.currentTarget.style.display = "none"; }}
+          className="w-full h-full object-cover opacity-80 dark:opacity-40"
+        />
+      </picture>
       {/* Controls: never printed. */}
       <div className="no-print max-w-[640px] mx-auto px-5 pb-6" style={{ paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}>
         <button onClick={() => goBack(navigate)} className="inline-flex items-center gap-1.5 text-bodySm text-textSecondary mb-5">
