@@ -36,7 +36,8 @@ export default function Legacy() {
       </picture>
       <section aria-labelledby="years-title" className="relative mt-3 mb-5 rounded-card overflow-hidden shadow-card">
         <img
-          src="/images/home/yourney.webp"
+          src="/images/home/tool-years.webp"
+          onError={e => { if (!e.currentTarget.src.endsWith("/yourney.webp")) e.currentTarget.src = "/images/home/yourney.webp"; }}
           alt=""
           width="705"
           height="380"

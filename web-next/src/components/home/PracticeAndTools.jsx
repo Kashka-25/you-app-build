@@ -41,7 +41,7 @@ export function PracticeCard({ tool }) {
 // lead somewhere new, each with its own painting from the YOU set.
 const TOOLS = [
   { to: "/journey", label: "YOUrney", note: "Your life story", image: "/images/home/tool-yourney.webp" },
-  { to: "/legacy", label: "Your years", note: "Your life, year by year", image: "/images/home/tool-mirror.webp" },
+  { to: "/legacy", label: "Your years", note: "Your life, year by year", image: "/images/home/tool-years.webp", fallback: "/images/home/tool-mirror.webp" },
   { to: "/showcase", label: "Showcase", note: "Art from YOUsers", image: "/images/home/tool-showcase.webp" },
   { to: "/pursue", state: { view: "wanderings" }, label: "Wanderings", note: "Places you'll go", image: "/images/home/tool-wanderings.webp" }
 ];
@@ -55,7 +55,7 @@ export function QuickTools() {
         {TOOLS.map(t => (
           <Link key={t.label} to={t.to} state={t.state} className="group block rounded-card overflow-hidden bg-surface1 shadow-card active:scale-[0.98] transition">
             <div className="relative aspect-[4/3] overflow-hidden">
-              <img src={t.image} alt="" width="640" height="480" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 dark:brightness-[0.8]" />
+              <img src={t.image} onError={e => { if (t.fallback && !e.currentTarget.src.endsWith(t.fallback)) e.currentTarget.src = t.fallback; }} alt="" width="640" height="480" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 dark:brightness-[0.8]" />
             </div>
             <div className="px-3 py-2.5">
               <div className="font-serif text-h3 text-textPrimary leading-tight">{t.label}</div>
