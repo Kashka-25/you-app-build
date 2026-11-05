@@ -275,6 +275,29 @@ function NadiChannels({ bottom, top, dimmed, awake, label }) {
   );
 }
 
+// What each part of the tree is: a tidy two-column key (Nov 5), folded into
+// How it works on the page and shown under the tree in full screen.
+const KEY = [
+  ["Roots", "your Pillars", { background: "#9a8870" }],
+  ["Branches", "your Values", { background: "var(--gold)" }],
+  ["Golden seeds", "lived depth", { background: "#E0A458" }],
+  ["Stars", "your visions", { background: "#F7F1E1" }],
+  ["Flowers", "focus sessions", { background: "#F2EBDA", boxShadow: "inset 0 0 0 2px #7A9B76" }],
+  ["Constellations", "memories over places", { background: "#4a8fa0" }]
+];
+function TreeKey({ className = "" }) {
+  return (
+    <ul className={`grid grid-cols-2 gap-x-3 gap-y-1.5 list-none m-0 p-0 text-caption ${className}`}>
+      {KEY.map(([name, what, dot]) => (
+        <li key={name} className="flex items-center gap-1.5 min-w-0">
+          <i className="w-2 h-2 rounded-full inline-block flex-none" style={dot} aria-hidden="true" />
+          <span className="truncate"><span className="font-medium">{name}</span> · {what}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 // A four-point sparkle, for the visions in the sky.
 function Sparkle({ x, y, r, color, opacity = 1 }) {
   const w = r * 0.28;
@@ -631,7 +654,7 @@ export default function TreeOfStars() {
 
   return (
     <div
-      className={full ? "fixed inset-0 z-40 overflow-y-auto px-3 pb-10 font-sans" : "pt-1 pb-24 px-5"}
+      className={full ? "fixed inset-0 z-40 overflow-y-auto px-3 pb-10 font-sans" : "pt-1 pb-6"}
       // Immersive (Cassidy, Oct 28: "leave no screen border"): no frame, and
       // the tree's own night and soil run on to every edge.
       style={full ? { background: tall ? (painted ? "linear-gradient(180deg, #0c0b22 50%, #25100c 50%)" : "linear-gradient(180deg, #060b08 50%, #0d0906 50%)") : "linear-gradient(180deg, #060b08 0%, #0A0A1C 36%, #0E0E26 62%, #1a120b 64%, #0d0906 100%) top / 100% 100dvh no-repeat, #0d0906" } : undefined}
@@ -669,6 +692,7 @@ export default function TreeOfStars() {
             Your Pillars are the roots, your Values the branches, bearing fruit as they ripen. The canopy
             reaches into the stars: the versions of yourself you're growing toward. Tap anything to trace
             what feeds it.
+            <TreeKey className="mt-2.5" />
           </Guide>
         </>
       )}
@@ -1120,29 +1144,30 @@ export default function TreeOfStars() {
         {portalFx && <PortalSwirl origin={portalOrigin} direction={portalDir} />}
       </AnimatePresence>
 
-      <div className="flex gap-3 mt-3 text-caption text-textMuted flex-wrap">
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#9a8870" }} />Roots · Pillars</span>
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "var(--gold)" }} />Branches · Values</span>
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: FRUIT_COLORS[0] }} />Fruit · lived depth</span>
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block bg-cream" />Stars · visions</span>
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#F2EBDA", boxShadow: "inset 0 0 0 2px #7A9B76" }} />Flowers · focus sessions</span>
-        <span className="flex items-center gap-1"><i className="w-2 h-2 rounded-full inline-block" style={{ background: "#4a8fa0" }} />Constellations · memories over places</span>
-      </div>
+      {full && <TreeKey className="mt-3" />}
+
+      {!selected && (
+        <div className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mt-3 text-bodySm ${full ? "text-[#B8B5D6]" : "text-textMuted"}`}>
+          <span>Tap a root, a branch or a star to trace what feeds it.</span>
+          <button
+            type="button"
+            onClick={() => setAddingVision(true)}
+            className={`inline-flex items-center gap-1 min-h-[36px] font-medium ${full ? "text-[#E8C877]" : "text-forestAccent"}`}
+          >
+            <Plus size={14} strokeWidth={1.75} /> Add a vision
+          </button>
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
+        {selected && (
         <motion.div
-          key={selected ? selected.type + ":" + selected.key : "empty"}
+          key={selected.type + ":" + selected.key}
           initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.25 }}
           className="rounded-card p-4 mt-4 min-h-[92px]"
           style={{ background: "#131331", border: "1px solid rgba(255,255,255,0.08)" }}
         >
-          {!selected && (
-            <div className="text-bodySm text-[#8A88AE]">
-              Tap a root, a branch, or a star to trace what feeds it.
-            </div>
-          )}
-
           {selected?.type === "value" && (() => {
             const b = branches.find(x => x.name === selected.key);
             if (!b) return null;
@@ -1195,15 +1220,8 @@ export default function TreeOfStars() {
             </>
           )}
         </motion.div>
+        )}
       </AnimatePresence>
-
-      <button
-        onClick={() => setAddingVision(true)}
-        className="flex items-center gap-1.5 text-bodySm text-textSecondary border border-borderC rounded-sm px-3 py-2 mt-3"
-      >
-        <Plus size={14} strokeWidth={1.75} />
-        Add a vision to the sky
-      </button>
 
       <IdentityVisionModal open={addingVision} onClose={() => setAddingVision(false)} />
       <IdentityVisionModal open={editOpen} vision={editingVision} onClose={() => setEditOpen(false)} />

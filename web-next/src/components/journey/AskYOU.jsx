@@ -1,9 +1,13 @@
-import { useEffect, useState } from "react";
-import { Bookmark, ChevronDown, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bookmark, ChevronDown, Sparkles, Trash2 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
-import { AiButton, AiCard, AiLabel, AiLink } from "../ui/Premium";
+import { AiButton, AiCard, AiLink } from "../ui/Premium";
 import DrawsFrom from "../ui/DrawsFrom";
 import { Guide } from "../ui/Guide";
+
+const OPEN_KEY = "you.ask-you-open";
+// The house gold, bright enough for a short title.
+const BRIGHT_GOLD = { backgroundImage: "linear-gradient(100deg, var(--ai-gold-2) 0%, var(--ai-gold-1) 50%, var(--ai-gold-2) 100%)", backgroundSize: "100% 100%" };
 
 const PROMPTS = [
   "What keeps coming back in my dreams?",
@@ -36,7 +40,7 @@ function drewFromLine(d) {
 // your own question; YOU reads the entries that speak to it, with every
 // reading it has already made for you, and answers. Keep what you want
 // to come back to; kept readings sit below, newest first.
-export default function AskYOU() {
+export default function AskYOU({ prefill = null }) {
   const { askYOUnderstanding, loadKeptUnderstandings, keepUnderstanding, deleteUnderstanding, aiAllowed } = useAppData();
   const [question, setQuestion] = useState("");
   const [asking, setAsking] = useState(false);
@@ -45,6 +49,34 @@ export default function AskYOU() {
   const [kept, setKept] = useState([]);
   const [keeping, setKeeping] = useState(false);
   const [keptId, setKeptId] = useState(null);
+  // A gold bar that opens and closes (Cassidy, Nov 4), like Read between the
+  // lines on Memories: closed to start, remembered on this device.
+  const [open, setOpen] = useState(() => {
+    try { return localStorage.getItem(OPEN_KEY) === "1"; } catch { return false; }
+  });
+  function toggle() {
+    setOpen(o => {
+      try { localStorage.setItem(OPEN_KEY, o ? "0" : "1"); } catch { /* ignore */ }
+      return !o;
+    });
+  }
+
+  // A thread's "Ask YOU about this" (Nov 4): opens the bar with the
+  // question written in, ready to send or change. Nothing is sent until
+  // they tap Ask YOU.
+  const barRef = useRef(null);
+  useEffect(() => {
+    if (!prefill?.text) return;
+    setOpen(true);
+    setResult(null);
+    setKeptId(null);
+    setMessage("");
+    setQuestion(prefill.text);
+    requestAnimationFrame(() => {
+      barRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("ask-you")?.focus({ preventScroll: true });
+    });
+  }, [prefill?.nonce]);
 
   useEffect(() => {
     let live = true;
@@ -103,10 +135,27 @@ export default function AskYOU() {
   }
 
   return (
-    <>
-      <AiCard className="mb-4">
-        <AiLabel>Ask YOU</AiLabel>
-        <p className="font-serif text-h3 text-[var(--ai-text)] m-0 mt-1.5 leading-snug">What would you like to understand about yourself?</p>
+    <AiCard className="mb-4 scroll-mt-20" ref={barRef}>
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={open}
+        aria-controls="ask-you-panel"
+        className="w-full flex items-center gap-3 text-left -my-1 py-1"
+      >
+        <Sparkles size={20} strokeWidth={1.5} className="flex-none text-[var(--ai-gold-1)]" aria-hidden="true" />
+        <span className="flex-1 min-w-0">
+          <span className="block font-serif text-h3 ai-gold-text" style={BRIGHT_GOLD}>Ask YOU</span>
+          <span className="block text-caption text-[var(--ai-text-3)]">
+            Your own question, answered from all you've shared{kept.length > 0 ? ` · ${kept.length} kept` : ""}
+          </span>
+        </span>
+        <ChevronDown size={20} strokeWidth={1.75} className={`flex-none text-[var(--ai-gold-1)] transition-transform duration-200 ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+
+      {open && (
+      <div id="ask-you-panel" className="mt-4">
+        <p className="font-serif text-h3 text-[var(--ai-text)] m-0 leading-snug">What would you like to understand about yourself?</p>
 
         {!result && (
           <>
@@ -169,11 +218,10 @@ export default function AskYOU() {
         )}
 
         <DrawsFrom uses={["journal", "moments", "harvests", "pursuits", "values", "mood"]} className="mt-3" />
-      </AiCard>
 
       {kept.length > 0 && (
-        <div className="mb-4">
-          <h3 className="flex items-center gap-1.5 text-label uppercase text-textSecondary m-0 mb-2">
+        <div className="mt-5 pt-4 border-t border-white/10">
+          <h3 className="flex items-center gap-1.5 text-label uppercase text-[var(--ai-text-2)] m-0 mb-2">
             <Bookmark size={13} strokeWidth={1.75} aria-hidden="true" /> Readings you kept
           </h3>
           <ul className="list-none m-0 p-0 space-y-2">
@@ -181,14 +229,16 @@ export default function AskYOU() {
           </ul>
         </div>
       )}
-    </>
+      </div>
+      )}
+    </AiCard>
   );
 }
 
 function KeptReading({ row, onDelete }) {
   const [open, setOpen] = useState(false);
   return (
-    <li className="rounded-card bg-surface1 shadow-card">
+    <li className="rounded-sm bg-white/5 border border-white/10">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -196,14 +246,14 @@ function KeptReading({ row, onDelete }) {
         className="w-full flex items-start gap-3 p-4 text-left min-h-[48px]"
       >
         <span className="flex-1 min-w-0">
-          <span className="block font-serif text-body text-textPrimary">{row.answer?.title || row.question}</span>
-          <span className="block text-caption text-textMuted mt-0.5 truncate">{niceDate(row.created_at, true)} · {row.question}</span>
+          <span className="block font-serif text-body text-[var(--ai-text)]">{row.answer?.title || row.question}</span>
+          <span className="block text-caption text-[var(--ai-text-3)] mt-0.5 truncate">{niceDate(row.created_at, true)} · {row.question}</span>
         </span>
-        <ChevronDown size={18} strokeWidth={1.75} className={`flex-none text-textMuted mt-1 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown size={18} strokeWidth={1.75} className={`flex-none text-[var(--ai-text-2)] mt-1 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="px-3 pb-3">
-          <AiCard>
+        <div className="px-4 pb-4">
+          <div>
             <p className="text-bodySm italic text-[var(--ai-text-2)] m-0">“{row.question}”</p>
             <Reading answer={row.answer} drewFrom={row.drew_from} />
             <button
@@ -213,7 +263,7 @@ function KeptReading({ row, onDelete }) {
             >
               <Trash2 size={14} strokeWidth={1.75} /> Let this one go
             </button>
-          </AiCard>
+          </div>
         </div>
       )}
     </li>

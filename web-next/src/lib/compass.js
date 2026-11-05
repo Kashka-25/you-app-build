@@ -74,7 +74,7 @@ export function pickNoticedPatterns(recentInsights, limit = 5) {
       .filter(item => item.category === "pattern" && item.status !== "rejected")
       .forEach(item => {
         if (!patterns.some(p => p.text === item.text)) {
-          patterns.push({ text: item.text, entryDate: row.journal_entries?.entry_date });
+          patterns.push({ text: item.text, entryDate: row.journal_entries?.entry_date, entryId: row.entry_id });
         }
       });
   });
@@ -97,4 +97,29 @@ export function pickNextStep(recentInsights, items) {
   if (row) return row.suggested_next_step;
   const quest = pickTodaysQuest(items);
   return quest ? `Take one small step on "${quest.name}".` : null;
+}
+
+// Every question to sit with from recent reflections, newest first, each
+// with the small step from the same reflection (Nov 5: the YOUnderstanding
+// card turns weekly and can step through them, with no AI).
+export function reflectionQuestions(recentInsights) {
+  const seen = new Set();
+  const list = [];
+  for (const r of recentInsights || []) {
+    const q = (r.reflection_question || "").trim();
+    if (!q || seen.has(q)) continue;
+    seen.add(q);
+    list.push({ question: q, step: (r.suggested_next_step || "").trim() || null, at: r.created_at });
+  }
+  return list;
+}
+
+// Which question the card shows this week: a reflection made this week
+// shows first; otherwise each new week moves on to the next one, and it
+// stays the same all week.
+export function questionOfTheWeek(list, weekStart) {
+  if (!list.length) return 0;
+  if (list[0].at && new Date(list[0].at) >= new Date(weekStart + "T00:00:00")) return 0;
+  const weeks = Math.floor(new Date(weekStart + "T00:00:00").getTime() / (7 * 86400000));
+  return weeks % list.length;
 }

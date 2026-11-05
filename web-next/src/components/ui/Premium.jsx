@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Sparkles } from "lucide-react";
 
 // The YOUnderstanding look for AI (and, later, premium) features. Kept in
@@ -32,13 +33,13 @@ export function AiLabel({ children, className = "" }) {
 }
 
 // A card that holds something AI wrote.
-export function AiCard({ children, className = "", ...props }) {
+export const AiCard = forwardRef(function AiCard({ children, className = "", ...props }, ref) {
   return (
-    <div className={`ai-card rounded-card p-4 ${className}`} {...props}>
+    <div ref={ref} className={`ai-card rounded-card p-4 ${className}`} {...props}>
       {children}
     </div>
   );
-}
+});
 
 // A quiet text link inside an AI card (Regenerate, Read it again…).
 export function AiLink({ children, className = "", ...props }) {
