@@ -273,7 +273,7 @@ export function createDemoClient() {
   // ── Storage: no uploads (photos would need a server); example art is a public path ──
   const storage = {
     from: () => ({
-      upload: async () => ({ data: null, error: { message: "Photos aren't kept in the demo." } }),
+      upload: async () => ({ data: null, error: { message: "Photos aren't kept in the demo.", friendly: "Photos aren't kept in the demo, so this one wasn't added." } }),
       remove: async () => ({ data: [], error: null }),
       createSignedUrl: async path => ({ data: { signedUrl: String(path || "").startsWith("/") ? path : null }, error: null }),
       createSignedUrls: async paths => ({ data: (paths || []).map(p => ({ path: p, signedUrl: String(p).startsWith("/") ? p : null, error: null })), error: null }),

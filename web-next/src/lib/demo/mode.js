@@ -9,6 +9,7 @@
 const MODE_KEY = "you-demo";            // "example" | "blank" while in demo
 const DB_KEY = "you-demo-db";           // the demo's tables (demoClient.js)
 const BACK_KEY = "you-demo-back";       // where "Back to Creative Universe" goes
+const TOUR_KEY = "you-demo-tour";       // the tour's ticked steps and whether it's folded
 
 // A made-up account id, so demo rows can never match a real one.
 export const DEMO_USER_ID = "00000000-0000-4000-8000-0000000d3e00";
@@ -49,10 +50,21 @@ export function rememberBack(url) {
   if (ok) write(BACK_KEY, ok);
 }
 
+// What the app keeps on the device for the made-up account (levels already
+// celebrated, a dismissed card…) goes with the demo, so a fresh or reset
+// demo starts as Wren really would, without stale celebrations.
+function clearDemoAccountKeys() {
+  try {
+    for (const key of Object.keys(localStorage)) if (key.includes(DEMO_USER_ID)) localStorage.removeItem(key);
+  } catch { /* private window */ }
+}
+
 // Fill the demo database and open YOU in demo mode.
 export async function enterDemo(kind) {
   const { buildDemoDatabase } = await import("./seed.js");
   write(DB_KEY, JSON.stringify(buildDemoDatabase(kind, DEMO_USER_ID)));
+  write(TOUR_KEY, null);
+  clearDemoAccountKeys();
   write(MODE_KEY, kind);
   window.location.replace("/");
 }
@@ -68,7 +80,18 @@ export function leaveDemo() {
   write(MODE_KEY, null);
   write(DB_KEY, null);
   write(BACK_KEY, null);
+  write(TOUR_KEY, null);
+  clearDemoAccountKeys();
   window.location.replace(back || "/demo");
 }
 
 export const DEMO_DB_KEY = DB_KEY;
+
+// What AI features say in the demo: honest, and the same everywhere.
+export const DEMO_AI_OFF = "AI reflections are switched off in the demo, so nothing leaves this browser. In the real YOU they're optional and only run if you say yes.";
+
+// The tour on Wren's Home (components/demo/DemoTour.jsx).
+export function readTour() {
+  try { return JSON.parse(read(TOUR_KEY) || "null") || { seen: [], folded: false }; } catch { return { seen: [], folded: false }; }
+}
+export function writeTour(tour) { write(TOUR_KEY, JSON.stringify(tour)); }

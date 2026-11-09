@@ -16,6 +16,7 @@ import { compressImage, JOURNAL_PAGE } from "./imageCompress";
 import { holdPlace, heldPlaces, releasePlace, isOffline } from "./placeOutbox";
 import { reversePlace } from "./wandering";
 import { pendingCount } from "./offline";
+import { isDemo, DEMO_AI_OFF } from "./demo/mode";
 import { localDateKey, weekStartKey, sowWeekStartKey, harvestWeekStartKey, addDaysKey, markWeekRested } from "./week";
 import { markerXp, DAILY_FOCUS_XP_CAP } from "./focus";
 import { mementoForHour } from "../constants/mementos";
@@ -1336,6 +1337,7 @@ export function AppDataProvider({ children }) {
   // Every AI call goes through here, so YOU Premium is checked in one place
   // (and again on the server).
   async function invokeAi(name, body) {
+    if (isDemo()) throw demoAiOff();
     if (!canUseAi(entitlement)) {
       const e = new Error(PREMIUM_REQUIRED_MESSAGE);
       e.code = "premium_required";
@@ -1591,7 +1593,17 @@ export function AppDataProvider({ children }) {
 
   // Resolves true once consent exists — asking first (via AiConsentModal in
   // AppShell) if it doesn't. Resolves false if the Seeker says not now.
+  // The demo has no server, so AI says so straight away, before asking for
+  // consent it could never use (lib/demo).
+  function demoAiOff() {
+    const e = new Error(DEMO_AI_OFF);
+    e.code = "demo_off";
+    e.friendly = DEMO_AI_OFF;
+    return e;
+  }
+
   function ensureAiConsent() {
+    if (isDemo()) return Promise.reject(demoAiOff());
     if (aiConsent?.granted) return Promise.resolve(true);
     return new Promise(resolve => setConsentPrompt({ resolve }));
   }

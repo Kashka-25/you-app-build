@@ -61,7 +61,7 @@ export default function DemoGate() {
             <Door
               icon={UserRound}
               title="Explore as an example person"
-              says="Meet Wren, a made-up Seeker a few weeks in: journal entries, habits, values and a little of their story."
+              says="Meet Wren, a made-up Seeker six weeks in: a YOUrnal, habits and goals, values, and a life in moments and chapters."
               busy={busy === "example"}
               onClick={() => go("example")}
             />

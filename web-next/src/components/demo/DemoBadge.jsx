@@ -13,8 +13,9 @@ export default function DemoBadge() {
 
   return (
     <div
-      className="fixed left-1/2 -translate-x-1/2 z-[70] font-sans flex flex-col items-center"
-      style={{ top: "calc(env(safe-area-inset-top) + 53px)" }}
+      // Phones: on the top bar's lower edge. Laptops have no top bar, so it
+      // sits at the very top instead of over the page's art.
+      className="fixed left-1/2 -translate-x-1/2 z-[70] font-sans flex flex-col items-center top-[calc(env(safe-area-inset-top)+53px)] lg:top-2"
     >
       <button
         type="button"
