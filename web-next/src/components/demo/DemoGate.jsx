@@ -5,9 +5,7 @@ import { isDemo, demoKind, enterDemo, resetDemo, leaveDemo, rememberBack, demoBa
 // /demo: the way in for visitors from Creative Universe (Cassidy, Nov 9).
 // Two doors: an example person to look around, or a blank start with the
 // welcome. Everything stays in this browser (lib/demo/mode.js).
-//
-// Entry key (planned, not built): if Cassidy wants a key in front of the
-// demo, ask for it here before the two doors and check it in enterDemo().
+// Open to anyone, no entry key (Cassidy, 9 Nov 2026).
 export default function DemoGate() {
   const [busy, setBusy] = useState(null);
   const inDemo = isDemo();

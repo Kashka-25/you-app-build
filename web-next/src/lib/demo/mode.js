@@ -4,9 +4,7 @@
 // real Supabase client is never created, so nothing is read from or sent
 // to the real database, and real people's data can't be reached.
 //
-// Planned: an "entry key" gate in front of /demo (Creative Universe's
-// CLAUDE.md). The demo is open for now; a key check would go in
-// enterDemo() and DemoGate, and nothing else needs to change.
+// Open to anyone, with no entry key (Cassidy, 9 Nov 2026).
 
 const MODE_KEY = "you-demo";            // "example" | "blank" while in demo
 const DB_KEY = "you-demo-db";           // the demo's tables (demoClient.js)
