@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 import { clearOfflineData, pendingCount, syncQueue } from "./offline";
 import { clearAllLocks } from "./journalLock";
+import { isDemo } from "./demo/mode";
 
 // Same DEV_MODE pattern as the vanilla app: "bypass" for local dev,
 // "live" for real Supabase auth. Switched to "live" so real per-user data
@@ -84,6 +85,9 @@ export function AuthProvider({ children }) {
     // Nothing personal stays on the device after signing out, but changes
     // still waiting to sync are only lost if the Seeker says so.
     signOut: async () => {
+      // In the demo, signing out is leaving it: nothing the real YOU keeps
+      // on this device (its offline copy, journal locks) is touched.
+      if (isDemo()) return supabase.auth.signOut();
       if (await pendingCount()) {
         await syncQueue();
         const left = await pendingCount();

@@ -6,6 +6,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import Welcome from "./components/Welcome";
 import { introSeen } from "./components/Intro";
 import Universe from "./components/welcome/Universe";
+// The demo's way in (lib/demo/mode.js): its own small chunk.
+const DemoGate = lazy(() => import("./components/demo/DemoGate"));
 import KronkCallback from "./components/KronkCallback";
 import ConfirmEmail from "./components/ConfirmEmail";
 import { KRONK_CALLBACK_PATH } from "./lib/kronk";
@@ -126,6 +128,8 @@ export default function App() {
 
   // Readable before signing up, so it's checked before the auth gate.
   if (pathname === "/privacy") return <Privacy />;
+  // Try YOU (Creative Universe's "Try the demo"), signed in or not.
+  if (pathname === "/demo") return <Suspense fallback={<PageLoading />}><DemoGate /></Suspense>;
   // Kronk's sign-in comes back here, signed in (connecting) or not (Continue with Kronk).
   if (pathname === KRONK_CALLBACK_PATH) return <KronkCallback />;
   // Links in account emails (confirm, reset) land here, signed in or not.
