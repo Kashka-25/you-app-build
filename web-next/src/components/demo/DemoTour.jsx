@@ -4,6 +4,7 @@ import { Check, ChevronDown, Compass } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { isDemo, demoKind, readTour, writeTour } from "../../lib/demo/mode";
 import { localDateKey } from "../../lib/week";
+import BetaInvite from "./BetaInvite";
 
 // A short path through Wren's universe, at the top of Home in the example
 // demo (Cassidy, Nov 9: "an obvious example journey to follow"). Steps that
@@ -68,6 +69,15 @@ export default function DemoTour() {
             );
           })}
         </ol>
+      )}
+      {/* The tour ends with the invitation (Cassidy, Nov 9); folded, it stays out of the way. */}
+      {!tour.folded && (
+        <>
+          {doneCount === steps.length && (
+            <p className="text-bodySm text-textPrimary mt-3 mb-0">That's Wren's universe. Yours would start blank and grow the same way.</p>
+          )}
+          <BetaInvite className="mt-3" />
+        </>
       )}
     </section>
   );

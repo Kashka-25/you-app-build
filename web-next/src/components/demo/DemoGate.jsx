@@ -1,4 +1,5 @@
 import { useState } from "react";
+import BetaInvite from "./BetaInvite";
 import { ArrowLeft, Sprout, UserRound, RotateCcw, LogOut } from "lucide-react";
 import { isDemo, demoKind, enterDemo, resetDemo, leaveDemo, rememberBack, demoBackUrl } from "../../lib/demo/mode";
 
@@ -74,6 +75,8 @@ export default function DemoGate() {
             />
           </div>
         )}
+
+        <BetaInvite className="mt-6" />
 
         <p className="text-caption text-textMuted text-center mt-6 mb-0">
           AI reflections, photos and sending feedback need the real YOU, so they're switched off here.
