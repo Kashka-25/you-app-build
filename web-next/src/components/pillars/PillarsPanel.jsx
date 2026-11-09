@@ -43,10 +43,15 @@ export default function PillarsPanel() {
       <p className="text-bodySm text-textSecondary m-0">
         The eight parts of your life. Everything you do grows one of them.
       </p>
-      <Guide className="mb-1">
-        Each habit, goal and dream belongs to a Pillar, and so does the XP from ticking it off, writing in your YOUrnal or a
-        focus session. As a Pillar's XP grows its petal reaches further, and every level earned becomes a solid band.
-        Tap a Pillar to see what feeds it.
+      {/* Said as four short lines rather than one long one (Build Note,
+          6 Nov: "it reads too messy"). */}
+      <Guide className="mb-1" label="How Pillars grow">
+        <ul className="list-none m-0 p-0 space-y-1.5">
+          <li><span className="text-textPrimary font-medium">What belongs:</span> every habit, goal and dream lives in one Pillar.</li>
+          <li><span className="text-textPrimary font-medium">What grows it:</span> ticking those off, writing in your YOUrnal and focus sessions all give that Pillar XP.</li>
+          <li><span className="text-textPrimary font-medium">Levels:</span> as XP grows the petal reaches further, and each level earned becomes a solid band.</li>
+          <li><span className="text-textPrimary font-medium">Look closer:</span> tap a Pillar to see what's growing in it.</li>
+        </ul>
       </Guide>
       <PillarWheel pillars={shown} selected={openName} onSelect={toggle} />
       <p className="text-caption text-textMuted text-center m-0 -mt-1">{summary}</p>
@@ -69,9 +74,19 @@ export default function PillarsPanel() {
           >
             <div className="mt-2.5 rounded-card p-4 border" style={{ borderColor: `${open.color}55`, background: `color-mix(in srgb, ${open.color} 9%, var(--surface-1))` }}>
               <div className="font-serif text-h3 text-textPrimary">{open.name}</div>
+              {/* Where it stands, then how far to the next level, on their
+                  own lines instead of one long run of dots. */}
+              <div className="text-bodySm text-textPrimary">
+                {open.level > 0 ? `Level ${open.level}` : "Just beginning"} <span className="text-textMuted">· {open.xp} XP</span>
+              </div>
               <div className="text-caption text-textMuted mb-3">
-                {open.level > 0 ? `Level ${open.level}` : "Just beginning"} · {open.xp} XP · {100 - open.pct}% to the next level
-                {open.bestStreak > 0 && <> · <Flame size={11} strokeWidth={1.75} className="inline -mt-0.5" style={{ color: open.color }} /> best streak {open.bestStreak} days</>}
+                {100 - open.pct}% to level {open.level + 1}
+                {open.bestStreak > 0 && (
+                  <span className="block mt-0.5">
+                    <Flame size={11} strokeWidth={1.75} className="inline -mt-0.5 mr-0.5" style={{ color: open.color }} aria-hidden="true" />
+                    Best streak {open.bestStreak} {open.bestStreak === 1 ? "day" : "days"}
+                  </span>
+                )}
               </div>
 
               <div className="text-label uppercase text-textMuted mb-1">Growing here</div>

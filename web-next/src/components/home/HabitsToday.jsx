@@ -8,6 +8,8 @@ import { dailySteps } from "../../lib/habits";
 import { localDateKey } from "../../lib/week";
 import { nextCheckinXp } from "../../lib/xp";
 import { useActivePursuits } from "../../lib/activePursuits";
+import { PILLAR_COLORS } from "../../constants/app.const";
+import { GlowBubble } from "../ui/GlowBubble";
 
 // Today's slot in a habit's week of check-ins (M T W T F S S).
 export const todaySlot = () => (new Date().getDay() + 6) % 7;
@@ -110,6 +112,9 @@ function HabitRow({ habit: h, slot, today }) {
             {done && <Check size={14} strokeWidth={2.5} />}
           </button>
         )}
+        {/* The habit's own flame in its Pillar's colour, as on its PursYOUts
+            card, so the two read as the same habit (Build Note, 8 Nov). */}
+        <GlowBubble icon={Flame} size={22} animate={false} color={PILLAR_COLORS[h.cat] || "var(--gold)"} className={done ? "opacity-60" : ""} />
         {multi ? (
           <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} className="flex-1 min-w-0 flex items-center gap-1.5 text-left text-body text-textPrimary">
             <span className="truncate">{h.name}</span>

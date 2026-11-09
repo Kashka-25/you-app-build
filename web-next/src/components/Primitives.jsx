@@ -28,7 +28,7 @@ export function Pill({ children, muted }) {
 }
 
 export function SectionTitle({ children }) {
-  return <div className="font-serif text-h2 font-medium mt-5 mb-2.5 first:mt-0">{children}</div>;
+  return <div className="font-serif text-h2 font-semibold mt-5 mb-2.5 first:mt-0">{children}</div>;
 }
 
 // A whole section collapsed behind one tappable header, instead of a
@@ -39,7 +39,7 @@ export function SectionTitle({ children }) {
 // sub-category -> sub-sub-category) — each level down shrinks the heading
 // and adds a left rail so the hierarchy stays legible instead of every
 // level looking like the same size heading repeated.
-const LEVEL_HEADING = ["font-serif text-h2 font-medium", "font-serif text-h3 font-medium", "text-body font-semibold text-textSecondary"];
+const LEVEL_HEADING = ["font-serif text-h2 font-semibold", "font-serif text-h3 font-semibold", "text-body font-semibold text-textSecondary"];
 
 export function DropdownSection({ title, defaultOpen = false, level = 0, children }) {
   const [open, setOpen] = useState(defaultOpen);

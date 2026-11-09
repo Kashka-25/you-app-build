@@ -82,7 +82,7 @@ export default function BuildNotes() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <h1 className="font-serif text-h2 font-medium mt-4 mb-0">Build notes</h1>
+      <h1 className="font-serif text-h2 font-semibold mt-4 mb-0">Build notes</h1>
       <div className="text-bodySm text-textSecondary mt-2 mb-4">
         An edit or idea for YOU or any of your projects. It goes to Build Notes in your Notion, where Claude reads it. YOUrnal entries tagged #idea go there on their own; add a project tag (#YOUniversity, #CommYOUnity, #YOUrigin) to file one elsewhere.
       </div>

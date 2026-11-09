@@ -32,7 +32,7 @@ const SWATCHES = [
 function Section({ title, children }) {
   return (
     <section className="mb-10">
-      <div className="font-serif text-h2 font-medium mb-4 pb-2 border-b border-borderC">{title}</div>
+      <div className="font-serif text-h2 font-semibold mb-4 pb-2 border-b border-borderC">{title}</div>
       {children}
     </section>
   );

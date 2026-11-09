@@ -41,7 +41,7 @@ export default function YOUriginSpace() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <h1 className="font-serif text-h2 font-medium mt-4 mb-0 flex items-center gap-2.5">
+      <h1 className="font-serif text-h2 font-semibold mt-4 mb-0 flex items-center gap-2.5">
         <img src="/images/icons/yourigin@4x.png" alt="" width="52" height="52" className="w-[52px] h-[52px] flex-none" />
         YOUrigin
       </h1>

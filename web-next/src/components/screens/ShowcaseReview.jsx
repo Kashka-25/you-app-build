@@ -79,7 +79,7 @@ export default function ShowcaseReview() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <h1 className="font-serif text-h2 font-medium mt-4 mb-0">Showcase review</h1>
+      <h1 className="font-serif text-h2 font-semibold mt-4 mb-0">Showcase review</h1>
       <div className="text-bodySm text-textSecondary mt-2 mb-4">
         Pieces artists have shared from YOUrigin. Nothing appears on YOU until you approve it.
       </div>

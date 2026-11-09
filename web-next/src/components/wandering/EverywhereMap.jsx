@@ -264,7 +264,7 @@ export default function EverywhereMap({ onClose, year = null }) {
           <X size={14} strokeWidth={1.75} /> Back
         </button>
         <div className="text-caption uppercase tracking-wide text-gold mb-0.5">Your world</div>
-        <div className="font-serif text-h2 font-medium text-cream">{year ? `Where you went in ${year}` : "Everywhere you've been"}</div>
+        <div className="font-serif text-h2 font-semibold text-cream">{year ? `Where you went in ${year}` : "Everywhere you've been"}</div>
         {places.length > 0 ? (
           <>
             <div className="text-bodySm mt-0.5" style={{ color: "#B8B5D6" }}>

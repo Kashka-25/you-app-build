@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Sun, Sprout, Wheat, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight, Sun, Sprout, Wheat, Sparkles } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { dailyMessage } from "../../lib/dailyMessage";
 import { MOODS } from "../ui/Input";
@@ -46,6 +46,9 @@ export default function Home() {
   const showcase = useShowcase(userId);
   const [openWork, setOpenWork] = useState(null);
   const [artMode] = useState(backgroundMode);
+  // Today is always open when YOU opens; folding it away lasts only until
+  // Home is left (Build Note, 8 Nov).
+  const [todayOpen, setTodayOpen] = useState(true);
 
   if (!loaded) {
     return (
@@ -109,15 +112,24 @@ export default function Home() {
       <section aria-labelledby="home-today" className="rounded-card bg-surface1 shadow-card p-4">
         <div className="flex items-baseline justify-between gap-3 mb-1">
           <h2 id="home-today" className="font-serif text-h3 text-textPrimary m-0">
-            <span className="inline-flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setTodayOpen(o => !o)}
+              aria-expanded={todayOpen}
+              aria-controls="home-today-body"
+              className="inline-flex items-center gap-2 min-h-[32px] text-left"
+            >
               <Sun size={16} strokeWidth={1.75} className="text-gold" aria-hidden="true" /> Today
-            </span>
+              <ChevronDown size={16} strokeWidth={1.75} className={`text-textMuted transition-transform ${todayOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+              <span className="sr-only">{todayOpen ? "Fold away" : "Open"}</span>
+            </button>
           </h2>
           {sownThisWeek && tendedDays > 0 && (
             <span className="text-caption text-textSecondary">Tended {tendedDays} {tendedDays === 1 ? "day" : "days"} this week</span>
           )}
         </div>
 
+        {todayOpen && <div id="home-today-body">
         <TodayIntentions />
 
         {hasHabits && (
@@ -149,6 +161,7 @@ export default function Home() {
         ) : sownThisWeek && (
           <Link to="/sow" className="inline-block mt-2 text-caption text-textMuted min-h-[32px]">Change your sowing</Link>
         )}
+        </div>}
       </section>
       </div>
 

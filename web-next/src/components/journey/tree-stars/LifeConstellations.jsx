@@ -162,7 +162,7 @@ export default function LifeConstellations({ onClose }) {
 
         <div className="text-center mb-8">
           <div className="text-caption uppercase tracking-wide text-gold mb-1">Memories over places</div>
-          <div className="font-serif text-h2 font-medium text-cream">Life Constellations</div>
+          <div className="font-serif text-h2 font-semibold text-cream">Life Constellations</div>
           <Guide tone="night" className="mt-1 flex flex-col items-center [&>div]:text-center [&>div]:mx-auto">
             Every wandering you remember becomes a constellation, drawn in the true shape of the way you went.
             The brighter the star, the more you carried home from there.
