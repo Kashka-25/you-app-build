@@ -25,7 +25,7 @@ const json = out.slice(out.indexOf("{"));
 const { rows } = JSON.parse(json);
 if (!Array.isArray(rows) || rows.length === 0) throw new Error("No rows came back from the database.");
 
-const header = `-- YOU · live database schema (public + storage policies)
+const header = `-- YOU · live database schema (public, private schemas, storage policies)
 -- Generated ${new Date().toISOString().slice(0, 10)} by supabase/schema/snapshot.mjs. Do not edit by hand.
 -- A record of what the database is, not a migration: never run it against
 -- the live project. To rebuild a fresh project (e.g. a separate staging

@@ -12,7 +12,7 @@
 
 | Task | State |
 |---|---|
-| A1 Backups | **Supabase Pro since 5 Nov** (YOU's project moved into the Wandering org): daily backups kept 7 days, no pausing, image resizing (memory photos now load 800px copies). Scripted export (`supabase/backup/backup.mjs`, data + storage, `~/YOU-backups/`) still before every migration. Leaked-password check: Cassidy to switch on. **Test restore still to do** |
+| A1 Backups | **Supabase Pro since 5 Nov** (YOU's project moved into the Wandering org): daily backups kept 7 days, no pausing, image resizing (memory photos now load 800px copies). Scripted export (`supabase/backup/backup.mjs`, data + storage, `~/YOU-backups/`) still before every migration. Leaked-password check: Cassidy to switch on. **Test restore done 9 Nov**: a fresh backup rebuilt into a scratch project matched live on every table, account, policy, function lock and trigger (photo upload not restored, only counted); scratch project deleted. Fixes in `fix/backup-retry` |
 | A2 Schema baseline | Done: `supabase/schema/baseline.sql` + `snapshot.mjs` (refreshed after A4) |
 | A3 + A4 Account-link migration | **Live (4 Nov):** 48 unreachable rows removed; items/memory/mood_log/user_xp are uuid → `auth.users` on delete cascade; 7 policies recreated. Items 42, memory 72 |
 | A5 Delete & export | **Live:** `delete-account` redeployed and clears the four tables itself; export adds `user_xp`, `dream_patterns`, `beta_feedback`, `arcanum_code_redemptions`. Still to do: delete a test account and confirm nothing is left |
