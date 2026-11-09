@@ -75,7 +75,7 @@ export default function OwnToolScreen() {
       <div className="flex items-start gap-3 mt-4 mb-5">
         <ArcanumIcon icon={Wrench} own />
         <div className="flex-1 min-w-0">
-          <h1 className="font-serif text-h2 font-medium m-0">{tool.name}</h1>
+          <h1 className="font-serif text-h2 font-semibold m-0">{tool.name}</h1>
           <div className="text-caption text-textMuted mt-0.5">
             Your own{tool.learned_from ? ` · from ${tool.learned_from}` : ""}
           </div>

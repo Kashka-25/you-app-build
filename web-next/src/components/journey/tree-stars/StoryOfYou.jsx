@@ -197,7 +197,7 @@ export default function StoryOfYou({ onClose }) {
 
         <div className="text-center mb-3 flex-none">
           <div className="text-caption uppercase tracking-wide text-gold mb-1">Beyond the cosmos</div>
-          <div className="font-serif text-h2 font-medium text-cream">The Story of You</div>
+          <div className="font-serif text-h2 font-semibold text-cream">The Story of You</div>
           <p className="text-bodySm text-[#B8B5D6] max-w-[42ch] mx-auto mt-1">
             Drift out past every star, until your whole life becomes a single thread of light.
             Choose an era. Open the door. Step back inside it.

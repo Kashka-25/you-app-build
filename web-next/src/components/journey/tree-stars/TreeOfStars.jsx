@@ -683,7 +683,7 @@ export default function TreeOfStars() {
       ) : (
         <>
           <div className="flex items-center justify-between gap-3 mb-1">
-            <div className="font-serif text-h2 font-medium">Tree of YOU</div>
+            <div className="font-serif text-h2 font-semibold">Tree of YOU</div>
             <button type="button" onClick={enterFull} className="inline-flex items-center gap-1.5 min-h-[36px] px-3 rounded-full border border-borderC text-caption text-textSecondary hover:text-textPrimary">
               <Maximize2 size={14} strokeWidth={1.75} /> Full screen
             </button>

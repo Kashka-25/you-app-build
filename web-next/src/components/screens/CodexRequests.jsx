@@ -67,7 +67,7 @@ export default function CodexRequests() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <h1 className="font-serif text-h2 font-medium mt-4 mb-0">Codex requests</h1>
+      <h1 className="font-serif text-h2 font-semibold mt-4 mb-0">Codex requests</h1>
       <div className="text-bodySm text-textSecondary mt-2 mb-4">
         Values people have named in their own words that the Codex doesn't hold yet. You see how many people, never who.
       </div>
