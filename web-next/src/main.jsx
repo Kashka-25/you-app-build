@@ -7,6 +7,7 @@ import App from "./App";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./lib/AuthContext";
 import { AppDataProvider } from "./lib/AppDataContext";
+import DemoBadge from "./components/demo/DemoBadge";
 import "./styles/tokens.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -18,6 +19,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <BrowserRouter>
           <App />
         </BrowserRouter>
+        {/* "Demo · example data", on every screen while in the demo. */}
+        <DemoBadge />
       </AppDataProvider>
     </AuthProvider>
     </ErrorBoundary>

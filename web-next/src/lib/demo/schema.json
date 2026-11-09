@@ -1,0 +1,950 @@
+{
+ "admins": {
+  "defaults": {
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "user": 1
+ },
+ "ai_consent": {
+  "defaults": {
+   "granted": {
+    "value": false
+   },
+   "updated_at": {
+    "fn": "now"
+   },
+   "include_courses": {
+    "value": false
+   }
+  },
+  "updated": 1,
+  "user": 1
+ },
+ "ai_usage": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "input_tokens": {
+    "value": 0
+   },
+   "output_tokens": {
+    "value": 0
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "arcana": {
+  "defaults": {
+   "is_free": {
+    "value": false
+   },
+   "published": {
+    "value": true
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  }
+ },
+ "arcanum_code_redemptions": {
+  "defaults": {
+   "redeemed_at": {
+    "fn": "now"
+   }
+  },
+  "user": 1
+ },
+ "arcanum_codes": {
+  "defaults": {
+   "max_uses": {
+    "value": 1
+   },
+   "uses": {
+    "value": 0
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  }
+ },
+ "arcanum_progress": {
+  "defaults": {
+   "data": {
+    "value": {}
+   },
+   "completed_at": {
+    "fn": "now"
+   },
+   "walk": {
+    "value": 1
+   }
+  },
+  "user": 1
+ },
+ "arcanum_walks": {
+  "defaults": {
+   "started_at": {
+    "fn": "now"
+   }
+  },
+  "user": 1
+ },
+ "artist_profiles": {
+  "defaults": {
+   "bio": {
+    "value": ""
+   },
+   "links": {
+    "value": []
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "updated": 1,
+  "user": 1
+ },
+ "beta_feedback": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "kind": {
+    "value": "idea"
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "client_errors": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "codex_word_reviews": {
+  "defaults": {
+   "status": {
+    "value": "new"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "updated": 1
+ },
+ "dream_patterns": {
+  "defaults": {
+   "dream_count": {
+    "value": 0
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "updated": 1,
+  "user": 1
+ },
+ "entitlements": {
+  "defaults": {
+   "is_premium": {
+    "value": false
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "updated": 1,
+  "user": 1
+ },
+ "focus_sessions": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "minutes": {
+    "value": 0
+   },
+   "xp": {
+    "value": 0
+   },
+   "ended_at": {
+    "fn": "now"
+   },
+   "mementos": {
+    "value": []
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "habit_logs": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "step": {
+    "value": "habit"
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "identity_visions": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "category": {
+    "value": ""
+   },
+   "vision_date": {
+    "fn": "today"
+   },
+   "inserted_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   },
+   "journey": {
+    "value": {}
+   },
+   "item_ids": {
+    "value": []
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "items": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "done": {
+    "value": false
+   },
+   "streak": {
+    "value": 0
+   },
+   "inserted_at": {
+    "fn": "now"
+   },
+   "subcat": {
+    "value": ""
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "journal_ai_insights": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "insights": {
+    "value": []
+   },
+   "connections": {
+    "value": {}
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   },
+   "highlights": {
+    "value": []
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "journal_entries": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "entry_date": {
+    "fn": "today"
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   },
+   "tags": {
+    "value": []
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "journal_highlights": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "tags": {
+    "value": []
+   },
+   "as_memento": {
+    "value": true
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "journal_photos": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "transcription_status": {
+    "value": "pending"
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "kronk_links": {
+  "defaults": {
+   "display_name": {
+    "value": ""
+   },
+   "scopes": {
+    "value": ""
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "updated": 1,
+  "user": 1
+ },
+ "life_chapters": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "blurb": {
+    "value": ""
+   },
+   "inserted_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "life_moments": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "description": {
+    "value": ""
+   },
+   "inserted_at": {
+    "fn": "now"
+   },
+   "photo_paths": {
+    "value": []
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "memory": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "inserted_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "mood_log": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "inserted_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "own_tools": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "profiles": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "inserted_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "project_notes": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "status": {
+    "value": "new"
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "projects": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "colour": {
+    "value": "gold"
+   },
+   "position": {
+    "value": 0
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "reflections": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "inserted_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "seasons": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "blurb": {
+    "value": ""
+   },
+   "signals": {
+    "value": []
+   },
+   "based_on": {
+    "value": {}
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "showcase_credits": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "role": {
+    "value": "offered_by"
+   },
+   "position": {
+    "value": 0
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1
+ },
+ "showcase_reports": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "reason": {
+    "value": ""
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "showcase_saves": {
+  "defaults": {
+   "contributed": {
+    "value": false
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "user": 1
+ },
+ "showcase_works": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "title": {
+    "value": ""
+   },
+   "body": {
+    "value": ""
+   },
+   "alt_text": {
+    "value": ""
+   },
+   "save_mode": {
+    "value": "free"
+   },
+   "submitted_at": {
+    "fn": "now"
+   },
+   "status": {
+    "value": "waiting"
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   },
+   "words_scroll": {
+    "value": true
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "todos": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "todo_date": {
+    "fn": "today"
+   },
+   "done": {
+    "value": false
+   },
+   "inserted_at": {
+    "fn": "now"
+   },
+   "steps": {
+    "value": []
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "tool_uses": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "data": {
+    "value": {}
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "user_arcana": {
+  "defaults": {
+   "source": {
+    "value": "free"
+   },
+   "acquired_at": {
+    "fn": "now"
+   }
+  },
+  "user": 1
+ },
+ "user_values": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "rating": {
+    "value": 0
+   },
+   "completed": {
+    "value": []
+   },
+   "inserted_at": {
+    "fn": "now"
+   },
+   "prestige": {
+    "value": 0
+   },
+   "status": {
+    "value": "active"
+   },
+   "definition_history": {
+    "value": []
+   },
+   "highest_tier_reached": {
+    "value": 0
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "user_xp": {
+  "defaults": {
+   "total_xp": {
+    "value": 0
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "updated": 1,
+  "user": 1
+ },
+ "value_challenges": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "pts": {
+    "value": 5
+   },
+   "diff": {
+    "value": "bold"
+   },
+   "completed": {
+    "value": false
+   },
+   "inserted_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "value_compass": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "crossings": {
+    "value": 0
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "value_words": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "source": {
+    "value": "course"
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "last_used_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "values_library": {
+  "defaults": {
+   "essence": {
+    "value": ""
+   },
+   "light": {
+    "value": ""
+   },
+   "shadow": {
+    "value": ""
+   },
+   "void": {
+    "value": ""
+   },
+   "pillars": {
+    "value": []
+   },
+   "balancing_kin": {
+    "value": []
+   },
+   "nourishing_kin": {
+    "value": []
+   },
+   "synonyms": {
+    "value": []
+   },
+   "inserted_at": {
+    "fn": "now"
+   }
+  }
+ },
+ "wandering_stops": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "position": {
+    "value": 0
+   },
+   "kind": {
+    "value": "stay"
+   },
+   "day_plans": {
+    "value": {}
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "date_precision": {
+    "value": "day"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "wanderings": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "week_harvests": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "week_intentions": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "inserted_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "weekly_reflections": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "sections": {
+    "value": {}
+   },
+   "created_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "younderstandings": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "drew_from": {
+    "value": {}
+   },
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "user": 1
+ },
+ "yourigin_portfolio_attempts": {
+  "defaults": {
+   "attempted_at": {
+    "fn": "now"
+   }
+  }
+ },
+ "yourigin_portfolios": {
+  "defaults": {
+   "id": {
+    "fn": "uuid"
+   },
+   "status": {
+    "value": "live"
+   },
+   "access_version": {
+    "value": 0
+   },
+   "view_count": {
+    "value": 0
+   },
+   "published_at": {
+    "fn": "now"
+   },
+   "updated_at": {
+    "fn": "now"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "yourigin_records": {
+  "defaults": {
+   "deleted": {
+    "value": false
+   },
+   "rev": {
+    "fn": "serial"
+   }
+  },
+  "id": 1,
+  "updated": 1,
+  "user": 1
+ },
+ "yourigin_sync_keys": {
+  "defaults": {
+   "created_at": {
+    "fn": "now"
+   }
+  },
+  "user": 1
+ }
+}

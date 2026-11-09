@@ -10,6 +10,7 @@ import HabitsToday from "../home/HabitsToday";
 import { usePlugin } from "../../lib/plugins";
 import { useCourseNow } from "../course/CourseNow";
 import WelcomeHero from "../home/WelcomeHero";
+import DemoTour from "../demo/DemoTour";
 import DailyCheckIn from "../home/DailyCheckIn";
 import JourneyProgressCard from "../home/JourneyProgressCard";
 import { PracticeCard } from "../home/PracticeAndTools";
@@ -94,6 +95,11 @@ export default function Home() {
     >
       <div className="lg:col-span-7 lg:order-1">
         <WelcomeHero greeting={greeting} message={message} mood={todayMood} cta={cta} art={featuredArt} words={featuredWords} artMode={artMode} onOpenArt={setOpenWork} />
+      </div>
+
+      {/* Only in the example demo (lib/demo): a short path to follow. */}
+      <div className="lg:col-span-12 lg:order-2 empty:hidden">
+        <DemoTour />
       </div>
 
       {/* Arriving comes first (Cassidy, Nov 1): until today's check-in, it
