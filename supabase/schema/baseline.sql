@@ -1,8 +1,14 @@
--- YOU · live database schema (public + storage policies)
--- Generated 2026-11-04 by supabase/schema/snapshot.mjs. Do not edit by hand.
+-- YOU · live database schema (public, private schemas, storage policies)
+-- Generated 2026-11-09 by supabase/schema/snapshot.mjs. Do not edit by hand.
 -- A record of what the database is, not a migration: never run it against
 -- the live project. To rebuild a fresh project (e.g. a separate staging
 -- database), run it there first, then nothing else is needed.
+
+create schema if not exists you_private;
+
+create schema if not exists yourigin_private;
+
+create sequence if not exists public.yourigin_records_rev_seq as bigint increment 1 minvalue 1 maxvalue 9223372036854775807 start 1;
 
 create table if not exists public.admins (
   user_id uuid not null,
@@ -596,6 +602,28 @@ create table if not exists public.younderstandings (
   created_at timestamp with time zone not null default now()
 );
 
+create table if not exists public.yourigin_portfolio_attempts (
+  portfolio_id uuid not null,
+  client text not null,
+  attempted_at timestamp with time zone not null default now()
+);
+
+create table if not exists public.yourigin_portfolios (
+  id uuid not null default gen_random_uuid(),
+  user_id uuid not null default auth.uid(),
+  local_id text not null,
+  share_token text not null,
+  status text not null default 'live'::text,
+  visibility text not null,
+  password_hash text,
+  access_version integer not null default 0,
+  expires_at timestamp with time zone,
+  snapshot jsonb not null,
+  view_count bigint not null default 0,
+  published_at timestamp with time zone not null default now(),
+  updated_at timestamp with time zone not null default now()
+);
+
 create table if not exists public.yourigin_records (
   user_id uuid not null default auth.uid(),
   tbl text not null,
@@ -615,49 +643,153 @@ create table if not exists public.yourigin_sync_keys (
   created_at timestamp with time zone not null default now()
 );
 
-alter table public.admins add constraint admins_pkey PRIMARY KEY (user_id);
+create table if not exists yourigin_private.yourigin_allowed_users (
+  email text not null
+);
 
-alter table public.admins add constraint admins_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public.admins add constraint admins_pkey PRIMARY KEY (user_id);
 
 alter table public.ai_consent add constraint ai_consent_pkey PRIMARY KEY (user_id);
 
-alter table public.ai_consent add constraint ai_consent_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
 alter table public.ai_usage add constraint ai_usage_pkey PRIMARY KEY (id);
-
-alter table public.ai_usage add constraint ai_usage_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public.arcana add constraint arcana_pkey PRIMARY KEY (slug);
 
-alter table public.arcanum_code_redemptions add constraint arcanum_code_redemptions_code_fkey FOREIGN KEY (code) REFERENCES arcanum_codes(code) ON DELETE CASCADE;
-
 alter table public.arcanum_code_redemptions add constraint arcanum_code_redemptions_pkey PRIMARY KEY (code, user_id);
 
-alter table public.arcanum_code_redemptions add constraint arcanum_code_redemptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public.arcanum_codes add constraint arcanum_codes_pkey PRIMARY KEY (code);
+
+alter table public.arcanum_progress add constraint arcanum_progress_pkey PRIMARY KEY (user_id, slug, walk, part_id);
+
+alter table public.arcanum_walks add constraint arcanum_walks_pkey PRIMARY KEY (user_id, slug, walk);
+
+alter table public.artist_profiles add constraint artist_profiles_pkey PRIMARY KEY (user_id);
+
+alter table public.beta_feedback add constraint beta_feedback_pkey PRIMARY KEY (id);
+
+alter table public.client_errors add constraint client_errors_pkey PRIMARY KEY (id);
+
+alter table public.codex_word_reviews add constraint codex_word_reviews_pkey PRIMARY KEY (normalized);
+
+alter table public.dream_patterns add constraint dream_patterns_pkey PRIMARY KEY (user_id);
+
+alter table public.entitlements add constraint entitlements_pkey PRIMARY KEY (user_id);
+
+alter table public.focus_sessions add constraint focus_sessions_pkey PRIMARY KEY (id);
+
+alter table public.habit_logs add constraint habit_logs_pkey PRIMARY KEY (id);
+
+alter table public.identity_visions add constraint identity_visions_pkey PRIMARY KEY (id);
+
+alter table public.items add constraint items_pkey PRIMARY KEY (id);
+
+alter table public.journal_ai_insights add constraint journal_ai_insights_pkey PRIMARY KEY (id);
+
+alter table public.journal_entries add constraint journal_entries_pkey PRIMARY KEY (id);
+
+alter table public.journal_highlights add constraint journal_highlights_pkey PRIMARY KEY (id);
+
+alter table public.journal_photos add constraint journal_photos_pkey PRIMARY KEY (id);
+
+alter table public.kronk_links add constraint kronk_links_pkey PRIMARY KEY (user_id);
+
+alter table public.life_chapters add constraint life_chapters_pkey PRIMARY KEY (id);
+
+alter table public.life_moments add constraint life_moments_pkey PRIMARY KEY (id);
+
+alter table public.memory add constraint memory_pkey PRIMARY KEY (id);
+
+alter table public.mood_log add constraint mood_log_pkey PRIMARY KEY (id);
+
+alter table public.own_tools add constraint own_tools_pkey PRIMARY KEY (id);
+
+alter table public.profiles add constraint profiles_pkey PRIMARY KEY (id);
+
+alter table public.project_notes add constraint project_notes_pkey PRIMARY KEY (id);
+
+alter table public.projects add constraint projects_pkey PRIMARY KEY (id);
+
+alter table public.reflections add constraint reflections_pkey PRIMARY KEY (id);
+
+alter table public.seasons add constraint seasons_pkey PRIMARY KEY (id);
+
+alter table public.showcase_credits add constraint showcase_credits_pkey PRIMARY KEY (id);
+
+alter table public.showcase_reports add constraint showcase_reports_pkey PRIMARY KEY (id);
+
+alter table public.showcase_saves add constraint showcase_saves_pkey PRIMARY KEY (user_id, work_id);
+
+alter table public.showcase_works add constraint showcase_works_pkey PRIMARY KEY (id);
+
+alter table public.todos add constraint todos_pkey PRIMARY KEY (id);
+
+alter table public.tool_uses add constraint tool_uses_pkey PRIMARY KEY (id);
+
+alter table public.user_arcana add constraint user_arcana_pkey PRIMARY KEY (user_id, slug);
+
+alter table public.user_values add constraint user_values_pkey PRIMARY KEY (id);
+
+alter table public.user_xp add constraint user_xp_pkey PRIMARY KEY (user_id);
+
+alter table public.value_challenges add constraint value_challenges_pkey PRIMARY KEY (id);
+
+alter table public.value_compass add constraint value_compass_pkey PRIMARY KEY (id);
+
+alter table public.value_words add constraint value_words_pkey PRIMARY KEY (id);
+
+alter table public.values_library add constraint values_library_pkey PRIMARY KEY (slug);
+
+alter table public.wandering_stops add constraint wandering_stops_pkey PRIMARY KEY (id);
+
+alter table public.wanderings add constraint wanderings_pkey PRIMARY KEY (id);
+
+alter table public.week_harvests add constraint week_harvests_pkey PRIMARY KEY (id);
+
+alter table public.week_intentions add constraint week_intentions_pkey PRIMARY KEY (id);
+
+alter table public.weekly_reflections add constraint weekly_reflections_pkey PRIMARY KEY (id);
+
+alter table public.younderstandings add constraint younderstandings_pkey PRIMARY KEY (id);
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_pkey PRIMARY KEY (id);
+
+alter table public.yourigin_records add constraint yourigin_records_pkey PRIMARY KEY (user_id, tbl, id);
+
+alter table public.yourigin_sync_keys add constraint yourigin_sync_keys_pkey PRIMARY KEY (user_id);
+
+alter table yourigin_private.yourigin_allowed_users add constraint yourigin_allowed_users_pkey PRIMARY KEY (email);
+
+alter table public.journal_ai_insights add constraint journal_ai_insights_entry_id_key UNIQUE (entry_id);
+
+alter table public.profiles add constraint profiles_user_id_key UNIQUE (user_id);
+
+alter table public.showcase_reports add constraint showcase_reports_work_id_user_id_key UNIQUE (work_id, user_id);
+
+alter table public.showcase_works add constraint showcase_works_user_id_source_id_key UNIQUE (user_id, source_id);
+
+alter table public.value_words add constraint value_words_user_id_normalized_key UNIQUE (user_id, normalized);
+
+alter table public.values_library add constraint values_library_name_key UNIQUE (name);
+
+alter table public.wanderings add constraint wanderings_user_id_item_id_key UNIQUE (user_id, item_id);
+
+alter table public.week_harvests add constraint week_harvests_user_id_week_start_key UNIQUE (user_id, week_start);
+
+alter table public.week_intentions add constraint week_intentions_user_id_week_start_item_id_key UNIQUE (user_id, week_start, item_id);
+
+alter table public.weekly_reflections add constraint weekly_reflections_user_id_week_start_key UNIQUE (user_id, week_start);
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_share_token_key UNIQUE (share_token);
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_user_id_local_id_key UNIQUE (user_id, local_id);
 
 alter table public.arcanum_codes add constraint arcanum_codes_code_check CHECK (((code = upper(code)) AND ((char_length(code) >= 6) AND (char_length(code) <= 40))));
 
 alter table public.arcanum_codes add constraint arcanum_codes_max_uses_check CHECK ((max_uses >= 1));
 
-alter table public.arcanum_codes add constraint arcanum_codes_pkey PRIMARY KEY (code);
-
-alter table public.arcanum_codes add constraint arcanum_codes_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
-
 alter table public.arcanum_codes add constraint arcanum_codes_uses_check CHECK ((uses >= 0));
 
 alter table public.arcanum_progress add constraint arcanum_progress_part_id_check CHECK (((char_length(part_id) >= 1) AND (char_length(part_id) <= 80)));
-
-alter table public.arcanum_progress add constraint arcanum_progress_pkey PRIMARY KEY (user_id, slug, walk, part_id);
-
-alter table public.arcanum_progress add constraint arcanum_progress_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
-
-alter table public.arcanum_progress add constraint arcanum_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.arcanum_walks add constraint arcanum_walks_pkey PRIMARY KEY (user_id, slug, walk);
-
-alter table public.arcanum_walks add constraint arcanum_walks_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
-
-alter table public.arcanum_walks add constraint arcanum_walks_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public.arcanum_walks add constraint arcanum_walks_walk_check CHECK ((walk >= 1));
 
@@ -669,103 +801,31 @@ alter table public.artist_profiles add constraint artist_profiles_kronk_handle_c
 
 alter table public.artist_profiles add constraint artist_profiles_links_check CHECK (((jsonb_typeof(links) = 'array'::text) AND (jsonb_array_length(links) <= 8)));
 
-alter table public.artist_profiles add constraint artist_profiles_pkey PRIMARY KEY (user_id);
-
-alter table public.artist_profiles add constraint artist_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
 alter table public.beta_feedback add constraint beta_feedback_body_check CHECK (((char_length(btrim(body)) >= 1) AND (char_length(btrim(body)) <= 5000)));
 
 alter table public.beta_feedback add constraint beta_feedback_kind_check CHECK ((kind = ANY (ARRAY['idea'::text, 'problem'::text, 'love'::text])));
 
-alter table public.beta_feedback add constraint beta_feedback_pkey PRIMARY KEY (id);
-
 alter table public.beta_feedback add constraint beta_feedback_screen_check CHECK ((char_length(screen) <= 200));
-
-alter table public.beta_feedback add constraint beta_feedback_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public.client_errors add constraint client_errors_message_check CHECK ((char_length(message) <= 500));
 
 alter table public.client_errors add constraint client_errors_path_check CHECK ((char_length(path) <= 200));
 
-alter table public.client_errors add constraint client_errors_pkey PRIMARY KEY (id);
-
 alter table public.client_errors add constraint client_errors_stack_check CHECK ((char_length(stack) <= 4000));
 
 alter table public.client_errors add constraint client_errors_user_agent_check CHECK ((char_length(user_agent) <= 300));
 
-alter table public.client_errors add constraint client_errors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.codex_word_reviews add constraint codex_word_reviews_pkey PRIMARY KEY (normalized);
-
 alter table public.codex_word_reviews add constraint codex_word_reviews_status_check CHECK ((status = ANY (ARRAY['new'::text, 'planned'::text, 'added'::text, 'declined'::text])));
-
-alter table public.dream_patterns add constraint dream_patterns_pkey PRIMARY KEY (user_id);
-
-alter table public.dream_patterns add constraint dream_patterns_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.entitlements add constraint entitlements_pkey PRIMARY KEY (user_id);
-
-alter table public.entitlements add constraint entitlements_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.focus_sessions add constraint focus_sessions_intention_id_fkey FOREIGN KEY (intention_id) REFERENCES week_intentions(id) ON DELETE SET NULL;
-
-alter table public.focus_sessions add constraint focus_sessions_item_id_fkey FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE SET NULL;
 
 alter table public.focus_sessions add constraint focus_sessions_outcome_check CHECK ((outcome = ANY (ARRAY['bloom'::text, 'seed'::text])));
 
-alter table public.focus_sessions add constraint focus_sessions_pkey PRIMARY KEY (id);
-
-alter table public.focus_sessions add constraint focus_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
 alter table public.habit_logs add constraint habit_logs_amount_check CHECK (((amount IS NULL) OR (amount >= (0)::numeric)));
-
-alter table public.habit_logs add constraint habit_logs_item_id_fkey FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE;
-
-alter table public.habit_logs add constraint habit_logs_pkey PRIMARY KEY (id);
-
-alter table public.habit_logs add constraint habit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.identity_visions add constraint identity_visions_pkey PRIMARY KEY (id);
-
-alter table public.identity_visions add constraint identity_visions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.items add constraint items_pkey PRIMARY KEY (id);
-
-alter table public.items add constraint items_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.journal_ai_insights add constraint journal_ai_insights_entry_id_fkey FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE CASCADE;
-
-alter table public.journal_ai_insights add constraint journal_ai_insights_entry_id_key UNIQUE (entry_id);
-
-alter table public.journal_ai_insights add constraint journal_ai_insights_pkey PRIMARY KEY (id);
-
-alter table public.journal_ai_insights add constraint journal_ai_insights_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public.journal_entries add constraint journal_entries_mood_score_check CHECK (((mood_score IS NULL) OR ((mood_score >= 0) AND (mood_score <= 100))));
 
-alter table public.journal_entries add constraint journal_entries_pkey PRIMARY KEY (id);
-
-alter table public.journal_entries add constraint journal_entries_stop_id_fkey FOREIGN KEY (stop_id) REFERENCES wandering_stops(id) ON DELETE SET NULL;
-
-alter table public.journal_entries add constraint journal_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.journal_highlights add constraint journal_highlights_entry_id_fkey FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE SET NULL;
-
-alter table public.journal_highlights add constraint journal_highlights_item_id_fkey FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE SET NULL;
-
-alter table public.journal_highlights add constraint journal_highlights_pkey PRIMARY KEY (id);
-
 alter table public.journal_highlights add constraint journal_highlights_text_check CHECK (((char_length(text) >= 1) AND (char_length(text) <= 600)));
 
-alter table public.journal_highlights add constraint journal_highlights_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.journal_photos add constraint journal_photos_entry_id_fkey FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE CASCADE;
-
-alter table public.journal_photos add constraint journal_photos_pkey PRIMARY KEY (id);
-
 alter table public.journal_photos add constraint journal_photos_transcription_status_check CHECK ((transcription_status = ANY (ARRAY['pending'::text, 'done'::text, 'failed'::text])));
-
-alter table public.journal_photos add constraint journal_photos_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public.kronk_links add constraint kronk_links_avatar_url_check CHECK (((avatar_url IS NULL) OR (avatar_url ~* '^https://'::text)));
 
@@ -773,31 +833,9 @@ alter table public.kronk_links add constraint kronk_links_display_name_check CHE
 
 alter table public.kronk_links add constraint kronk_links_handle_check CHECK ((handle ~* '^@[a-z0-9_]{1,30}@[a-z0-9.-]+\.[a-z]{2,}$'::text));
 
-alter table public.kronk_links add constraint kronk_links_pkey PRIMARY KEY (user_id);
-
 alter table public.kronk_links add constraint kronk_links_profile_url_check CHECK (((profile_url IS NULL) OR (profile_url ~* '^https://'::text)));
 
-alter table public.kronk_links add constraint kronk_links_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.life_chapters add constraint life_chapters_pkey PRIMARY KEY (id);
-
-alter table public.life_chapters add constraint life_chapters_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.life_moments add constraint life_moments_pkey PRIMARY KEY (id);
-
-alter table public.life_moments add constraint life_moments_stop_id_fkey FOREIGN KEY (stop_id) REFERENCES wandering_stops(id) ON DELETE SET NULL;
-
-alter table public.life_moments add constraint life_moments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.memory add constraint memory_pkey PRIMARY KEY (id);
-
-alter table public.memory add constraint memory_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.mood_log add constraint mood_log_pkey PRIMARY KEY (id);
-
 alter table public.mood_log add constraint mood_log_score_check CHECK (((score IS NULL) OR ((score >= 0) AND (score <= 100))));
-
-alter table public.mood_log add constraint mood_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public.own_tools add constraint own_tools_how_check CHECK ((char_length(how) <= 4000));
 
@@ -805,77 +843,27 @@ alter table public.own_tools add constraint own_tools_learned_from_check CHECK (
 
 alter table public.own_tools add constraint own_tools_name_check CHECK (((char_length(name) >= 1) AND (char_length(name) <= 120)));
 
-alter table public.own_tools add constraint own_tools_pkey PRIMARY KEY (id);
-
 alter table public.own_tools add constraint own_tools_purpose_check CHECK ((char_length(purpose) <= 1000));
-
-alter table public.own_tools add constraint own_tools_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.profiles add constraint profiles_pkey PRIMARY KEY (id);
-
-alter table public.profiles add constraint profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.profiles add constraint profiles_user_id_key UNIQUE (user_id);
-
-alter table public.project_notes add constraint project_notes_entry_id_fkey FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE SET NULL;
-
-alter table public.project_notes add constraint project_notes_pkey PRIMARY KEY (id);
-
-alter table public.project_notes add constraint project_notes_project_id_fkey FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
 
 alter table public.project_notes add constraint project_notes_status_check CHECK ((status = ANY (ARRAY['new'::text, 'doing'::text, 'done'::text])));
 
 alter table public.project_notes add constraint project_notes_text_check CHECK (((char_length(text) >= 1) AND (char_length(text) <= 4000)));
 
-alter table public.project_notes add constraint project_notes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
 alter table public.projects add constraint projects_name_check CHECK (((char_length(name) >= 1) AND (char_length(name) <= 60)));
-
-alter table public.projects add constraint projects_pkey PRIMARY KEY (id);
-
-alter table public.projects add constraint projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public.reflections add constraint reflections_kind_check CHECK ((kind = ANY (ARRAY['light'::text, 'shadow'::text, 'void'::text, 'integration'::text, 'longing'::text, 'vision'::text, 'weight'::text, 'seed'::text, 'outcome'::text, 'definition'::text, 'freeform'::text])));
 
-alter table public.reflections add constraint reflections_pkey PRIMARY KEY (id);
-
 alter table public.reflections add constraint reflections_questionnaire_check CHECK (((questionnaire IS NULL) OR (questionnaire = ANY (ARRAY['light_shadow'::text, 'freeing_dream'::text]))));
-
-alter table public.reflections add constraint reflections_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.seasons add constraint seasons_pkey PRIMARY KEY (id);
-
-alter table public.seasons add constraint seasons_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.showcase_credits add constraint showcase_credits_artist_user_id_fkey FOREIGN KEY (artist_user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
 
 alter table public.showcase_credits add constraint showcase_credits_kronk_handle_check CHECK (((kronk_handle IS NULL) OR (kronk_handle ~* '^@[a-z0-9_]{1,30}@[a-z0-9.-]+\.[a-z]{2,}$'::text)));
 
 alter table public.showcase_credits add constraint showcase_credits_name_check CHECK (((char_length(btrim(name)) >= 1) AND (char_length(btrim(name)) <= 60)));
 
-alter table public.showcase_credits add constraint showcase_credits_pkey PRIMARY KEY (id);
-
 alter table public.showcase_credits add constraint showcase_credits_role_check CHECK ((role = 'offered_by'::text));
 
 alter table public.showcase_credits add constraint showcase_credits_url_check CHECK (((url IS NULL) OR (url ~* '^https://[^\s]+$'::text)));
 
-alter table public.showcase_credits add constraint showcase_credits_work_id_fkey FOREIGN KEY (work_id) REFERENCES showcase_works(id) ON DELETE CASCADE;
-
-alter table public.showcase_reports add constraint showcase_reports_pkey PRIMARY KEY (id);
-
 alter table public.showcase_reports add constraint showcase_reports_reason_check CHECK ((char_length(reason) <= 500));
-
-alter table public.showcase_reports add constraint showcase_reports_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.showcase_reports add constraint showcase_reports_work_id_fkey FOREIGN KEY (work_id) REFERENCES showcase_works(id) ON DELETE CASCADE;
-
-alter table public.showcase_reports add constraint showcase_reports_work_id_user_id_key UNIQUE (work_id, user_id);
-
-alter table public.showcase_saves add constraint showcase_saves_pkey PRIMARY KEY (user_id, work_id);
-
-alter table public.showcase_saves add constraint showcase_saves_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.showcase_saves add constraint showcase_saves_work_id_fkey FOREIGN KEY (work_id) REFERENCES showcase_works(id) ON DELETE CASCADE;
 
 alter table public.showcase_works add constraint showcase_background_is_image CHECK (((kind = 'image'::text) OR (NOT ('home_background'::text = ANY (placements)))));
 
@@ -899,8 +887,6 @@ alter table public.showcase_works add constraint showcase_works_kind_check CHECK
 
 alter table public.showcase_works add constraint showcase_works_kronk_post_url_check CHECK (((kronk_post_url IS NULL) OR (kronk_post_url ~* '^https://[^\s]+$'::text)));
 
-alter table public.showcase_works add constraint showcase_works_pkey PRIMARY KEY (id);
-
 alter table public.showcase_works add constraint showcase_works_placements_check CHECK (((cardinality(placements) >= 1) AND (placements <@ ARRAY['home_background'::text, 'featured_words'::text, 'gallery'::text])));
 
 alter table public.showcase_works add constraint showcase_works_review_note_check CHECK (((review_note IS NULL) OR (char_length(review_note) <= 500)));
@@ -915,69 +901,21 @@ alter table public.showcase_works add constraint showcase_works_suggested_amount
 
 alter table public.showcase_works add constraint showcase_works_title_check CHECK ((char_length(title) <= 120));
 
-alter table public.showcase_works add constraint showcase_works_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.showcase_works add constraint showcase_works_user_id_source_id_key UNIQUE (user_id, source_id);
-
-alter table public.todos add constraint todos_pkey PRIMARY KEY (id);
-
-alter table public.todos add constraint todos_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.tool_uses add constraint tool_uses_pkey PRIMARY KEY (id);
-
-alter table public.tool_uses add constraint tool_uses_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
-
 alter table public.tool_uses add constraint tool_uses_tool_id_check CHECK (((char_length(tool_id) >= 1) AND (char_length(tool_id) <= 80)));
-
-alter table public.tool_uses add constraint tool_uses_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.user_arcana add constraint user_arcana_pkey PRIMARY KEY (user_id, slug);
-
-alter table public.user_arcana add constraint user_arcana_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
 
 alter table public.user_arcana add constraint user_arcana_source_check CHECK ((source = ANY (ARRAY['free'::text, 'purchase'::text, 'gift'::text])));
 
-alter table public.user_arcana add constraint user_arcana_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
 alter table public.user_values add constraint user_values_highest_tier_check CHECK (((highest_tier_reached >= 0) AND (highest_tier_reached <= 3)));
-
-alter table public.user_values add constraint user_values_pkey PRIMARY KEY (id);
 
 alter table public.user_values add constraint user_values_status_check CHECK ((status = ANY (ARRAY['active'::text, 'rested'::text])));
 
-alter table public.user_values add constraint user_values_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.user_xp add constraint user_xp_pkey PRIMARY KEY (user_id);
-
-alter table public.user_xp add constraint user_xp_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.value_challenges add constraint value_challenges_pkey PRIMARY KEY (id);
-
-alter table public.value_challenges add constraint value_challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.value_compass add constraint value_compass_pkey PRIMARY KEY (id);
-
-alter table public.value_compass add constraint value_compass_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
 alter table public.value_words add constraint value_words_normalized_check CHECK (((char_length(normalized) >= 1) AND (char_length(normalized) <= 40)));
 
-alter table public.value_words add constraint value_words_pkey PRIMARY KEY (id);
-
 alter table public.value_words add constraint value_words_source_check CHECK ((source = ANY (ARRAY['course'::text, 'values'::text])));
-
-alter table public.value_words add constraint value_words_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.value_words add constraint value_words_user_id_normalized_key UNIQUE (user_id, normalized);
 
 alter table public.value_words add constraint value_words_word_check CHECK (((char_length(word) >= 1) AND (char_length(word) <= 40)));
 
 alter table public.values_library add constraint values_library_element_check CHECK ((element = ANY (ARRAY['Water'::text, 'Fire'::text, 'Earth'::text, 'Air'::text, 'Ether'::text])));
-
-alter table public.values_library add constraint values_library_name_key UNIQUE (name);
-
-alter table public.values_library add constraint values_library_parent_slug_fkey FOREIGN KEY (parent_slug) REFERENCES values_library(slug);
-
-alter table public.values_library add constraint values_library_pkey PRIMARY KEY (slug);
 
 alter table public.wandering_stops add constraint wandering_stops_check CHECK (((depart IS NULL) OR (arrive IS NULL) OR (depart >= arrive)));
 
@@ -985,7 +923,147 @@ alter table public.wandering_stops add constraint wandering_stops_date_precision
 
 alter table public.wandering_stops add constraint wandering_stops_kind_check CHECK ((kind = ANY (ARRAY['stay'::text, 'visit'::text, 'transit'::text])));
 
-alter table public.wandering_stops add constraint wandering_stops_pkey PRIMARY KEY (id);
+alter table public.week_intentions add constraint week_intentions_outcome_check CHECK (((outcome IS NULL) OR (outcome = ANY (ARRAY['carried'::text, 'rested'::text, 'released'::text]))));
+
+alter table public.yourigin_portfolio_attempts add constraint yourigin_portfolio_attempts_client_check CHECK ((char_length(client) <= 128));
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_local_id_check CHECK (((char_length(local_id) >= 1) AND (char_length(local_id) <= 64)));
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_password_iff_protected CHECK (((visibility = 'password'::text) = (password_hash IS NOT NULL)));
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_share_token_check CHECK ((share_token ~ '^[A-Za-z0-9_-]{24}$'::text));
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_snapshot_check CHECK ((jsonb_typeof(snapshot) = 'object'::text));
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_status_check CHECK ((status = ANY (ARRAY['live'::text, 'disabled'::text])));
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_visibility_check CHECK ((visibility = ANY (ARRAY['unlisted'::text, 'password'::text, 'public'::text])));
+
+alter table public.admins add constraint admins_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.ai_consent add constraint ai_consent_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.ai_usage add constraint ai_usage_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.arcanum_code_redemptions add constraint arcanum_code_redemptions_code_fkey FOREIGN KEY (code) REFERENCES arcanum_codes(code) ON DELETE CASCADE;
+
+alter table public.arcanum_code_redemptions add constraint arcanum_code_redemptions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.arcanum_codes add constraint arcanum_codes_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
+
+alter table public.arcanum_progress add constraint arcanum_progress_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
+
+alter table public.arcanum_progress add constraint arcanum_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.arcanum_walks add constraint arcanum_walks_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
+
+alter table public.arcanum_walks add constraint arcanum_walks_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.artist_profiles add constraint artist_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.beta_feedback add constraint beta_feedback_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.client_errors add constraint client_errors_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.dream_patterns add constraint dream_patterns_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.entitlements add constraint entitlements_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.focus_sessions add constraint focus_sessions_intention_id_fkey FOREIGN KEY (intention_id) REFERENCES week_intentions(id) ON DELETE SET NULL;
+
+alter table public.focus_sessions add constraint focus_sessions_item_id_fkey FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE SET NULL;
+
+alter table public.focus_sessions add constraint focus_sessions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.habit_logs add constraint habit_logs_item_id_fkey FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE;
+
+alter table public.habit_logs add constraint habit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.identity_visions add constraint identity_visions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.items add constraint items_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.journal_ai_insights add constraint journal_ai_insights_entry_id_fkey FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE CASCADE;
+
+alter table public.journal_ai_insights add constraint journal_ai_insights_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.journal_entries add constraint journal_entries_stop_id_fkey FOREIGN KEY (stop_id) REFERENCES wandering_stops(id) ON DELETE SET NULL;
+
+alter table public.journal_entries add constraint journal_entries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.journal_highlights add constraint journal_highlights_entry_id_fkey FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE SET NULL;
+
+alter table public.journal_highlights add constraint journal_highlights_item_id_fkey FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE SET NULL;
+
+alter table public.journal_highlights add constraint journal_highlights_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.journal_photos add constraint journal_photos_entry_id_fkey FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE CASCADE;
+
+alter table public.journal_photos add constraint journal_photos_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.kronk_links add constraint kronk_links_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.life_chapters add constraint life_chapters_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.life_moments add constraint life_moments_stop_id_fkey FOREIGN KEY (stop_id) REFERENCES wandering_stops(id) ON DELETE SET NULL;
+
+alter table public.life_moments add constraint life_moments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.memory add constraint memory_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.mood_log add constraint mood_log_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.own_tools add constraint own_tools_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.profiles add constraint profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.project_notes add constraint project_notes_entry_id_fkey FOREIGN KEY (entry_id) REFERENCES journal_entries(id) ON DELETE SET NULL;
+
+alter table public.project_notes add constraint project_notes_project_id_fkey FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE;
+
+alter table public.project_notes add constraint project_notes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.projects add constraint projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.reflections add constraint reflections_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.seasons add constraint seasons_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.showcase_credits add constraint showcase_credits_artist_user_id_fkey FOREIGN KEY (artist_user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+alter table public.showcase_credits add constraint showcase_credits_work_id_fkey FOREIGN KEY (work_id) REFERENCES showcase_works(id) ON DELETE CASCADE;
+
+alter table public.showcase_reports add constraint showcase_reports_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.showcase_reports add constraint showcase_reports_work_id_fkey FOREIGN KEY (work_id) REFERENCES showcase_works(id) ON DELETE CASCADE;
+
+alter table public.showcase_saves add constraint showcase_saves_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.showcase_saves add constraint showcase_saves_work_id_fkey FOREIGN KEY (work_id) REFERENCES showcase_works(id) ON DELETE CASCADE;
+
+alter table public.showcase_works add constraint showcase_works_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.todos add constraint todos_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.tool_uses add constraint tool_uses_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
+
+alter table public.tool_uses add constraint tool_uses_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.user_arcana add constraint user_arcana_slug_fkey FOREIGN KEY (slug) REFERENCES arcana(slug) ON DELETE CASCADE;
+
+alter table public.user_arcana add constraint user_arcana_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.user_values add constraint user_values_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.user_xp add constraint user_xp_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.value_challenges add constraint value_challenges_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.value_compass add constraint value_compass_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.value_words add constraint value_words_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+alter table public.values_library add constraint values_library_parent_slug_fkey FOREIGN KEY (parent_slug) REFERENCES values_library(slug);
 
 alter table public.wandering_stops add constraint wandering_stops_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
@@ -993,45 +1071,27 @@ alter table public.wandering_stops add constraint wandering_stops_wandering_id_f
 
 alter table public.wanderings add constraint wanderings_item_id_fkey FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE;
 
-alter table public.wanderings add constraint wanderings_pkey PRIMARY KEY (id);
-
 alter table public.wanderings add constraint wanderings_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.wanderings add constraint wanderings_user_id_item_id_key UNIQUE (user_id, item_id);
-
-alter table public.week_harvests add constraint week_harvests_pkey PRIMARY KEY (id);
 
 alter table public.week_harvests add constraint week_harvests_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public.week_harvests add constraint week_harvests_user_id_week_start_key UNIQUE (user_id, week_start);
-
 alter table public.week_intentions add constraint week_intentions_item_id_fkey FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE;
-
-alter table public.week_intentions add constraint week_intentions_outcome_check CHECK (((outcome IS NULL) OR (outcome = ANY (ARRAY['carried'::text, 'rested'::text, 'released'::text]))));
-
-alter table public.week_intentions add constraint week_intentions_pkey PRIMARY KEY (id);
 
 alter table public.week_intentions add constraint week_intentions_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public.week_intentions add constraint week_intentions_user_id_week_start_item_id_key UNIQUE (user_id, week_start, item_id);
-
-alter table public.weekly_reflections add constraint weekly_reflections_pkey PRIMARY KEY (id);
-
 alter table public.weekly_reflections add constraint weekly_reflections_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-alter table public.weekly_reflections add constraint weekly_reflections_user_id_week_start_key UNIQUE (user_id, week_start);
-
-alter table public.younderstandings add constraint younderstandings_pkey PRIMARY KEY (id);
 
 alter table public.younderstandings add constraint younderstandings_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public.yourigin_records add constraint yourigin_records_pkey PRIMARY KEY (user_id, tbl, id);
+alter table public.yourigin_portfolio_attempts add constraint yourigin_portfolio_attempts_portfolio_id_fkey FOREIGN KEY (portfolio_id) REFERENCES yourigin_portfolios(id) ON DELETE CASCADE;
+
+alter table public.yourigin_portfolios add constraint yourigin_portfolios_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 alter table public.yourigin_records add constraint yourigin_records_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
-alter table public.yourigin_sync_keys add constraint yourigin_sync_keys_pkey PRIMARY KEY (user_id);
-
 alter table public.yourigin_sync_keys add constraint yourigin_sync_keys_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+select setval('public.yourigin_records_rev_seq', 939, true);
 
 CREATE UNIQUE INDEX artist_profiles_kronk_handle_key ON public.artist_profiles USING btree (lower(kronk_handle)) WHERE (kronk_handle IS NOT NULL);
 
@@ -1100,6 +1160,8 @@ CREATE INDEX wandering_stops_wandering_idx ON public.wandering_stops USING btree
 CREATE INDEX week_intentions_user_week_idx ON public.week_intentions USING btree (user_id, week_start);
 
 CREATE INDEX younderstandings_user_created_idx ON public.younderstandings USING btree (user_id, created_at DESC);
+
+CREATE INDEX yourigin_portfolio_attempts_recent ON public.yourigin_portfolio_attempts USING btree (portfolio_id, attempted_at);
 
 CREATE INDEX yourigin_records_user_rev ON public.yourigin_records USING btree (user_id, rev);
 
@@ -1300,6 +1362,108 @@ end
 $function$
 ;
 
+CREATE OR REPLACE FUNCTION public.yourigin_portfolio_note_view(p_id uuid)
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  update public.yourigin_portfolios set view_count = view_count + 1 where id = p_id;
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.yourigin_portfolio_try_password(p_id uuid, p_password text, p_client text)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  h text;
+begin
+  delete from public.yourigin_portfolio_attempts where attempted_at < now() - interval '1 day';
+  if (select count(*) from public.yourigin_portfolio_attempts
+       where portfolio_id = p_id and client = p_client and attempted_at > now() - interval '15 minutes') >= 8
+     or (select count(*) from public.yourigin_portfolio_attempts
+          where portfolio_id = p_id and attempted_at > now() - interval '15 minutes') >= 60 then
+    return 'locked';
+  end if;
+  select password_hash into h from public.yourigin_portfolios where id = p_id;
+  if h is not null and p_password is not null and char_length(p_password) <= 200
+     and extensions.crypt(p_password, h) = h then
+    return 'ok';
+  end if;
+  insert into public.yourigin_portfolio_attempts (portfolio_id, client) values (p_id, left(coalesce(p_client, ''), 128));
+  return 'wrong';
+end
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.yourigin_publish_portfolio(p_local_id text, p_snapshot jsonb, p_visibility text, p_expires_at timestamp with time zone DEFAULT NULL::timestamp with time zone, p_password text DEFAULT NULL::text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  uid uuid := auth.uid();
+  r public.yourigin_portfolios;
+  new_hash text;
+begin
+  if uid is null then
+    raise exception 'Sign in to publish' using errcode = '42501';
+  end if;
+  if not yourigin_private.is_allowed() then
+    raise exception 'This account is not allowed to publish portfolios yet' using errcode = '42501';
+  end if;
+  if p_visibility not in ('unlisted', 'password', 'public') then
+    raise exception 'Unknown visibility %', p_visibility using errcode = '22023';
+  end if;
+  if p_expires_at is not null and p_expires_at <= now() then
+    raise exception 'The end date has already passed' using errcode = '22023';
+  end if;
+  if jsonb_typeof(p_snapshot) is distinct from 'object' or octet_length(p_snapshot::text) > 2000000 then
+    raise exception 'This portfolio is too large to publish' using errcode = '22023';
+  end if;
+  if p_password is not null and (char_length(p_password) < 8 or char_length(p_password) > 200) then
+    raise exception 'Passwords need 8 to 200 characters' using errcode = '22023';
+  end if;
+
+  select * into r from public.yourigin_portfolios where user_id = uid and local_id = p_local_id for update;
+
+  new_hash := case
+    when p_visibility <> 'password' then null
+    when p_password is not null then extensions.crypt(p_password, extensions.gen_salt('bf', 10))
+    else r.password_hash
+  end;
+  if p_visibility = 'password' and new_hash is null then
+    raise exception 'Choose a password' using errcode = '22023';
+  end if;
+
+  if r.id is null then
+    if (select count(*) from public.yourigin_portfolios where user_id = uid) >= 20 then
+      raise exception 'You can publish up to 20 portfolios' using errcode = '54000';
+    end if;
+    insert into public.yourigin_portfolios (user_id, local_id, share_token, visibility, password_hash, expires_at, snapshot)
+    values (uid, p_local_id, yourigin_private.new_share_token(), p_visibility, new_hash, p_expires_at, p_snapshot)
+    returning * into r;
+  else
+    update public.yourigin_portfolios
+       set snapshot = p_snapshot,
+           visibility = p_visibility,
+           expires_at = p_expires_at,
+           password_hash = new_hash,
+           access_version = access_version + case when new_hash is distinct from r.password_hash then 1 else 0 end,
+           published_at = now(),
+           updated_at = now()
+     where id = r.id
+    returning * into r;
+  end if;
+  return yourigin_private.portfolio_result(r);
+end
+$function$
+;
+
 CREATE OR REPLACE FUNCTION public.yourigin_push(rows jsonb)
  RETURNS integer
  LANGUAGE plpgsql
@@ -1326,6 +1490,340 @@ begin
 end
 $function$
 ;
+
+CREATE OR REPLACE FUNCTION public.yourigin_rotate_portfolio_link(p_id uuid)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  r public.yourigin_portfolios := yourigin_private.own_portfolio(p_id);
+begin
+  update public.yourigin_portfolios
+     set share_token = yourigin_private.new_share_token(), updated_at = now()
+   where id = r.id
+  returning * into r;
+  return yourigin_private.portfolio_result(r);
+end
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.yourigin_set_portfolio_expiry(p_id uuid, p_expires_at timestamp with time zone)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  r public.yourigin_portfolios := yourigin_private.own_portfolio(p_id);
+begin
+  if (p_expires_at is null or p_expires_at > now())
+     and (r.expires_at is null or p_expires_at is null or p_expires_at > r.expires_at)
+     and not yourigin_private.is_allowed() then
+    raise exception 'This account is not allowed to publish portfolios yet' using errcode = '42501';
+  end if;
+  update public.yourigin_portfolios set expires_at = p_expires_at, updated_at = now() where id = r.id returning * into r;
+  return yourigin_private.portfolio_result(r);
+end
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.yourigin_set_portfolio_status(p_id uuid, p_status text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  r public.yourigin_portfolios := yourigin_private.own_portfolio(p_id);
+begin
+  if p_status not in ('live', 'disabled') then
+    raise exception 'Unknown status %', p_status using errcode = '22023';
+  end if;
+  if p_status = 'live' and not yourigin_private.is_allowed() then
+    raise exception 'This account is not allowed to publish portfolios yet' using errcode = '42501';
+  end if;
+  update public.yourigin_portfolios
+     set status = p_status,
+         access_version = access_version + case when p_status = 'disabled' and r.status = 'live' then 1 else 0 end,
+         updated_at = now()
+   where id = r.id
+  returning * into r;
+  return yourigin_private.portfolio_result(r);
+end
+$function$
+;
+
+CREATE OR REPLACE FUNCTION public.yourigin_unpublish_portfolio(p_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  r public.yourigin_portfolios := yourigin_private.own_portfolio(p_id);
+begin
+  delete from public.yourigin_portfolios where id = r.id;
+end
+$function$
+;
+
+CREATE OR REPLACE FUNCTION you_private.codex_word_requests()
+ RETURNS TABLE(normalized text, word text, people bigint, first_seen timestamp with time zone, last_seen timestamp with time zone, status text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  if not exists (select 1 from public.admins a where a.user_id = auth.uid()) then
+    raise exception 'not allowed';
+  end if;
+  return query
+    select w.normalized,
+           (array_agg(w.word order by w.created_at))[1] as word,
+           count(distinct w.user_id) as people,
+           min(w.created_at) as first_seen,
+           max(w.last_used_at) as last_seen,
+           coalesce(r.status, 'new') as status
+    from public.value_words w
+    left join public.codex_word_reviews r on r.normalized = w.normalized
+    group by w.normalized, r.status
+    order by (coalesce(r.status, 'new') = 'new') desc, count(distinct w.user_id) desc, max(w.last_used_at) desc;
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION you_private.redeem_arcanum_code(p_code text)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  v_code text := upper(trim(coalesce(p_code, '')));
+  c public.arcanum_codes%rowtype;
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in to use a gift code.';
+  end if;
+
+  select * into c from public.arcanum_codes where code = v_code for update;
+  if not found then
+    raise exception 'That code wasn''t recognised. Check it and try again.';
+  end if;
+  if c.expires_at is not null and c.expires_at < now() then
+    raise exception 'That code has expired.';
+  end if;
+  if exists (select 1 from public.user_arcana ua where ua.user_id = auth.uid() and ua.slug = c.slug) then
+    raise exception 'This Arcanum is already in your Library.';
+  end if;
+  if c.uses >= c.max_uses then
+    raise exception 'That code has already been used.';
+  end if;
+
+  insert into public.user_arcana (user_id, slug, source) values (auth.uid(), c.slug, 'gift');
+  insert into public.arcanum_code_redemptions (code, user_id) values (c.code, auth.uid());
+  update public.arcanum_codes set uses = uses + 1 where code = c.code;
+  return c.slug;
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION you_private.set_codex_word_status(p_normalized text, p_status text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+begin
+  if not exists (select 1 from public.admins a where a.user_id = auth.uid()) then
+    raise exception 'not allowed';
+  end if;
+  insert into public.codex_word_reviews (normalized, status, updated_at)
+  values (p_normalized, p_status, now())
+  on conflict (normalized) do update set status = excluded.status, updated_at = now();
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION yourigin_private.is_allowed()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select exists (
+    select 1 from yourigin_private.yourigin_allowed_users a
+    where lower(a.email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+$function$
+;
+
+CREATE OR REPLACE FUNCTION yourigin_private.new_share_token()
+ RETURNS text
+ LANGUAGE sql
+ SET search_path TO ''
+AS $function$
+  select translate(encode(extensions.gen_random_bytes(18), 'base64'), '+/', '-_');
+$function$
+;
+
+CREATE OR REPLACE FUNCTION yourigin_private.own_portfolio(p_id uuid)
+ RETURNS yourigin_portfolios
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare
+  r public.yourigin_portfolios;
+begin
+  select * into r from public.yourigin_portfolios where id = p_id and user_id = auth.uid() for update;
+  if not found then
+    raise exception 'No such portfolio' using errcode = 'P0002';
+  end if;
+  return r;
+end
+$function$
+;
+
+CREATE OR REPLACE FUNCTION yourigin_private.owns_portfolio_file(p_name text)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE
+ SET search_path TO ''
+AS $function$
+  select auth.uid() is not null
+     and array_length(storage.foldername(p_name), 1) = 2
+     and (storage.foldername(p_name))[1] = yourigin_private.portfolio_folder((storage.foldername(p_name))[2]);
+$function$
+;
+
+CREATE OR REPLACE FUNCTION yourigin_private.portfolio_folder(p_local text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE
+ SET search_path TO ''
+AS $function$
+  select left(encode(extensions.digest(coalesce(auth.uid()::text, '') || ':' || coalesce(p_local, ''), 'sha256'), 'hex'), 32);
+$function$
+;
+
+CREATE OR REPLACE FUNCTION yourigin_private.portfolio_result(r yourigin_portfolios)
+ RETURNS jsonb
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO ''
+AS $function$
+  select jsonb_build_object(
+    'id', r.id, 'local_id', r.local_id, 'share_token', r.share_token, 'status', r.status,
+    'visibility', r.visibility, 'password_set', r.password_hash is not null,
+    'expires_at', r.expires_at, 'published_at', r.published_at, 'view_count', r.view_count
+  );
+$function$
+;
+
+revoke all on function public.artist_profiles_touch() from public, anon, authenticated;
+grant execute on function public.artist_profiles_touch() to service_role;
+
+revoke all on function public.client_errors_throttle() from public, anon, authenticated;
+grant execute on function public.client_errors_throttle() to service_role;
+
+revoke all on function public.codex_word_requests() from public, anon, authenticated;
+grant execute on function public.codex_word_requests() to authenticated;
+grant execute on function public.codex_word_requests() to service_role;
+
+revoke all on function public.handle_new_user() from public, anon, authenticated;
+grant execute on function public.handle_new_user() to service_role;
+
+revoke all on function public.redeem_arcanum_code(p_code text) from public, anon, authenticated;
+grant execute on function public.redeem_arcanum_code(p_code text) to anon;
+grant execute on function public.redeem_arcanum_code(p_code text) to authenticated;
+grant execute on function public.redeem_arcanum_code(p_code text) to service_role;
+
+revoke all on function public.review_showcase_work(p_id uuid, p_decision text, p_note text) from public, anon, authenticated;
+grant execute on function public.review_showcase_work(p_id uuid, p_decision text, p_note text) to authenticated;
+grant execute on function public.review_showcase_work(p_id uuid, p_decision text, p_note text) to service_role;
+
+revoke all on function public.set_codex_word_status(p_normalized text, p_status text) from public, anon, authenticated;
+grant execute on function public.set_codex_word_status(p_normalized text, p_status text) to authenticated;
+grant execute on function public.set_codex_word_status(p_normalized text, p_status text) to service_role;
+
+revoke all on function public.showcase_credits_link() from public, anon, authenticated;
+grant execute on function public.showcase_credits_link() to service_role;
+
+revoke all on function public.showcase_is_admin() from public, anon, authenticated;
+grant execute on function public.showcase_is_admin() to authenticated;
+grant execute on function public.showcase_is_admin() to service_role;
+
+revoke all on function public.showcase_save_counts() from public, anon, authenticated;
+grant execute on function public.showcase_save_counts() to authenticated;
+grant execute on function public.showcase_save_counts() to service_role;
+
+revoke all on function public.showcase_works_guard() from public, anon, authenticated;
+grant execute on function public.showcase_works_guard() to service_role;
+
+revoke all on function public.yourigin_bump_rev() from public, anon, authenticated;
+grant execute on function public.yourigin_bump_rev() to authenticated;
+grant execute on function public.yourigin_bump_rev() to service_role;
+
+revoke all on function public.yourigin_portfolio_note_view(p_id uuid) from public, anon, authenticated;
+grant execute on function public.yourigin_portfolio_note_view(p_id uuid) to service_role;
+
+revoke all on function public.yourigin_portfolio_try_password(p_id uuid, p_password text, p_client text) from public, anon, authenticated;
+grant execute on function public.yourigin_portfolio_try_password(p_id uuid, p_password text, p_client text) to service_role;
+
+revoke all on function public.yourigin_publish_portfolio(p_local_id text, p_snapshot jsonb, p_visibility text, p_expires_at timestamp with time zone, p_password text) from public, anon, authenticated;
+grant execute on function public.yourigin_publish_portfolio(p_local_id text, p_snapshot jsonb, p_visibility text, p_expires_at timestamp with time zone, p_password text) to authenticated;
+grant execute on function public.yourigin_publish_portfolio(p_local_id text, p_snapshot jsonb, p_visibility text, p_expires_at timestamp with time zone, p_password text) to service_role;
+
+revoke all on function public.yourigin_push(rows jsonb) from public, anon, authenticated;
+grant execute on function public.yourigin_push(rows jsonb) to authenticated;
+grant execute on function public.yourigin_push(rows jsonb) to service_role;
+
+revoke all on function public.yourigin_rotate_portfolio_link(p_id uuid) from public, anon, authenticated;
+grant execute on function public.yourigin_rotate_portfolio_link(p_id uuid) to authenticated;
+grant execute on function public.yourigin_rotate_portfolio_link(p_id uuid) to service_role;
+
+revoke all on function public.yourigin_set_portfolio_expiry(p_id uuid, p_expires_at timestamp with time zone) from public, anon, authenticated;
+grant execute on function public.yourigin_set_portfolio_expiry(p_id uuid, p_expires_at timestamp with time zone) to authenticated;
+grant execute on function public.yourigin_set_portfolio_expiry(p_id uuid, p_expires_at timestamp with time zone) to service_role;
+
+revoke all on function public.yourigin_set_portfolio_status(p_id uuid, p_status text) from public, anon, authenticated;
+grant execute on function public.yourigin_set_portfolio_status(p_id uuid, p_status text) to authenticated;
+grant execute on function public.yourigin_set_portfolio_status(p_id uuid, p_status text) to service_role;
+
+revoke all on function public.yourigin_unpublish_portfolio(p_id uuid) from public, anon, authenticated;
+grant execute on function public.yourigin_unpublish_portfolio(p_id uuid) to authenticated;
+grant execute on function public.yourigin_unpublish_portfolio(p_id uuid) to service_role;
+
+revoke all on function you_private.codex_word_requests() from public, anon, authenticated;
+grant execute on function you_private.codex_word_requests() to authenticated;
+grant execute on function you_private.codex_word_requests() to service_role;
+
+revoke all on function you_private.redeem_arcanum_code(p_code text) from public, anon, authenticated;
+grant execute on function you_private.redeem_arcanum_code(p_code text) to authenticated;
+grant execute on function you_private.redeem_arcanum_code(p_code text) to service_role;
+
+revoke all on function you_private.set_codex_word_status(p_normalized text, p_status text) from public, anon, authenticated;
+grant execute on function you_private.set_codex_word_status(p_normalized text, p_status text) to authenticated;
+grant execute on function you_private.set_codex_word_status(p_normalized text, p_status text) to service_role;
+
+revoke all on function yourigin_private.is_allowed() from public, anon, authenticated;
+grant execute on function yourigin_private.is_allowed() to authenticated;
+
+revoke all on function yourigin_private.new_share_token() from public, anon, authenticated;
+
+revoke all on function yourigin_private.own_portfolio(p_id uuid) from public, anon, authenticated;
+
+revoke all on function yourigin_private.owns_portfolio_file(p_name text) from public, anon, authenticated;
+grant execute on function yourigin_private.owns_portfolio_file(p_name text) to authenticated;
+
+revoke all on function yourigin_private.portfolio_folder(p_local text) from public, anon, authenticated;
+grant execute on function yourigin_private.portfolio_folder(p_local text) to authenticated;
+
+revoke all on function yourigin_private.portfolio_result(r yourigin_portfolios) from public, anon, authenticated;
+
+grant usage on schema you_private to authenticated;
+
+grant usage on schema yourigin_private to authenticated;
 
 CREATE TRIGGER artist_profiles_touch BEFORE UPDATE ON public.artist_profiles FOR EACH ROW EXECUTE FUNCTION artist_profiles_touch();
 
@@ -1443,9 +1941,15 @@ alter table public.weekly_reflections enable row level security;
 
 alter table public.younderstandings enable row level security;
 
+alter table public.yourigin_portfolio_attempts enable row level security;
+
+alter table public.yourigin_portfolios enable row level security;
+
 alter table public.yourigin_records enable row level security;
 
 alter table public.yourigin_sync_keys enable row level security;
+
+alter table yourigin_private.yourigin_allowed_users enable row level security;
 
 create policy admins_select_self on public.admins as PERMISSIVE for SELECT to public
   using ((auth.uid() = user_id));
@@ -1949,6 +2453,13 @@ create policy younderstandings_own on public.younderstandings as PERMISSIVE for 
   using ((auth.uid() = user_id))
   with check ((auth.uid() = user_id));
 
+create policy "No direct client access" on public.yourigin_portfolio_attempts as PERMISSIVE for ALL to anon, authenticated
+  using (false)
+  with check (false);
+
+create policy "yourigin portfolios: owner reads" on public.yourigin_portfolios as PERMISSIVE for SELECT to authenticated
+  using ((user_id = ( SELECT auth.uid() AS uid)));
+
 create policy "yourigin: own records" on public.yourigin_records as PERMISSIVE for ALL to authenticated
   using (((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT yourigin_private.is_allowed() AS is_allowed)))
   with check (((user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT yourigin_private.is_allowed() AS is_allowed)));
@@ -1990,8 +2501,27 @@ create policy showcase_storage_update_own on storage.objects as PERMISSIVE for U
   using (((bucket_id = 'showcase'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)))
   with check (((bucket_id = 'showcase'::text) AND ((storage.foldername(name))[1] = (( SELECT auth.uid() AS uid))::text)));
 
+create policy "yourigin portfolios: owner adds files" on storage.objects as PERMISSIVE for INSERT to authenticated
+  with check (((bucket_id = 'portfolios'::text) AND yourigin_private.owns_portfolio_file(name) AND ( SELECT yourigin_private.is_allowed() AS is_allowed)));
+
+create policy "yourigin portfolios: owner reads files" on storage.objects as PERMISSIVE for SELECT to authenticated
+  using (((bucket_id = 'portfolios'::text) AND yourigin_private.owns_portfolio_file(name)));
+
+create policy "yourigin portfolios: owner removes files" on storage.objects as PERMISSIVE for DELETE to authenticated
+  using (((bucket_id = 'portfolios'::text) AND yourigin_private.owns_portfolio_file(name)));
+
+create policy "yourigin portfolios: owner replaces files" on storage.objects as PERMISSIVE for UPDATE to authenticated
+  using (((bucket_id = 'portfolios'::text) AND yourigin_private.owns_portfolio_file(name)))
+  with check (((bucket_id = 'portfolios'::text) AND yourigin_private.owns_portfolio_file(name) AND ( SELECT yourigin_private.is_allowed() AS is_allowed)));
+
+create policy "No direct client access" on yourigin_private.yourigin_allowed_users as PERMISSIVE for ALL to anon, authenticated
+  using (false)
+  with check (false);
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values ('journal-photos', 'journal-photos', false, null, NULL) on conflict (id) do nothing;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values ('life-moments', 'life-moments', false, 5242880, '{image/webp,image/jpeg}') on conflict (id) do nothing;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values ('portfolios', 'portfolios', false, 2097152, '{image/webp,image/jpeg,image/png}') on conflict (id) do nothing;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) values ('showcase', 'showcase', false, 2097152, '{image/webp,image/jpeg,image/png}') on conflict (id) do nothing;

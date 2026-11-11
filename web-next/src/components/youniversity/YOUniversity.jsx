@@ -228,7 +228,7 @@ export default function YOUniversity() {
   return (
     <div className="pt-1 pb-24 px-5">
       <BackRow />
-      <h1 className="font-serif text-h2 font-medium mt-4 mb-0">YOUniversity</h1>
+      <h1 className="font-serif text-h2 font-semibold mt-4 mb-0">YOUniversity</h1>
       <Guide className="mt-1 mb-3">
         Your Arcana: the tools and teachings you carry, to return to whenever you need them.
       </Guide>

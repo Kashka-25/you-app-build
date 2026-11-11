@@ -121,7 +121,7 @@ export default function ArcanumScreen() {
       <div className="flex items-start gap-3 mt-4 mb-2">
         <ArcanumIcon icon={arcanum.icon} />
         <div className="flex-1 min-w-0">
-          <h1 className="font-serif text-h2 font-medium m-0">{arcanum.name}</h1>
+          <h1 className="font-serif text-h2 font-semibold m-0">{arcanum.name}</h1>
           <div className="text-caption text-textMuted mt-0.5">
             {FORMATS[arcanum.format]} · {arcanum.free ? "Free" : "Paid"}
             {heldRow && " · In your Library"}

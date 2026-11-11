@@ -1,3 +1,4 @@
+import { isDemo } from "./demo/mode";
 // YOU without a signal (Cassidy, Oct 25: "all three levels, including
 // keeping my data readable offline on the phone").
 //
@@ -129,6 +130,7 @@ export function onOfflineStatus(fn) {
   return () => listeners.delete(fn);
 }
 async function recount() {
+  if (isDemo()) { pending = 0; announce(); return; }
   try { pending = (await allQueued()).length; } catch { pending = 0; }
   announce();
 }
@@ -266,7 +268,9 @@ let getToken = async () => null;
 export function setTokenSource(fn) { getToken = fn; }
 
 export async function syncQueue() {
-  if (syncing || looksOffline()) return;
+  // The demo has no real account: a real person's queued changes on this
+  // device wait untouched until they're back in the real YOU.
+  if (isDemo() || syncing || looksOffline()) return;
   syncing = true;
   announce();
   let sent = 0;
@@ -305,6 +309,7 @@ export function offlineFetch(input, init = {}) {
 
 // Signing out: nothing personal stays on the device.
 export async function clearOfflineData() {
+  if (isDemo()) return; // leaving the demo never clears the real YOU's copy
   try {
     await tx(READS, "readwrite", s => req2p(s.clear()));
     await tx(QUEUE, "readwrite", s => req2p(s.clear()));
@@ -314,6 +319,7 @@ export async function clearOfflineData() {
 }
 
 export async function pendingCount() {
+  if (isDemo()) return 0;
   await recount();
   return pending;
 }

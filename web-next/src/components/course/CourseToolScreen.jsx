@@ -87,7 +87,7 @@ export default function CourseToolScreen() {
       <div className="flex items-start gap-3 mt-4 mb-3">
         <ArcanumIcon icon={tool.icon} />
         <div className="flex-1 min-w-0">
-          <h1 className="font-serif text-h2 font-medium m-0">{tool.name}</h1>
+          <h1 className="font-serif text-h2 font-semibold m-0">{tool.name}</h1>
           <Link to={`/youniversity/arcanum/${slug}`} className="text-caption text-textMuted hover:text-textPrimary">
             Tool · from {arcanum.name}{stage ? `, Stage ${stage.numeral}` : ""}
           </Link>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Sparkles, ArrowRight, Sprout } from "lucide-react";
+import { Plus, Sparkles, ArrowRight, Sprout, ChevronDown } from "lucide-react";
 import { DropdownSection } from "../Primitives";
 import { useAppData } from "../../lib/AppDataContext";
 import { PILLARS } from "../../constants/app.const";
@@ -67,6 +67,7 @@ export default function IdentityVisionView() {
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [openId, setOpenId] = useState(null);
+  const [futureOpen, setFutureOpen] = useState(identityVisions.length === 0);
   const open = identityVisions.find(v => v.id === openId) || null;
 
   const groups = PILLARS
@@ -76,24 +77,37 @@ export default function IdentityVisionView() {
 
   return (
     <>
-      <Link
-        to="/future-self"
-        className="relative block rounded-card overflow-hidden p-5 mb-5 shadow-card text-white"
+      {/* A fold (Build Note, 5 Nov): open for someone with no visions yet,
+          folded to its title once there are some, so the visions lead. */}
+      <div
+        className="relative rounded-card overflow-hidden mb-5 shadow-card text-white"
         style={{ background: "linear-gradient(160deg, #E9C99A -10%, #B78DA8 30%, #5E4A86 70%, #1B1638 120%)" }}
       >
-        <Sparkles size={22} strokeWidth={1.5} className="mb-2 opacity-90" aria-hidden="true" />
-        <div className="font-serif text-[26px] leading-tight">Meet your future self</div>
-        <p className="text-bodySm text-white/85 m-0 mt-1 max-w-[34ch]">
-          A quiet walk to who you're becoming: a day in their life, the people who love you, a letter back, and your first steps.
-        </p>
-        <span className="inline-flex items-center gap-1.5 mt-3 min-h-[40px] px-4 rounded-full bg-white text-[#24183A] text-bodySm font-medium">
-          Begin <ArrowRight size={16} strokeWidth={1.75} />
-        </span>
-        <span className="block text-caption text-white/70 mt-2">About 10 minutes · no AI · you can skip any step</span>
-      </Link>
+        <button
+          type="button"
+          onClick={() => setFutureOpen(o => !o)}
+          aria-expanded={futureOpen}
+          className="w-full flex items-center gap-2.5 p-5 pb-4 text-left"
+        >
+          <Sparkles size={20} strokeWidth={1.5} className="flex-none opacity-90" aria-hidden="true" />
+          <span className="flex-1 font-serif text-[24px] leading-tight">Meet your future self</span>
+          <ChevronDown size={20} strokeWidth={1.75} className={`flex-none opacity-80 transition-transform ${futureOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+        </button>
+        {futureOpen && (
+          <div className="px-5 pb-5 -mt-1">
+            <p className="text-bodySm text-white/85 m-0 max-w-[34ch]">
+              A quiet walk to who you're becoming: a day in their life, the people who love you, a letter back, and your first steps.
+            </p>
+            <Link to="/future-self" className="inline-flex items-center gap-1.5 mt-3 min-h-[40px] px-4 rounded-full bg-white text-[#24183A] text-bodySm font-medium">
+              Begin <ArrowRight size={16} strokeWidth={1.75} />
+            </Link>
+            <span className="block text-caption text-white/70 mt-2">About 10 minutes · no AI · you can skip any step</span>
+          </div>
+        )}
+      </div>
 
       <div className="flex justify-between items-center mb-1">
-        <span className="font-serif text-h2 font-medium">Who you're becoming</span>
+        <span className="font-serif text-h2 font-semibold">Who you're becoming</span>
         <Button size="sm" variant="secondary" icon={Plus} onClick={() => setAddOpen(true)}>Write one</Button>
       </div>
 

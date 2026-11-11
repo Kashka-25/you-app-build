@@ -68,7 +68,7 @@ export default function BetaInbox() {
     <div className="pt-1 pb-24 px-5">
       <BackRow />
       <div className="flex items-center justify-between gap-3 mt-4">
-        <h1 className="font-serif text-h2 font-medium m-0">Tester inbox</h1>
+        <h1 className="font-serif text-h2 font-semibold m-0">Tester inbox</h1>
         <button type="button" onClick={load} className="inline-flex items-center gap-1.5 text-caption text-textSecondary min-h-[40px]">
           <RefreshCw size={14} strokeWidth={1.75} /> Refresh
         </button>
