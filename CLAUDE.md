@@ -54,9 +54,12 @@ Needs `web-next/.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`; see
 2. **Every change goes through a PR to `staging` first** (`section/*`,
    `docs/*`, `fix/*` branches). Cassidy tests on staging, then `staging` → `main`.
    Commit, push and merge only when Cassidy asks.
-3. **Real journals live in the database.** Staging and production share ONE
-   database, so any migration, Edge Function deploy or test write on staging
-   reaches real users. Use a test account; never read or copy user content.
+3. **Real journals live in the live database.** Staging has its own project,
+   `you-staging` (`oiiznskttnflnekbfykx`), with the same structure and test
+   data only (docs/STAGING-DATABASE.md). Until Netlify's staging and preview
+   contexts point at it, the staging site still uses live. Migrations and
+   function deploys go to both projects, staging first. Never read or copy
+   user content.
 4. **Trust → clarity → polish.** The 21-day MVP sprint (4–25 Nov 2026, ~12
    beta testers) is about trust and correctness, not new features. New ideas go
    to Build Notes for after the beta.
@@ -76,7 +79,8 @@ Needs `web-next/.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`; see
   a separate demo backend. Not built.
 
 ## Known risks
-- Staging and production share one database holding real journals.
+- Staging's own database (you-staging) is built; the staging site still uses
+  live until Netlify's staging/preview environment variables are switched.
 - Paid YOUniversity course content ships in the public JS bundle
   (`src/constants/arcana/`); must move behind RLS/Storage before selling.
 - Core legacy tables have no CREATE migrations; `supabase/schema/baseline.sql`

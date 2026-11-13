@@ -35,10 +35,10 @@ any item; some may already be done.
 ### Planned, after the sprint
 - [ ] **Demo mode ("entry key")**, decided 8 Nov: portfolio visitors try YOU as a blank or example user. Must never touch real user data; needs a separate demo backend first.
 - [ ] **Healing Journey**: designed only and hidden; built after Empatherapy exists to feed it.
-- [ ] Everything else in the sprint's "Waits (post-beta)" list (YOU Realm, payments, Kronk work, separate staging database, CI, and so on).
+- [ ] Everything else in the sprint's "Waits (post-beta)" list (YOU Realm, payments, Kronk work, CI, and so on).
 
 ### Known risks to keep in view
-Shared staging/production database with real journals · paid YOUniversity
+Staging site still on the live database until Netlify is switched (you-staging is built, docs/STAGING-DATABASE.md) · paid YOUniversity
 course content in the public JS bundle · legacy tables without CREATE
 migrations (`supabase/schema/baseline.sql` is the reference) · no CI ·
 1.43 MB main JS chunk.
