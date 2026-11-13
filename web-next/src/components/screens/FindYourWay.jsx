@@ -10,15 +10,15 @@ import { SectionTitle } from "../Primitives";
 // YOU by default; YOUrney is in the menu, and everything else is an Extra.
 const BOTTOM_BAR = [
   { icon: "home", name: "Home", to: "/", says: "Your day at a glance: check in with how you feel, and see what today holds." },
-  { icon: "reflections", name: "YOUrnal", to: "/reflections", says: "Everything you've written: entries, ideas, dreams and photos of handwritten pages." },
-  { add: true, name: "Add", says: "The round + button. Add a habit, goal or dream, or a journal entry." },
-  { icon: "pursuits", name: "PursYOUts", to: "/pursue", says: "Everything you're growing: habits, goals and dreams, by Pillar, with what you've completed folded underneath." },
-  { icon: "you", name: "YOU", to: "/you", says: "Your Pillars and Values. They grow and level up as you tend to your life." }
+  { icon: "reflections", name: "YOUrnal", to: "/reflections", says: "Everything you've written: entries, ideas and experiences, your highlights and week, and photos of handwritten pages." },
+  { add: true, name: "Add", says: "The round + button. Add a habit, goal, dream or idea; a journal entry; a memory with photos; or a place you love." },
+  { icon: "pursuits", name: "PursYOUts", to: "/pursue", says: "Everything you're growing: habits, goals, dreams and ideas, by Pillar, with what you've completed folded underneath." },
+  { icon: "you", name: "YOU", to: "/you", says: "Your eight Pillars, the areas of your life, and your Values. They grow and level up as you tend to your life." }
 ];
 
 const MENU = [
-  { icon: "yourney", name: "YOUrney", to: "/journey", says: "The big picture: your memories, the chapters of your life, and who you're becoming." },
-  { name: "Extras", to: "/extras", says: "Switch on more when you want it: YOUniversity, KommYOUnity, Showcase, Focus, YOUr Projects and more. Each one then appears in this menu." },
+  { icon: "yourney", name: "YOUrney", to: "/journey", says: "The big picture: your memories, chapters and seasons; who you're becoming; and Ask YOU, for questions about your own story." },
+  { name: "Extras", to: "/extras", says: "Switch on more when you want it: YOUniversity, KommYOUnity, Showcase, Focus, YOUr Projects, YOUrigin and more. The ones that are places then appear in this menu." },
   { name: "Settings", to: "/settings", says: "Tap your picture at the top right: your profile, Extras, colours and your data. What's new and this map live there too." },
   { icon: "light-dark", name: "Nature or Cosmos", says: "The switch at the bottom of the menu: earthy light, or the night sky." }
 ];
@@ -121,10 +121,10 @@ export default function FindYourWay() {
       <Card title="While YOU is in beta">
         <ul className="space-y-2.5 text-bodySm text-textSecondary my-2">
           <li><b className="text-textPrimary font-medium">Send feedback</b> is in the menu. Pick “Something’s not right”, “An idea” or “Something I love”. It notes which screen you were on, so just say what happened.</li>
-          <li><b className="text-textPrimary font-medium">If something breaks</b>, YOU quietly lets us know, so there's no need to report every hiccup.</li>
+          <li><b className="text-textPrimary font-medium">If a page crashes</b>, YOU quietly lets us know, so there's no need to report it. Anything else odd, tell us.</li>
           <li><b className="text-textPrimary font-medium">What you write is yours.</b> Only you can see it. AI reflections stay off until you say yes.</li>
           <li><b className="text-textPrimary font-medium">Your data</b> can be downloaded or deleted any time in Settings.</li>
-          <li><b className="text-textPrimary font-medium">Some things will change.</b> Pages marked Coming soon are still being built.</li>
+          <li><b className="text-textPrimary font-medium">Some things will change</b>, and a few may wobble. Thank you for growing it with us.</li>
         </ul>
       </Card>
     </div>

@@ -11,6 +11,7 @@ import SeasonCard from "./SeasonCard";
 import SeasonReading from "./SeasonReading";
 import YearAgoCard from "./YearAgoCard";
 import { Link } from "react-router-dom";
+import { seasonTo } from "../../lib/seasonRange";
 import { localDateKey } from "../../lib/week";
 
 function niceDate(dateStr) {
@@ -59,7 +60,7 @@ function ReadingCard({ reading }) {
           <AiLabel>{readingLabel(reading)}</AiLabel>
           {based.from && (
             <span className="text-caption text-[var(--ai-text-2)] flex-none">
-              {niceDate(based.from)} – {niceDate(based.to || based.from)}
+              {niceDate(based.from)} – {niceDate(seasonTo(based))}
             </span>
           )}
         </div>
@@ -129,7 +130,7 @@ export default function ChaptersView() {
 
   const entries = [
     ...moments.map(m => ({ kind: "memory", date: m.moment_date, key: `m-${m.id}`, moment: m })),
-    ...seasons.map(s => ({ kind: "reading", date: s.based_on?.to || dayOf(s.created_at), key: `s-${s.id}`, reading: s }))
+    ...seasons.map(s => ({ kind: "reading", date: seasonTo(s.based_on || {}) || dayOf(s.created_at), key: `s-${s.id}`, reading: s }))
   ].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
   // A chapter's marker goes just before the first entry inside it, or the

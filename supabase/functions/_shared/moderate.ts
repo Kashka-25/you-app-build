@@ -27,7 +27,9 @@ const DROP: RegExp[] = [
   /\byou\s+(have|are\s+suffering\s+from|suffer\s+from|are\s+showing\s+(clear\s+)?signs\s+of|(may|might|probably|clearly|likely)\s+have)\s+(clinical\s+)?(depression|an?\s+anxiety\s+disorder|ptsd|c-?ptsd|bipolar(\s+disorder)?|adhd|ocd|bpd|borderline(\s+personality\s+disorder)?|an?\s+(eating|personality|mood|mental(\s+health)?)\s+disorder|a\s+mental\s+illness|a\s+trauma\s+disorder)\b/i,
   /\byou\s+are\s+(clinically\s+)?(depressed|bipolar|a\s+narcissist|narcissistic|psychotic|schizophrenic)\b/i,
   // Medication and dosage advice
-  /\b(stop|start|increase|decrease|reduce|change|skip|double|come\s+off|taper)\s+(taking\s+)?(your\s+)?(medication|medications|meds|dose|dosage|antidepressants?|prescription)\b/i,
+  // Any form of the verb ("reduce", "reducing", "reduced", "tapering off"),
+  // with or without "your" / "taking" / "off" in between.
+  /\b(stop(s|ped|ping)?|start(s|ed|ing)?|increas(e|es|ed|ing)|decreas(e|es|ed|ing)|reduc(e|es|ed|ing)|chang(e|es|ed|ing)|skip(s|ped|ping)?|doubl(e|es|ed|ing)|(come|comes|coming|came)\s+off|taper(s|ed|ing)?(\s+off)?|lower(s|ed|ing)?|rais(e|es|ed|ing)|quit(s|ting)?|ditch(es|ed|ing)?|wean(s|ed|ing)?(\s+(yourself\s+)?off)?)\s+(taking\s+)?(your\s+|the\s+)?(medication|medications|meds|dose|doses|dosage|antidepressants?|prescriptions?|pills)\b/i,
   /\b\d+(\.\d+)?\s?(mg|milligrams|mcg)\b/i
 ];
 

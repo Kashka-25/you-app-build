@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback, u
 import { supabase } from "./supabaseClient";
 import { useAuth } from "./AuthContext";
 import { newStepId, dailySteps, stepKey as stepKeyOf } from "./habits";
-import { CHECKIN_XP, streakBonus, stepShares, habitDays, streakEnding, streakBefore } from "./xp";
+import { CHECKIN_XP, TEND_XP, TRAVEL_MEMORY_XP, finishXp, streakBonus, stepShares, habitDays, streakEnding, streakBefore } from "./xp";
 import { bandFor } from "./mood";
 import { fileEntryToProjects } from "./projects";
 import {
@@ -42,17 +42,12 @@ const AppDataContext = createContext(null);
 // unreachable (e.g. a paused free-tier Supabase project).
 const LOAD_TIMEOUT_MS = 8000;
 
-// XP for tending a sown intention — same as a habit check-in.
-const TEND_XP = 3;
-
-// Travel is scored by what the trip gave you, not how many places you
-// ticked off: each memory or journal entry pinned to a Wandering's place
-// earns this, to the trip's Pillar. Unpinning or deleting takes it back.
 // Cassidy's build inbox: the YOU ecosystem's projects, as named in the
 // "Build Notes" database in Notion.
 export const BUILD_PROJECTS = ["YOU app", "YOUrigin", "YOUniversity", "CommYOUnity", "YOU ecosystem"];
 
-export const TRAVEL_MEMORY_XP = 10;
+// Kept here too for screens that already import it from AppDataContext.
+export { TRAVEL_MEMORY_XP };
 const travelKey = (kind, id) => `travel:${kind}:${id}`;
 
 function niceDate() {
@@ -368,7 +363,7 @@ export function AppDataProvider({ children }) {
   async function completeItem(id, reflection, completedDate) {
     const item = items.find(i => i.id === id);
     if (!item || item.done) return;
-    const xp = XP_VALS[item.type] || 10;
+    const xp = finishXp(item);
     const dateKey = completedDate || todayKey();
     const updated = { ...item, done: true, note: reflection ? (item.note ? item.note + " | " + reflection : reflection) : item.note };
     const entry = {
@@ -388,7 +383,7 @@ export function AppDataProvider({ children }) {
   async function unachieveItem(id) {
     const item = items.find(i => i.id === id);
     if (!item || !item.done) return;
-    const xpToRemove = XP_VALS[item.type] || 10;
+    const xpToRemove = finishXp(item);
     const memIdx = memory.findIndex(m => m.itemId === id || (m.name === item.name && m.xp === xpToRemove));
     const updated = { ...item, done: false };
     setItems(prev => prev.map(i => (i.id === id ? updated : i)));

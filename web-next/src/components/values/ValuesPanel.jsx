@@ -7,7 +7,7 @@ import {
 import { useAppData } from "../../lib/AppDataContext";
 import {
   getTier, VALUE_COLORS, TIERS, prestigeRequirement, getPrestigeStage,
-  ELEMENTS, VALUE_ELEMENT, MAX_VALUE_SLOTS, START_VALUE_SLOTS
+  ELEMENTS, VALUE_ELEMENT, MAX_VALUE_SLOTS, START_VALUE_SLOTS, VALUE_PILLAR, VALUE_PILLAR2
 } from "../../constants/app.const";
 import { VALUE_LIBRARY, VALUE_ICONS, getValueEntry, valueNameForSlug } from "../../constants/valueLibrary";
 import { easeOut } from "../ui/motion";
@@ -249,6 +249,13 @@ export default function ValuesPanel() {
 // the beige cards (Nov 5).
 const deep = c => `color-mix(in srgb, ${c} 62%, var(--text-primary, #2B2118))`;
 
+// The Pillar a value's challenges grow, and the one it feeds a little (at
+// half), the same rule as awardValuePillarXP. A value in the Seeker's own
+// words grows Spirit. Said on the card so values and Pillars visibly connect.
+function valuePillars(name) {
+  return { main: VALUE_PILLAR[name] || "Spirit", also: VALUE_PILLAR2[name] || null };
+}
+
 // "9% of the way to Practising": a value's growth said in words, toward
 // its next tier, or its next stage once it's Mastering (Nov 5).
 function growthWords(pct, tier, prestige) {
@@ -282,6 +289,7 @@ function ValueCard({
   const lib = getValueEntry(v.name);
   const own = !lib;
   const fixedChallenges = lib?.challenges || [];
+  const grows = valuePillars(v.name);
 
   async function handleGenerate() {
     setGenerating(true);
@@ -381,9 +389,14 @@ function ValueCard({
                 const count = d => all.filter(c => !c.done && (d === "all" || c.diff === d)).length;
                 return (
                   <>
-                    <div className="flex items-baseline justify-between mt-4 mb-2">
+                    <div className="flex items-baseline justify-between mt-4 mb-1">
                       <div className="text-label uppercase text-textMuted">Challenges</div>
                     </div>
+                    {/* What a challenge grows, and what the number means (C3). */}
+                    <p className="text-caption text-textMuted m-0 mb-2">
+                      Each one you do grows {v.name} and your {grows.main} Pillar
+                      {grows.also ? <> (and {grows.also}, a little)</> : null} by the points shown.
+                    </p>
                     <div className="flex flex-wrap gap-1.5 mb-3" role="radiogroup" aria-label="How big a step">
                       {[["all", "All"], ["gentle", "Gentle"], ["bold", "Bold"], ["brave", "Brave"]].map(([d, label]) => (
                         <button
@@ -429,7 +442,7 @@ function ValueCard({
                             <div className={`text-bodySm text-textPrimary ${celebrating ? "line-through decoration-1" : ""}`}>{c.text}</div>
                             {celebrating && (
                               <div className="text-caption font-medium mt-0.5" style={{ color: deep(color) }} role="status">
-                                +{c.pts} · {v.name} grew
+                                +{c.pts} · {v.name} and {grows.main} grew
                               </div>
                             )}
                             <div className="text-caption text-textMuted mt-0.5 capitalize">
