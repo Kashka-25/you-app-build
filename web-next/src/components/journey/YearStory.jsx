@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Globe2, Image as ImageIcon, MapPin, St
 import { useAppData } from "../../lib/AppDataContext";
 import { placesInYear, yearSummary } from "../../lib/years";
 import { easeOut } from "../ui/motion";
+import { seasonTo } from "../../lib/seasonRange";
 
 const EverywhereMap = lazy(() => import("../wandering/EverywhereMap"));
 
@@ -62,7 +63,7 @@ export default function YearStory({ year, onClose }) {
       .map(h => ({ kind: "harvest", date: h.week_start, text: h.note.trim() }));
     const all = [...kept, ...harvested].sort((a, b) => a.date.localeCompare(b.date));
     const notes = all.length <= 6 ? all : Array.from({ length: 6 }, (_, i) => all[Math.round((i * (all.length - 1)) / 5)]);
-    const read = seasons.filter(s => yearOf(s.based_on?.to || s.created_at?.slice(0, 10)) === year);
+    const read = seasons.filter(s => yearOf(seasonTo(s.based_on || {}) || s.created_at?.slice(0, 10)) === year);
     return { places, summary, kept: keptMoments, notes, read, cover: yearCover(year, moments) };
   }, [year, data, moments, seasons, highlights]);
 

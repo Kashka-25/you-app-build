@@ -130,7 +130,7 @@ export default function ChaptersView() {
 
   const entries = [
     ...moments.map(m => ({ kind: "memory", date: m.moment_date, key: `m-${m.id}`, moment: m })),
-    ...seasons.map(s => ({ kind: "reading", date: s.based_on?.to || dayOf(s.created_at), key: `s-${s.id}`, reading: s }))
+    ...seasons.map(s => ({ kind: "reading", date: seasonTo(s.based_on || {}) || dayOf(s.created_at), key: `s-${s.id}`, reading: s }))
   ].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
   // A chapter's marker goes just before the first entry inside it, or the
