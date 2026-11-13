@@ -17,6 +17,7 @@
 | A3 + A4 Account-link migration | **Live (4 Nov):** 48 unreachable rows removed; items/memory/mood_log/user_xp are uuid → `auth.users` on delete cascade; 7 policies recreated. Items 42, memory 72 |
 | A5 Delete & export | **Live:** `delete-account` redeployed and clears the four tables itself; export adds `user_xp`, `dream_patterns`, `beta_feedback`, `arcanum_code_redemptions`. Still to do: delete a test account and confirm nothing is left |
 | B1 Double XP | Fixed: tending a sown habit is its check-in |
+| B3 AI test pass | **Done 13 Nov on staging** (you-staging, test account, consent on): consent screen, entry reflection, weekly reflection, season, suggest chapters, Ask YOU, dream patterns and value challenges all worked and read well; daily-limit message checked by lowering the limit briefly. 8 calls, about US$0.13. Found and fixed in `fix/ai-test-findings`: a second memory stuck on "Saving…", medication advice in -ing form ("reducing your medication") slipping past moderation (now 27 moderation tests), season dates reading "9 Nov – 9 Nov", "1 moments" / "Read my 1 dreams" (dream reading now waits for a second dream). Still to do: scan a page, on a phone |
 | C1 PursYOUts | Compact cards, quick add and painted header were already live; a small "Sow your week" button in the header (Cassidy chose a button over a card) |
 | D1 Bundle | Non-core screens lazy-loaded: main chunk 1.70 → 1.43 MB (495 → 424 KB gzip). The rest is the 245 KB values Codex and core libraries |
 | E2 Tester note | Rewritten for the simple beta; README replaced |

@@ -63,6 +63,13 @@ function mondayOf(date: string) {
   return d.toISOString().slice(0, 10);
 }
 
+// The Sunday that ends the week starting on `monday`.
+function weekEnd(monday: string) {
+  const d = new Date(monday + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + 6);
+  return d.toISOString().slice(0, 10);
+}
+
 // The week's average mood (0–100), from scores or (older entries) words.
 const MID: Record<string, number> = { rough: 10, low: 30, okay: 50, good: 70, great: 90 };
 function averageMood(rows: { score: number | null; mood: string }[]) {
@@ -202,7 +209,8 @@ Deno.serve(async req => {
           entries: (entries || []).length,
           moments: (moments || []).length,
           from: kind === "current" ? weeks[0] : from,
-          to: kind === "current" ? weeks[weeks.length - 1] : to,
+          // The end of the last week read, not its Monday (it read "9 Nov – 9 Nov").
+          to: kind === "current" ? weekEnd(weeks[weeks.length - 1]) : to,
           sources: used,
           kind,
           ...(isDate(body.turning) && { turning: body.turning }),

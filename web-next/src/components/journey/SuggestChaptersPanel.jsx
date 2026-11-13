@@ -58,7 +58,7 @@ export default function SuggestChaptersPanel() {
               <span className="text-caption text-[var(--ai-text-3)] flex-none">{niceDate(c.range_start)} – {niceDate(c.range_end)}</span>
             </div>
             <div className="text-bodySm text-[var(--ai-text-2)] mt-1">{c.blurb}</div>
-            <div className="text-caption text-[var(--ai-text-3)] mt-1">{(c.moment_titles || []).length} moments</div>
+            <div className="text-caption text-[var(--ai-text-3)] mt-1">{(c.moment_titles || []).length} {(c.moment_titles || []).length === 1 ? "moment" : "moments"}</div>
           </div>
         ))}
         {error && <div className="text-bodySm text-red-500 mt-2 mb-2">{error}</div>}
