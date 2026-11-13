@@ -57,6 +57,10 @@ export default function AddMomentModal({ open, onClose, moment, defaults }) {
     setPhotosChanged(false);
     setPreparing(0);
     setError("");
+    // The window is reused, so a finished save or delete mustn't leave the
+    // next one stuck on "Saving…" (found in the 13 Nov AI test).
+    setSaving(false);
+    setDeleting(false);
     // Keyed on the default values, not the object, so a parent re-render
     // can't reset the form mid-typing.
   }, [open, moment, defaults?.momentDate, defaults?.stopId]);
@@ -120,6 +124,7 @@ export default function AddMomentModal({ open, onClose, moment, defaults }) {
       } else {
         await addMoment({ title: title.trim(), momentDate, description: description.trim(), photos, stopId: place });
       }
+      setSaving(false);
       close();
     } catch (e) {
       console.error("[AddMomentModal] save failed:", e);

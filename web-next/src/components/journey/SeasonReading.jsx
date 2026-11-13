@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X, Bookmark, RefreshCw, Trash2 } from "lucide-react";
 import { useAppData } from "../../lib/AppDataContext";
 import { describeSources } from "../../lib/aiSources";
+import { seasonTo } from "../../lib/seasonRange";
 import { easeOut } from "../ui/motion";
 
 // A season reading, full screen (Cassidy, Nov 2): "the read comes up as a
@@ -116,7 +117,7 @@ export default function SeasonReading({ reading, fresh = false, onClose, onChang
 
             <motion.div {...rise(0)} className="text-label uppercase tracking-[0.2em] text-[#E8C877] mt-6">
               {label(reading)}
-              {based.from && <span className="text-[var(--ai-text-3)]"> · {niceDate(based.from)} – {niceDate(based.to || based.from)}</span>}
+              {based.from && <span className="text-[var(--ai-text-3)]"> · {niceDate(based.from)} – {niceDate(seasonTo(based))}</span>}
             </motion.div>
             <motion.h1 {...rise(1)} className="font-serif text-[38px] leading-[1.1] ai-gold-text m-0 mt-3">{reading.name}</motion.h1>
             {reading.blurb && (

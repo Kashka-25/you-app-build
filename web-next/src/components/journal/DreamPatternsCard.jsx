@@ -90,7 +90,7 @@ export default function DreamPatternsCard({ dreamCount }) {
           {r.question && <div className="font-serif text-body ai-gold-text mt-3 italic">{r.question}</div>}
 
           <div className="text-caption text-[var(--ai-text-2)] mt-3">
-            Read from {patterns.dream_count} dreams
+            Read from {patterns.dream_count} {patterns.dream_count === 1 ? "dream" : "dreams"}
             {patterns.first_dream && ` · ${niceDate(patterns.first_dream)} – ${niceDate(patterns.last_dream)}`}
             {newSince > 0 && ` · ${newSince} new since`}
             {" · "}
@@ -103,9 +103,16 @@ export default function DreamPatternsCard({ dreamCount }) {
           <Guide className="mt-0.5">
             Symbols, feelings and threads that show up in more than one dream, held lightly. You'll be asked before anything is sent to AI.
           </Guide>
-          <AiButton size="sm" onClick={read} busy={reading} className="mt-2">
-            {reading ? "Reading your dreams…" : `Read my ${dreamCount} dreams`}
-          </AiButton>
+          {dreamCount >= 2 ? (
+            <AiButton size="sm" onClick={read} busy={reading} className="mt-2">
+              {reading ? "Reading your dreams…" : `Read my ${dreamCount} dreams`}
+            </AiButton>
+          ) : (
+            // Patterns need more than one dream to show up in.
+            <div className="text-caption text-[var(--ai-text-2)] mt-2">
+              Once you've recorded a second dream, YOU can look across them.
+            </div>
+          )}
         </>
       )}
       {message && <div className="text-caption text-[var(--ai-text-2)] mt-2">{message}</div>}

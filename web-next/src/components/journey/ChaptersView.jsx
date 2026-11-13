@@ -11,6 +11,7 @@ import SeasonCard from "./SeasonCard";
 import SeasonReading from "./SeasonReading";
 import YearAgoCard from "./YearAgoCard";
 import { Link } from "react-router-dom";
+import { seasonTo } from "../../lib/seasonRange";
 import { localDateKey } from "../../lib/week";
 
 function niceDate(dateStr) {
@@ -59,7 +60,7 @@ function ReadingCard({ reading }) {
           <AiLabel>{readingLabel(reading)}</AiLabel>
           {based.from && (
             <span className="text-caption text-[var(--ai-text-2)] flex-none">
-              {niceDate(based.from)} – {niceDate(based.to || based.from)}
+              {niceDate(based.from)} – {niceDate(seasonTo(based))}
             </span>
           )}
         </div>
