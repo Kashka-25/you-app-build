@@ -29,7 +29,9 @@ export default function PillarsPanel() {
   const totalLevel = shown.reduce((s, p) => s + p.level, 0);
   const growingMost = [...shown].sort((a, b) => b.xp - a.xp)[0];
   const summary = !growingMost || growingMost.xp === 0
-    ? "Nothing has grown yet. Tick a habit or write in your YOUrnal, and a Pillar will begin to grow."
+    // Only what really earns XP (C3, 13 Nov: journaling earns none, so it
+    // isn't offered as a way to grow).
+    ? "Nothing has grown yet. Check in on a habit or try a value's challenge, and a Pillar will begin to grow."
     : `${totalLevel ? `${totalLevel} ${totalLevel === 1 ? "level" : "levels"} grown so far` : "Your first level is on its way"} · ${growingMost.name} is growing most`;
 
   // What feeds the open Pillar: the pursuits growing in it, and the values it feeds.
@@ -48,7 +50,8 @@ export default function PillarsPanel() {
       <Guide className="mb-1" label="How Pillars grow">
         <ul className="list-none m-0 p-0 space-y-1.5">
           <li><span className="text-textPrimary font-medium">What belongs:</span> every habit, goal and dream lives in one Pillar.</li>
-          <li><span className="text-textPrimary font-medium">What grows it:</span> ticking those off, writing in your YOUrnal and focus sessions all give that Pillar XP.</li>
+          <li><span className="text-textPrimary font-medium">What grows it:</span> checking in on habits, finishing goals and dreams, focus sessions and your values' challenges all give a Pillar XP.</li>
+          <li><span className="text-textPrimary font-medium">What doesn't:</span> your YOUrnal is just for you, so writing there is never scored.</li>
           <li><span className="text-textPrimary font-medium">Levels:</span> as XP grows the petal reaches further, and each level earned becomes a solid band.</li>
           <li><span className="text-textPrimary font-medium">Look closer:</span> tap a Pillar to see what's growing in it.</li>
         </ul>
