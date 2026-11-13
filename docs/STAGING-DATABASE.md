@@ -38,7 +38,9 @@ site's only live.
    - `VITE_SUPABASE_ANON_KEY` = staging's anon key (Supabase → you-staging →
      Project Settings → API Keys → `anon`; it's public, like live's)
 
-   Then **Deploys → Trigger deploy** on the `staging` branch.
+   Then rebuild staging: **Deploys → the latest "Branch Deploy: staging" →
+   Options → Retry with latest branch commit**. (Not "Trigger deploy" or
+   "Publish deploy": those are for production.)
 2. **Supabase → you-staging → Authentication → URL Configuration.**
    Site URL `https://staging--you-app-build.netlify.app`; add redirect URLs
    `https://staging--you-app-build.netlify.app/**` and
