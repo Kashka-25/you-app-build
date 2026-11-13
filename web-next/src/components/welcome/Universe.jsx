@@ -19,7 +19,7 @@ import { GlimpseChapters, GlimpseFlower, GlimpseJournal, GlimpseKommYOUnity, Gli
 // at night. The page's own colours are --u-* variables (see SKY_STYLES).
 const PLACES = [
   { key: "home", name: "Home", icon: "home", color: "#d4a85a",
-    line: "Where each day begins. Begin by sowing three things a week to grow (a habit, a goal, a dream), take one small step a day, and harvest what grew at the week's end.",
+    line: "Where each day begins. Begin by sowing up to three of your PursYOUts a week to grow (a habit, goal, dream or idea), take one small step a day, and harvest what grew at the week's end.",
     why: "For a gentle nudge forward towards what matters to YOU.",
     Glimpse: GlimpseToday },
   { key: "yourney", name: "YOUrney", icon: "yourney", color: "#c4783a",
@@ -31,11 +31,11 @@ const PLACES = [
     why: "To empty your head, make sense of a feeling, or catch an idea before it slips away.",
     Glimpse: GlimpseJournal },
   { key: "kommyounity", name: "KommYOUnity", icon: "community", color: "#c98e6b",
-    line: "Where your own journey meets the people you love. Invite your friends, then share the moments you choose, cheer each other on, and grow side by side. KommYOUnity runs on Kronk, a small, independent social space: no ads, no algorithm deciding what you see (your feed simply shows people you follow, newest first), and run by real people rather than a company selling your attention.",
+    line: "Where your own journey meets the people you love. Invite your friends, then share the moments you choose, cheer each other on, and grow side by side. KommYOUnity runs on Kronk, a small, independent social space: no ads, no algorithm deciding what you see (your feed simply shows people you follow, newest first), and run by real people rather than a company selling your attention. An Extra: switch it on whenever you'd like, in Settings → Extras.",
     why: "To grow alongside your friends, and share a win only when you want to.",
     Glimpse: GlimpseKommYOUnity },
   { key: "youniversity", name: "YOUniversity", icon: "youniversity", color: "#a06490",
-    line: "Short guided courses and tools for going deeper, paced gently with rest between parts so you can live what you learn. More are on the way.",
+    line: "Short guided courses and tools for going deeper, paced gently with rest between parts so you can live what you learn. More are on the way. An Extra: switch it on whenever you'd like, in Settings → Extras.",
     why: "For when something keeps coming up (boundaries, a dream, a value) and you'd like a kind guide through it.",
     Glimpse: GlimpseYOUniversity },
   { key: "you", name: "YOU", icon: "you", color: "#5f7f72",
@@ -224,7 +224,7 @@ function Purpose() {
         A quiet place to grow into who you already are.
       </p>
       <p className="text-body text-textSecondary mb-3">
-        YOU is a living biography: your days, your values, your dreams and your story, held gently in one place. Not a feed to keep up with, and no streaks to keep. Just you, a little at a time, at your own pace.
+        YOU is a living biography: your days, your values, your dreams and your story, held gently in one place. Not a feed to keep up with, and nothing taken from you if you miss a day. Just you, a little at a time, at your own pace.
       </p>
       <p className="text-body text-textSecondary mb-3">
         Everything around the centre is a part of you. Explore it in any order; it all grows together.
