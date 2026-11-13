@@ -131,6 +131,14 @@
   0%, 100% { opacity: 0.35; }
   50% { opacity: 1; }
 }
+/* The soft arrival after the opening splash (App.jsx): once, paint only. */
+@media (prefers-reduced-motion: no-preference) {
+  .you-arrive { animation: you-arrive 450ms ease-out backwards; }
+}
+@keyframes you-arrive {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
   [data-mode="dark"] .you-sky::before,
   [data-mode="dark"] .you-sky::after { animation: none; }

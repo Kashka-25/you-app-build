@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { dailyLine } from "../../lib/dailyLine";
 
 export function Skeleton({ className = "" }) {
   return (
@@ -11,9 +12,11 @@ export function Skeleton({ className = "" }) {
 }
 
 // The branded splash: the full YOU logo (with "Your Own Universe"), the one
-// Cassidy chose for opening (Oct 19), + a warm invitation line + a gently
-// pulsing status label. index.html paints the same logo before the app's
-// code arrives, so opening YOU shows one splash, not two pages.
+// Cassidy chose for opening (Oct 19), and today's line (lib/dailyLine.js).
+// index.html paints the same logo and line before the app's code arrives,
+// with one slow fade in, so opening YOU shows one splash, not two pages.
+// Nothing here moves (sprint C4, 13 Nov: intimate, not busy): the status
+// ("Signing you in") is for screen readers only, never a blinking word.
 // Deliberately left un-wrapped (no full-viewport container) so it drops into
 // either a full-screen boot splash (App.jsx) or a contained preview card
 // (Styleguide) without fighting either one's own layout.
@@ -29,17 +32,9 @@ export function LoadingScreen({ label = "Gathering your story" }) {
       />
       {/* Already on screen from index.html's splash, so no fade-in here. */}
       <div className="font-serif text-body italic text-textSecondary max-w-[240px]">
-        Come back to yourself, whenever you're ready.
+        {dailyLine()}
       </div>
-      {label && (
-        <motion.div
-          animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className="text-caption uppercase tracking-wide text-textMuted"
-        >
-          {label}
-        </motion.div>
-      )}
+      {label && <div role="status" className="sr-only">{label}</div>}
     </div>
   );
 }

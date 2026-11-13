@@ -53,10 +53,26 @@
       .boot img { width: 100%; max-width: 240px; height: auto; }
       .boot p { margin: 0; max-width: 240px; font: italic 500 16px/1.4 "Cormorant Garamond", Georgia, serif; color: #6A5646; }
       html[data-mode="dark"] .boot p { color: #B8B5D6; }
+      /* One slow breath in, then stillness (sprint C4). Paint only: it never
+         delays the app, and with reduced motion nothing moves at all. */
+      @media (prefers-reduced-motion: no-preference) {
+        .boot { animation: boot-breath 1.2s ease-out both; }
+        @keyframes boot-breath { from { opacity: 0; } to { opacity: 1; } }
+      }
     </style>
   </head>
   <body>
-    <div id="root"><div class="boot"><img src="/logo-full.png" alt="YOU — Your Own Universe" width="720" height="621" /><p>Come back to yourself, whenever you're ready.</p></div></div>
+    <div id="root"><div class="boot"><img src="/logo-full.png" alt="YOU — Your Own Universe" width="720" height="621" /><p id="boot-line">Come back to yourself, whenever you're ready.</p></div></div>
+    <!-- Today's line, the same one the app shows (src/lib/dailyLine.js keeps
+         the real list; dailyLine.test.js checks this copy matches). -->
+    <script>
+      try {
+        var lines = ["Come back to yourself, whenever you're ready.", "Take a breath. You're here.", "Nothing to catch up on. Just you.", "Arrive as you are.", "Slowly is still forward.", "There's room here for all of you.", "You can't rush a bloom.", "A quiet moment, just for you.", "Every day is a page of your story.", "Gently. There's no hurry here."];
+        var d = new Date();
+        var day = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+        document.getElementById("boot-line").textContent = lines[day % lines.length];
+      } catch (e) {}
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

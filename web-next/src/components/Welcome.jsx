@@ -14,6 +14,8 @@ import { BetaBadge } from "./SignIn";
 // out (Skip, Back, Escape). Nothing moves until the Seeker taps.
 // Rewritten Nov 3 for the simple-core beta: the five places, XP, values that
 // grow, reflections over time and Extras, in the words of the Kronk intro.
+// Checked against the app on 13 Nov (sprint C4): where each place really is,
+// what the + adds, ideas as a PursYOUt, and what YOUrney holds.
 const STEPS = [
   {
     key: "welcome",
@@ -27,13 +29,13 @@ const STEPS = [
     image: "/images/home/welcome-sunrise.webp",
     icon: MapIcon,
     title: "Five places, that's all",
-    body: "Everything in YOU lives in five places. You'll find them along the bar at the bottom and in the side menu.",
+    body: "Everything in YOU lives in five places. Four sit on the bar at the bottom, around the round + that adds anything: a PursYOUt, a journal entry, a memory or a place. YOUrney is in the side menu, with all five.",
     points: [
       "Home · check in with how you feel, and see what today holds",
       "YOUrnal · write it down, or photograph a handwritten page",
-      "YOUrney · your memories and moments: the story so far",
-      "PursYOUts · your habits, goals and dreams in one clear vision",
-      "YOU · your values and Pillars: your whole self at a glance"
+      "PursYOUts · your habits, goals, dreams and ideas, by Pillar",
+      "YOU · your values and your eight Pillars, the areas of your life: your whole self at a glance",
+      "YOUrney · your memories, chapters and seasons: the story so far, and who you're becoming"
     ]
   },
   {
@@ -42,7 +44,7 @@ const STEPS = [
     icon: Sprout,
     title: "Your week, in three steps",
     body: "YOU works in a gentle weekly rhythm, named after a garden. Every step earns XP.",
-    points: ["Sow · once a week, choose up to three of your PursYOUts to focus on", "Tend · each day, tick off one small step on Home (+3 XP, with a bonus for each week and month in a row)", "Harvest · at the week's end, look back at what grew", "Finish a habit, goal or dream · +10, +25 or +50 XP"]
+    points: ["Sow · once a week, choose up to three of your PursYOUts to focus on", "Tend · each day, tick off one small step on Home (+3 XP, with a bonus for each week and month in a row)", "Harvest · at the week's end, look back at what grew", "Finish a habit or idea, a goal or a dream · +10, +25 or +50 XP"]
   },
   {
     key: "compass",
