@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./lib/AuthContext";
 import SignIn, { SetNewPassword } from "./components/SignIn";
@@ -122,6 +122,16 @@ export default function App() {
   const welcoming = Boolean(userId) && !recovering && !prefs?.welcomed && !welcomeDone;
   // "See the welcome again" in Your Own Universe turns the preference off.
   useEffect(() => { if (prefs?.welcomed === false) setWelcomeDone(false); }, [prefs?.welcomed]);
+  // The soft arrival (sprint C4): when the opening splash gives way to the
+  // app, the first page fades in once, from the splash's own background.
+  // Only after the splash was really shown, never again on later pages,
+  // and not at all with reduced motion (tokens.css).
+  const splashShown = useRef(false);
+  useEffect(() => {
+    if (loading || !splashShown.current) return;
+    splashShown.current = false;
+    document.getElementById("root")?.classList.add("you-arrive");
+  }, [loading]);
   useThresholdOnOpen(!loading && Boolean(userId) && !recovering && !welcoming, Boolean(prefs?.plugins?.threshold));
   useSectionElement();
   useColourScale(prefs?.colour_scale);
@@ -151,6 +161,7 @@ export default function App() {
   }
 
   if (loading) {
+    splashShown.current = true;
     return (
       <div className="min-h-dvh bg-bg flex justify-center items-center font-sans">
         <LoadingScreen label="Signing you in" />
