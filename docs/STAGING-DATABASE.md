@@ -22,7 +22,15 @@ with the same structure as live and **only test accounts and test data**.
    (verify_jwt on, as on live). `yourigin-portfolio` belongs to YOUrigin and
    isn't deployed here.
 
-## Still to do, by Cassidy (dashboards)
+## Switched over (13 Nov 2026)
+Done in the dashboards and checked: Netlify's **Deploy Previews** and **Branch
+deploys** use you-staging's URL and anon key (Production unchanged); you-staging's
+auth Site URL and redirect URLs are the staging site and previews;
+`ANTHROPIC_API_KEY` is set on you-staging (its own key, "YOU app - staging").
+After a rebuild, the staging site's bundle names only you-staging and the live
+site's only live.
+
+## How it was set up (for next time)
 1. **Netlify → you-app-build → Site configuration → Environment variables.**
    For `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, add values for the
    **Deploy Previews** and **Branch deploys** contexts (leave **Production** as it is):
@@ -43,6 +51,7 @@ with the same structure as live and **only test accounts and test data**.
    - Leave `NOTION_*` unset so tester feedback on staging doesn't land in the
      real Build Notes, and `KRONK_*` unset (Kronk sign-in is live-only).
 4. **Sign up a test account** on the staging site once it's switched over.
+   (Open: Cassidy's staging test account.)
 
 ## Keeping staging in step
 - A migration pasted into live's SQL editor is pasted into staging's too

@@ -56,8 +56,8 @@ Needs `web-next/.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`; see
    Commit, push and merge only when Cassidy asks.
 3. **Real journals live in the live database.** Staging has its own project,
    `you-staging` (`oiiznskttnflnekbfykx`), with the same structure and test
-   data only (docs/STAGING-DATABASE.md). Until Netlify's staging and preview
-   contexts point at it, the staging site still uses live. Migrations and
+   data only (docs/STAGING-DATABASE.md); since 13 Nov the staging site and PR
+   deploy previews use it, and only production uses live. Migrations and
    function deploys go to both projects, staging first. Never read or copy
    user content.
 4. **Trust → clarity → polish.** The 21-day MVP sprint (4–25 Nov 2026, ~12
@@ -79,8 +79,8 @@ Needs `web-next/.env` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`; see
   a separate demo backend. Not built.
 
 ## Known risks
-- Staging's own database (you-staging) is built; the staging site still uses
-  live until Netlify's staging/preview environment variables are switched.
+- (Closed 13 Nov) Staging and production no longer share a database:
+  staging and deploy previews use you-staging.
 - Paid YOUniversity course content ships in the public JS bundle
   (`src/constants/arcana/`); must move behind RLS/Storage before selling.
 - Core legacy tables have no CREATE migrations; `supabase/schema/baseline.sql`
