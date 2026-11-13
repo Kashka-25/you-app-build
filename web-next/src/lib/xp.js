@@ -13,6 +13,14 @@ export const CHECKIN_XP = 3;
 export const WEEK_BONUS_XP = 5;
 export const MONTH_BONUS_XP = 10;
 
+// Tending a sown intention on Today is that day's check-in, so the same 3 XP.
+export const TEND_XP = CHECKIN_XP;
+
+// Travel is scored by what the trip gave you, not how many places you
+// ticked off: each memory or journal entry pinned to a Wandering's place
+// earns this, to the trip's Pillar. Unpinning or deleting takes it back.
+export const TRAVEL_MEMORY_XP = 10;
+
 export function streakBonus(daysInARow) {
   if (!daysInARow) return 0;
   return (daysInARow % 7 === 0 ? WEEK_BONUS_XP : 0) + (daysInARow % 30 === 0 ? MONTH_BONUS_XP : 0);
