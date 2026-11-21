@@ -9,9 +9,13 @@ import { localDateKey } from "../../lib/week";
 // 150 push-ups instead of 100, an hour instead of 30 minutes.
 // `compact` shows a habit with no steps as just its amount, for the Home row
 // that already has the habit's own tick.
-export default function HabitDay({ item, compact = false }) {
-  const { habitLogs, toggleHabitStep, setHabitAmount, setStepUnit } = useAppData();
+// `day` shows a past day that's already done instead (Cassidy, Nov 20): no
+// ticks, just how much of each step, which can be filled in or changed.
+export default function HabitDay({ item, compact = false, day = null }) {
+  const { habitLogs, toggleHabitStep, setHabitAmount, setDayAmount, setStepUnit } = useAppData();
   const today = localDateKey();
+  const past = Boolean(day) && day < today;
+  const shown = past ? day : today;
   const steps = dailySteps(item);
   const single = steps.length === 1 && steps[0].key === "habit";
   if (compact && single && steps[0].amount == null) return null;
@@ -19,15 +23,19 @@ export default function HabitDay({ item, compact = false }) {
   return (
     <div className={single && compact ? "" : "mt-1.5 space-y-1"}>
       {steps.map(s => {
-        const log = habitLogs.find(l => l.item_id === item.id && l.day === today && l.step === s.key);
+        const log = habitLogs.find(l => l.item_id === item.id && l.day === shown && l.step === s.key);
         return (
           <StepRow
             key={s.key}
             step={s}
             log={log}
-            hideTick={single && compact}
+            hideTick={past || (single && compact)}
+            past={past}
             onToggle={() => toggleHabitStep(item.id, s.key, s.amount).catch(e => console.error("[HabitDay] tick failed:", e))}
-            onAmount={v => log && setHabitAmount(log.id, v).catch(e => console.error("[HabitDay] amount failed:", e))}
+            onAmount={v => (past
+              ? setDayAmount(item.id, day, s.key, v)
+              : log && setHabitAmount(log.id, v)
+            )?.catch?.(e => console.error("[HabitDay] amount failed:", e))}
             onUnit={u => setStepUnit(item.id, s.key, u).catch(e => console.error("[HabitDay] unit failed:", e))}
           />
         );
@@ -44,10 +52,12 @@ const KINDS = [
   { key: "hrs", label: "hrs" }
 ];
 
-function StepRow({ step, log, hideTick, onToggle, onAmount, onUnit }) {
+function StepRow({ step, log, hideTick, past = false, onToggle, onAmount, onUnit }) {
   const [editing, setEditing] = useState(false);
-  const done = Boolean(log);
-  const actual = log?.amount != null ? Number(log.amount) : step.amount;
+  // On a past day the day itself is done, so every step's amount can be set.
+  const done = past || Boolean(log);
+  const actual = log?.amount != null ? Number(log.amount) : past && !log ? null : step.amount;
+  const when = past ? "that day" : "today";
   const [value, setValue] = useState(actual ?? "");
   const unit = step.unit || "";
   const timed = isTimeUnit(unit);
@@ -98,7 +108,7 @@ function StepRow({ step, log, hideTick, onToggle, onAmount, onUnit }) {
               value={value}
               onChange={e => setValue(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
-              aria-label={`How much ${step.text} today`}
+              aria-label={`How much ${step.text} ${when}`}
               className="w-16 bg-surface2 border border-borderC rounded-sm px-1.5 py-0.5 text-caption text-textPrimary outline-none focus:border-forestAccent"
             />
             {canChoose ? (
@@ -127,7 +137,7 @@ function StepRow({ step, log, hideTick, onToggle, onAmount, onUnit }) {
             type="button"
             disabled={!done}
             onClick={start}
-            title={done ? "Tap to change how much you did today" : undefined}
+            title={done ? `Tap to change how much you did ${when}` : undefined}
             className={`flex-none text-caption rounded-full px-2 min-h-[26px] ${done ? "bg-[color-mix(in_srgb,var(--gold)_16%,transparent)] text-textPrimary" : "text-textMuted"}`}
           >
             {actual != null ? formatAmount(actual, unit) : done ? "How much?" : ""}
