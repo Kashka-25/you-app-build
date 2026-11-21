@@ -85,6 +85,8 @@ export default function ItemCard({ item }) {
   const [celebrating, setCelebrating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editingSteps, setEditingSteps] = useState(false);
+  // A past day picked in the week row, to see or fill in how much was done.
+  const [pastDay, setPastDay] = useState(null);
   // A dream's travel plan, if it has one (Wanderings live inside Dreams).
   const wandering = item.type === "dream" ? wanderings.find(w => w.item_id === item.id) : null;
   const wanderingStopCount = wandering ? wanderingStops.filter(s => s.wandering_id === wandering.id).length : 0;
@@ -297,21 +299,41 @@ export default function ItemCard({ item }) {
                       {lastSevenDays().map(({ key, label, date }) => {
                         const isToday = key === today;
                         const done = doneDays.has(key);
+                        const picked = pastDay === key;
                         return (
                           <div key={key} className="text-center">
                             <button
                               type="button"
                               disabled={isToday}
-                              onClick={() => logPastDay(item.id, key).catch(e => console.error("[ItemCard] past day failed:", e))}
-                              className={`w-7 h-7 rounded-full border ${done ? "bg-gold border-gold" : "border-borderC"} ${isToday ? "ring-1 ring-offset-1 ring-gold/50 ring-offset-surface1" : "hover:border-gold"}`}
-                              aria-label={isToday ? `Today: ${done ? "done" : "not yet"}` : `${label} ${date}: ${done ? "done, tap to take it back" : "tap if you did it"}`}
+                              onClick={() => {
+                                // A done day opens to show how much; a missed one is
+                                // filled in and opens so the amounts can be added.
+                                if (done) return setPastDay(picked ? null : key);
+                                setPastDay(key);
+                                logPastDay(item.id, key).catch(e => console.error("[ItemCard] past day failed:", e));
+                              }}
+                              aria-expanded={done ? picked : undefined}
+                              className={`w-7 h-7 rounded-full border ${done ? "bg-gold border-gold" : "border-borderC"} ${isToday ? "ring-1 ring-offset-1 ring-gold/50 ring-offset-surface1" : picked ? "ring-2 ring-offset-1 ring-forestAccent ring-offset-surface1" : "hover:border-gold"}`}
+                              aria-label={isToday ? `Today: ${done ? "done" : "not yet"}` : `${label} ${date}: ${done ? "done, tap to see how much" : "tap if you did it"}`}
                             />
                             <div className={`text-[10px] mt-0.5 ${isToday ? "text-gold font-semibold" : "text-textMuted"}`}>{label}</div>
                           </div>
                         );
                       })}
                     </div>
-                    <div className="text-[11px] text-textMuted mt-1">Forgot a day? Tap it to fill it in.</div>
+                    <div className="text-[11px] text-textMuted mt-1">Forgot a day? Tap it to fill it in, then add how much.</div>
+                    {pastDay && doneDays.has(pastDay) && (
+                      <PastDay
+                        item={item}
+                        day={pastDay}
+                        canTakeBack={habitLogs.some(l => l.item_id === item.id && l.day === pastDay) && !memory.some(m => m.xp > 0 && m.date_key === pastDay && m.name?.startsWith(`${item.name} (check-in #`))}
+                        onTakeBack={() => {
+                          setPastDay(null);
+                          logPastDay(item.id, pastDay).catch(e => console.error("[ItemCard] take back failed:", e));
+                        }}
+                        onClose={() => setPastDay(null)}
+                      />
+                    )}
                   </div>
 
                   <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
@@ -430,5 +452,25 @@ export default function ItemCard({ item }) {
 
       <AddItemModal open={editing} item={item} onClose={() => setEditing(false)} />
     </motion.div>
+  );
+}
+
+// One past day of a habit, opened from the week row: how much of each step
+// was done (Cassidy, Nov 20), with a way to take the day back.
+function PastDay({ item, day, canTakeBack, onTakeBack, onClose }) {
+  const title = new Date(day + "T00:00:00").toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" });
+  return (
+    <div className="mt-2.5 rounded-md border border-borderC bg-surface2 px-3 py-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-caption font-medium text-textPrimary">{title}</div>
+        <button type="button" onClick={onClose} className="min-h-[32px] px-1 text-caption text-textMuted">Close</button>
+      </div>
+      <HabitDay item={item} day={day} />
+      {canTakeBack && (
+        <button type="button" onClick={onTakeBack} className="mt-1.5 min-h-[32px] text-caption text-textMuted underline underline-offset-2">
+          I didn't do it that day
+        </button>
+      )}
+    </div>
   );
 }
