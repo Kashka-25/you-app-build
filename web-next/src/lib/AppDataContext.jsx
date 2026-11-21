@@ -576,6 +576,9 @@ export function AppDataProvider({ children }) {
   // six days, ticked from the habit's week row. It earns the plain check-in
   // XP for that day (no streak bonus, so catching up can't farm bonuses) and
   // counts toward days in a row from then on. Tapping it again takes it back.
+  // Each step is saved on its own with its usual amount (Cassidy, Nov 20), so
+  // a past day adds to the totals like today does; amounts can be changed
+  // afterwards with setDayAmount.
   async function logPastDay(itemId, day) {
     const item = items.find(i => i.id === itemId);
     if (!item || day >= todayKey()) return;
@@ -591,9 +594,10 @@ export function AppDataProvider({ children }) {
     } else {
       // Done the old way (a check-in with no log): already counted, leave it.
       if (habitDays(item, memory, habitLogs).has(day)) return;
-      const res = await supabase.from("habit_logs").insert({ user_id: userId, item_id: itemId, day, step: "habit", amount: dailySteps(item)[0]?.amount ?? null }).select().single();
+      const rows = dailySteps(item).map(s => ({ user_id: userId, item_id: itemId, day, step: s.key, amount: s.amount ?? null }));
+      const res = await supabase.from("habit_logs").insert(rows).select();
       if (res.error) throw res.error;
-      setHabitLogs(prev => [res.data, ...prev]);
+      setHabitLogs(prev => [...(res.data || []), ...prev]);
       await setStepXp(item, "catchup", day, CHECKIN_XP);
       days[slot] = true;
     }
@@ -647,6 +651,20 @@ export function AppDataProvider({ children }) {
     setHabitLogs(prev => prev.map(l => (l.id === logId ? { ...l, amount: value } : l)));
     const res = await supabase.from("habit_logs").update({ amount: value, updated_at: new Date().toISOString() }).eq("id", logId).eq("user_id", userId);
     if (res.error) { loadHabitLogs(); throw res.error; }
+  }
+
+  // How much was done on a past day that's already done: changes that step's
+  // log, or adds one (a day filled in before steps kept their own amounts).
+  // Never touches XP or which days are done.
+  async function setDayAmount(itemId, day, stepKey, amount) {
+    if (day >= todayKey()) return;
+    const value = amount === "" || amount == null ? null : Number(amount);
+    const log = habitLogs.find(l => l.item_id === itemId && l.day === day && l.step === stepKey);
+    if (log) return setHabitAmount(log.id, value);
+    if (value == null) return;
+    const res = await supabase.from("habit_logs").insert({ user_id: userId, item_id: itemId, day, step: stepKey, amount: value }).select().single();
+    if (res.error) throw res.error;
+    setHabitLogs(prev => [res.data, ...prev]);
   }
 
   async function toggleMilestone(itemId, mi) {
@@ -2425,7 +2443,7 @@ export function AppDataProvider({ children }) {
     journalInsights, journalPhotos, weeklyReflections, recentInsights,
     totalXP, level, pillars,
     addItem, completeItem, unachieveItem, deleteItem, editItem, toggleDay, toggleMilestone, addMilestone, removeMilestone, setMilestones,
-    habitLogs, toggleHabitStep, setHabitAmount, habitStreak, logPastDay, backfillHabit, clearHabitHistory, setStepUnit,
+    habitLogs, toggleHabitStep, setHabitAmount, setDayAmount, habitStreak, logPastDay, backfillHabit, clearHabitHistory, setStepUnit,
     getPrestigeTier, prestigeItem,
     activeValues, valueSlots, setValueStatus, saveValueDefinition,
     addValue, saveProfile, completeChallenge, addMoment, editMoment, deleteMoment, suggestChapters, saveChapters,
